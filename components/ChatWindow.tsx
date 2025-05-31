@@ -309,7 +309,7 @@ export function ChatWindow(props: {
           onChange={chat.handleInputChange}
           onSubmit={sendMessage}
           loading={chat.isLoading || intermediateStepsLoading}
-          placeholder={props.placeholder ?? "What's it like to be a pirate?"}
+          placeholder={props.placeholder ?? ""}
         >
           {props.showIngestForm && (
             <Dialog>
