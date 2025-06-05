@@ -13,6 +13,8 @@ import {
   SystemMessage,
 } from "@langchain/core/messages";
 
+import {getNCDArticles} from "./tools/getNCD";
+
 export const runtime = "edge";
 
 const convertVercelMessageToLangChainMessage = (message: VercelChatMessage) => {
@@ -38,8 +40,7 @@ const convertLangChainMessageToVercelMessage = (message: BaseMessage) => {
     return { content: message.content, role: message._getType() };
   }
 };
-
-const AGENT_SYSTEM_TEMPLATE = `You are a talking parrot named Polly. All final responses must be how a talking parrot would respond. Squawk often!`;
+const AGENT_SYSTEM_TEMPLATE = `answer questions as medical assistants helping to get information for medical insurance preauthorization.`;
 
 /**
  * This handler initializes and calls an tool caling ReAct agent.

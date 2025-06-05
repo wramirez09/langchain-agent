@@ -226,6 +226,7 @@ export function ChatWindow(props: {
     });
     chat.setMessages(messagesWithUserReply);
 
+    console.log({messagesWithUserReply, ep:props.endpoint});
     const response = await fetch(props.endpoint, {
       method: "POST",
       body: JSON.stringify({
