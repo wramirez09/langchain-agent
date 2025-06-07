@@ -1,12 +1,12 @@
 "use client";
 import { Title, Select, Textarea, Container } from "@mantine/core";
-import { useForm } from "@mantine/form";
 
 import React from "react";
 import { Data, StateData } from "../metaData/states";
 
-type Props = {};
-
+type Props = {
+  onChange: any;
+};
 const getStateOptions = (data: StateData[]) => {
   return data.map((state) => ({
     value: state.description,
@@ -14,35 +14,35 @@ const getStateOptions = (data: StateData[]) => {
   }));
 };
 
-const Form: React.FC<Props> = (props: Props) => {
-  const form = useForm();
+const FormInputs: React.FC<Props> = (props: Props) => {
   const options = getStateOptions(Data);
-  console.log("State Options:", options);
+
   return (
     <Container size="sm">
-      <Title order={1} className="text-white mb-4">
+      <Title order={1} className="text-white my-6">
         Medicare Pre Authorization Assitance
       </Title>
-      <form onSubmit={form.onSubmit((values) => console.log(values))}>
-        <Select
-          label="Select State"
-          name="state"
-          placeholder="Pick value"
-          data={options}
-          searchable
-          clearable
-          className="text-white my-6"
-        />
-        <Textarea
-          label="Treatment or Service"
-          name="treatmentOrService"
-          // description="Input description"
-          placeholder="Input placeholder"
-          className="text-white"
-        />
-      </form>
+
+      <Select
+        label="Select State"
+        name="state"
+        placeholder="Pick value"
+        data={options}
+        searchable
+        clearable
+        className="text-white my-6"
+        onChange={props.onChange}
+      />
+      <Textarea
+        label="Treatment or Service"
+        name="treatmentOrService"
+        // description="Input description"
+        placeholder="Input placeholder"
+        className="text-white"
+        onChange={props.onChange}
+      />
     </Container>
   );
 };
 
-export default Form;
+export default FormInputs;

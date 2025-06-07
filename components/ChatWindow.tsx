@@ -22,6 +22,8 @@ import {
   DialogTrigger,
 } from "./ui/dialog";
 import { cn } from "@/utils/cn";
+import { useForm } from "@mantine/form";
+import FormInputs from "@/app/agents/components/Form";
 
 function ChatMessages(props: {
   messages: Message[];
@@ -78,11 +80,12 @@ export function ChatInput(props: {
       className={cn("flex w-full flex-col", props.className)}
     >
       <div className="border border-input bg-secondary rounded-lg flex flex-col gap-2 max-w-[768px] w-full mx-auto">
+        {/* <FormInputs onChange={props.onChange} /> */}
         <input
           value={props.value}
           placeholder={props.placeholder}
           onChange={props.onChange}
-          className="border-none outline-none bg-transparent p-4"
+          className="border-none outline-none bg-transparent p-4 text-white my-9"
         />
 
         <div className="flex justify-between ml-4 mr-2 mb-2">
@@ -167,7 +170,7 @@ export function ChatLayout(props: { content: ReactNode; footer: ReactNode }) {
 
 export function ChatWindow(props: {
   endpoint: string;
-  emptyStateComponent: ReactNode | JSX.Element | any;
+  emptyStateComponent?: ReactNode | JSX.Element | any;
   placeholder?: string;
   emoji?: string;
   showIngestForm?: boolean;
@@ -207,6 +210,7 @@ export function ChatWindow(props: {
   });
 
   async function sendMessage(e: FormEvent<HTMLFormElement>) {
+    console.log({ formEvent: e });
     e.preventDefault();
     if (chat.isLoading || intermediateStepsLoading) return;
 

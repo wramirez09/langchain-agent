@@ -4,7 +4,7 @@ import { Message as VercelChatMessage, StreamingTextResponse } from "ai";
 import { createReactAgent } from "@langchain/langgraph/prebuilt";
 import { ChatOpenAI } from "@langchain/openai";
 import { SerpAPI } from "@langchain/community/tools/serpapi";
-import { Calculator } from "@langchain/community/tools/calculator";
+
 import {
   AIMessage,
   BaseMessage,
@@ -14,8 +14,10 @@ import {
 } from "@langchain/core/messages";
 
 import { NCDCoverageSearchTool } from "./tools/NCDCoverageSearchTool";
-
-
+import { localLcdSearchTool } from "./tools/localLcdSearchTool";
+import { localCoverageArticleSearchTool } from "./tools/localArticleSearchTool";
+import { policyContentExtractorTool } from "./tools/policyContentExtractorTool";
+import { agentPrompt } from "./agentPrompt";
 
 export const runtime = "edge";
 
@@ -42,7 +44,16 @@ const convertLangChainMessageToVercelMessage = (message: BaseMessage) => {
     return { content: message.content, role: message._getType() };
   }
 };
-const AGENT_SYSTEM_TEMPLATE = `Get Related NCD Articles from users query`;
+const AGENT_SYSTEM_TEMPLATE = `Assist user in gettin information about Medicare prior authorization requirements.
+You are an expert Medicare Prior Authorization Assistant for healthcare providers.
+Your primary goal is to help providers understand the requirements for obtaining pre-approval for treatments and services under Medicare. You must act as a knowledgeable and reliable resource, streamlining their research.
+Here's your step-by-step workflow:
+1.  Understand the Request:
+    * Carefully analyze the provider's query to identify the specific treatment/service, relevant diagnosis (if provided), and the patient's U.S. state.
+2.  Strategize Policy Search:
+    * Prioritize Local Coverage: If a patient's state is specified, your first priority is to use the 'local_lcd_search' tool and 'local_coverage_article_search' tool. Local policies (LCDs and Articles) often contain the most specific details on coding, documentation, and medical necessity for a region.
+    * Include National Coverage: Also use the 'ncd_coverage_search' tool to identify National Coverage Determinations (NCDs). NCDs establish the foundational Medicare coverage rules nationwide.
+    * Identify URLs: From the output of these search tools, pinpoint the direct URLs to the most relevant policy documents. `;
 
 /**
  * This handler initializes and calls an tool caling ReAct agent.
@@ -69,8 +80,10 @@ export async function POST(req: NextRequest) {
     // You can remove this or use a different tool instead.
     const tools = [
       new SerpAPI(),
-      new NCDCoverageSearchTool()
-      
+      new NCDCoverageSearchTool(),
+      localLcdSearchTool,
+      localCoverageArticleSearchTool,
+      policyContentExtractorTool,
     ];
     const chat = new ChatOpenAI({
       model: "gpt-4o-mini",
@@ -89,7 +102,7 @@ export async function POST(req: NextRequest) {
        *
        * https://langchain-ai.github.io/langgraphjs/tutorials/quickstart/
        */
-      messageModifier: new SystemMessage(AGENT_SYSTEM_TEMPLATE),
+      // messageModifier: new SystemMessage(AGENT_SYSTEM_TEMPLATE),
     });
 
     if (!returnIntermediateSteps) {
@@ -132,8 +145,10 @@ export async function POST(req: NextRequest) {
        * they are generated as JSON objects, so streaming and displaying them with
        * the AI SDK is more complicated.
        */
-      const result = await agent.invoke({ messages });
-      
+      const result = await agent.invoke({
+        messages,
+        // Removed 'agent_scratchpad' as it is not a recognized property
+      });
 
       return NextResponse.json(
         {
