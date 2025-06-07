@@ -22,7 +22,7 @@ export function ChatMessageBubble(props: {
         </div>
       )}
 
-      <div className="whitespace-pre-wrap flex flex-col">
+      <div className="whitespace-pre-wrap flex flex-col text-white">
         <span>{props.message.content}</span>
 
         {props.sources && props.sources.length ? (

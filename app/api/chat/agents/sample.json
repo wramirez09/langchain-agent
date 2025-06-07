@@ -1,0 +1,548 @@
+POST /api/chat/agents 200 in 7859ms
+✓ Compiled in 324ms (1299 modules)
+GET /agents?show_intermediate_steps=on 200 in 45ms
+✓ Compiled in 158ms (1299 modules)
+GET /agents?show_intermediate_steps=on 200 in 17ms
+✓ Compiled in 144ms (1299 modules)
+GET /agents?show_intermediate_steps=on 200 in 11ms
+✓ Compiled in 164ms (1299 modules)
+GET /agents?show_intermediate_steps=on 200 in 17ms
+POST /api/chat/agents 200 in 6577ms
+POST /api/chat/agents 200 in 7507ms
+✓ Compiled in 288ms (1299 modules)
+GET /agents?show_intermediate_steps=on 200 in 35ms
+✓ Compiled in 150ms (1299 modules)
+GET /agents?show_intermediate_steps=on 200 in 16ms
+✓ Compiled in 79ms (483 modules)
+GET /agents?show_intermediate_steps=on 200 in 14ms
+✓ Compiled in 125ms (483 modules)
+GET /agents?show_intermediate_steps=on 200 in 15ms
+✓ Compiled /api/chat/agents in 116ms (816 modules)
+GET /agents?show_intermediate_steps=on 200 in 38ms
+Agent result: {
+ messages: [
+ HumanMessage {
+ lc_serializable: true,
+ lc_kwargs: {
+ content: 'MRI',
+ additional_kwargs: {},
+ response_metadata: {},
+ id: '98536082-c6de-4d92-8545-7e24bdce8767'
+},
+ lc_namespace: [ 'langchain_core', 'messages' ],
+ content: 'MRI',
+ name: undefined,
+ additional_kwargs: {},
+ response_metadata: {},
+ id: '98536082-c6de-4d92-8545-7e24bdce8767'
+},
+ AIMessage {
+ lc_serializable: true,
+ lc_kwargs: {
+ content: 'Could you please provide more details about the MRI? Are you looking for information on the procedure, indications for the MRI, or something specific related to medical insurance preauthorization?',
+ tool_calls: [],
+ invalid_tool_calls: [],
+ additional_kwargs: {},
+ response_metadata: {},
+ id: 'ec22e5cc-071c-476b-836f-9056f186c352'
+},
+ lc_namespace: [ 'langchain_core', 'messages' ],
+ content: 'Could you please provide more details about the MRI? Are you looking for information on the procedure, indications for the MRI, or something specific related to medical insurance preauthorization?',
+ name: undefined,
+ additional_kwargs: {},
+ response_metadata: {},
+ id: 'ec22e5cc-071c-476b-836f-9056f186c352',
+ tool_calls: [],
+ invalid_tool_calls: [],
+ usage_metadata: undefined
+},
+ HumanMessage {
+ lc_serializable: true,
+ lc_kwargs: {
+ content: 'how to get preapproval for medicare',
+ additional_kwargs: {},
+ response_metadata: {},
+ id: 'dbf4de35-ed92-4834-93cf-f7e09c340404'
+},
+ lc_namespace: [ 'langchain_core', 'messages' ],
+ content: 'how to get preapproval for medicare',
+ name: undefined,
+ additional_kwargs: {},
+ response_metadata: {},
+ id: 'dbf4de35-ed92-4834-93cf-f7e09c340404'
+},
+ AIMessage {
+ lc_serializable: true,
+ lc_kwargs: {
+ content: 'To obtain preapproval (or prior authorization) for an MRI under Medicare, you typically need to follow these steps:\n\n1. **Consult Your Doctor**: First, you need to have a consultation with your healthcare provider. They will determine if an MRI is medically necessary for your condition.\n\n2. **Obtain a Referral**: If your doctor believes that an MRI is necessary, they will provide you with a referral or order for the MRI.\n\n3. **Check Medicare Coverage**: Verify that the MRI is covered under Medicare. Most MRIs are covered if they are deemed medically necessary.\n\n4. **Submit the Request**: Your healthcare provider or the imaging facility will usually submit the prior authorization request to Medicare on your behalf. This request will include:\n   - The reason for the MRI\n   - Relevant medical history\n   - Any previous treatments or tests related to your condition\n\n5. **Wait for Approval**: Medicare will review the request and determine if the MRI is covered. This process can take a few days to a few weeks.\n\n6. **Receive Notification**: You will receive a notification from Medicare regarding the approval or denial of the MRI. If approved, you can proceed with scheduling the MRI.\n\n7. **Appeal if Necessary**: If the request is denied, you have the right to appeal the decision. Your healthcare provider can assist you with this process.\n\nIt\'s important to keep in close communication with your healthcare provider and the imaging facility throughout this process to ensure that all necessary documentation is submitted correctly. If you have any specific questions or need assistance with a particular case, feel free to ask!',
+ tool_calls: [],
+ invalid_tool_calls: [],
+ additional_kwargs: {},
+ response_metadata: {},
+ id: '3c7685e0-d2b3-45d5-85ed-a59e93399fdc'
+},
+ lc_namespace: [ 'langchain_core', 'messages' ],
+ content: 'To obtain preapproval (or prior authorization) for an MRI under Medicare, you typically need to follow these steps:\n\n1. **Consult Your Doctor**: First, you need to have a consultation with your healthcare provider. They will determine if an MRI is medically necessary for your condition.\n\n2. **Obtain a Referral**: If your doctor believes that an MRI is necessary, they will provide you with a referral or order for the MRI.\n\n3. **Check Medicare Coverage**: Verify that the MRI is covered under Medicare. Most MRIs are covered if they are deemed medically necessary.\n\n4. **Submit the Request**: Your healthcare provider or the imaging facility will usually submit the prior authorization request to Medicare on your behalf. This request will include:\n   - The reason for the MRI\n   - Relevant medical history\n   - Any previous treatments or tests related to your condition\n\n5. **Wait for Approval**: Medicare will review the request and determine if the MRI is covered. This process can take a few days to a few weeks.\n\n6. **Receive Notification**: You will receive a notification from Medicare regarding the approval or denial of the MRI. If approved, you can proceed with scheduling the MRI.\n\n7. **Appeal if Necessary**: If the request is denied, you have the right to appeal the decision. Your healthcare provider can assist you with this process.\n\nIt\'s important to keep in close communication with your healthcare provider and the imaging facility throughout this process to ensure that all necessary documentation is submitted correctly. If you have any specific questions or need assistance with a particular case, feel free to ask!',
+ name: undefined,
+ additional_kwargs: {},
+ response_metadata: {},
+ id: '3c7685e0-d2b3-45d5-85ed-a59e93399fdc',
+ tool_calls: [],
+ invalid_tool_calls: [],
+ usage_metadata: undefined
+},
+ HumanMessage {
+ lc_serializable: true,
+ lc_kwargs: {
+ content: 'MRI ',
+ additional_kwargs: {},
+ response_metadata: {},
+ id: 'd431d0d9-230f-4132-aa95-e2da757ba5e5'
+},
+ lc_namespace: [ 'langchain_core', 'messages' ],
+ content: 'MRI ',
+ name: undefined,
+ additional_kwargs: {},
+ response_metadata: {},
+ id: 'd431d0d9-230f-4132-aa95-e2da757ba5e5'
+},
+ AIMessage {
+ lc_serializable: true,
+ lc_kwargs: {
+ content: 'It seems like you\'re looking for information specifically about MRI (Magnetic Resonance Imaging). Here are some key points about MRI:\n\n### What is an MRI?\n- **Definition**: MRI is a medical imaging technique used to visualize detailed internal structures of the body. It uses strong magnets and radio waves to create images of organs and tissues.\n- **Uses**: MRIs are commonly used to diagnose conditions related to the brain, spine, joints, and soft tissues. They are particularly useful for detecting tumors, brain disorders, and injuries.\n\n### How Does an MRI Work?\n- **Procedure**: During an MRI, the patient lies on a table that slides into a large, cylindrical machine. The machine generates a magnetic field and radio waves that produce images of the body\'s internal structures.\n- **Duration**: The procedure typically takes 30 to 60 minutes, depending on the area being scanned.\n\n### Preparation for an MRI\n- **Clothing**: Patients may be asked to wear a hospital gown and remove any metal objects, such as jewelry, watches, or hairpins.\n- **Health Information**: It\'s important to inform the healthcare provider about any implants (like pacemakers), allergies, or health conditions.\n\n### Risks and Considerations\n- **Safety**: MRIs are generally safe, but the strong magnetic field can pose risks for individuals with certain implants or devices.\n- **Contrast Agents**: Sometimes, a contrast agent (dye) may be used to enhance the images. Patients should inform their doctor if they have allergies, especially to gadolinium-based contrast agents.\n\n### Insurance and Preauthorization\n- **Coverage**: Most insurance plans, including Medicare, cover MRIs when deemed medically necessary.\n- **Preauthorization**: As mentioned earlier, obtaining preapproval may be required. This typically involves your healthcare provider submitting a request to the insurance company.\n\nIf you have specific questions about the MRI process, its uses, or how to get preauthorization, please let me know!',
+ tool_calls: [],
+ invalid_tool_calls: [],
+ additional_kwargs: {},
+ response_metadata: {},
+ id: '0e9e69db-c1ea-4289-9836-f1092cba97c0'
+},
+ lc_namespace: [ 'langchain_core', 'messages' ],
+ content: 'It seems like you\'re looking for information specifically about MRI (Magnetic Resonance Imaging). Here are some key points about MRI:\n\n### What is an MRI?\n- **Definition**: MRI is a medical imaging technique used to visualize detailed internal structures of the body. It uses strong magnets and radio waves to create images of organs and tissues.\n- **Uses**: MRIs are commonly used to diagnose conditions related to the brain, spine, joints, and soft tissues. They are particularly useful for detecting tumors, brain disorders, and injuries.\n\n### How Does an MRI Work?\n- **Procedure**: During an MRI, the patient lies on a table that slides into a large, cylindrical machine. The machine generates a magnetic field and radio waves that produce images of the body\'s internal structures.\n- **Duration**: The procedure typically takes 30 to 60 minutes, depending on the area being scanned.\n\n### Preparation for an MRI\n- **Clothing**: Patients may be asked to wear a hospital gown and remove any metal objects, such as jewelry, watches, or hairpins.\n- **Health Information**: It\'s important to inform the healthcare provider about any implants (like pacemakers), allergies, or health conditions.\n\n### Risks and Considerations\n- **Safety**: MRIs are generally safe, but the strong magnetic field can pose risks for individuals with certain implants or devices.\n- **Contrast Agents**: Sometimes, a contrast agent (dye) may be used to enhance the images. Patients should inform their doctor if they have allergies, especially to gadolinium-based contrast agents.\n\n### Insurance and Preauthorization\n- **Coverage**: Most insurance plans, including Medicare, cover MRIs when deemed medically necessary.\n- **Preauthorization**: As mentioned earlier, obtaining preapproval may be required. This typically involves your healthcare provider submitting a request to the insurance company.\n\nIf you have specific questions about the MRI process, its uses, or how to get preauthorization, please let me know!',
+ name: undefined,
+ additional_kwargs: {},
+ response_metadata: {},
+ id: '0e9e69db-c1ea-4289-9836-f1092cba97c0',
+ tool_calls: [],
+ invalid_tool_calls: [],
+ usage_metadata: undefined
+},
+ HumanMessage {
+ lc_serializable: true,
+ lc_kwargs: {
+ content: 'MRI ncd',
+ additional_kwargs: {},
+ response_metadata: {},
+ id: '8ba19c85-7bc9-4014-970a-ddfec5918fd0'
+},
+ lc_namespace: [ 'langchain_core', 'messages' ],
+ content: 'MRI ncd',
+ name: undefined,
+ additional_kwargs: {},
+ response_metadata: {},
+ id: '8ba19c85-7bc9-4014-970a-ddfec5918fd0'
+},
+ AIMessage {
+ lc_serializable: true,
+ lc_kwargs: {
+ content: 'It seems there was an issue retrieving the National Coverage Determinations (NCDs) related to MRI. However, I can provide some general information about MRI coverage under Medicare.\n\n### MRI Coverage under Medicare\n- **Medically Necessary**: Medicare typically covers MRI scans when they are deemed medically necessary for diagnosing or treating a condition.\n- **Conditions Covered**: Common conditions that may warrant an MRI include:\n  - Brain disorders (e.g., tumors, multiple sclerosis)\n  - Spinal issues (e.g., herniated discs, spinal stenosis)\n  - Joint problems (e.g., tears in ligaments or cartilage)\n- **Prior Authorization**: Some MRI procedures may require prior authorization, especially if they are for specific conditions or if the patient has had previous imaging studies.\n\nFor the most accurate and detailed information, including specific NCDs related to MRI, you may want to check the official Medicare website or consult with your healthcare provider or insurance representative.\n\nIf you have any other questions or need further assistance, feel free to ask!',
+ tool_calls: [],
+ invalid_tool_calls: [],
+ additional_kwargs: {},
+ response_metadata: {},
+ id: '6f0f279b-8fba-46b9-b9a3-3ec2d0439897'
+},
+ lc_namespace: [ 'langchain_core', 'messages' ],
+ content: 'It seems there was an issue retrieving the National Coverage Determinations (NCDs) related to MRI. However, I can provide some general information about MRI coverage under Medicare.\n\n### MRI Coverage under Medicare\n- **Medically Necessary**: Medicare typically covers MRI scans when they are deemed medically necessary for diagnosing or treating a condition.\n- **Conditions Covered**: Common conditions that may warrant an MRI include:\n  - Brain disorders (e.g., tumors, multiple sclerosis)\n  - Spinal issues (e.g., herniated discs, spinal stenosis)\n  - Joint problems (e.g., tears in ligaments or cartilage)\n- **Prior Authorization**: Some MRI procedures may require prior authorization, especially if they are for specific conditions or if the patient has had previous imaging studies.\n\nFor the most accurate and detailed information, including specific NCDs related to MRI, you may want to check the official Medicare website or consult with your healthcare provider or insurance representative.\n\nIf you have any other questions or need further assistance, feel free to ask!',
+ name: undefined,
+ additional_kwargs: {},
+ response_metadata: {},
+ id: '6f0f279b-8fba-46b9-b9a3-3ec2d0439897',
+ tool_calls: [],
+ invalid_tool_calls: [],
+ usage_metadata: undefined
+},
+ HumanMessage {
+ lc_serializable: true,
+ lc_kwargs: {
+ content: 'NCD for MRI',
+ additional_kwargs: {},
+ response_metadata: {},
+ id: '235807ce-c872-4dc0-8178-67b02fc8625d'
+},
+ lc_namespace: [ 'langchain_core', 'messages' ],
+ content: 'NCD for MRI',
+ name: undefined,
+ additional_kwargs: {},
+ response_metadata: {},
+ id: '235807ce-c872-4dc0-8178-67b02fc8625d'
+},
+ AIMessage {
+ lc_serializable: true,
+ lc_kwargs: {
+ content: 'It seems there was an error while trying to retrieve the National Coverage Determinations (NCDs) for MRI. However, I can provide you with general information about MRI coverage under Medicare.\n\n### General Information on MRI NCDs\n- **MRI Coverage**: Medicare generally covers MRI scans when they are medically necessary for diagnosing or treating a condition.\n- **Specific Conditions**: Coverage may vary based on the specific condition being evaluated. Commonly covered conditions include:\n  - Neurological disorders (e.g., brain tumors, multiple sclerosis)\n  - Musculoskeletal issues (e.g., joint injuries, spinal problems)\n- **Prior Authorization**: Some MRI procedures may require prior authorization, especially for certain diagnoses or if previous imaging studies have been performed.\n\nFor the most accurate and detailed information, including specific NCDs related to MRI, I recommend checking the official Medicare website or contacting your healthcare provider or insurance representative.\n\nIf you have any other questions or need further assistance, please let me know!',
+ tool_calls: [],
+ invalid_tool_calls: [],
+ additional_kwargs: {},
+ response_metadata: {},
+ id: 'f4a2f506-a71d-4a0d-b15c-90a6ca1dc850'
+},
+ lc_namespace: [ 'langchain_core', 'messages' ],
+ content: 'It seems there was an error while trying to retrieve the National Coverage Determinations (NCDs) for MRI. However, I can provide you with general information about MRI coverage under Medicare.\n\n### General Information on MRI NCDs\n- **MRI Coverage**: Medicare generally covers MRI scans when they are medically necessary for diagnosing or treating a condition.\n- **Specific Conditions**: Coverage may vary based on the specific condition being evaluated. Commonly covered conditions include:\n  - Neurological disorders (e.g., brain tumors, multiple sclerosis)\n  - Musculoskeletal issues (e.g., joint injuries, spinal problems)\n- **Prior Authorization**: Some MRI procedures may require prior authorization, especially for certain diagnoses or if previous imaging studies have been performed.\n\nFor the most accurate and detailed information, including specific NCDs related to MRI, I recommend checking the official Medicare website or contacting your healthcare provider or insurance representative.\n\nIf you have any other questions or need further assistance, please let me know!',
+ name: undefined,
+ additional_kwargs: {},
+ response_metadata: {},
+ id: 'f4a2f506-a71d-4a0d-b15c-90a6ca1dc850',
+ tool_calls: [],
+ invalid_tool_calls: [],
+ usage_metadata: undefined
+},
+ HumanMessage {
+ lc_serializable: true,
+ lc_kwargs: {
+ content: 'NCD for CAT scan',
+ additional_kwargs: {},
+ response_metadata: {},
+ id: '1a4f3319-f927-48e2-8b2c-25d61536a87a'
+},
+ lc_namespace: [ 'langchain_core', 'messages' ],
+ content: 'NCD for CAT scan',
+ name: undefined,
+ additional_kwargs: {},
+ response_metadata: {},
+ id: '1a4f3319-f927-48e2-8b2c-25d61536a87a'
+},
+ AIMessage {
+ lc_serializable: true,
+ lc_kwargs: {
+ content: 'It seems there was an issue retrieving the National Coverage Determinations (NCDs) for CAT scans. However, I can provide you with general information about CAT scan coverage under Medicare.\n\n### General Information on CAT Scan NCDs\n- **Coverage**: Medicare typically covers CT (Computed Tomography) scans when they are deemed medically necessary for diagnosing or treating a condition.\n- **Common Uses**: CT scans are often used for:\n  - Detecting tumors or cancers\n  - Evaluating internal injuries or bleeding\n  - Diagnosing conditions related to the brain, abdomen, and chest\n- **Prior Authorization**: Some CT scans may require prior authorization, especially for specific diagnoses or if previous imaging studies have been performed.\n\nFor the most accurate and detailed information, including specific NCDs related to CAT scans, I recommend checking the official Medicare website or consulting with your healthcare provider or insurance representative.\n\nIf you have any other questions or need further assistance, please let me know!',
+ tool_calls: [],
+ invalid_tool_calls: [],
+ additional_kwargs: {},
+ response_metadata: {},
+ id: '87e13a38-aeb3-4977-bd73-de8140e29834'
+},
+ lc_namespace: [ 'langchain_core', 'messages' ],
+ content: 'It seems there was an issue retrieving the National Coverage Determinations (NCDs) for CAT scans. However, I can provide you with general information about CAT scan coverage under Medicare.\n\n### General Information on CAT Scan NCDs\n- **Coverage**: Medicare typically covers CT (Computed Tomography) scans when they are deemed medically necessary for diagnosing or treating a condition.\n- **Common Uses**: CT scans are often used for:\n  - Detecting tumors or cancers\n  - Evaluating internal injuries or bleeding\n  - Diagnosing conditions related to the brain, abdomen, and chest\n- **Prior Authorization**: Some CT scans may require prior authorization, especially for specific diagnoses or if previous imaging studies have been performed.\n\nFor the most accurate and detailed information, including specific NCDs related to CAT scans, I recommend checking the official Medicare website or consulting with your healthcare provider or insurance representative.\n\nIf you have any other questions or need further assistance, please let me know!',
+ name: undefined,
+ additional_kwargs: {},
+ response_metadata: {},
+ id: '87e13a38-aeb3-4977-bd73-de8140e29834',
+ tool_calls: [],
+ invalid_tool_calls: [],
+ usage_metadata: undefined
+},
+ HumanMessage {
+ lc_serializable: true,
+ lc_kwargs: {
+ content: 'Magnetic Resonance Imaging NCD',
+ additional_kwargs: {},
+ response_metadata: {},
+ id: '6d35e4b3-6f86-4353-b6d3-98ca0b3cc0c7'
+},
+ lc_namespace: [ 'langchain_core', 'messages' ],
+ content: 'Magnetic Resonance Imaging NCD',
+ name: undefined,
+ additional_kwargs: {},
+ response_metadata: {},
+ id: '6d35e4b3-6f86-4353-b6d3-98ca0b3cc0c7'
+},
+ AIMessage {
+ lc_serializable: true,
+ lc_kwargs: {
+ content: 'It seems there was an error while trying to retrieve the National Coverage Determinations (NCDs) specifically for Magnetic Resonance Imaging (MRI). However, I can provide you with some general information about MRI coverage under Medicare.\n\n### General Information on MRI NCDs\n- **Coverage**: Medicare generally covers MRI scans when they are deemed medically necessary for diagnosing or treating a condition.\n- **Common Indications**: MRIs are often used for:\n  - Neurological evaluations (e.g., brain tumors, multiple sclerosis)\n  - Musculoskeletal assessments (e.g., joint injuries, spinal issues)\n  - Soft tissue evaluations (e.g., detecting tumors in organs)\n- **Prior Authorization**: Some MRI procedures may require prior authorization, especially for specific diagnoses or if previous imaging studies have been performed.\n\nFor the most accurate and detailed information, including specific NCDs related to MRI, I recommend checking the official Medicare website or contacting your healthcare provider or insurance representative.\n\nIf you have any other questions or need further assistance, please let me know!',
+ tool_calls: [],
+ invalid_tool_calls: [],
+ additional_kwargs: {},
+ response_metadata: {},
+ id: '71a10774-93f6-4976-8041-0011ec45a61d'
+},
+ lc_namespace: [ 'langchain_core', 'messages' ],
+ content: 'It seems there was an error while trying to retrieve the National Coverage Determinations (NCDs) specifically for Magnetic Resonance Imaging (MRI). However, I can provide you with some general information about MRI coverage under Medicare.\n\n### General Information on MRI NCDs\n- **Coverage**: Medicare generally covers MRI scans when they are deemed medically necessary for diagnosing or treating a condition.\n- **Common Indications**: MRIs are often used for:\n  - Neurological evaluations (e.g., brain tumors, multiple sclerosis)\n  - Musculoskeletal assessments (e.g., joint injuries, spinal issues)\n  - Soft tissue evaluations (e.g., detecting tumors in organs)\n- **Prior Authorization**: Some MRI procedures may require prior authorization, especially for specific diagnoses or if previous imaging studies have been performed.\n\nFor the most accurate and detailed information, including specific NCDs related to MRI, I recommend checking the official Medicare website or contacting your healthcare provider or insurance representative.\n\nIf you have any other questions or need further assistance, please let me know!',
+ name: undefined,
+ additional_kwargs: {},
+ response_metadata: {},
+ id: '71a10774-93f6-4976-8041-0011ec45a61d',
+ tool_calls: [],
+ invalid_tool_calls: [],
+ usage_metadata: undefined
+},
+ HumanMessage {
+ lc_serializable: true,
+ lc_kwargs: {
+ content: 'Magnetic Resonance Imaging',
+ additional_kwargs: {},
+ response_metadata: {},
+ id: '7b5a1926-fff6-4dd3-93fe-ca0fe7a6a2e8'
+},
+ lc_namespace: [ 'langchain_core', 'messages' ],
+ content: 'Magnetic Resonance Imaging',
+ name: undefined,
+ additional_kwargs: {},
+ response_metadata: {},
+ id: '7b5a1926-fff6-4dd3-93fe-ca0fe7a6a2e8'
+},
+ AIMessage {
+ lc_serializable: true,
+ lc_kwargs: {
+ content: 'It seems there was an issue retrieving the National Coverage Determinations (NCDs) for Magnetic Resonance Imaging (MRI) at this time. However, I can provide you with some general information about MRI coverage under Medicare.\n\n### General Information on MRI Coverage\n- **Definition**: MRI (Magnetic Resonance Imaging) is a non-invasive imaging technique used to visualize internal structures of the body, particularly soft tissues.\n- **Common Uses**: MRIs are often used to diagnose conditions related to:\n  - The brain and spinal cord (e.g., tumors, multiple sclerosis)\n  - Joints and soft tissues (e.g., tears, inflammation)\n  - Organs (e.g., liver, kidneys)\n- **Coverage Criteria**: Medicare typically covers MRIs when they are deemed medically necessary. This includes:\n  - A physician\'s order for the MRI\n  - Documentation supporting the medical necessity of the procedure\n- **Prior Authorization**: Some MRI procedures may require prior authorization, especially for specific diagnoses or if previous imaging studies have been performed.\n\nFor the most accurate and detailed information, including specific NCDs related to MRI, I recommend checking the official Medicare website or consulting with your healthcare provider or insurance representative.\n\nIf you have any other questions or need further assistance, please let me know!',
+ tool_calls: [],
+ invalid_tool_calls: [],
+ additional_kwargs: {},
+ response_metadata: {},
+ id: 'c52c17ec-6b5a-4db2-97f4-735a5e144b7e'
+},
+ lc_namespace: [ 'langchain_core', 'messages' ],
+ content: 'It seems there was an issue retrieving the National Coverage Determinations (NCDs) for Magnetic Resonance Imaging (MRI) at this time. However, I can provide you with some general information about MRI coverage under Medicare.\n\n### General Information on MRI Coverage\n- **Definition**: MRI (Magnetic Resonance Imaging) is a non-invasive imaging technique used to visualize internal structures of the body, particularly soft tissues.\n- **Common Uses**: MRIs are often used to diagnose conditions related to:\n  - The brain and spinal cord (e.g., tumors, multiple sclerosis)\n  - Joints and soft tissues (e.g., tears, inflammation)\n  - Organs (e.g., liver, kidneys)\n- **Coverage Criteria**: Medicare typically covers MRIs when they are deemed medically necessary. This includes:\n  - A physician\'s order for the MRI\n  - Documentation supporting the medical necessity of the procedure\n- **Prior Authorization**: Some MRI procedures may require prior authorization, especially for specific diagnoses or if previous imaging studies have been performed.\n\nFor the most accurate and detailed information, including specific NCDs related to MRI, I recommend checking the official Medicare website or consulting with your healthcare provider or insurance representative.\n\nIf you have any other questions or need further assistance, please let me know!',
+ name: undefined,
+ additional_kwargs: {},
+ response_metadata: {},
+ id: 'c52c17ec-6b5a-4db2-97f4-735a5e144b7e',
+ tool_calls: [],
+ invalid_tool_calls: [],
+ usage_metadata: undefined
+},
+ HumanMessage {
+ lc_serializable: true,
+ lc_kwargs: {
+ content: 'Magnetic Resonance Imaging NCD\'s',
+ additional_kwargs: {},
+ response_metadata: {},
+ id: '428d221a-08a2-4d1b-aba6-6bdd56fc50bd'
+},
+ lc_namespace: [ 'langchain_core', 'messages' ],
+ content: 'Magnetic Resonance Imaging NCD\'s',
+ name: undefined,
+ additional_kwargs: {},
+ response_metadata: {},
+ id: '428d221a-08a2-4d1b-aba6-6bdd56fc50bd'
+},
+ AIMessage {
+ lc_serializable: true,
+ lc_kwargs: {
+ content: 'It seems there was an issue retrieving the National Coverage Determinations (NCDs) specifically for Magnetic Resonance Imaging (MRI) at this time. However, I can provide you with some general information about MRI coverage under Medicare.\n\n### General Information on MRI NCDs\n- **Coverage**: Medicare generally covers MRI scans when they are deemed medically necessary for diagnosing or treating a condition.\n- **Common Indications**: MRIs are often used for:\n  - Neurological evaluations (e.g., brain tumors, multiple sclerosis)\n  - Musculoskeletal assessments (e.g., joint injuries, spinal issues)\n  - Soft tissue evaluations (e.g., detecting tumors in organs)\n- **Prior Authorization**: Some MRI procedures may require prior authorization, especially for specific diagnoses or if previous imaging studies have been performed.\n\nFor the most accurate and detailed information, including specific NCDs related to MRI, I recommend checking the official Medicare website or contacting your healthcare provider or insurance representative.\n\nIf you have any other questions or need further assistance, please let me know!',
+ tool_calls: [],
+ invalid_tool_calls: [],
+ additional_kwargs: {},
+ response_metadata: {},
+ id: '71124b7a-8fe9-4889-95ad-36ff953fcc2c'
+},
+ lc_namespace: [ 'langchain_core', 'messages' ],
+ content: 'It seems there was an issue retrieving the National Coverage Determinations (NCDs) specifically for Magnetic Resonance Imaging (MRI) at this time. However, I can provide you with some general information about MRI coverage under Medicare.\n\n### General Information on MRI NCDs\n- **Coverage**: Medicare generally covers MRI scans when they are deemed medically necessary for diagnosing or treating a condition.\n- **Common Indications**: MRIs are often used for:\n  - Neurological evaluations (e.g., brain tumors, multiple sclerosis)\n  - Musculoskeletal assessments (e.g., joint injuries, spinal issues)\n  - Soft tissue evaluations (e.g., detecting tumors in organs)\n- **Prior Authorization**: Some MRI procedures may require prior authorization, especially for specific diagnoses or if previous imaging studies have been performed.\n\nFor the most accurate and detailed information, including specific NCDs related to MRI, I recommend checking the official Medicare website or contacting your healthcare provider or insurance representative.\n\nIf you have any other questions or need further assistance, please let me know!',
+ name: undefined,
+ additional_kwargs: {},
+ response_metadata: {},
+ id: '71124b7a-8fe9-4889-95ad-36ff953fcc2c',
+ tool_calls: [],
+ invalid_tool_calls: [],
+ usage_metadata: undefined
+},
+ HumanMessage {
+ lc_serializable: true,
+ lc_kwargs: {
+ content: 'Magnetic Resonance Imaging NCD\'s',
+ additional_kwargs: {},
+ response_metadata: {},
+ id: 'aef41782-0379-4190-97f0-5974e54b848e'
+},
+ lc_namespace: [ 'langchain_core', 'messages' ],
+ content: 'Magnetic Resonance Imaging NCD\'s',
+ name: undefined,
+ additional_kwargs: {},
+ response_metadata: {},
+ id: 'aef41782-0379-4190-97f0-5974e54b848e'
+},
+ AIMessage {
+ lc_serializable: true,
+ lc_kwargs: {
+ content: '',
+ name: undefined,
+ additional_kwargs: {
+ function_call: undefined,
+ tool_calls: [
+ {
+ id: 'call_vboVLb8nobg8MmUeC4IohQc8',
+ type: 'function',
+ function: {
+ name: 'ncd_coverage_search',
+ arguments: '{"query":"Magnetic Resonance Imaging"}'
+}
+}
+]
+},
+ response_metadata: {
+ model_name: 'gpt-4o-mini-2024-07-18',
+ usage: {
+ prompt_tokens: 2379,
+ completion_tokens: 21,
+ total_tokens: 2400,
+ prompt_tokens_details: { cached_tokens: 2048, audio_tokens: 0 },
+ completion_tokens_details: {
+ reasoning_tokens: 0,
+ audio_tokens: 0,
+ accepted_prediction_tokens: 0,
+ rejected_prediction_tokens: 0
+}
+},
+ system_fingerprint: 'fp_34a54ae93c'
+},
+ id: 'chatcmpl-BeuOzh1LY9WAwXzLfEZvU0SDilWIs',
+ tool_calls: [
+ {
+ name: 'ncd_coverage_search',
+ args: { query: 'Magnetic Resonance Imaging' },
+ type: 'tool_call',
+ id: 'call_vboVLb8nobg8MmUeC4IohQc8'
+}
+],
+ invalid_tool_calls: [],
+ usage_metadata: {
+ output_tokens: 21,
+ input_tokens: 2379,
+ total_tokens: 2400,
+ input_token_details: { audio: 0, cache_read: 2048 },
+ output_token_details: { audio: 0, reasoning: 0 }
+}
+},
+ lc_namespace: [ 'langchain_core', 'messages' ],
+ content: '',
+ name: undefined,
+ additional_kwargs: {
+ function_call: undefined,
+ tool_calls: [
+ {
+ id: 'call_vboVLb8nobg8MmUeC4IohQc8',
+ type: 'function',
+ function: {
+ name: 'ncd_coverage_search',
+ arguments: '{"query":"Magnetic Resonance Imaging"}'
+}
+}
+]
+},
+ response_metadata: {
+ tokenUsage: { promptTokens: 2379, completionTokens: 21, totalTokens: 2400 },
+ finish_reason: 'tool_calls',
+ model_name: 'gpt-4o-mini-2024-07-18',
+ usage: {
+ prompt_tokens: 2379,
+ completion_tokens: 21,
+ total_tokens: 2400,
+ prompt_tokens_details: { cached_tokens: 2048, audio_tokens: 0 },
+ completion_tokens_details: {
+ reasoning_tokens: 0,
+ audio_tokens: 0,
+ accepted_prediction_tokens: 0,
+ rejected_prediction_tokens: 0
+}
+},
+ system_fingerprint: 'fp_34a54ae93c'
+},
+ id: 'chatcmpl-BeuOzh1LY9WAwXzLfEZvU0SDilWIs',
+ tool_calls: [
+ {
+ name: 'ncd_coverage_search',
+ args: { query: 'Magnetic Resonance Imaging' },
+ type: 'tool_call',
+ id: 'call_vboVLb8nobg8MmUeC4IohQc8'
+}
+],
+ invalid_tool_calls: [],
+ usage_metadata: {
+ output_tokens: 21,
+ input_tokens: 2379,
+ total_tokens: 2400,
+ input_token_details: { audio: 0, cache_read: 2048 },
+ output_token_details: { audio: 0, reasoning: 0 }
+}
+},
+ ToolMessage {
+ lc_serializable: true,
+ lc_kwargs: {
+ content: 'Error calling CMS API or processing data: allNCDs.filter is not a function',
+ artifact: undefined,
+ tool_call_id: 'call_vboVLb8nobg8MmUeC4IohQc8',
+ name: 'ncd_coverage_search',
+ additional_kwargs: {},
+ response_metadata: {},
+ id: 'e8417a4f-2d71-4986-8463-184533cae79a'
+},
+ lc_namespace: [ 'langchain_core', 'messages' ],
+ content: 'Error calling CMS API or processing data: allNCDs.filter is not a function',
+ name: 'ncd_coverage_search',
+ additional_kwargs: {},
+ response_metadata: {},
+ id: 'e8417a4f-2d71-4986-8463-184533cae79a',
+ lc_direct_tool_output: true,
+ status: undefined,
+ tool_call_id: 'call_vboVLb8nobg8MmUeC4IohQc8',
+ artifact: undefined
+},
+ AIMessage {
+ lc_serializable: true,
+ lc_kwargs: {
+ content: 'It seems there was an error while trying to retrieve the National Coverage Determinations (NCDs) for Magnetic Resonance Imaging (MRI). However, I can provide you with some general information about MRI coverage under Medicare.\n\n### General Information on MRI NCDs\n- **Coverage**: Medicare generally covers MRI scans when they are deemed medically necessary for diagnosing or treating a condition.\n- **Common Indications**: MRIs are often used for:\n  - Neurological evaluations (e.g., brain tumors, multiple sclerosis)\n  - Musculoskeletal assessments (e.g., joint injuries, spinal issues)\n  - Soft tissue evaluations (e.g., detecting tumors in organs)\n- **Prior Authorization**: Some MRI procedures may require prior authorization, especially for specific diagnoses or if previous imaging studies have been performed.\n\nFor the most accurate and detailed information, including specific NCDs related to MRI, I recommend checking the official Medicare website or consulting with your healthcare provider or insurance representative.\n\nIf you have any other questions or need further assistance, please let me know!',
+ name: undefined,
+ additional_kwargs: { function_call: undefined, tool_calls: undefined },
+ response_metadata: {
+ model_name: 'gpt-4o-mini-2024-07-18',
+ usage: {
+ prompt_tokens: 2428,
+ completion_tokens: 212,
+ total_tokens: 2640,
+ prompt_tokens_details: { cached_tokens: 2304, audio_tokens: 0 },
+ completion_tokens_details: {
+ reasoning_tokens: 0,
+ audio_tokens: 0,
+ accepted_prediction_tokens: 0,
+ rejected_prediction_tokens: 0
+}
+},
+ system_fingerprint: 'fp_34a54ae93c'
+},
+ id: 'chatcmpl-BeuP1JMp8LHDw9uoj1YQM4HWxMofw',
+ tool_calls: [],
+ invalid_tool_calls: [],
+ usage_metadata: {
+ output_tokens: 212,
+ input_tokens: 2428,
+ total_tokens: 2640,
+ input_token_details: { audio: 0, cache_read: 2304 },
+ output_token_details: { audio: 0, reasoning: 0 }
+}
+},
+ lc_namespace: [ 'langchain_core', 'messages' ],
+ content: 'It seems there was an error while trying to retrieve the National Coverage Determinations (NCDs) for Magnetic Resonance Imaging (MRI). However, I can provide you with some general information about MRI coverage under Medicare.\n\n### General Information on MRI NCDs\n- **Coverage**: Medicare generally covers MRI scans when they are deemed medically necessary for diagnosing or treating a condition.\n- **Common Indications**: MRIs are often used for:\n  - Neurological evaluations (e.g., brain tumors, multiple sclerosis)\n  - Musculoskeletal assessments (e.g., joint injuries, spinal issues)\n  - Soft tissue evaluations (e.g., detecting tumors in organs)\n- **Prior Authorization**: Some MRI procedures may require prior authorization, especially for specific diagnoses or if previous imaging studies have been performed.\n\nFor the most accurate and detailed information, including specific NCDs related to MRI, I recommend checking the official Medicare website or consulting with your healthcare provider or insurance representative.\n\nIf you have any other questions or need further assistance, please let me know!',
+ name: undefined,
+ additional_kwargs: { function_call: undefined, tool_calls: undefined },
+ response_metadata: {
+ tokenUsage: { promptTokens: 2428, completionTokens: 212, totalTokens: 2640 },
+ finish_reason: 'stop',
+ model_name: 'gpt-4o-mini-2024-07-18',
+ usage: {
+ prompt_tokens: 2428,
+ completion_tokens: 212,
+ total_tokens: 2640,
+ prompt_tokens_details: { cached_tokens: 2304, audio_tokens: 0 },
+ completion_tokens_details: {
+ reasoning_tokens: 0,
+ audio_tokens: 0,
+ accepted_prediction_tokens: 0,
+ rejected_prediction_tokens: 0
+}
+},
+ system_fingerprint: 'fp_34a54ae93c'
+},
+ id: 'chatcmpl-BeuP1JMp8LHDw9uoj1YQM4HWxMofw',
+ tool_calls: [],
+ invalid_tool_calls: [],
+ usage_metadata: {
+ output_tokens: 212,
+ input_tokens: 2428,
+ total_tokens: 2640,
+ input_token_details: { audio: 0, cache_read: 2304 },
+ output_token_details: { audio: 0, reasoning: 0 }
+}
+}
+]
+}
+POST /api/chat/agents 200 in 8713ms

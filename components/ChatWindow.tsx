@@ -167,7 +167,7 @@ export function ChatLayout(props: { content: ReactNode; footer: ReactNode }) {
 
 export function ChatWindow(props: {
   endpoint: string;
-  emptyStateComponent: ReactNode;
+  emptyStateComponent: ReactNode | JSX.Element | any;
   placeholder?: string;
   emoji?: string;
   showIngestForm?: boolean;
@@ -226,7 +226,6 @@ export function ChatWindow(props: {
     });
     chat.setMessages(messagesWithUserReply);
 
-    console.log({messagesWithUserReply, ep:props.endpoint});
     const response = await fetch(props.endpoint, {
       method: "POST",
       body: JSON.stringify({

@@ -13,7 +13,9 @@ import {
   SystemMessage,
 } from "@langchain/core/messages";
 
-import {getNCDArticles} from "./tools/getNCD";
+import { NCDCoverageSearchTool } from "./tools/NCDCoverageSearchTool";
+
+
 
 export const runtime = "edge";
 
@@ -40,7 +42,7 @@ const convertLangChainMessageToVercelMessage = (message: BaseMessage) => {
     return { content: message.content, role: message._getType() };
   }
 };
-const AGENT_SYSTEM_TEMPLATE = `answer questions as medical assistants helping to get information for medical insurance preauthorization.`;
+const AGENT_SYSTEM_TEMPLATE = `Get Related NCD Articles from users query`;
 
 /**
  * This handler initializes and calls an tool caling ReAct agent.
@@ -65,7 +67,11 @@ export async function POST(req: NextRequest) {
 
     // Requires process.env.SERPAPI_API_KEY to be set: https://serpapi.com/
     // You can remove this or use a different tool instead.
-    const tools = [new Calculator(), new SerpAPI()];
+    const tools = [
+      new SerpAPI(),
+      new NCDCoverageSearchTool()
+      
+    ];
     const chat = new ChatOpenAI({
       model: "gpt-4o-mini",
       temperature: 0,
@@ -127,6 +133,7 @@ export async function POST(req: NextRequest) {
        * the AI SDK is more complicated.
        */
       const result = await agent.invoke({ messages });
+      
 
       return NextResponse.json(
         {
