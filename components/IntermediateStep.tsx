@@ -8,6 +8,7 @@ export function IntermediateStep(props: { message: Message }) {
   const action = parsedInput.action;
   const observation = parsedInput.observation;
   const [expanded, setExpanded] = useState(false);
+
   return (
     <div className="mr-auto bg-secondary border border-input rounded p-3 max-w-[80%] mb-8 whitespace-pre-wrap flex flex-col">
       <button
@@ -19,7 +20,7 @@ export function IntermediateStep(props: { message: Message }) {
         onClick={(e) => setExpanded(!expanded)}
       >
         <span>
-          Step: <strong className="font-mono">{action.name}</strong>
+          Step: <strong className="font-mono">{action?.name ?? ""}</strong>
         </span>
         <span className={cn(expanded && "hidden")}>
           <ChevronDown className="w-5 h-5" />
@@ -42,7 +43,7 @@ export function IntermediateStep(props: { message: Message }) {
         >
           Input:{" "}
           <code className="max-h-[100px] overflow-auto">
-            {JSON.stringify(action.args)}
+            {JSON.stringify(action?.args ?? action)}
           </code>
         </div>
         <div

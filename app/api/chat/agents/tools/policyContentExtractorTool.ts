@@ -1,11 +1,16 @@
 // policyContentExtractorTool.ts
-import { z } from 'zod';
-import { StructuredTool } from '@langchain/core/tools';
-import * as cheerio from 'cheerio'; // For HTML parsing: npm install cheerio
+import { z } from "zod";
+import { StructuredTool } from "@langchain/core/tools";
+import * as cheerio from "cheerio"; // For HTML parsing: npm install cheerio
 
 // Input schema for the content extractor tool
 const PolicyContentExtractorInputSchema = z.object({
-  policyUrl: z.string().url().describe("The full URL of the Medicare policy document (NCD, LCD, or Article) to extract content from."),
+  policyUrl: z
+    .string()
+    .url()
+    .describe(
+      "The full URL of the Medicare policy document (NCD, LCD, or Article) to extract content from.",
+    ),
   // queryContext: z.string().optional().describe("Optional: The original user query context to guide content extraction (e.g., 'prior authorization for diabetes treatment')."),
 });
 
@@ -13,7 +18,7 @@ const PolicyContentExtractorInputSchema = z.object({
 // This is what you would ideally want the LLM to return *after* it processes the raw content.
 // For this tool's _call method, we'll return a string representing the extracted content.
 export interface ExtractedPolicyDetails {
-  priorAuthRequired: 'YES' | 'NO' | 'CONDITIONAL' | 'UNKNOWN';
+  priorAuthRequired: "YES" | "NO" | "CONDITIONAL" | "UNKNOWN";
   medicalNecessityCriteria: string[];
   icd10Codes: { code: string; description: string; context: string }[]; // context: e.g., 'covered', 'excluded'
   cptCodes: { code: string; description: string; context: string }[];
@@ -22,12 +27,15 @@ export interface ExtractedPolicyDetails {
   summary: string;
 }
 
-class PolicyContentExtractorTool extends StructuredTool<typeof PolicyContentExtractorInputSchema> {
+class PolicyContentExtractorTool extends StructuredTool<
+  typeof PolicyContentExtractorInputSchema
+> {
   name = "policy_content_extractor";
-  description = "Fetches the full content of a Medicare policy document (NCD, LCD, or Article) from its URL. " +
-                "Returns the main textual content of the page for detailed analysis by the AI. " +
-                "This content can then be used to identify prior authorization requirements, medical necessity criteria, " +
-                "associated ICD-10 and CPT codes, required documentation, and limitations.";
+  description =
+    "Fetches the full content of a Medicare policy document (NCD, LCD, or Article) from its URL. " +
+    "Returns the main textual content of the page for detailed analysis by the AI. " +
+    "This content can then be used to identify prior authorization requirements, medical necessity criteria, " +
+    "associated ICD-10 and CPT codes, required documentation, and limitations.";
   schema = PolicyContentExtractorInputSchema;
 
   /**
@@ -36,12 +44,17 @@ class PolicyContentExtractorTool extends StructuredTool<typeof PolicyContentExtr
    * @param input The validated input from the LLM, matching PolicyContentExtractorInputSchema.
    * @returns A string containing the extracted policy text or an error message.
    */
-  protected async _call(input: z.infer<typeof PolicyContentExtractorInputSchema>): Promise<string> {
+  protected async _call(
+    input: z.infer<typeof PolicyContentExtractorInputSchema>,
+  ): Promise<string> {
     const { policyUrl } = input;
+
     try {
       const response = await fetch(policyUrl);
       if (!response.ok) {
-        throw new Error(`Failed to fetch policy content from ${policyUrl}: ${response.status} ${response.statusText}`);
+        throw new Error(
+          `Failed to fetch policy content from ${policyUrl}: ${response.status} ${response.statusText}`,
+        );
       }
       const htmlContent = await response.text();
 
@@ -51,25 +64,29 @@ class PolicyContentExtractorTool extends StructuredTool<typeof PolicyContentExtr
 
       // Attempt to find the main content block.
       // These selectors are common but may need adjustment if CMS changes its HTML structure.
-      let mainContentElement = $('div#ncdContent, div#lcdContent, div#articleContent, div.MCD_MainText, div.CMS_FullText').first();
+      let mainContentElement = $(
+        "div#ncdContent, div#lcdContent, div#articleContent, div.MCD_MainText, div.CMS_FullText",
+      ).first();
 
       // Fallback if specific content divs are not found: look for common article body tags
-      if (mainContentElement.text().trim().length < 100) { // If initial extraction is too short, try broader search
-          mainContentElement = $('article, main, body').first();
+      if (mainContentElement.text().trim().length < 100) {
+        // If initial extraction is too short, try broader search
+        mainContentElement = $("article, main, body").first();
       }
 
       // Extract text and clean it up
-      let extractedText = mainContentElement.text() || $('body').text(); // Fallback to entire body if still nothing
-      extractedText = extractedText.replace(/\s+/g, ' ').trim(); // Replace multiple spaces/newlines with single space
+      let extractedText = mainContentElement.text() || $("body").text(); // Fallback to entire body if still nothing
+      extractedText = extractedText.replace(/\s+/g, " ").trim(); // Replace multiple spaces/newlines with single space
 
       if (extractedText.length < 100) {
-          console.warn(`Extracted content too short for ${policyUrl}. Returning raw HTML content indication.`);
-          return `Could not extract substantial content from ${policyUrl}. HTML structure might have changed or content is minimal. Please review the URL directly.`;
+        console.warn(
+          `Extracted content too short for ${policyUrl}. Returning raw HTML content indication.`,
+        );
+        return `Could not extract substantial content from ${policyUrl}. HTML structure might have changed or content is minimal. Please review the URL directly.`;
       }
 
       // Return the extracted text. The LLM will then read and interpret this.
       return `Content from ${policyUrl}:\n\n${extractedText}`;
-
     } catch (error: any) {
       console.error("Error in PolicyContentExtractorTool:", error);
       return `An error occurred while extracting policy content from ${policyUrl}: ${error.message}`;

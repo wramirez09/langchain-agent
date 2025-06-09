@@ -50,7 +50,7 @@ class LocalLcdSearchTool extends StructuredTool<
     "Searches Local Coverage Determinations (LCDs) for a given disease or treatment query within a specific state. " +
     "LCDs define coverage criteria specific to a Medicare Administrative Contractor (MAC) region and often include detailed medical necessity guidelines. " +
     "Returns the LCD title, display ID, MAC, and the direct URL for relevant LCDs. " +
-    "If multiple LCDs are found, it lists up to 5.";
+    "If multiple LCDs are found, it lists up to 10.";
   schema = LocalLcdSearchInputSchema;
 
   // CMS API URLs for state metadata and local LCDs
@@ -58,8 +58,6 @@ class LocalLcdSearchTool extends StructuredTool<
     "https://api.coverage.cms.gov/v1/metadata/states/";
   private CMS_LOCAL_LCDS_API_URL =
     "https://api.coverage.cms.gov/v1/reports/local-coverage-final-lcds/";
-  private CMS_LCD_BASE_HTML_URL =
-    "https://www.cms.gov/medicare-coverage-database/details/lcd-details.aspx";
 
   // Static cache for state IDs to avoid repeated API calls for state metadata
   private static stateIdCache: Map<string, number> | null = null;
@@ -116,13 +114,13 @@ class LocalLcdSearchTool extends StructuredTool<
         );
       }
       const allLcds: LocalCoverageDetermination = await lcdsResponse.json();
-      console.log({ allLcds });
+
       // 3. Perform client-side filtering based on the query.
       const queryLower = query.toLowerCase();
       const relevantLcds = allLcds.data.filter((lcd) => {
         const titleLower = (lcd.title || "").toLowerCase();
         // Check if the query is in the title or summary
-        return titleLower.includes(queryLower);
+        if (titleLower.includes(queryLower)) return lcd;
       });
 
       // 4. Handle cases where no relevant LCDs are found.
@@ -133,7 +131,7 @@ class LocalLcdSearchTool extends StructuredTool<
       // 5. Format the output to be returned to the LLM.
       const outputResults: string[] = [];
       // Limit results to a reasonable number.
-      for (let i = 0; i < Math.min(relevantLcds.length, 5); i++) {
+      for (let i = 0; i < Math.min(relevantLcds.length, 1); i++) {
         const lcd = relevantLcds[i];
         // Construct the full, clickable URL for the LCD's detailed page on CMS.gov.
         const fullHtmlUrl = lcd.url && lcd.url ? `${lcd.url}` : "URL N/A";

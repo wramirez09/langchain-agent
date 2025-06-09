@@ -210,7 +210,6 @@ export function ChatWindow(props: {
   });
 
   async function sendMessage(e: FormEvent<HTMLFormElement>) {
-    console.log({ formEvent: e });
     e.preventDefault();
     if (chat.isLoading || intermediateStepsLoading) return;
 

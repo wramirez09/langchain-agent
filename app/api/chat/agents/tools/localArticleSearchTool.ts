@@ -24,14 +24,31 @@ interface StateMetaData {
 
 // Interface for the expected structure of a Local Coverage Article from the API
 interface LocalCoverageArticle {
-  article_id: string;
-  article_version: number;
-  article_display_id: string;
-  last_updated: string;
-  title: string;
-  summary?: string;
-  contractor: string;
-  url: string; // Relative URL to article, e.g., '/data/article?articledid=54418&articlever=1'
+  meta: {
+    status: {
+      id: 0;
+      message: string;
+    };
+    notes: string;
+    fields: string[];
+    children: string[];
+  };
+  data: [
+    {
+      document_id: string;
+      document_version: 0;
+      document_display_id: string;
+      document_type: string;
+      note: string;
+      title: string;
+      contractor_name_type: string;
+      updated_on: string;
+      updated_on_sort: string;
+      effective_date: string;
+      retirement_date: string;
+      url: string;
+    },
+  ];
 }
 
 class LocalCoverageArticleSearchTool extends StructuredTool<
@@ -42,7 +59,7 @@ class LocalCoverageArticleSearchTool extends StructuredTool<
     "Searches Local Coverage Articles (LCAs) for a given disease or treatment query within a specific state. " +
     "LCAs provide detailed billing, coding (including ICD-10/CPT), and documentation requirements that support LCDs. " +
     "Returns the article title, display ID, MAC, and the direct URL for relevant LCAs. " +
-    "If multiple articles are found, it lists up to 5.";
+    "If multiple articles are found, it lists up to 1.";
   schema = LocalArticleSearchInputSchema;
 
   // CMS API URLs
@@ -50,8 +67,6 @@ class LocalCoverageArticleSearchTool extends StructuredTool<
     "https://api.coverage.cms.gov/v1/metadata/states/";
   private CMS_LOCAL_ARTICLES_API_URL =
     "https://api.coverage.cms.gov/v1/reports/local-coverage-articles/";
-  private CMS_ARTICLE_BASE_HTML_URL =
-    "https://www.cms.gov/medicare-coverage-database/details/article-details.aspx";
 
   // Static cache for state IDs (shared or separate, depending on design choice)
   private static stateIdCache: Map<string, number> | null = null;
@@ -101,23 +116,21 @@ class LocalCoverageArticleSearchTool extends StructuredTool<
 
       // 2. Fetch Local Coverage Articles for the specific state and 'Final' status.
       const articlesResponse = await fetch(
-        `${this.CMS_LOCAL_ARTICLES_API_URL}?state_id=${stateId}&status=Final`,
+        `${this.CMS_LOCAL_ARTICLES_API_URL}?state_id=${stateId}`,
       );
+
       if (!articlesResponse.ok) {
         throw new Error(
           `Failed to fetch local articles for ${state}: ${articlesResponse.status} ${articlesResponse.statusText}`,
         );
       }
-      const allArticles: LocalCoverageArticle[] = await articlesResponse.json();
+      const allArticles: LocalCoverageArticle = await articlesResponse.json();
 
       // 3. Perform client-side filtering.
       const queryLower = query.toLowerCase();
-      const relevantArticles = allArticles.filter((article) => {
+      const relevantArticles = allArticles.data.filter((article) => {
         const titleLower = (article.title || "").toLowerCase();
-        const summaryLower = (article.summary || "").toLowerCase();
-        return (
-          titleLower.includes(queryLower) || summaryLower.includes(queryLower)
-        );
+        return titleLower.includes(queryLower);
       });
 
       // 4. Handle no results.
@@ -127,17 +140,14 @@ class LocalCoverageArticleSearchTool extends StructuredTool<
 
       // 5. Format output.
       const outputResults: string[] = [];
-      for (let i = 0; i < Math.min(relevantArticles.length, 5); i++) {
+      for (let i = 0; i < Math.min(relevantArticles.length, 10); i++) {
         const article = relevantArticles[i];
         // Construct full URL for the detailed article page.
-        const fullHtmlUrl =
-          article.article_id && article.article_version
-            ? `${this.CMS_ARTICLE_BASE_HTML_URL}?articledid=${article.article_id}&articlever=${article.article_version}`
-            : "URL N/A";
+        const fullHtmlUrl = article.url;
 
         outputResults.push(
-          `  - Title: '${article.title}' (ID: ${article.article_display_id})\n` +
-            `    MAC: ${article.contractor}\n` +
+          `  - Title: '${article.title}' (ID: ${article.document_display_id})\n` +
+            `    MAC: ${article.contractor_name_type}\n` +
             `    Direct URL (check for ICD-10/CPT codes here): ${fullHtmlUrl}`,
         );
       }
