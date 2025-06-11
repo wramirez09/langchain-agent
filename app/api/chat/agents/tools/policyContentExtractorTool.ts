@@ -33,7 +33,14 @@ class PolicyContentExtractorTool extends StructuredTool<
   name = "policy_content_extractor";
   description =
     "Fetches the full content of a Medicare policy document (NCD, LCD, or Article) from its URL. " +
-    "Returns the main textual content of the page for detailed analysis by the AI. " +
+    "Returns the main textual content of the page for detailed analysis by the AI. Return  A definitive statement (YES, NO, CONDITIONAL, UNKNOWN) for the specific treatment and diagnosis" +
+    "A clear, bulleted list of all clinical conditions, patient characteristics, or prior treatments required for coverage" +
+    "A precise, actionable checklist of specific medical records, test results, and physician notes needed for submission" +
+    "CD-10 Diagnosis Codes: A list of codes and their descriptions that are covered for the specified diagnosis" +
+    "CPT/HCPCS Procedure Codes: A list of codes and their descriptions for the requested treatment/service" +
+    "Explicitly note any codes specified as non-covered or excluded." +
+    "Any specific situations, patient groups, or circumstances where the treatment is not covered or has restrictions." +
+    "A brief, overarching explanation of the policy's stance on the treatment." +
     "This content can then be used to identify prior authorization requirements, medical necessity criteria, " +
     "associated ICD-10 and CPT codes, required documentation, and limitations.";
   schema = PolicyContentExtractorInputSchema;
@@ -48,6 +55,8 @@ class PolicyContentExtractorTool extends StructuredTool<
     input: z.infer<typeof PolicyContentExtractorInputSchema>,
   ): Promise<string> {
     const { policyUrl } = input;
+
+    console.log(`PolicyContentExtractorTool called with URL: ${policyUrl}`);
 
     try {
       const response = await fetch(policyUrl);
