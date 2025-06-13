@@ -89,7 +89,7 @@ export class NCDCoverageSearchTool extends StructuredTool<
 
         const fullHtmlUrl =
           documentId && documentVersion
-            ? `${CMS_NCD_BASE_HTML_URL}ncdid=${documentId}&ncdver=${documentVersion}`
+            ? `${CMS_NCD_BASE_HTML_URL}ncd?ncdid=${documentId}&ncdver=${documentVersion}`
             : "URL N/A";
 
         outputResults.push(
