@@ -22,8 +22,11 @@ import {
   DialogTrigger,
 } from "./ui/dialog";
 import { cn } from "@/utils/cn";
-import { useForm } from "@mantine/form";
-import FormInputs from "@/app/agents/components/Form";
+
+import { FormInputs } from "./Form";
+import React from "react";
+import { debounce } from "lodash";
+import { Title } from "@mantine/core";
 
 function ChatMessages(props: {
   messages: Message[];
@@ -63,6 +66,8 @@ export function ChatInput(props: {
   children?: ReactNode;
   className?: string;
   actions?: ReactNode;
+  onSelectionChange?: (value: string | null) => void;
+  onTextInputChage?: (e: React.ChangeEvent<HTMLTextAreaElement>) => void;
 }) {
   const disabled = props.loading && props.onStop == null;
   return (
@@ -79,13 +84,15 @@ export function ChatInput(props: {
       }}
       className={cn("flex w-full flex-col", props.className)}
     >
-      <div className="border border-input bg-secondary rounded-lg flex flex-col gap-2 max-w-[768px] w-full mx-auto">
-        {/* <FormInputs onChange={props.onChange} /> */}
-        <input
-          value={props.value}
-          placeholder={props.placeholder}
-          onChange={props.onChange}
-          className="border-none outline-none bg-transparent p-4 text-white my-9"
+      <div className="py-8">
+        <Title order={1} className="text-white">
+          Medicare Pre Authorization Assistance
+        </Title>
+      </div>
+      <div className="border border-input bg-secondary rounded-lg flex flex-col gap-2  w-full">
+        <FormInputs
+          onSelectionChange={props.onSelectionChange}
+          onTextInputChage={props.onTextInputChage ?? (() => {})}
         />
 
         <div className="flex justify-between ml-4 mr-2 mb-2">
@@ -93,7 +100,7 @@ export function ChatInput(props: {
 
           <div className="flex gap-2 self-end">
             {props.actions}
-            <Button type="submit" className="self-end" disabled={disabled}>
+            <Button type="submit" className="self-end m-6" disabled={disabled}>
               {props.loading ? (
                 <span role="status" className="flex justify-center">
                   <LoaderCircle className="animate-spin" />
@@ -139,9 +146,16 @@ function StickyToBottomContent(props: {
     <div
       ref={context.scrollRef}
       style={{ width: "100%", height: "100%" }}
-      className={cn("grid grid-rows-[1fr,auto]", props.className)}
+      className={cn(
+        "flex flex-row align-middle content-between justify-items-center h-[100vh]",
+        props.className,
+      )}
     >
-      <div ref={context.contentRef} className={props.contentClassName}>
+      <div
+        ref={context.contentRef}
+        className={`${props.contentClassName}`}
+        style={{ width: "50vw" }}
+      >
         {props.content}
       </div>
 
@@ -155,10 +169,10 @@ export function ChatLayout(props: { content: ReactNode; footer: ReactNode }) {
     <StickToBottom>
       <StickyToBottomContent
         className="absolute inset-0"
-        contentClassName="py-8 px-2"
+        contentClassName="py-8 px-2 overflow-y-scroll"
         content={props.content}
         footer={
-          <div className="sticky bottom-8 px-2">
+          <div className="bottom-8 px-2 flex flex-col items-center justify-center gap-2 w-[45vw] mx-8">
             <ScrollToBottom className="absolute bottom-full left-1/2 -translate-x-1/2 mb-4" />
             {props.footer}
           </div>
@@ -209,6 +223,22 @@ export function ChatWindow(props: {
       }),
   });
 
+  const handleSelectionChange = debounce((value: string | null) => {
+    if (value) {
+      chat.setInput(value);
+    } else {
+      //chat.setInput("");
+    }
+  }, 300);
+
+  const handleInputTextChange = debounce(
+    (e: React.ChangeEvent<HTMLTextAreaElement>) => {
+      console.log(e.target.value);
+      chat.setInput(e.target.value);
+    },
+    300,
+  );
+
   async function sendMessage(e: FormEvent<HTMLFormElement>) {
     e.preventDefault();
     if (chat.isLoading || intermediateStepsLoading) return;
@@ -222,6 +252,7 @@ export function ChatWindow(props: {
     setIntermediateStepsLoading(true);
 
     chat.setInput("");
+    console.log(chat.messages);
     const messagesWithUserReply = chat.messages.concat({
       id: chat.messages.length.toString(),
       content: chat.input,
@@ -313,6 +344,8 @@ export function ChatWindow(props: {
           onSubmit={sendMessage}
           loading={chat.isLoading || intermediateStepsLoading}
           placeholder={props.placeholder ?? ""}
+          onSelectionChange={handleSelectionChange}
+          onTextInputChage={handleInputTextChange}
         >
           {props.showIngestForm && (
             <Dialog>

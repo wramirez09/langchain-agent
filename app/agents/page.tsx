@@ -8,7 +8,7 @@ export default function AgentsPage() {
     <ChatWindow
       endpoint="api/chat/agents"
       // emptyStateComponent={<Form />}
-      placeholder="Squawk! I'm a conversational agent! Ask me about the current weather in Honolulu!"
+      placeholder="Medicare Pre Authorization Assistance: Ask me about your health concerns!"
       emoji="🦜"
       showIntermediateStepsToggle={true}
     />

@@ -108,6 +108,7 @@ Here's your step-by-step workflow:
 export async function POST(req: NextRequest) {
   try {
     const body = await req.json();
+
     const returnIntermediateSteps = body.show_intermediate_steps;
     /**
      * We represent intermediate steps as system messages for display purposes,
