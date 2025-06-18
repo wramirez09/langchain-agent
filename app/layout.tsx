@@ -24,7 +24,7 @@ export default function RootLayout({
   children: React.ReactNode;
 }) {
   return (
-    <html lang="en" {...mantineHtmlProps}>
+    <html lang="en" {...mantineHtmlProps} className="overscroll-y-none">
       <head>
         <title>LangChain + Next.js Template</title>
         <link rel="shortcut icon" href="/images/favicon.ico" />
@@ -47,10 +47,10 @@ export default function RootLayout({
         <meta name="twitter:image" content="/images/og-image.png" />
         <ColorSchemeScript />
       </head>
-      <body className={publicSans.className}>
+      <body className={`${publicSans.className} overscroll-y-none`}>
         <MantineProvider>
           <NuqsAdapter>
-            <div className="bg-secondary grid grid-rows-[auto,1fr] h-[100dvh]">
+            <div className="bg-secondary grid grid-rows-[auto,1fr] h-[100dvh] overscroll-y-none">
               <div className="grid grid-cols-[1fr,auto] gap-2 p-4">
                 <div className="flex gap-4 flex-col md:flex-row md:items-center">
                   <a
@@ -80,7 +80,7 @@ export default function RootLayout({
 
                 <div className="flex justify-center"></div>
               </div>
-              <div className="bg-background mx-4 relative grid rounded-t-2xl border border-input border-b-0">
+              <div className="bg-background mx-4 relative grid rounded-t-2xl border border-input border-b-0 overscroll-none">
                 <NavbarMinimal />
                 <div className="absolute inset-0">{children}</div>
               </div>

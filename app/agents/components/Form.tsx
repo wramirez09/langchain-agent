@@ -1,11 +1,17 @@
 "use client";
-import { Title, Select, Textarea, Container } from "@mantine/core";
+import {
+  Title,
+  Select,
+  Textarea,
+  Container,
+  ComboboxItem,
+} from "@mantine/core";
 
 import React from "react";
 import { Data, StateData } from "../metaData/states";
 
 type Props = {
-  onChange: any;
+  onStateFormStateChange: (key: string, value: string) => void;
 };
 const getStateOptions = (data: StateData[]) => {
   return data.map((state) => ({
@@ -19,7 +25,7 @@ const FormInputs: React.FC<Props> = (props: Props) => {
 
   return (
     <Container size="sm">
-      <Title order={1} className="text-white my-6">
+      <Title order={1} className="text-white my-7 py-6">
         Medicare Pre Authorization Assitance
       </Title>
 
@@ -30,16 +36,30 @@ const FormInputs: React.FC<Props> = (props: Props) => {
         data={options}
         searchable
         clearable
-        className="text-white my-6"
-        onChange={props.onChange}
+        className="text-white mb-6"
+        onChange={(value) => {
+          if (value !== null) {
+            props.onStateFormStateChange("state", value);
+          }
+        }}
       />
       <Textarea
         label="Treatment or Service"
-        name="treatmentOrService"
-        // description="Input description"
+        name="treatment"
         placeholder="Input placeholder"
-        className="text-white"
-        onChange={props.onChange}
+        className="text-white mb-6"
+        onChange={(event) =>
+          props.onStateFormStateChange("treatment", event.target.value)
+        }
+      />
+      <Textarea
+        label="Diagnosis"
+        name="diagnosis"
+        placeholder="Input placeholder"
+        className="text-white mb-6"
+        onChange={(event) =>
+          props.onStateFormStateChange("diagnosis", event.target.value)
+        }
       />
     </Container>
   );
