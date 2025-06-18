@@ -293,67 +293,69 @@ export function ChatWindow(props: {
   }
 
   return (
-    <ChatLayout
-      content={
-        chat.messages.length === 0 ? (
-          <div>{props.emptyStateComponent}</div>
-        ) : (
-          <ChatMessages
-            aiEmoji={props.emoji}
-            messages={chat.messages}
-            emptyStateComponent={props.emptyStateComponent}
-            sourcesForMessages={sourcesForMessages}
-          />
-        )
-      }
-      footer={
-        <ChatInput
-          value={chat.input}
-          onChange={chat.handleInputChange}
-          onSubmit={sendMessage}
-          loading={chat.isLoading || intermediateStepsLoading}
-          placeholder={props.placeholder ?? ""}
-        >
-          {props.showIngestForm && (
-            <Dialog>
-              <DialogTrigger asChild>
-                <Button
-                  variant="ghost"
-                  className="pl-2 pr-3 -ml-2"
-                  disabled={chat.messages.length !== 0}
-                >
-                  <Paperclip className="size-4" />
-                  <span>Upload document</span>
-                </Button>
-              </DialogTrigger>
-              <DialogContent>
-                <DialogHeader>
-                  <DialogTitle>Upload document</DialogTitle>
-                  <DialogDescription>
-                    Upload a document to use for the chat.
-                  </DialogDescription>
-                </DialogHeader>
-                <UploadDocumentsForm />
-              </DialogContent>
-            </Dialog>
-          )}
+    <>
+      <ChatLayout
+        content={
+          chat.messages.length === 0 ? (
+            <div>{props.emptyStateComponent}</div>
+          ) : (
+            <ChatMessages
+              aiEmoji={props.emoji}
+              messages={chat.messages}
+              emptyStateComponent={props.emptyStateComponent}
+              sourcesForMessages={sourcesForMessages}
+            />
+          )
+        }
+        footer={
+          <ChatInput
+            value={chat.input}
+            onChange={chat.handleInputChange}
+            onSubmit={sendMessage}
+            loading={chat.isLoading || intermediateStepsLoading}
+            placeholder={props.placeholder ?? ""}
+          >
+            {props.showIngestForm && (
+              <Dialog>
+                <DialogTrigger asChild>
+                  <Button
+                    variant="ghost"
+                    className="pl-2 pr-3 -ml-2"
+                    disabled={chat.messages.length !== 0}
+                  >
+                    <Paperclip className="size-4" />
+                    <span>Upload document</span>
+                  </Button>
+                </DialogTrigger>
+                <DialogContent>
+                  <DialogHeader>
+                    <DialogTitle>Upload document</DialogTitle>
+                    <DialogDescription>
+                      Upload a document to use for the chat.
+                    </DialogDescription>
+                  </DialogHeader>
+                  <UploadDocumentsForm />
+                </DialogContent>
+              </Dialog>
+            )}
 
-          {props.showIntermediateStepsToggle && (
-            <div className="flex items-center gap-2">
-              <Checkbox
-                id="show_intermediate_steps"
-                name="show_intermediate_steps"
-                checked={showIntermediateSteps}
-                disabled={chat.isLoading || intermediateStepsLoading}
-                onCheckedChange={(e) => setShowIntermediateSteps(!!e)}
-              />
-              <label htmlFor="show_intermediate_steps" className="text-sm">
-                Show intermediate steps
-              </label>
-            </div>
-          )}
-        </ChatInput>
-      }
-    />
+            {props.showIntermediateStepsToggle && (
+              <div className="flex items-center gap-2">
+                <Checkbox
+                  id="show_intermediate_steps"
+                  name="show_intermediate_steps"
+                  checked={showIntermediateSteps}
+                  disabled={chat.isLoading || intermediateStepsLoading}
+                  onCheckedChange={(e) => setShowIntermediateSteps(!!e)}
+                />
+                <label htmlFor="show_intermediate_steps" className="text-sm">
+                  Show intermediate steps
+                </label>
+              </div>
+            )}
+          </ChatInput>
+        }
+      />
+    </>
   );
 }
