@@ -72,7 +72,7 @@ export function ChatInput(props: {
   children?: ReactNode;
   className?: string;
   actions?: ReactNode;
-  onStateFormStateChange: (key: string, value: string) => void;
+  onStateFormStateChange?: (key: string, value: string) => void;
 }) {
   const disabled = props.loading && props.onStop == null;
   return (
@@ -90,7 +90,7 @@ export function ChatInput(props: {
       className={cn("flex w-full flex-col", props.className)}
     >
       <div className="border border-input bg-secondary rounded-lg flex flex-col gap-2 max-w-[768px] w-full mx-auto">
-        <FormInputs onStateFormStateChange={props.onStateFormStateChange} />
+        <FormInputs onStateFormStateChange={props.onStateFormStateChange!} />
         {/* <input
           value={props.value}
           placeholder={props.placeholder}
