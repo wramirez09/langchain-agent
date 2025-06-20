@@ -24,7 +24,7 @@ const FormInputs: React.FC<Props> = (props: Props) => {
   const options = getStateOptions(Data);
 
   return (
-    <Container size="sm">
+    <Container size="xl">
       <Title order={1} className="text-white my-7 py-6">
         Medicare Pre Authorization Assitance
       </Title>

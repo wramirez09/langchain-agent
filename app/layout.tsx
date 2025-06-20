@@ -24,7 +24,12 @@ export default function RootLayout({
   children: React.ReactNode;
 }) {
   return (
-    <html lang="en" {...mantineHtmlProps} className="overscroll-y-none">
+    <html
+      lang="en"
+      {...mantineHtmlProps}
+      className="overscroll-y-none"
+      style={{ overflow: "hidden" }}
+    >
       <head>
         <title>LangChain + Next.js Template</title>
         <link rel="shortcut icon" href="/images/favicon.ico" />
@@ -80,9 +85,11 @@ export default function RootLayout({
 
                 <div className="flex justify-center"></div>
               </div>
-              <div className="bg-background mx-4 relative grid rounded-t-2xl border border-input border-b-0 overscroll-none">
+              <div className="bg-background mx-4 relative grid rounded-2xl border border-input overscroll-none h-[90vh]">
                 <NavbarMinimal />
-                <div className="absolute inset-0">{children}</div>
+                <div className="absolute inset-0 overflow-hidden mb-6">
+                  {children}
+                </div>
               </div>
             </div>
             <Toaster />

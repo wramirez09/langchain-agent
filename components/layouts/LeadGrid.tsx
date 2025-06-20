@@ -6,13 +6,13 @@ type LeadGridProps = PropsWithChildren<{
   footer?: React.ReactNode;
 }>;
 
-const PRIMARY_COL_HEIGHT = "80vh";
+const PRIMARY_COL_HEIGHT = "100vh";
 
 export const LeadGrid: React.FC<LeadGridProps> = ({ content, footer }) => {
   const SECONDARY_COL_HEIGHT = `calc(${PRIMARY_COL_HEIGHT} / 2 - var(--mantine-spacing-md) / 2)`;
 
   return (
-    <Container my="md" size="xl">
+    <Container my="md" size="xl" fluid className="oveerflow-hidden">
       <SimpleGrid cols={{ base: 1, sm: 2 }} spacing="md">
         <div
           style={{ height: PRIMARY_COL_HEIGHT, overflowY: "scroll" }}

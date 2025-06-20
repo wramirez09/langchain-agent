@@ -113,6 +113,7 @@ export function ChatInput(props: {
                 <span>Send</span>
               )}
             </Button>
+            <Button type="reset">Reset</Button>
           </div>
         </div>
       </div>
@@ -220,7 +221,7 @@ export function ChatWindow(props: {
   async function sendMessage(e: FormEvent<HTMLFormElement>) {
     let formString = "";
     const formData = Object.entries(formContent).forEach(([key, value]) => {
-      formString = `${formString} ${key ?? ""}: ${value ?? ""}, `;
+      formString = `${formString} ${key ?? ""}: ${value ?? ""}`;
     });
 
     chat.setInput(formString);
