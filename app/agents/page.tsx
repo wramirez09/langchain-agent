@@ -9,7 +9,7 @@ export default function AgentsPage() {
       endpoint="api/chat/agents"
       // emptyStateComponent={<Form />}
       placeholder="Squawk! I'm a conversational agent! Ask me about the current weather in Honolulu!"
-      emoji="🦜"
+      // emoji="🦜"
       showIntermediateStepsToggle={true}
     />
   );

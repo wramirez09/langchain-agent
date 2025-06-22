@@ -57,14 +57,15 @@ export default function RootLayout({
           <NuqsAdapter>
             <div className="bg-secondary grid grid-rows-[auto,1fr] h-[100dvh] overscroll-y-none">
               <div className="grid grid-cols-[1fr,auto] gap-2 p-4">
-                <div className="flex gap-4 flex-col md:flex-row md:items-center">
+                <div className="flex gap-4 flex-col md:flex-row md:items-center ml-2">
                   <a
-                    href="https://js.langchain.com"
+                    href=""
                     rel="noopener noreferrer"
                     target="_blank"
                     className="flex items-center gap-2"
                   >
                     <Logo />
+                    NoteDoctorAi
                   </a>
                   <nav className="flex gap-1 flex-col md:flex-row">
                     {/* <ActiveLink href="/">🏴‍☠️ Chat</ActiveLink>
@@ -85,7 +86,7 @@ export default function RootLayout({
 
                 <div className="flex justify-center"></div>
               </div>
-              <div className="bg-background mx-4 relative grid rounded-2xl border border-input overscroll-none h-[90vh]">
+              <div className="bg-background mx-4 relative grid rounded-2xl border border-slate-50 overscroll-none h-[90vh] shadow-lg">
                 <NavbarMinimal />
                 <div className="absolute inset-0 overflow-hidden mb-6">
                   {children}

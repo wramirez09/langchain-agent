@@ -1,14 +1,8 @@
 "use client";
-import {
-  Title,
-  Select,
-  Textarea,
-  Container,
-  ComboboxItem,
-} from "@mantine/core";
+import { Select, Textarea } from "@mantine/core";
 
 import React from "react";
-import { Data, StateData } from "../metaData/states";
+import { Data, StateData } from "../../../app/agents/metaData/states";
 
 type Props = {
   onStateFormStateChange: (key: string, value: string) => void;
@@ -24,44 +18,43 @@ const FormInputs: React.FC<Props> = (props: Props) => {
   const options = getStateOptions(Data);
 
   return (
-    <Container size="xl">
-      <Title order={1} className="text-white my-7 py-6">
-        Medicare Pre Authorization Assitance
-      </Title>
-
+    <section className="mt-8 mx-8 px-8">
       <Select
         label="Select State"
+        labelProps={{ className: "text-[#7f8b9d]" }}
         name="state"
-        placeholder="Pick value"
+        placeholder="IL"
         data={options}
         searchable
         clearable
         className="text-white mb-6"
         onChange={(value) => {
           if (value !== null) {
-            props.onStateFormStateChange("state", value);
+            props.onStateFormStateChange("State", value);
           }
         }}
       />
       <Textarea
         label="Treatment or Service"
+        labelProps={{ className: "text-[#7f8b9d]" }}
         name="treatment"
-        placeholder="Input placeholder"
+        placeholder="Magnetic Resonance Imaging (MRI)"
         className="text-white mb-6"
         onChange={(event) =>
-          props.onStateFormStateChange("treatment", event.target.value)
+          props.onStateFormStateChange("Treatment", event.target.value)
         }
       />
       <Textarea
         label="Diagnosis"
+        labelProps={{ className: "text-[#7f8b9d]" }}
         name="diagnosis"
-        placeholder="Input placeholder"
+        placeholder="Meniscus Tear"
         className="text-white mb-6"
         onChange={(event) =>
-          props.onStateFormStateChange("diagnosis", event.target.value)
+          props.onStateFormStateChange("Diagnosis", event.target.value)
         }
       />
-    </Container>
+    </section>
   );
 };
 

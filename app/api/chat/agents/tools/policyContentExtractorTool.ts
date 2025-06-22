@@ -35,7 +35,9 @@ class PolicyContentExtractorTool extends StructuredTool<
     "Fetches the full content of a Medicare policy document (NCD, LCD, or Article) from its URL. " +
     "Returns the main textual content of the page for detailed analysis by the AI. " +
     "This content can then be used to identify prior authorization requirements, medical necessity criteria, " +
-    "associated ICD-10 and CPT codes, required documentation, and limitations. show content from documents for specific coverage criteria, coding, and documentation requirements";
+    "associated ICD-10 and CPT codes, required documentation, and limitations. show content from documents for specific coverage criteria, coding, and documentation requirements. Return content as JSON with the following structure: " +
+    "{priorAuthorizationRequired:boolean, medicalNecessityCriteria:string[], icd10Codes:{code:string, description:string, context:string}[], cptCodes:{code:string, description:string, context:string}[], requiredDocumentation:string[], limitationsExclusions:string[], summary:string}. " +
+    "If the content cannot be extracted, return a message indicating the issue.";
   schema = PolicyContentExtractorInputSchema;
 
   /**

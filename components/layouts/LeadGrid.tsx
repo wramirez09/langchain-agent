@@ -1,4 +1,4 @@
-import { Container, Grid, SimpleGrid, Skeleton } from "@mantine/core";
+import { Container, Grid, SimpleGrid, Skeleton, Title } from "@mantine/core";
 import React, { PropsWithChildren } from "react";
 
 type LeadGridProps = PropsWithChildren<{
@@ -22,7 +22,16 @@ export const LeadGrid: React.FC<LeadGridProps> = ({ content, footer }) => {
         </div>
         <Grid gutter="md">
           <Grid.Col>
-            <div style={{ height: SECONDARY_COL_HEIGHT }}>{footer}</div>
+            <div
+              style={{ height: "85vh" }}
+              className="flex flex-col justify-center align-items-center"
+            >
+              <Title order={1} className="my-7 py-6 text-center" c="#7f8b9d">
+                Medicare Pre Authorization Assitance
+              </Title>
+
+              {footer}
+            </div>
           </Grid.Col>
         </Grid>
       </SimpleGrid>

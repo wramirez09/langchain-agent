@@ -75,7 +75,8 @@ Here's your step-by-step workflow:
     * Provide the user with a structured response that includes:
       - A direct answer to whether prior authorization is required.
       - A summary of medical necessity criteria.
-      - A list of relevant ICD-10 and CPT codes.  `;
+      - A list of relevant ICD-10 and CPT codes.
+    `;
 
 /**
  * This handler initializes and calls an tool caling ReAct agent.
@@ -163,7 +164,6 @@ export async function POST(req: NextRequest) {
 
       return new StreamingTextResponse(transformStream);
     } else {
-      console.log("returning final result");
       /**
        * We could also pick intermediate steps out from `streamEvents` chunks, but
        * they are generated as JSON objects, so streaming and displaying them with

@@ -2545,6 +2545,13 @@ __metadata:
   languageName: node
   linkType: hard
 
+"@types/lodash@npm:^4.17.18":
+  version: 4.17.18
+  resolution: "@types/lodash@npm:4.17.18"
+  checksum: 539b2a01a83062888c36e53450b03ff2fbb4631a8226df38e1d77888c954c931b0b1abcbb26bb4f19ffc37da5b0be4db8b3002560d2acc036e8d28ebad132c47
+  languageName: node
+  linkType: hard
+
 "@types/markdown-it@npm:^14.0.0":
   version: 14.1.2
   resolution: "@types/markdown-it@npm:14.1.2"
@@ -5977,6 +5984,7 @@ __metadata:
     "@tiptap/pm": ^2.14.0
     "@tiptap/react": ^2.14.0
     "@tiptap/starter-kit": ^2.14.0
+    "@types/lodash": ^4.17.18
     "@types/node": 20.12.12
     "@types/react": 18.3.2
     "@types/react-dom": 18.3.0
@@ -5993,6 +6001,7 @@ __metadata:
     fs: ^0.0.1-security
     install: ^0.13.0
     langchain: ^0.3.27
+    lodash: ^4.17.21
     lucide-react: ^0.473.0
     next: ^15.2.4
     next-themes: ^0.4.4
