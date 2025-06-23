@@ -1,40 +1,46 @@
-import { NextApiRequest, NextApiResponse } from "next";
-import pdfParse from "pdf-parse";
+import { NextRequest, NextResponse } from "next/server";
+import { getDocument } from "pdfjs-dist";
 
-export default async function handler(
-  req: NextApiRequest,
-  res: NextApiResponse,
-) {
+export const runtime = "edge";
+
+export async function GET(req: NextRequest) {
   try {
-    // Define the URL to the PDF file in the public directory
     const pdfUrl = `${process.env.NEXT_PUBLIC_BASE_URL || "http://localhost:3000"}/data/cigna-policy.pdf`;
 
-    // Fetch the PDF file from the static directory
     const response = await fetch(pdfUrl);
     console.log(`Fetching PDF from: ${pdfUrl}`);
 
-    if (!response) {
-      throw new Error(`Failed to fetch the PDF file: ${response}`);
+    if (!response.ok) {
+      throw new Error(`Failed to fetch the PDF file: ${response.statusText}`);
     }
 
     const pdfBuffer = await response.arrayBuffer();
 
-    // Parse the PDF content
-    const parsedPdf = await pdfParse(Buffer.from(pdfBuffer));
-    console.log("PDF file parsed successfully.", parsedPdf);
+    // Use PDF.js to parse the PDF
+    const pdf = await getDocument({ data: pdfBuffer }).promise;
+    const numPages = pdf.numPages;
+    let text = "";
 
-    // Return the parsed text content
-    res.status(200).json({ text: parsedPdf.text });
+    for (let i = 1; i <= numPages; i++) {
+      const page = await pdf.getPage(i);
+      const content = await page.getTextContent();
+      text += content.items.map((item: any) => item.str).join(" ");
+    }
+
+    return NextResponse.json({ text });
   } catch (error) {
     console.error(
       `Error parsing the PDF file: ${
         error instanceof Error ? error.message : String(error)
       }`,
     );
-    res.status(500).json({
-      error: `Failed to parse the PDF file: ${
-        error instanceof Error ? error.message : String(error)
-      }`,
-    });
+    return NextResponse.json(
+      {
+        error: `Failed to parse the PDF file: ${
+          error instanceof Error ? error.message : String(error)
+        }`,
+      },
+      { status: 500 },
+    );
   }
 }
