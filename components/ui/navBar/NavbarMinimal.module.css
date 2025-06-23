@@ -4,8 +4,8 @@
     padding: var(--mantine-spacing-md);
     display: flex;
     flex-direction: column;
-    border-right: 1px solid light-dark(var(--mantine-color-gray-3), var(--mantine-color-dark-4));
-    z-index: 1000;
+    /* border-right: 1px solid light-dark(var(--mantine-color-gray-3), var(--mantine-color-dark-4)); */
+    z-index: 2000;
   }
   
   .navbarMain {

@@ -46,7 +46,7 @@ class PolicyContentExtractorTool extends StructuredTool<
    * @param input The validated input from the LLM, matching PolicyContentExtractorInputSchema.
    * @returns A string containing the extracted policy text or an error message.
    */
-  protected async _call(
+  public async _call(
     input: z.infer<typeof PolicyContentExtractorInputSchema>,
   ): Promise<string> {
     const { policyUrl } = input;

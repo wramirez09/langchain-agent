@@ -20,6 +20,24 @@ const FormInputs: React.FC<Props> = (props: Props) => {
   return (
     <section className="mt-8 mx-8 px-8">
       <Select
+        label="Insurance Provider"
+        labelProps={{ className: "text-[#7f8b9d]" }}
+        name="Insurance"
+        placeholder="medicare or private insurance"
+        data={[
+          { value: "medicare", label: "Medicare" },
+          { value: "cigna", label: "Cigna" },
+        ]}
+        searchable
+        clearable
+        className="text-white mb-6"
+        onChange={(value) => {
+          if (value !== null) {
+            props.onStateFormStateChange("insurance", value);
+          }
+        }}
+      />
+      <Select
         label="Select State"
         labelProps={{ className: "text-[#7f8b9d]" }}
         name="state"

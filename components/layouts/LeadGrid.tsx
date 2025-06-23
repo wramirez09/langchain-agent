@@ -6,7 +6,7 @@ type LeadGridProps = PropsWithChildren<{
   footer?: React.ReactNode;
 }>;
 
-const PRIMARY_COL_HEIGHT = "100vh";
+const PRIMARY_COL_HEIGHT = "85vh";
 
 export const LeadGrid: React.FC<LeadGridProps> = ({ content, footer }) => {
   const SECONDARY_COL_HEIGHT = `calc(${PRIMARY_COL_HEIGHT} / 2 - var(--mantine-spacing-md) / 2)`;
@@ -26,7 +26,7 @@ export const LeadGrid: React.FC<LeadGridProps> = ({ content, footer }) => {
               style={{ height: "85vh" }}
               className="flex flex-col justify-center align-items-center"
             >
-              <Title order={1} className="my-7 py-6 text-center" c="#7f8b9d">
+              <Title order={1} className="my-7 py-6 text-center" c="#238dd2">
                 Medicare Pre Authorization Assitance
               </Title>
 

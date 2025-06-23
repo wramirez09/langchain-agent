@@ -17,6 +17,7 @@ import { NCDCoverageSearchTool } from "./tools/NCDCoverageSearchTool";
 import { localLcdSearchTool } from "./tools/localLcdSearchTool";
 import { localCoverageArticleSearchTool } from "./tools/localArticleSearchTool";
 import { policyContentExtractorTool } from "./tools/policyContentExtractorTool";
+import { CignaPriorAuthLookupTool } from "./tools/CignaPriorAuthLookupTool";
 
 export const runtime = "edge";
 
@@ -76,7 +77,7 @@ Here's your step-by-step workflow:
       - A direct answer to whether prior authorization is required.
       - A summary of medical necessity criteria.
       - A list of relevant ICD-10 and CPT codes.
-    `;
+`;
 
 /**
  * This handler initializes and calls an tool caling ReAct agent.

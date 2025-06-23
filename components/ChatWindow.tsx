@@ -5,7 +5,7 @@ import { useChat } from "ai/react";
 import { useCallback, useState } from "react";
 import type { FormEvent, ReactNode } from "react";
 import { toast } from "sonner";
-import { StickToBottom, useStickToBottomContext } from "use-stick-to-bottom";
+import { useStickToBottomContext } from "use-stick-to-bottom";
 
 import { ChatMessageBubble } from "@/components/ChatMessageBubble";
 import { IntermediateStep } from "./IntermediateStep";
@@ -25,8 +25,10 @@ import { cn } from "@/utils/cn";
 import FormInputs from "@/components/ui/forms/Form";
 import { LeadGrid } from "./layouts/LeadGrid";
 import React from "react";
+import { Textarea } from "@mantine/core";
 
 type FormContent = {
+  insurance?: string;
   treatment?: string;
   state?: string;
   diagnosis?: string;
@@ -88,13 +90,22 @@ export function ChatInput(props: {
       className={cn("flex w-full flex-col", props.className)}
     >
       <div className="border border-slate-50 bg-primary rounded-lg flex flex-col gap-2 max-w-[768px] w-full mx-auto shadow-lg">
-        <FormInputs onStateFormStateChange={props.onStateFormStateChange!} />
-        {/* <input
-          value={props.value}
-          placeholder={props.placeholder}
-          onChange={props.onChange}
-          className="border-none outline-none bg-transparent p-4 text-white my-9"
-        /> */}
+        <>
+          {" "}
+          <FormInputs onStateFormStateChange={props.onStateFormStateChange!} />
+          {/* <input
+            value={props.value}
+            placeholder={props.placeholder}
+            onChange={props.onChange}
+            className="border-none outline-none bg-transparent p-4 text-black my-9"
+          /> */}
+          {/* <Textarea
+            className="border-none outline-none bg-transparent p-4 text-black my-9"
+            onChange={(e) =>
+              props.onStateFormStateChange!("treatment", e.target.value)
+            }
+          /> */}
+        </>
 
         <div className="flex justify-between ml-4 mr-2 mb-2">
           <div className="flex gap-3">{props.children}</div>
