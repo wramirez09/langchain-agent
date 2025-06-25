@@ -42,7 +42,9 @@ class PolicyContentExtractorTool extends StructuredTool<
     "Any specific situations, patient groups, or circumstances where the treatment is not covered or has restrictions." +
     "A brief, overarching explanation of the policy's stance on the treatment." +
     "This content can then be used to identify prior authorization requirements, medical necessity criteria, " +
-    "associated ICD-10 and CPT codes, required documentation, and limitations.";
+    "associated ICD-10 and CPT codes, required documentation, and limitations. show content from documents for specific coverage criteria, coding, and documentation requirements. Return content as JSON with the following structure: " +
+    "{priorAuthorizationRequired:boolean, medicalNecessityCriteria:string[], icd10Codes:{code:string, description:string, context:string}[], cptCodes:{code:string, description:string, context:string}[], requiredDocumentation:string[], limitationsExclusions:string[], summary:string}. " +
+    "If the content cannot be extracted, return a message indicating the issue.";
   schema = PolicyContentExtractorInputSchema;
 
   /**
@@ -51,7 +53,7 @@ class PolicyContentExtractorTool extends StructuredTool<
    * @param input The validated input from the LLM, matching PolicyContentExtractorInputSchema.
    * @returns A string containing the extracted policy text or an error message.
    */
-  protected async _call(
+  public async _call(
     input: z.infer<typeof PolicyContentExtractorInputSchema>,
   ): Promise<string> {
     const { policyUrl } = input;

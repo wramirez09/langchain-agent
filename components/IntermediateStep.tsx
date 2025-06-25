@@ -29,6 +29,7 @@ export function IntermediateStep(props: { message: Message }) {
           <ChevronUp className="w-5 h-5" />
         </span>
       </button>
+
       <div
         className={cn(
           "overflow-hidden max-h-[0px] transition-[max-height] ease-in-out text-sm",
