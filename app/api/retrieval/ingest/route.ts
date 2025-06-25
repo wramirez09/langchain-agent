@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { RecursiveCharacterTextSplitter } from "@langchain/textsplitters";
 
 import { SearchClient, AzureKeyCredential } from "@azure/search-documents";
-import { AzureAISearchVectorStore } from "@langchain/community/vectorstores/azure_ai_search";
+import { AzureAISearchVectorStore } from "@langchain/community/vectorstores/azure-aisearch";
 import { OpenAIEmbeddings } from "@langchain/openai";
 
 export const runtime = "edge";

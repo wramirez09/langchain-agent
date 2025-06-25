@@ -5,7 +5,7 @@ import { SearchClient, AzureKeyCredential } from "@azure/search-documents";
 
 import { ChatOpenAI, OpenAIEmbeddings } from "@langchain/openai";
 import { PromptTemplate } from "@langchain/core/prompts";
-import { AzureAISearchVectorStore } from "@langchain/community/vectorstores/azure_ai_search";
+import { AzureAISearchVectorStore } from "@langchain/community/vectorstores/azure-aisearch";
 import { Document } from "@langchain/core/documents";
 import { RunnableSequence } from "@langchain/core/runnables";
 import {

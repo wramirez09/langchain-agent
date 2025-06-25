@@ -3,7 +3,7 @@ import { Message as VercelChatMessage, StreamingTextResponse } from "ai";
 
 import { SearchClient, AzureKeyCredential } from "@azure/search-documents";
 
-import { AzureAISearchVectorStore } from "@langchain/community/vectorstores/azure_ai_search";
+import { AzureAISearchVectorStore } from "@langchain/community/vectorstores/azure-aisearch";
 import {
   AIMessage,
   BaseMessage,
