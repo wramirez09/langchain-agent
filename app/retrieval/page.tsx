@@ -69,7 +69,7 @@ export default function AgentsPage() {
           🔱
           <span className="ml-2">
             Before running this example on your own, you&apos;ll first need to
-            set up a Supabase vector store. See the README for more details.
+            set up an Azure AI Search index. See the README for more details.
           </span>
         </li>
         <li className="text-l">

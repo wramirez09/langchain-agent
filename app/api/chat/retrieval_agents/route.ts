@@ -1,9 +1,9 @@
 import { NextRequest, NextResponse } from "next/server";
 import { Message as VercelChatMessage, StreamingTextResponse } from "ai";
 
-import { createClient } from "@supabase/supabase-js";
+import { SearchClient, AzureKeyCredential } from "@azure/search-documents";
 
-import { SupabaseVectorStore } from "@langchain/community/vectorstores/supabase";
+import { AzureAISearchVectorStore } from "@langchain/community/vectorstores/azure_ai_search";
 import {
   AIMessage,
   BaseMessage,
@@ -72,14 +72,14 @@ export async function POST(req: NextRequest) {
       temperature: 0.2,
     });
 
-    const client = createClient(
-      process.env.SUPABASE_URL!,
-      process.env.SUPABASE_PRIVATE_KEY!,
+    const client = new SearchClient(
+      process.env.AZURE_AI_SEARCH_ENDPOINT!,
+      process.env.AZURE_AI_SEARCH_INDEX_NAME!,
+      new AzureKeyCredential(process.env.AZURE_AI_SEARCH_ADMIN_KEY!),
     );
-    const vectorstore = new SupabaseVectorStore(new OpenAIEmbeddings(), {
+    const vectorstore = new AzureAISearchVectorStore(new OpenAIEmbeddings(), {
       client,
-      tableName: "documents",
-      queryName: "match_documents",
+      indexName: process.env.AZURE_AI_SEARCH_INDEX_NAME!,
     });
 
     const retriever = vectorstore.asRetriever();

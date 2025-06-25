@@ -1,21 +1,21 @@
 import { NextRequest, NextResponse } from "next/server";
 import { RecursiveCharacterTextSplitter } from "@langchain/textsplitters";
 
-import { createClient } from "@supabase/supabase-js";
-import { SupabaseVectorStore } from "@langchain/community/vectorstores/supabase";
+import { SearchClient, AzureKeyCredential } from "@azure/search-documents";
+import { AzureAISearchVectorStore } from "@langchain/community/vectorstores/azure_ai_search";
 import { OpenAIEmbeddings } from "@langchain/openai";
 
 export const runtime = "edge";
 
 // Before running, follow set-up instructions at
-// https://js.langchain.com/v0.2/docs/integrations/vectorstores/supabase
+// https://js.langchain.com/docs/integrations/vectorstores/azure_aisearch
 
 /**
  * This handler takes input text, splits it into chunks, and embeds those chunks
  * into a vector store for later retrieval. See the following docs for more information:
  *
  * https://js.langchain.com/v0.2/docs/how_to/recursive_text_splitter
- * https://js.langchain.com/v0.2/docs/integrations/vectorstores/supabase
+ * https://js.langchain.com/docs/integrations/vectorstores/azure_aisearch
  */
 export async function POST(req: NextRequest) {
   const body = await req.json();
@@ -34,9 +34,10 @@ export async function POST(req: NextRequest) {
   }
 
   try {
-    const client = createClient(
-      process.env.SUPABASE_URL!,
-      process.env.SUPABASE_PRIVATE_KEY!,
+    const client = new SearchClient(
+      process.env.AZURE_AI_SEARCH_ENDPOINT!,
+      process.env.AZURE_AI_SEARCH_INDEX_NAME!,
+      new AzureKeyCredential(process.env.AZURE_AI_SEARCH_ADMIN_KEY!),
     );
 
     const splitter = RecursiveCharacterTextSplitter.fromLanguage("markdown", {
@@ -46,13 +47,12 @@ export async function POST(req: NextRequest) {
 
     const splitDocuments = await splitter.createDocuments([text]);
 
-    const vectorstore = await SupabaseVectorStore.fromDocuments(
+    const vectorstore = await AzureAISearchVectorStore.fromDocuments(
       splitDocuments,
       new OpenAIEmbeddings(),
       {
         client,
-        tableName: "documents",
-        queryName: "match_documents",
+        indexName: process.env.AZURE_AI_SEARCH_INDEX_NAME!,
       },
     );
 
