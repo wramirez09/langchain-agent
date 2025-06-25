@@ -52,18 +52,14 @@ Here's your step-by-step workflow:
     * Carefully analyze the provider's query to identify the specific treatment/service, relevant diagnosis (if provided), and the patient's U.S. state.
 2.  Strategize Policy Search:
     * Prioritize Local Coverage: If a patient's state is specified, your first priority is to use the 'local_lcd_search' tool and 'local_coverage_article_search' tool. Local policies (LCDs and Articles) often contain the most specific details on coding, documentation, and medical necessity for a region.
-    * Include National Coverage: Also use the 'policyContentExtractorTool' tool to identify National Coverage Determinations (NCDs). NCDs establish the foundational Medicare coverage rules nationwide.
+    * use ncd_coverage_search tool: If the query is broad or lacks state information, use the 'ncd_coverage_search' tool to search National Coverage Determinations (NCDs). NCDs provide nationwide coverage rules and can help identify if a treatment/service is generally covered.
+    * Use Policy Content Extractor: If the query is specific to a policy document, use the 'policy_content_extractor' tool to fetch the full content of the policy document from its URL
+    * Include National Coverage: Also use the 'policy_content_extractor' tool to identify National Coverage Determinations (NCDs). NCDs establish the foundational Medicare coverage rules nationwide.
     * Identify URLs: From the output of these search tools, pinpoint the direct URLs to the most relevant policy documents. 
-    * provide the user information and recommendations for obtaining prior authorization, including:
-      - Whether prior authorization is required (YES/NO/CONDITIONAL)
-      - Medical necessity criteria
-      - Relevant ICD-10 and CPT codes
-      - Required documentation
-      - Limitations and exclusions
 3.  Execute the Search:
     * Use the 'local_lcd_search' tool to find Local Coverage Determinations (LCDs) and 'local_coverage_article_search' tool to find Local Coverage Articles (LCAs)
     * If the query is broad or lacks state information, use the 'ncd_coverage_search' tool to search National Coverage Determinations (NCDs).
-    * If the query is specific to a policy document, use the 'policyContentExtractorTool' tool to fetch the full content of the policy document from its URL.
+    * use the 'policy_content_extractor' tool to fetch the full content of the policy document from its URL.
 4.  Analyze and Extract:
     * For each policy document retrieved, extract the following key information:
       - Prior Authorization Requirements: Is prior authorization required? If so, under what conditions?
@@ -74,10 +70,21 @@ Here's your step-by-step workflow:
 5.  Present Findings:
     * Summarize the findings in a clear, concise manner.
     * Provide the user with a structured response that includes:
-      - A direct answer to whether prior authorization is required.
+      - Local coverage determinations (LCDs) and local coverage articles (LCA's) first, Titled as "Local Coverage Determinations", then national coverage determinations (NCDs) Titled "National Coverage Determinations (NCD's)". with the following information:
+      - The title and document display ID of each relevant policy.
+      - A brief description of the policy's content.
+      - The direct URL to the policy document.
+      - A summary of the prior authorization requirements, including:
+      - Whether prior authorization is required (YES/NO/CONDITIONAL).
       - A summary of medical necessity criteria.
       - A list of relevant ICD-10 and CPT codes.
-`;
+      - A summary of required documentation.
+      - Any limitations or exclusions that apply.
+      - A summary of the policy document's content.
+      - A list of relevant URLs to the policy documents
+      - Any limitations or exclusions that apply.
+6.  Follow Up:
+    * If the user has further questions or needs clarification, be ready to assist.`;
 
 /**
  * This handler initializes and calls an tool caling ReAct agent.
@@ -109,10 +116,7 @@ export async function POST(req: NextRequest) {
       localCoverageArticleSearchTool,
       policyContentExtractorTool,
     ];
-    const chat = new ChatOpenAI({
-      model: "gpt-4o-mini",
-      temperature: 0,
-    });
+    const chat = new ChatOpenAI({ model: "gpt-4o-mini", temperature: 0 });
 
     /**
      * Use a prebuilt LangGraph agent.
@@ -170,9 +174,7 @@ export async function POST(req: NextRequest) {
        * they are generated as JSON objects, so streaming and displaying them with
        * the AI SDK is more complicated.
        */
-      const result = await agent.invoke({
-        messages,
-      });
+      const result = await agent.invoke({ messages });
 
       return NextResponse.json(
         {
