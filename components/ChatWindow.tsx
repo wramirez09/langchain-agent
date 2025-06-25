@@ -2,10 +2,10 @@
 
 import { type Message } from "ai";
 import { useChat } from "ai/react";
-import { useState } from "react";
+import { useCallback, useState } from "react";
 import type { FormEvent, ReactNode } from "react";
 import { toast } from "sonner";
-import { StickToBottom, useStickToBottomContext } from "use-stick-to-bottom";
+import { useStickToBottomContext } from "use-stick-to-bottom";
 
 import { ChatMessageBubble } from "@/components/ChatMessageBubble";
 import { IntermediateStep } from "./IntermediateStep";
@@ -22,8 +22,17 @@ import {
   DialogTrigger,
 } from "./ui/dialog";
 import { cn } from "@/utils/cn";
-import { useForm } from "@mantine/form";
-import FormInputs from "@/app/agents/components/Form";
+import FormInputs from "@/components/ui/forms/Form";
+import { LeadGrid } from "./layouts/LeadGrid";
+import React from "react";
+import { Textarea } from "@mantine/core";
+
+type FormContent = {
+  insurance?: string;
+  treatment?: string;
+  state?: string;
+  diagnosis?: string;
+};
 
 function ChatMessages(props: {
   messages: Message[];
@@ -57,12 +66,13 @@ export function ChatInput(props: {
   onSubmit: (e: FormEvent<HTMLFormElement>) => void;
   onStop?: () => void;
   value: string;
-  onChange: (e: React.ChangeEvent<HTMLInputElement>) => void;
+  onChange?: (e: React.ChangeEvent<HTMLInputElement>) => void;
   loading?: boolean;
   placeholder?: string;
   children?: ReactNode;
   className?: string;
   actions?: ReactNode;
+  onStateFormStateChange?: (key: string, value: string) => void;
 }) {
   const disabled = props.loading && props.onStop == null;
   return (
@@ -79,21 +89,35 @@ export function ChatInput(props: {
       }}
       className={cn("flex w-full flex-col", props.className)}
     >
-      <div className="border border-input bg-secondary rounded-lg flex flex-col gap-2 max-w-[768px] w-full mx-auto">
-        {/* <FormInputs onChange={props.onChange} /> */}
-        <input
-          value={props.value}
-          placeholder={props.placeholder}
-          onChange={props.onChange}
-          className="border-none outline-none bg-transparent p-4 text-white my-9"
-        />
+      <div className="border border-slate-50 bg-primary rounded-lg flex flex-col gap-2 max-w-[768px] w-full mx-auto shadow-lg">
+        <>
+          {" "}
+          <FormInputs onStateFormStateChange={props.onStateFormStateChange!} />
+          {/* <input
+            value={props.value}
+            placeholder={props.placeholder}
+            onChange={props.onChange}
+            className="border-none outline-none bg-transparent p-4 text-black my-9"
+          /> */}
+          {/* <Textarea
+            className="border-none outline-none bg-transparent p-4 text-black my-9"
+            onChange={(e) =>
+              props.onStateFormStateChange!("treatment", e.target.value)
+            }
+          /> */}
+        </>
 
         <div className="flex justify-between ml-4 mr-2 mb-2">
           <div className="flex gap-3">{props.children}</div>
 
           <div className="flex gap-2 self-end">
             {props.actions}
-            <Button type="submit" className="self-end" disabled={disabled}>
+            <Button
+              type="submit"
+              className="self-end hover:bg-gray-950 hover:text-primary"
+              disabled={disabled}
+              variant="default"
+            >
               {props.loading ? (
                 <span role="status" className="flex justify-center">
                   <LoaderCircle className="animate-spin" />
@@ -102,6 +126,9 @@ export function ChatInput(props: {
               ) : (
                 <span>Send</span>
               )}
+            </Button>
+            <Button type="reset" variant={"secondary"}>
+              <span className="text-red-700">Reset</span>
             </Button>
           </div>
         </div>
@@ -152,19 +179,11 @@ function StickyToBottomContent(props: {
 
 export function ChatLayout(props: { content: ReactNode; footer: ReactNode }) {
   return (
-    <StickToBottom>
-      <StickyToBottomContent
-        className="absolute inset-0"
-        contentClassName="py-8 px-2"
-        content={props.content}
-        footer={
-          <div className="sticky bottom-8 px-2">
-            <ScrollToBottom className="absolute bottom-full left-1/2 -translate-x-1/2 mb-4" />
-            {props.footer}
-          </div>
-        }
-      />
-    </StickToBottom>
+    <>
+      <div>
+        <LeadGrid content={props.content} footer={props.footer} />
+      </div>
+    </>
   );
 }
 
@@ -185,6 +204,10 @@ export function ChatWindow(props: {
   const [sourcesForMessages, setSourcesForMessages] = useState<
     Record<string, any>
   >({});
+
+  const [formContent, setFormContet] = React.useState<Map<string, string>>(
+    new Map(),
+  );
 
   const chat = useChat({
     api: props.endpoint,
@@ -222,11 +245,13 @@ export function ChatWindow(props: {
     setIntermediateStepsLoading(true);
 
     chat.setInput("");
+
     const messagesWithUserReply = chat.messages.concat({
       id: chat.messages.length.toString(),
       content: chat.input,
       role: "user",
     });
+
     chat.setMessages(messagesWithUserReply);
 
     const response = await fetch(props.endpoint, {
@@ -248,8 +273,6 @@ export function ChatWindow(props: {
 
     const responseMessages: Message[] = json.messages;
 
-    // Represent intermediate steps as system messages for display purposes
-    // TODO: Add proper support for tool messages
     const toolCallMessages = responseMessages.filter(
       (responseMessage: Message) => {
         return (
@@ -273,6 +296,7 @@ export function ChatWindow(props: {
         }),
       });
     }
+
     const newMessages = messagesWithUserReply;
     for (const message of intermediateStepMessages) {
       newMessages.push(message);
@@ -292,68 +316,90 @@ export function ChatWindow(props: {
     ]);
   }
 
-  return (
-    <ChatLayout
-      content={
-        chat.messages.length === 0 ? (
-          <div>{props.emptyStateComponent}</div>
-        ) : (
-          <ChatMessages
-            aiEmoji={props.emoji}
-            messages={chat.messages}
-            emptyStateComponent={props.emptyStateComponent}
-            sourcesForMessages={sourcesForMessages}
-          />
-        )
-      }
-      footer={
-        <ChatInput
-          value={chat.input}
-          onChange={chat.handleInputChange}
-          onSubmit={sendMessage}
-          loading={chat.isLoading || intermediateStepsLoading}
-          placeholder={props.placeholder ?? ""}
-        >
-          {props.showIngestForm && (
-            <Dialog>
-              <DialogTrigger asChild>
-                <Button
-                  variant="ghost"
-                  className="pl-2 pr-3 -ml-2"
-                  disabled={chat.messages.length !== 0}
-                >
-                  <Paperclip className="size-4" />
-                  <span>Upload document</span>
-                </Button>
-              </DialogTrigger>
-              <DialogContent>
-                <DialogHeader>
-                  <DialogTitle>Upload document</DialogTitle>
-                  <DialogDescription>
-                    Upload a document to use for the chat.
-                  </DialogDescription>
-                </DialogHeader>
-                <UploadDocumentsForm />
-              </DialogContent>
-            </Dialog>
-          )}
+  const setInput = useCallback(() => {
+    if (formContent.size === 0) {
+      chat.setInput("");
+      return;
+    }
+    const input = Array.from(formContent.entries())
+      .map(([key, value]) => `${key}: ${value}`)
+      .join(" ");
 
-          {props.showIntermediateStepsToggle && (
-            <div className="flex items-center gap-2">
-              <Checkbox
-                id="show_intermediate_steps"
-                name="show_intermediate_steps"
-                checked={showIntermediateSteps}
-                disabled={chat.isLoading || intermediateStepsLoading}
-                onCheckedChange={(e) => setShowIntermediateSteps(!!e)}
-              />
-              <label htmlFor="show_intermediate_steps" className="text-sm">
-                Show intermediate steps
-              </label>
-            </div>
-          )}
-        </ChatInput>
-      }
-    />
+    chat.setInput(input);
+  }, [chat, formContent]);
+
+  const handleFormStateChange = useCallback(
+    (key: string, value: string) => {
+      setFormContet((prev) => prev.set(key, value));
+      setInput();
+    },
+    [chat, setFormContet, setInput],
+  );
+
+  return (
+    <>
+      <ChatLayout
+        content={
+          chat.messages.length === 0 ? (
+            <div>{props.emptyStateComponent}</div>
+          ) : (
+            <ChatMessages
+              aiEmoji={props.emoji}
+              messages={chat.messages}
+              emptyStateComponent={props.emptyStateComponent}
+              sourcesForMessages={sourcesForMessages}
+            />
+          )
+        }
+        footer={
+          <ChatInput
+            value={chat.input}
+            onSubmit={sendMessage}
+            loading={chat.isLoading || intermediateStepsLoading}
+            placeholder={props.placeholder ?? ""}
+            onStateFormStateChange={handleFormStateChange}
+          >
+            {props.showIngestForm && (
+              <Dialog>
+                <DialogTrigger asChild>
+                  <Button
+                    variant="ghost"
+                    className="pl-2 pr-3 -ml-2"
+                    disabled={chat.messages.length !== 0}
+                  >
+                    <Paperclip className="size-4" />
+                    <span>Upload document</span>
+                  </Button>
+                </DialogTrigger>
+                <DialogContent>
+                  <DialogHeader>
+                    <DialogTitle>Upload document</DialogTitle>
+                    <DialogDescription>
+                      Upload a document to use for the chat.
+                    </DialogDescription>
+                  </DialogHeader>
+                  <UploadDocumentsForm />
+                </DialogContent>
+              </Dialog>
+            )}
+
+            {props.showIntermediateStepsToggle && (
+              <div className="flex items-center gap-2">
+                <Checkbox
+                  id="show_intermediate_steps"
+                  name="show_intermediate_steps"
+                  checked={showIntermediateSteps}
+                  disabled={chat.isLoading || intermediateStepsLoading}
+                  onCheckedChange={(e) => setShowIntermediateSteps(!!e)}
+                />
+                <label htmlFor="show_intermediate_steps" className="text-sm">
+                  Show intermediate steps
+                </label>
+              </div>
+            )}
+          </ChatInput>
+        }
+      />
+    </>
   );
 }
