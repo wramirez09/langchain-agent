@@ -72,18 +72,21 @@ This example uses a [prebuilt LangGraph agent](https://langchain-ai.github.io/la
 
 ## 🐶 Retrieval
 
-The retrieval examples both use Supabase as a vector store. However, you can swap in
+The retrieval examples both use **Azure AI Search** as a vector store. However, you can swap in
 [another supported vector store](https://js.langchain.com/docs/integrations/vectorstores) if preferred by changing
 the code under `app/api/retrieval/ingest/route.ts`, `app/api/chat/retrieval/route.ts`, and `app/api/chat/retrieval_agents/route.ts`.
 
-For Supabase, follow [these instructions](https://js.langchain.com/docs/integrations/vectorstores/supabase) to set up your
-database, then get your database URL and private key and paste them into `.env.local`.
+For Azure AI Search:
+
+1. Create a search service in the Azure portal.
+2. Create an index (the examples expect one named `documents`) with a vector field sized for OpenAI embeddings (dimension 1536).
+3. Copy the service endpoint, admin key, and index name and paste them into `.env.local` as `AZURE_AI_SEARCH_ENDPOINT`, `AZURE_AI_SEARCH_ADMIN_KEY`, and `AZURE_AI_SEARCH_INDEX_NAME`.
 
 You can then switch to the `Retrieval` and `Retrieval Agent` examples. The default document text is pulled from the LangChain.js retrieval
 use case docs, but you can change them to whatever text you'd like.
 
 For a given text, you'll only need to press `Upload` once. Pressing it again will re-ingest the docs, resulting in duplicates.
-You can clear your Supabase vector store by navigating to the console and running `DELETE FROM documents;`.
+You can clear your Azure AI Search index from the Azure portal or via the API by deleting the uploaded documents.
 
 After splitting, embedding, and uploading some text, you're ready to ask questions!
 
