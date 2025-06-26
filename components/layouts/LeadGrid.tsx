@@ -26,10 +26,6 @@ export const LeadGrid: React.FC<LeadGridProps> = ({ content, footer }) => {
               style={{ height: "85vh" }}
               className="flex flex-col justify-center align-items-center"
             >
-              <Title order={1} className="my-7 py-6 text-center" c="#238dd2">
-                Medicare Pre Authorization Assitance
-              </Title>
-
               {footer}
             </div>
           </Grid.Col>

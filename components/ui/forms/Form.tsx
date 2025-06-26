@@ -1,9 +1,15 @@
 "use client";
-import { Select, Textarea } from "@mantine/core";
+import {
+  __InputStylesNames,
+  Select,
+  SelectProps,
+  Textarea,
+} from "@mantine/core";
 
 import React from "react";
 import { Data, StateData } from "../../../app/agents/metaData/states";
 import { ncdOptions } from "@/data/ncdOptions";
+import { FloatinglInputBase } from "../floatingInputs/FloatingInputs";
 
 type Props = { onStateFormStateChange: (key: string, value: string) => void };
 const getStateOptions = (data: StateData[]) => {
@@ -22,7 +28,9 @@ const FormInputs: React.FC<Props> = (props: Props) => {
         make selections below to get started and click the "Send" button to
         information about the selected treatment or service.
       </h3>
-      <Select
+
+      <FloatinglInputBase<SelectProps>
+        component={Select}
         label="Insurance Provider"
         labelProps={{ className: "text-[#7f8b9d]" }}
         name="Insurance"
@@ -30,57 +38,63 @@ const FormInputs: React.FC<Props> = (props: Props) => {
         data={[
           { value: "medicare", label: "Medicare" },
           { value: "cigna", label: "Cigna" },
+          { value: "Any", label: "any" },
         ]}
         searchable
         clearable
-        className="text-white mb-6"
+        className="text-white mb-7 pb-6"
         onChange={(value) => {
           if (value !== null) {
-            props.onStateFormStateChange("Insurance", value);
+            props.onStateFormStateChange("Insurance", value as string);
           }
         }}
-        defaultValue={"medicare"}
+        defaultValue={"Any"}
         disabled
       />
-      <Select
-        label="Select State"
+
+      <FloatinglInputBase<SelectProps>
+        component={Select}
+        label="State"
         labelProps={{ className: "text-[#7f8b9d]" }}
         name="state"
         placeholder="IL"
         data={options}
         searchable
         clearable
-        className="text-white mb-6"
-        onChange={(value) => {
-          if (value !== null) {
-            props.onStateFormStateChange("State", value);
+        className="text-white mb-7 pb-6"
+        onChange={(option: any) => {
+          if (option !== null) {
+            props.onStateFormStateChange("State", option.label);
           }
         }}
       />
-      <Select
-        label="Treatment or Service"
+
+      <FloatinglInputBase<SelectProps>
+        component={Select}
+        label="Treatment / Service"
         labelProps={{ className: "text-[#7f8b9d]" }}
         name="treatment"
         placeholder="Magnetic Resonance Imaging (MRI)"
         data={ncdOptions}
         searchable
         clearable
-        className="text-white mb-6"
-        onChange={(value, option) => {
-          if (value !== null) {
+        className="text-white mb-7 pb-6"
+        onChange={(option: any) => {
+          if (option !== null) {
             props.onStateFormStateChange("Treatment", option.label);
           }
         }}
       />
-      <Textarea
+      <FloatinglInputBase
         label="Diagnosis"
         labelProps={{ className: "text-[#7f8b9d]" }}
         name="diagnosis"
         placeholder="Meniscus Tear"
-        className="text-white mb-6"
+        className="text-white mb-7 pb-6"
         onChange={(event) =>
           props.onStateFormStateChange("Diagnosis", event.target.value)
         }
+        component={Textarea}
       />
     </section>
   );

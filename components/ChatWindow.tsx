@@ -25,7 +25,8 @@ import { cn } from "@/utils/cn";
 import FormInputs from "@/components/ui/forms/Form";
 import { LeadGrid } from "./layouts/LeadGrid";
 import React from "react";
-import { Textarea } from "@mantine/core";
+import { Textarea, TextareaProps } from "@mantine/core";
+import { FloatinglInputBase } from "./ui/floatingInputs/FloatingInputs";
 
 type FormContent = {
   insurance?: string;
@@ -94,23 +95,18 @@ export function ChatInput(props: {
           <FormInputs onStateFormStateChange={props.onStateFormStateChange!} />
           {""}
           <section className="mx-8 px-8">
-            <p className="mx-2 text-sm text-gray-500">
-              Chat with our AI assistant. You can ask questions, get help, or
-              just have a conversation.
-            </p>
-            <div
-              className="border w-[100%] px-2 bg-white mb-6"
-              style={{ borderColor: "#ced4da", borderRadius: "0.1625rem" }}
-            >
-              <input
-                name="chat-input"
-                type="text"
-                value={props.value}
-                placeholder={props.placeholder}
-                onChange={props.onChange}
-                className="w-[100%] text-[#7f8b9d] focus:outline-none focus:ring-0 h-[3rem] bg-white"
-              />
-            </div>
+            <FloatinglInputBase<TextareaProps>
+              component={Textarea}
+              name="chat-input"
+              rows={3}
+              value={props.value}
+              label=" Chat with our AI assistant. You can ask questions, get help, or just have a conversation."
+              labelProps={{ className: "text-[#7f8b9d]" }}
+              onChange={() => props.onChange}
+              placeholder="Chat with our AI assistant. You can ask questions, get help, or
+              just have a conversation."
+              className="text-[#7f8b9d]"
+            />
           </section>
         </>
 
