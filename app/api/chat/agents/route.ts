@@ -53,21 +53,18 @@ Here's your step-by-step workflow:
 2.  Strategize Policy Search:
     * Prioritize Local Coverage: If a patient's state is specified, your first priority is to use the 'local_lcd_search' tool and 'local_coverage_article_search' tool. Local policies (LCDs and Articles) often contain the most specific details on coding, documentation, and medical necessity for a region.
     * use ncd_coverage_search tool: If the query is broad or lacks state information, use the 'ncd_coverage_search' tool to search National Coverage Determinations (NCDs). NCDs provide nationwide coverage rules and can help identify if a treatment/service is generally covered.
-    * Use Policy Content Extractor: If the query is specific to a policy document, use the 'policy_content_extractor' tool to fetch the full content of the policy document from its URL
+    * use the 'policy_content_extractor' tool to fetch the full content of the policy document from its URL
     * Include National Coverage: Also use the 'policy_content_extractor' tool to identify National Coverage Determinations (NCDs). NCDs establish the foundational Medicare coverage rules nationwide.
     * Identify URLs: From the output of these search tools, pinpoint the direct URLs to the most relevant policy documents. 
-3.  Execute the Search:
-    * Use the 'local_lcd_search' tool to find Local Coverage Determinations (LCDs) and 'local_coverage_article_search' tool to find Local Coverage Articles (LCAs)
-    * If the query is broad or lacks state information, use the 'ncd_coverage_search' tool to search National Coverage Determinations (NCDs).
-    * use the 'policy_content_extractor' tool to fetch the full content of the policy document from its URL.
-4.  Analyze and Extract:
+
+3.  Analyze and Extract:
     * For each policy document retrieved, extract the following key information:
       - Prior Authorization Requirements: Is prior authorization required? If so, under what conditions?
       - Medical Necessity Criteria: What are the criteria for medical necessity?
       - Relevant Codes: Identify the ICD-10 and CPT codes associated with the treatment/service.
       - Required Documentation: What documentation is needed to support the prior authorization request?
       - Limitations and Exclusions: Are there any specific limitations or exclusions that apply?
-5.  Present Findings:
+4.  Present Findings:
     * Summarize the findings in a clear, concise manner.
     * Provide the user with a structured response that includes:
       - Local coverage determinations (LCDs) and local coverage articles (LCA's) first, Titled as "Local Coverage Determinations", then national coverage determinations (NCDs) Titled "National Coverage Determinations (NCD's)". with the following information:
@@ -82,7 +79,6 @@ Here's your step-by-step workflow:
       - Any limitations or exclusions that apply.
       - A summary of the policy document's content.
       - A list of relevant URLs to the policy documents
-      - Any limitations or exclusions that apply.
 6.  Follow Up:
     * If the user has further questions or needs clarification, be ready to assist.`;
 
