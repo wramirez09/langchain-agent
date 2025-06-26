@@ -3,10 +3,9 @@ import { Select, Textarea } from "@mantine/core";
 
 import React from "react";
 import { Data, StateData } from "../../../app/agents/metaData/states";
+import { ncdOptions } from "@/data/ncdOptions";
 
-type Props = {
-  onStateFormStateChange: (key: string, value: string) => void;
-};
+type Props = { onStateFormStateChange: (key: string, value: string) => void };
 const getStateOptions = (data: StateData[]) => {
   return data.map((state) => ({
     value: state.description,
@@ -33,9 +32,11 @@ const FormInputs: React.FC<Props> = (props: Props) => {
         className="text-white mb-6"
         onChange={(value) => {
           if (value !== null) {
-            props.onStateFormStateChange("insurance", value);
+            props.onStateFormStateChange("Insurance", value);
           }
         }}
+        defaultValue={"medicare"}
+        disabled
       />
       <Select
         label="Select State"
@@ -52,15 +53,21 @@ const FormInputs: React.FC<Props> = (props: Props) => {
           }
         }}
       />
-      <Textarea
+
+      <Select
         label="Treatment or Service"
         labelProps={{ className: "text-[#7f8b9d]" }}
         name="treatment"
         placeholder="Magnetic Resonance Imaging (MRI)"
+        data={ncdOptions}
+        searchable
+        clearable
         className="text-white mb-6"
-        onChange={(event) =>
-          props.onStateFormStateChange("Treatment", event.target.value)
-        }
+        onChange={(value, option) => {
+          if (value !== null) {
+            props.onStateFormStateChange("Treatment", option.label);
+          }
+        }}
       />
       <Textarea
         label="Diagnosis"
