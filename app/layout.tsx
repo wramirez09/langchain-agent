@@ -31,23 +31,32 @@ export default function RootLayout({
       style={{ overflow: "hidden" }}
     >
       <head>
-        <title>LangChain + Next.js Template</title>
-        <link rel="shortcut icon" href="/images/favicon.ico" />
+        <title>
+          MediAuth Pro | AI-Powered Prior Authorization & Policy Lookup for
+          Healthcare
+        </title>
+        <link rel="shortcut icon" href="/images/" />
         <meta
           name="description"
-          content="Starter template showing how to use LangChain in Next.js projects. See source code and deploy your own at https://github.com/langchain-ai/langchain-nextjs-template!"
+          content="Streamline healthcare prior authorizations with MediAuth Pro. Our AI-powered platform provides instant Medicare NCD/LCD insights and Cigna policy guidance, simplifying approvals and reducing administrative burden for providers."
         />
-        <meta property="og:title" content="LangChain + Next.js Template" />
+        <meta
+          property="og:title"
+          content="MediAuth Pro | AI-Powered Prior Authorization & Policy Lookup for Healthcare"
+        />
         <meta
           property="og:description"
-          content="Starter template showing how to use LangChain in Next.js projects. See source code and deploy your own at https://github.com/langchain-ai/langchain-nextjs-template!"
+          content="Streamline healthcare prior authorizations with MediAuth Pro. Our AI-powered platform provides instant Medicare NCD/LCD insights and Cigna policy guidance, simplifying approvals and reducing administrative burden for providers."
         />
         <meta property="og:image" content="/images/og-image.png" />
         <meta name="twitter:card" content="summary_large_image" />
-        <meta name="twitter:title" content="LangChain + Next.js Template" />
+        <meta
+          name="twitter:title"
+          content="MediAuth Pro | AI-Powered Prior Authorization & Policy Lookup for Healthcare"
+        />
         <meta
           name="twitter:description"
-          content="Starter template showing how to use LangChain in Next.js projects. See source code and deploy your own at https://github.com/langchain-ai/langchain-nextjs-template!"
+          content="Streamline healthcare prior authorizations with MediAuth Pro. Our AI-powered platform provides instant Medicare NCD/LCD insights and Cigna policy guidance, simplifying approvals and reducing administrative burden for providers."
         />
         <meta name="twitter:image" content="/images/og-image.png" />
         <ColorSchemeScript />

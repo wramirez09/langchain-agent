@@ -66,7 +66,7 @@ export function ChatInput(props: {
   onSubmit: (e: FormEvent<HTMLFormElement>) => void;
   onStop?: () => void;
   value: string;
-  onChange?: (e: React.ChangeEvent<HTMLInputElement>) => void;
+  onChange: (e: React.ChangeEvent<HTMLInputElement>) => void;
   loading?: boolean;
   placeholder?: string;
   children?: ReactNode;
@@ -91,26 +91,33 @@ export function ChatInput(props: {
     >
       <div className="border border-slate-50 bg-primary rounded-lg flex flex-col gap-2 max-w-[768px] w-full mx-auto shadow-lg">
         <>
-          {" "}
           <FormInputs onStateFormStateChange={props.onStateFormStateChange!} />
-          {/* <input
-            value={props.value}
-            placeholder={props.placeholder}
-            onChange={props.onChange}
-            className="border-none outline-none bg-transparent p-4 text-black my-9"
-          /> */}
-          {/* <Textarea
-            className="border-none outline-none bg-transparent p-4 text-black my-9"
-            onChange={(e) =>
-              props.onStateFormStateChange!("treatment", e.target.value)
-            }
-          /> */}
+          {""}
+          <section className="mx-8 px-8">
+            <p className="mx-2 text-sm text-gray-500">
+              Chat with our AI assistant. You can ask questions, get help, or
+              just have a conversation.
+            </p>
+            <div
+              className="border w-[100%] px-2 bg-white mb-6"
+              style={{ borderColor: "#ced4da", borderRadius: "0.1625rem" }}
+            >
+              <input
+                name="chat-input"
+                type="text"
+                value={props.value}
+                placeholder={props.placeholder}
+                onChange={props.onChange}
+                className="w-[100%] text-[#7f8b9d] focus:outline-none focus:ring-0 h-[3rem] bg-white"
+              />
+            </div>
+          </section>
         </>
 
         <div className="flex justify-between ml-4 mr-2 mb-2">
           <div className="flex gap-3">{props.children}</div>
 
-          <div className="flex gap-2 self-end">
+          <div className="flex gap-2 self-end m-6">
             {props.actions}
             <Button
               type="submit"
@@ -354,6 +361,7 @@ export function ChatWindow(props: {
         footer={
           <ChatInput
             value={chat.input}
+            onChange={chat.handleInputChange}
             onSubmit={sendMessage}
             loading={chat.isLoading || intermediateStepsLoading}
             placeholder={props.placeholder ?? ""}

@@ -18,6 +18,10 @@ const FormInputs: React.FC<Props> = (props: Props) => {
 
   return (
     <section className="mt-8 mx-8 px-8">
+      <h3 className="text-[#7f8b9d] mb-6">
+        make selections below to get started and click the "Send" button to
+        information about the selected treatment or service.
+      </h3>
       <Select
         label="Insurance Provider"
         labelProps={{ className: "text-[#7f8b9d]" }}
@@ -53,7 +57,6 @@ const FormInputs: React.FC<Props> = (props: Props) => {
           }
         }}
       />
-
       <Select
         label="Treatment or Service"
         labelProps={{ className: "text-[#7f8b9d]" }}
