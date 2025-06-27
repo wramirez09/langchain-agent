@@ -6,7 +6,7 @@ import {
   Textarea,
 } from "@mantine/core";
 
-import React, { useState } from "react";
+import React, { ChangeEvent, useState } from "react";
 import { Data, StateData } from "../../../app/agents/metaData/states";
 import { ncdOptions } from "@/data/ncdOptions";
 
@@ -139,7 +139,10 @@ const FormInputs: React.FC<Props> = (props: Props) => {
         name="Chat Prompt"
         placeholder="Get NCD information about the selected treatment or service."
         className="text-white mb-3 pb-6"
-        onChange={() => props.chatOnChange}
+        onChange={(event) => {
+          setChatValue(event.target.value);
+          props.chatOnChange(event as unknown as ChangeEvent<HTMLInputElement>);
+        }}
         classNames={classes}
         onFocus={() => setChatFocused(true)}
         onBlur={() => setChatFocused(false)}

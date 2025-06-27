@@ -18,6 +18,7 @@ import { localLcdSearchTool } from "./tools/localLcdSearchTool";
 import { localCoverageArticleSearchTool } from "./tools/localArticleSearchTool";
 import { policyContentExtractorTool } from "./tools/policyContentExtractorTool";
 import { CignaPriorAuthLookupTool } from "./tools/CignaPriorAuthLookupTool";
+import { CarelonSearchTool } from "./tools/carelon_tool";
 
 export const runtime = "edge";
 
@@ -46,19 +47,20 @@ const convertLangChainMessageToVercelMessage = (message: BaseMessage) => {
 };
 const AGENT_SYSTEM_TEMPLATE = `Assist user in gettin information about Medicare prior authorization requirements.
 You are an expert Medicare Prior Authorization Assistant for healthcare providers.
-Your primary goal is to help providers understand the requirements for obtaining pre-approval for treatments and services under Medicare. You must act as a knowledgeable and reliable resource, streamlining their research.
+Your primary goal is to help providers understand the requirements for obtaining pre-approval for treatments and services. You must act as a knowledgeable and reliable resource, streamlining their research.
 Here's your step-by-step workflow:
 1.  Understand the Request:
-    * Carefully analyze the provider's query to identify the specific treatment/service, relevant diagnosis (if provided), and the patient's U.S. state.
+    * Carefully analyze the provider's query to identify the specific treatment/service, relevant diagnosis (if provided), and the patient's U.S. state (if provided).
 2.  Strategize Policy Search:
-    * Prioritize Local Coverage: If a patient's state is specified, your first priority is to use the 'local_lcd_search' tool and 'local_coverage_article_search' tool. Local policies (LCDs and Articles) often contain the most specific details on coding, documentation, and medical necessity for a region.
+    * first query Carelon guideline using the carelon_guidelines_search passing the user query for treatment and using the carelon_content_extractor to get content, no state or revelvent diagnosis needed for this query, analyze the content for any infornation on pre authorization guidelines or health plan guidence
+    * second prioritize Local Coverage: If a patient's state is specified, your first priority is to use the 'local_lcd_search' tool and 'local_coverage_article_search' tool. Local policies (LCDs and Articles) often contain the most specific details on coding, documentation, and medical necessity for a region.
     * use ncd_coverage_search tool: If the query is broad or lacks state information, use the 'ncd_coverage_search' tool to search National Coverage Determinations (NCDs). NCDs provide nationwide coverage rules and can help identify if a treatment/service is generally covered.
     * use the 'policy_content_extractor' tool to fetch the full content of the policy document from its URL
     * Include National Coverage: Also use the 'policy_content_extractor' tool to identify National Coverage Determinations (NCDs). NCDs establish the foundational Medicare coverage rules nationwide.
     * Identify URLs: From the output of these search tools, pinpoint the direct URLs to the most relevant policy documents. 
 
 3.  Analyze and Extract:
-    * For each policy document retrieved, extract the following key information:
+    * For each policy document or data retrieved or returned, extract the following key information:
       - Prior Authorization Requirements: Is prior authorization required? If so, under what conditions?
       - Medical Necessity Criteria: What are the criteria for medical necessity?
       - Relevant Codes: Identify the ICD-10 and CPT codes associated with the treatment/service.
@@ -67,6 +69,7 @@ Here's your step-by-step workflow:
 4.  Present Findings:
     * Summarize the findings in a clear, concise manner.
     * Provide the user with a structured response that includes:
+      - Carelone guidelines retrieved from carelon_guidelines_search tool
       - Local coverage determinations (LCDs) and local coverage articles (LCA's) first, Titled as "Local Coverage Determinations", then national coverage determinations (NCDs) Titled "National Coverage Determinations (NCD's)". with the following information:
       - The title and document display ID of each relevant policy.
       - A brief description of the policy's content.
@@ -107,6 +110,7 @@ export async function POST(req: NextRequest) {
     // You can remove this or use a different tool instead.
     const tools = [
       new SerpAPI(),
+      new CarelonSearchTool(),
       new NCDCoverageSearchTool(),
       localLcdSearchTool,
       localCoverageArticleSearchTool,
