@@ -24,12 +24,7 @@ export default function RootLayout({
   children: React.ReactNode;
 }) {
   return (
-    <html
-      lang="en"
-      {...mantineHtmlProps}
-      className="overscroll-y-none"
-      style={{ overflow: "hidden" }}
-    >
+    <html lang="en" {...mantineHtmlProps} className="overscroll-y-none">
       <head>
         <title>
           MediAuth Pro | AI-Powered Prior Authorization & Policy Lookup for

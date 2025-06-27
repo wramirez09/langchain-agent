@@ -1,17 +1,21 @@
 "use client";
 import {
   __InputStylesNames,
+  ComboboxItem,
   Select,
-  SelectProps,
   Textarea,
 } from "@mantine/core";
 
-import React from "react";
+import React, { useState } from "react";
 import { Data, StateData } from "../../../app/agents/metaData/states";
 import { ncdOptions } from "@/data/ncdOptions";
-import { FloatinglInputBase } from "../floatingInputs/FloatingInputs";
 
-type Props = { onStateFormStateChange: (key: string, value: string) => void };
+import { isUndefined, set } from "lodash";
+import classes from "./FloatinLabelInput.module.css";
+type Props = {
+  onStateFormStateChange: (key: string, value: string) => void;
+  chatOnChange: (e: React.ChangeEvent<HTMLInputElement>) => void;
+};
 const getStateOptions = (data: StateData[]) => {
   return data.map((state) => ({
     value: state.description,
@@ -22,19 +26,38 @@ const getStateOptions = (data: StateData[]) => {
 const FormInputs: React.FC<Props> = (props: Props) => {
   const options = getStateOptions(Data);
 
+  const [insuranceFocused, setInsuranceFocused] = useState(false);
+  const [stateFocused, setStateFocused] = useState(false);
+  const [treatmentFocused, setTreatmentFocused] = useState(false);
+  const [diagnosisFocused, setDiagnosisFocused] = useState(false);
+  const [chatFocused, setChatFocused] = useState(false);
+
+  const [insureanceValue, setInsrunceValue] = useState("");
+  const [stateValue, setStateValue] = useState("");
+  const [treatmentValue, settreatmentValue] = useState("");
+  const [diagnosisValue, setDiagnosisValue] = useState("");
+  const [chatValue, setChatValue] = useState("");
+
+  const insuranceFloating =
+    insureanceValue.length !== 0 || insuranceFocused || undefined;
+  const stateFloating = stateValue.length !== 0 || stateFocused || undefined;
+  const treatmentFloating =
+    treatmentValue.length !== 0 || treatmentFocused || undefined;
+  const diagnosisFloating =
+    diagnosisValue.length !== 0 || diagnosisFocused || undefined;
+  const chatFloating = chatValue.length !== 0 || chatFocused || undefined;
+
   return (
     <section className="mt-8 mx-8 px-8">
-      <h3 className="text-[#7f8b9d] mb-6">
-        make selections below to get started and click the "Send" button to
+      <h3 className="text-[#7f8b9d] mb-9">
+        Make selections below to get started and click the "Send" button to
         information about the selected treatment or service.
       </h3>
 
-      <FloatinglInputBase<SelectProps>
-        component={Select}
+      <Select
         label="Insurance Provider"
-        labelProps={{ className: "text-[#7f8b9d]" }}
-        name="Insurance"
-        placeholder="medicare or private insurance"
+        name="insurance"
+        placeholder="Medicare or private insurance"
         data={[
           { value: "medicare", label: "Medicare" },
           { value: "cigna", label: "Cigna" },
@@ -42,59 +65,86 @@ const FormInputs: React.FC<Props> = (props: Props) => {
         ]}
         searchable
         clearable
-        className="text-white mb-7 pb-6"
+        classNames={classes}
+        className="text-white mb-3 pb-6"
         onChange={(value) => {
           if (value !== null) {
+            setInsrunceValue(value);
             props.onStateFormStateChange("Insurance", value as string);
           }
         }}
-        defaultValue={"Any"}
-        disabled
+        onFocus={() => setInsuranceFocused(true)}
+        onBlur={() => setInsuranceFocused(false)}
+        data-floating={insuranceFloating}
+        labelProps={{ "data-floating": insuranceFloating }}
       />
 
-      <FloatinglInputBase<SelectProps>
-        component={Select}
+      <Select
         label="State"
-        labelProps={{ className: "text-[#7f8b9d]" }}
         name="state"
         placeholder="IL"
         data={options}
         searchable
         clearable
-        className="text-white mb-7 pb-6"
-        onChange={(option: any) => {
-          if (option !== null) {
-            props.onStateFormStateChange("State", option.label);
+        classNames={classes}
+        className="text-white mb-3 pb-6"
+        onChange={(value: string | null, option: ComboboxItem) => {
+          if (value !== null) {
+            setStateValue(value);
+            props.onStateFormStateChange("State", value);
           }
         }}
+        onFocus={() => setStateFocused(true)}
+        onBlur={() => setStateFocused(false)}
+        data-floating={stateFloating}
+        labelProps={{ "data-floating": stateFloating }}
       />
-
-      <FloatinglInputBase<SelectProps>
-        component={Select}
-        label="Treatment / Service"
-        labelProps={{ className: "text-[#7f8b9d]" }}
+      <Select
+        label="Treatment"
         name="treatment"
         placeholder="Magnetic Resonance Imaging (MRI)"
         data={ncdOptions}
         searchable
         clearable
-        className="text-white mb-7 pb-6"
-        onChange={(option: any) => {
+        classNames={classes}
+        className="text-white mb-3 pb-6"
+        onChange={(value, option) => {
           if (option !== null) {
+            settreatmentValue(option.label);
             props.onStateFormStateChange("Treatment", option.label);
           }
         }}
+        onFocus={() => setTreatmentFocused(true)}
+        onBlur={() => setTreatmentFocused(false)}
+        data-floating={treatmentFloating}
+        labelProps={{ "data-floating": treatmentFloating }}
       />
-      <FloatinglInputBase
+      <Textarea
         label="Diagnosis"
-        labelProps={{ className: "text-[#7f8b9d]" }}
         name="diagnosis"
-        placeholder="Meniscus Tear"
-        className="text-white mb-7 pb-6"
-        onChange={(event) =>
-          props.onStateFormStateChange("Diagnosis", event.target.value)
-        }
-        component={Textarea}
+        placeholder="diagnosis"
+        className="text-white mb-3 pb-6"
+        onChange={(event) => {
+          setDiagnosisValue(event.target.value);
+          props.onStateFormStateChange("Diagnosis", event.target.value);
+        }}
+        classNames={classes}
+        onFocus={() => setDiagnosisFocused(true)}
+        onBlur={() => setDiagnosisFocused(false)}
+        data-floating={diagnosisFloating}
+        labelProps={{ "data-floating": diagnosisFloating }}
+      />
+      <Textarea
+        label="Chat Prompt"
+        name="Chat Prompt"
+        placeholder="Get NCD information about the selected treatment or service."
+        className="text-white mb-3 pb-6"
+        onChange={() => props.chatOnChange}
+        classNames={classes}
+        onFocus={() => setChatFocused(true)}
+        onBlur={() => setChatFocused(false)}
+        data-floating={chatFloating}
+        labelProps={{ "data-floating": chatFloating }}
       />
     </section>
   );

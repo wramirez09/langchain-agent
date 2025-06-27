@@ -26,7 +26,6 @@ import FormInputs from "@/components/ui/forms/Form";
 import { LeadGrid } from "./layouts/LeadGrid";
 import React from "react";
 import { Textarea, TextareaProps } from "@mantine/core";
-import { FloatinglInputBase } from "./ui/floatingInputs/FloatingInputs";
 
 type FormContent = {
   insurance?: string;
@@ -92,22 +91,10 @@ export function ChatInput(props: {
     >
       <div className="border border-slate-50 bg-primary rounded-lg flex flex-col gap-2 max-w-[768px] w-full mx-auto shadow-lg">
         <>
-          <FormInputs onStateFormStateChange={props.onStateFormStateChange!} />
-          {""}
-          <section className="mx-8 px-8">
-            <FloatinglInputBase<TextareaProps>
-              component={Textarea}
-              name="chat-input"
-              rows={3}
-              value={props.value}
-              label=" Chat with our AI assistant. You can ask questions, get help, or just have a conversation."
-              labelProps={{ className: "text-[#7f8b9d]" }}
-              onChange={() => props.onChange}
-              placeholder="Chat with our AI assistant. You can ask questions, get help, or
-              just have a conversation."
-              className="text-[#7f8b9d]"
-            />
-          </section>
+          <FormInputs
+            onStateFormStateChange={props.onStateFormStateChange!}
+            chatOnChange={props.onChange}
+          />
         </>
 
         <div className="flex justify-between ml-4 mr-2 mb-2">
@@ -153,30 +140,6 @@ function ScrollToBottom(props: { className?: string }) {
       <ArrowDown className="w-4 h-4" />
       <span>Scroll to bottom</span>
     </Button>
-  );
-}
-
-function StickyToBottomContent(props: {
-  content: ReactNode;
-  footer?: ReactNode;
-  className?: string;
-  contentClassName?: string;
-}) {
-  const context = useStickToBottomContext();
-
-  // scrollRef will also switch between overflow: unset to overflow: auto
-  return (
-    <div
-      ref={context.scrollRef}
-      style={{ width: "100%", height: "100%" }}
-      className={cn("grid grid-rows-[1fr,auto]", props.className)}
-    >
-      <div ref={context.contentRef} className={props.contentClassName}>
-        {props.content}
-      </div>
-
-      {props.footer}
-    </div>
   );
 }
 
