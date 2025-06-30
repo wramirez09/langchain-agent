@@ -38,7 +38,7 @@ export class CarelonSearchTool extends StructuredTool<
   protected async _call(
     input: z.infer<typeof NCDSearchInputSchema>,
   ): Promise<string> {
-    const carlonApiQuery =
+    var carlonApiQuery =
       "https://ai-aug-carelon-hxdxaeczd9b4fdfc.canadacentral-01.azurewebsites.net/api/search?" +
       `q=${input.query}`;
 
@@ -54,17 +54,19 @@ export class CarelonSearchTool extends StructuredTool<
         throw new Error(`HTTP error! status: ${response.status}`);
       }
 
-      const carelonData = await response.json();
+      var carelonData = await response.json();
 
       // Filter NCDs based on the query
-      const queryLower = input.query.toLowerCase();
+      var queryLower = input.query.toLowerCase();
 
-      const relevantData = carelonData;
-      console.log(relevantData);
+        console.log("carelonData keys:", Object.keys(carelonData));
+        console.log("carelonData.value length:", carelonData.value?.length);
 
-      if (relevantData.length === 0) {
-        return `No National Coverage Determination (NCD) found for '${input.query}'.`;
-      }
+        var relevantData = carelonData.value || []; // array of actual results
+
+        if (relevantData.length === 0) {
+            return `No National Coverage Determination (NCD) found for '${input.query}'.`;
+        }
 
       // Format the output for the top 5 results
       const outputResults: string[] = [];
