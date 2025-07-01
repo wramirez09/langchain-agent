@@ -40,8 +40,6 @@ class CarelonContentExtractorTool extends StructuredTool<
   ): Promise<string> {
     const { policyUrl } = input;
 
-    console.log(`CarelonContentExtractorTool called with URL: ${policyUrl}`);
-
     try {
       const response = await fetch(policyUrl);
       if (!response.ok) {
@@ -68,8 +66,6 @@ class CarelonContentExtractorTool extends StructuredTool<
       // Extract text and clean it up
       let extractedText = mainContentElement.text() || $("body").text(); // Fallback to entire body if still nothing
       extractedText = extractedText.replace(/\s+/g, " ").trim(); // Replace multiple spaces/newlines with single space
-
-      console.log({ extractedText });
 
       if (extractedText.length < 100) {
         console.warn(

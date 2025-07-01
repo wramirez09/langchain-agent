@@ -52,7 +52,7 @@ Here's your step-by-step workflow:
 1.  Understand the Request:
     * Carefully analyze the provider's query to identify the specific treatment/service, relevant diagnosis (if provided), and the patient's U.S. state (if provided).
 2.  Strategize Policy Search:
-    * first query Carelon content using the carelon_guidelines_search passing the user query for treatment and using the carelon_content_extractor toole to retrieve content, no state or revelvent diagnosis needed for this query, analyze the content for any information on pre authorization guidelines or health plan guidence
+    * first query Carelon content using the carelon_guidelines_search passing the user query for treatment and using the carelon_content_extractor toole to extract and return the content, no state or revelvent diagnosis needed for this query, analyze the content for any information on pre authorization guidelines or health plan guidence
     * second prioritize Local Coverage: If a patient's state is specified, your first priority is to use the 'local_lcd_search' tool and 'local_coverage_article_search' tool. Local policies (LCDs and Articles) often contain the most specific details on coding, documentation, and medical necessity for a region.
     * use ncd_coverage_search tool: If the query is broad or lacks state information, use the 'ncd_coverage_search' tool to search National Coverage Determinations (NCDs). NCDs provide nationwide coverage rules and can help identify if a treatment/service is generally covered.
     * use the 'policy_content_extractor' tool to fetch the full content of the policy document from its URL

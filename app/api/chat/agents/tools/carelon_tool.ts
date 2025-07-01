@@ -1,5 +1,6 @@
 import { z } from "zod"; // For input schema validation
 import { StructuredTool, ToolRunnableConfig } from "@langchain/core/tools"; // Or from 'langchain/tools' in older versions
+import markdownToTxt from "markdown-to-txt";
 
 // Define the input schema for the tool using Zod
 const NCDSearchInputSchema = z.object({
@@ -38,12 +39,13 @@ export class CarelonSearchTool extends StructuredTool<
   protected async _call(
     input: z.infer<typeof NCDSearchInputSchema>,
   ): Promise<string> {
-    const carlonApiQuery =
+    const carlonApiQuery = encodeURI(
       "https://ai-aug-carelon-hxdxaeczd9b4fdfc.canadacentral-01.azurewebsites.net/api/search?" +
-      `q=${input.query}`;
+        `q=${input.query}`,
+    );
 
     try {
-      // Fetch all NCDs from the CMS API
+      // Fetch all carelon data
       const response = await fetch(carlonApiQuery, {
         method: "GET",
         headers: { "Content-Type": "application/json" },
@@ -53,25 +55,19 @@ export class CarelonSearchTool extends StructuredTool<
       if (!response.ok) {
         throw new Error(`HTTP error! status: ${response.status}`);
       }
+      const relevantData = await response.json();
+      const body: any[] = relevantData.value;
+      const outputResults = body.map((c) => {
+        return c.content;
+      });
 
-      const carelonData = await response.json();
-
-      // Filter NCDs based on the query
-      const queryLower = input.query.toLowerCase();
-
-      const relevantData = carelonData;
-      console.log(relevantData);
-
-      if (relevantData.length === 0) {
-        return `No National Coverage Determination (NCD) found for '${input.query}'.`;
+      if (!relevantData) {
+        return `No Carelon data found for '${input.query}'.`;
       }
 
-      // Format the output for the top 5 results
-      const outputResults: string[] = [];
-
-      return `Found ${relevantData.length} Carelon Coverage Guideline(s) for '${input.query}'.`;
+      return `Found Carelon Coverage Guideline(s) for '${input.query}'. ${outputResults[0]}`;
     } catch (error: any) {
-      return `Error calling CMS API or processing data: ${error.message}`;
+      return `Error calling Carelon API or processing data: ${error.message}`;
     }
   }
 }

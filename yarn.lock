@@ -6193,6 +6193,7 @@ __metadata:
     langchain: ^0.3.27
     lodash: ^4.17.21
     lucide-react: ^0.473.0
+    markdown-to-txt: ^2.0.1
     next: ^15.2.4
     next-themes: ^0.4.4
     nuqs: ^2.3.2
@@ -6395,10 +6396,24 @@ __metadata:
   languageName: node
   linkType: hard
 
+"lodash.escape@npm:^4.0.1":
+  version: 4.0.1
+  resolution: "lodash.escape@npm:4.0.1"
+  checksum: fcb54f457497256964d619d5cccbd80a961916fca60df3fe0fa3e7f052715c2944c0ed5aefb4f9e047d127d44aa2d55555f3350cb42c6549e9e293fb30b41e7f
+  languageName: node
+  linkType: hard
+
 "lodash.merge@npm:^4.6.2":
   version: 4.6.2
   resolution: "lodash.merge@npm:4.6.2"
   checksum: ad580b4bdbb7ca1f7abf7e1bce63a9a0b98e370cf40194b03380a46b4ed799c9573029599caebc1b14e3f24b111aef72b96674a56cfa105e0f5ac70546cdc005
+  languageName: node
+  linkType: hard
+
+"lodash.unescape@npm:^4.0.1":
+  version: 4.0.1
+  resolution: "lodash.unescape@npm:4.0.1"
+  checksum: 7a9c2133f534619f18e415ea5ae61f654b4d8837a76f31128a8484c1e429357335c8a159d0d79b0f545fd7833d4633194314fa09bfc8be3fff033a07ba6884d8
   languageName: node
   linkType: hard
 
@@ -6496,6 +6511,26 @@ __metadata:
   version: 3.0.4
   resolution: "markdown-table@npm:3.0.4"
   checksum: bc24b177cbb3ef170cb38c9f191476aa63f7236ebc8980317c5e91b5bf98c8fb471cf46d8920478c5e770d7f4337326f6b5b3efbf0687c2044fd332d7a64dfcb
+  languageName: node
+  linkType: hard
+
+"markdown-to-txt@npm:^2.0.1":
+  version: 2.0.1
+  resolution: "markdown-to-txt@npm:2.0.1"
+  dependencies:
+    lodash.escape: ^4.0.1
+    lodash.unescape: ^4.0.1
+    marked: ^4.0.14
+  checksum: a81833093c8e2ac42950c3123b58d59cb669f91dc3bf06c6b3813e969da0dabd7c43ae2f506679eb1fd4600a9ec93260059dda64b8ebfe4a046eafc474191209
+  languageName: node
+  linkType: hard
+
+"marked@npm:^4.0.14":
+  version: 4.3.0
+  resolution: "marked@npm:4.3.0"
+  bin:
+    marked: bin/marked.js
+  checksum: 0db6817893952c3ec710eb9ceafb8468bf5ae38cb0f92b7b083baa13d70b19774674be04db5b817681fa7c5c6a088f61300815e4dd75a59696f4716ad69f6260
   languageName: node
   linkType: hard
 
