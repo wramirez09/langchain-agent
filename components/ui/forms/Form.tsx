@@ -77,6 +77,7 @@ const FormInputs: React.FC<Props> = (props: Props) => {
         onBlur={() => setInsuranceFocused(false)}
         data-floating={insuranceFloating}
         labelProps={{ "data-floating": insuranceFloating }}
+        disabled
       />
 
       <Select
