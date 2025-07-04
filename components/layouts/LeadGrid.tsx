@@ -1,6 +1,6 @@
-import { Container, Grid, SimpleGrid, Skeleton, Title } from "@mantine/core";
+import { Container, Grid, SimpleGrid } from "@mantine/core";
 import React, { PropsWithChildren } from "react";
-
+import { ToastContainer } from "react-toastify";
 type LeadGridProps = PropsWithChildren<{
   content?: React.ReactNode;
   footer?: React.ReactNode;
@@ -14,20 +14,18 @@ export const LeadGrid: React.FC<LeadGridProps> = ({ content, footer }) => {
   return (
     <Container my="md" size="xl" fluid className="oveerflow-hidden">
       <SimpleGrid cols={{ base: 1, sm: 2 }} spacing="md">
-        <div
-          style={{ height: PRIMARY_COL_HEIGHT, overflowY: "scroll" }}
-          className="px-6"
-        >
-          {content}
-        </div>
+        <Grid>
+          <Grid.Col
+            className="h-[58vh] md:h-full"
+            style={{ overflowY: "scroll" }}
+          >
+            <div className="px-1 md:px-6">{content}</div>
+          </Grid.Col>
+        </Grid>
         <Grid gutter="md">
-          <Grid.Col>
-            <div
-              style={{ height: "85vh" }}
-              className="flex flex-col justify-center align-items-center"
-            >
-              {footer}
-            </div>
+          {/* forms */}
+          <Grid.Col className="flex flex-col justify-end md:justify-center align-items-center h-30vh">
+            {footer}
           </Grid.Col>
         </Grid>
       </SimpleGrid>

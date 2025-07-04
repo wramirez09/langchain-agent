@@ -2,6 +2,7 @@
 import { z } from "zod";
 import { StructuredTool } from "@langchain/core/tools";
 import * as cheerio from "cheerio"; // For HTML parsing: npm install cheerio
+import { toast } from "react-toastify";
 
 // Input schema for the content extractor tool
 const PolicyContentExtractorInputSchema = z.object({
@@ -58,7 +59,7 @@ class PolicyContentExtractorTool extends StructuredTool<
   ): Promise<string> {
     const { policyUrl } = input;
 
-    console.log(`PolicyContentExtractorTool called with URL: ${policyUrl}`);
+    toast("Extracting data");
 
     try {
       const response = await fetch(policyUrl);

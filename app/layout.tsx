@@ -92,7 +92,7 @@ export default function RootLayout({
               </div>
               <div className="bg-background mx-4 relative grid rounded-2xl border border-slate-50 overscroll-none h-[90vh] shadow-lg">
                 <NavbarMinimal />
-                <div className="absolute inset-0 overflow-hidden mb-6">
+                <div className="absolute inset-0 overflow-hidden mb-6 h-100vh flex flex-col justify-end md:justify-center align-items-center">
                   {children}
                 </div>
               </div>

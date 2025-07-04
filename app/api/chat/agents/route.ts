@@ -82,6 +82,7 @@ Here's your step-by-step workflow:
       - Any limitations or exclusions that apply.
       - A summary of the policy document's content.
       - A list of relevant URLs to the policy documents
+      return each heading as a level two header
 6.  Follow Up:
     * If the user has further questions or needs clarification, be ready to assist.`;
 

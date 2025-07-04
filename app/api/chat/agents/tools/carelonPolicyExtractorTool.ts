@@ -2,7 +2,7 @@
 import { z } from "zod";
 import { StructuredTool } from "@langchain/core/tools";
 import * as cheerio from "cheerio"; // For HTML parsing: npm install cheerio
-
+import { toast } from "sonner";
 // Input schema for the content extractor tool
 const PolicyContentExtractorInputSchema = z.object({
   policyUrl: z.string().url().describe("Carelon guideline url"),
@@ -26,7 +26,7 @@ class CarelonContentExtractorTool extends StructuredTool<
   typeof PolicyContentExtractorInputSchema
 > {
   name = "carelon_content_extractor";
-  description = "";
+  description = "Carelon content extraction tool";
   schema = PolicyContentExtractorInputSchema;
 
   /**
@@ -39,7 +39,7 @@ class CarelonContentExtractorTool extends StructuredTool<
     input: z.infer<typeof PolicyContentExtractorInputSchema>,
   ): Promise<string> {
     const { policyUrl } = input;
-
+    toast("getting data from carelon");
     try {
       const response = await fetch(policyUrl);
       if (!response.ok) {
@@ -47,6 +47,7 @@ class CarelonContentExtractorTool extends StructuredTool<
           `Failed to fetch policy content from ${policyUrl}: ${response.status} ${response.statusText}`,
         );
       }
+
       const htmlContent = await response.text();
 
       // Use cheerio to parse the HTML and extract the main textual content.

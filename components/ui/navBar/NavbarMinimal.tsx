@@ -64,7 +64,7 @@ export function NavbarMinimal() {
   ));
 
   return (
-    <nav className={classes.navbar}>
+    <nav className={`${classes.navbar} hidden md:block`}>
       <Center>{/* <MantineLogo type="mark" size={30} /> */}</Center>
 
       <div className={classes.navbarMain}>
