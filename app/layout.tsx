@@ -90,7 +90,10 @@ export default function RootLayout({
 
                 <div className="flex justify-center"></div>
               </div>
-              <div className="bg-background mx-4 relative grid rounded-2xl border border-slate-50 overscroll-none h-[90vh] shadow-lg">
+              <div
+                className="bg-background mx-4 relative grid rounded-2xl border border-slate-50 h-[90vh] shadow-lg"
+                style={{ overflowY: "hidden" }}
+              >
                 <NavbarMinimal />
                 <div className="absolute inset-0 overflow-hidden mb-6 h-100vh flex flex-col justify-end md:justify-center align-items-center">
                   {children}
