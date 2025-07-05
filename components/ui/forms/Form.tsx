@@ -137,7 +137,7 @@ const FormInputs: React.FC<Props> = (props: Props) => {
         />
       </div>
       <Textarea
-        rows={5}
+        rows={3}
         label="Chat Prompt"
         name="Chat Prompt"
         placeholder="Get NCD information about the selected treatment or service."
