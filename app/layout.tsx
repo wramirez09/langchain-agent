@@ -24,7 +24,7 @@ export default function RootLayout({
   children: React.ReactNode;
 }) {
   return (
-    <html lang="en" {...mantineHtmlProps} className="overscroll-y-none">
+    <html lang="en" {...mantineHtmlProps}>
       <head>
         <title>
           MediAuth Pro | AI-Powered Prior Authorization & Policy Lookup for

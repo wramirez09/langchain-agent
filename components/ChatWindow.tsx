@@ -100,7 +100,7 @@ export function ChatInput(props: {
         <div className="flex justify-between ml-4 mr-2 mb-2">
           <div className="flex gap-3">{props.children}</div>
 
-          <div className="flex gap-2 self-end m-6">
+          <div className="flex gap-2 self-end m-2">
             {props.actions}
             <Button
               type="submit"
@@ -146,7 +146,7 @@ function ScrollToBottom(props: { className?: string }) {
 export function ChatLayout(props: { content: ReactNode; footer: ReactNode }) {
   return (
     <>
-      <div>
+      <div className="h-[80vh]">
         <LeadGrid content={props.content} footer={props.footer} />
       </div>
     </>

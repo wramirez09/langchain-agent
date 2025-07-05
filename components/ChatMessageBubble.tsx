@@ -16,7 +16,7 @@ export function ChatMessageBubble(props: {
   return (
     <div
       className={cn(
-        `rounded-[24px] max-w-[80%] mb-8 flex mx-8`,
+        `rounded-[24px] mb-8 flex mx-8`,
         props.message.role === "user"
           ? "bg-secondary text-secondary-foreground px-4 py-2"
           : null,

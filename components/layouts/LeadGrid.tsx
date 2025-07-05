@@ -12,13 +12,10 @@ export const LeadGrid: React.FC<LeadGridProps> = ({ content, footer }) => {
   const SECONDARY_COL_HEIGHT = `calc(${PRIMARY_COL_HEIGHT} / 2 - var(--mantine-spacing-md) / 2)`;
 
   return (
-    <Container my="md" size="xl" fluid className="oveerflow-hidden">
+    <Container my="md" size="xl" fluid>
       <SimpleGrid cols={{ base: 1, sm: 2 }} spacing="md">
         <Grid>
-          <Grid.Col
-            className="h-[53vh] md:h-full"
-            style={{ overflowY: "scroll" }}
-          >
+          <Grid.Col className="h-[100vh]" style={{ overflowY: "scroll" }}>
             <div className="px-1 md:px-6">{content}</div>
           </Grid.Col>
         </Grid>

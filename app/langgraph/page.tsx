@@ -63,12 +63,7 @@ function Message(props: {
   }
 
   return (
-    <div
-      className={cn(
-        "max-w-[80%]",
-        props.message.type === "human" ? "ml-auto" : "mr-auto",
-      )}
-    >
+    <div className={cn(props.message.type === "human" ? "ml-auto" : "mr-auto")}>
       <div
         className={cn(
           `rounded-[24px] flex`,
