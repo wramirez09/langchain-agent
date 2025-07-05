@@ -56,7 +56,10 @@ export default function RootLayout({
         <meta name="twitter:image" content="/images/og-image.png" />
         <ColorSchemeScript />
       </head>
-      <body className={`${publicSans.className} overscroll-y-none`}>
+      <body
+        className={`${publicSans.className} overscroll-y-none`}
+        style={{ overflow: "hidden" }}
+      >
         <MantineProvider>
           <NuqsAdapter>
             <div className="bg-secondary grid grid-rows-[auto,1fr] h-[100dvh] overscroll-y-none">
