@@ -16,7 +16,7 @@ export const LeadGrid: React.FC<LeadGridProps> = ({ content, footer }) => {
       <SimpleGrid cols={{ base: 1, sm: 2 }} spacing="md">
         <Grid>
           <Grid.Col
-            className="h-[58vh] md:h-full"
+            className="h-[53vh] md:h-full"
             style={{ overflowY: "scroll" }}
           >
             <div className="px-1 md:px-6">{content}</div>

@@ -95,7 +95,7 @@ export default function RootLayout({
                 style={{ overflowY: "hidden" }}
               >
                 <NavbarMinimal />
-                <div className="absolute inset-0 overflow-hidden mb-6 h-100vh flex flex-col justify-end md:justify-center align-items-center">
+                <div className="absolute inset-0 overflow-hidden mb-0 md:mb-6 h-100vh flex flex-col justify-end md:justify-center align-items-center">
                   {children}
                 </div>
               </div>
