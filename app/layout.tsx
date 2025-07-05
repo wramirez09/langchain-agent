@@ -31,6 +31,7 @@ export default function RootLayout({
           Healthcare
         </title>
         <link rel="shortcut icon" href="/images/" />
+        <meta name="viewport" content="width=device-width, initial-scale=1" />
         <meta
           name="description"
           content="Streamline healthcare prior authorizations with MediAuth Pro. Our AI-powered platform provides instant Medicare NCD/LCD insights and Cigna policy guidance, simplifying approvals and reducing administrative burden for providers."
