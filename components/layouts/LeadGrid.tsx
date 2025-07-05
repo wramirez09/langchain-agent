@@ -13,15 +13,15 @@ export const LeadGrid: React.FC<LeadGridProps> = ({ content, footer }) => {
 
   return (
     <Container my="md" size="xl" fluid>
-      <SimpleGrid cols={{ base: 1, sm: 2 }} spacing="md">
+      <SimpleGrid cols={{ base: 1, sm: 2 }} spacing="md" className="h-[100vh]">
         <Grid>
           <Grid.Col className="h-[100vh]" style={{ overflowY: "scroll" }}>
             <div className="px-1 md:px-6">{content}</div>
           </Grid.Col>
         </Grid>
-        <Grid gutter="md">
+        <Grid gutter="md" className="h-[84vh]">
           {/* forms */}
-          <Grid.Col className="flex flex-col justify-end md:justify-center align-items-center h-30vh">
+          <Grid.Col className="flex flex-col justify-end md:justify-center align-items-center h-[84vh]">
             {footer}
           </Grid.Col>
         </Grid>
