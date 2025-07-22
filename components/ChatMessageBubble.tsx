@@ -2,11 +2,7 @@ import { cn } from "@/utils/cn";
 import type { Message } from "ai/react";
 import React from "react";
 import ReactMarkdown from "react-markdown";
-import remarkGfm from "remark-gfm";
-
-const MarkDownContetRenderer: React.FC<{ content: string }> = ({ content }) => {
-  return <ReactMarkdown children={content} remarkPlugins={[remarkGfm]} />;
-};
+import markdownToTxt from "markdown-to-txt";
 
 export function ChatMessageBubble(props: {
   message: Message;
@@ -31,7 +27,8 @@ export function ChatMessageBubble(props: {
 
       <div className="whitespace-pre-wrap flex flex-col text-[#7f8b9d]">
         <span>
-          <MarkDownContetRenderer content={props.message.content} />
+          {/* <MarkDownContetRenderer content={props.message.content} /> */}
+          {markdownToTxt(props.message.content)}
         </span>
 
         {props.sources && props.sources.length ? (

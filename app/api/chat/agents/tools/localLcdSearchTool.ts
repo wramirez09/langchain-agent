@@ -123,6 +123,8 @@ class LocalLcdSearchTool extends StructuredTool<
         if (titleLower.includes(queryLower)) return lcd;
       });
 
+      console.log("relevantLcds", relevantLcds);
+
       // 4. Handle cases where no relevant LCDs are found.
       if (relevantLcds.length === 0) {
         return `No Local Coverage Determination (LCD) found for '${query}' in ${state}.`;

@@ -58,8 +58,10 @@ export class CarelonSearchTool extends StructuredTool<
       const relevantData = await response.json();
       const body: any[] = relevantData.value;
       const outputResults = body.map((c) => {
-        return c.content;
+        return c.content.replace(/\r/g, "").replace(/\n/g, "");
       });
+
+      console.log({ outputResults });
 
       if (!relevantData) {
         return `No Carelon data found for '${input.query}'.`;

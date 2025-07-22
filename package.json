@@ -57,6 +57,7 @@
     "dayjs": "^1.11.13",
     "embla-carousel": "^8.5.2",
     "embla-carousel-react": "^8.5.2",
+    "formidable": "^3.5.4",
     "fs": "^0.0.1-security",
     "install": "^0.13.0",
     "langchain": "^0.3.27",
