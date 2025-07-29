@@ -1,6 +1,8 @@
 // localLcdSearchTool.ts
 import { z } from "zod";
 import { StructuredTool } from "@langchain/core/tools";
+import { stat } from "fs";
+import { de } from "zod/v4/locales";
 
 // Input schema for the LCD search tool
 const LocalLcdSearchInputSchema = z.object({
@@ -10,9 +12,9 @@ const LocalLcdSearchInputSchema = z.object({
       "The disease or treatment query to search for in Local Coverage Determinations (LCDs).",
     ),
   state: z
-    .string()
+    .object({ state_id: z.number(), description: z.string() })
     .describe(
-      "The full name of the state (e.g., 'Illinois', 'California') to filter LCDs.",
+      "The id of the state (e.g., 'Illinois', 'California') to filter LCDs. and description of the state as the corresponding state name.",
     ),
 });
 
@@ -54,8 +56,8 @@ class LocalLcdSearchTool extends StructuredTool<
   schema = LocalLcdSearchInputSchema;
 
   // CMS API URLs for state metadata and local LCDs
-  private CMS_STATE_METADATA_API_URL =
-    "https://api.coverage.cms.gov/v1/metadata/states/";
+  // private CMS_STATE_METADATA_API_URL =
+  //   "https://api.coverage.cms.gov/v1/metadata/states/";
   private CMS_LOCAL_LCDS_API_URL =
     "https://api.coverage.cms.gov/v1/reports/local-coverage-final-lcds/";
 
@@ -66,24 +68,24 @@ class LocalLcdSearchTool extends StructuredTool<
    * Fetches and caches the mapping of state names to state IDs.
    * @returns A Map from lowercase state name to two-letter state ID.
    */
-  private async getStatesMetadata(): Promise<Map<string, number>> {
-    if (LocalLcdSearchTool.stateIdCache) {
-      return LocalLcdSearchTool.stateIdCache;
-    }
-    const response = await fetch(this.CMS_STATE_METADATA_API_URL);
-    if (!response.ok) {
-      throw new Error(
-        `Failed to fetch state metadata: ${response.status} ${response.statusText}`,
-      );
-    }
-    const states: StateMetaData = await response.json();
-    const stateMap = new Map<string, number>();
-    states.data.forEach((state) => {
-      stateMap.set(state.description.toLowerCase(), state.state_id);
-    });
-    LocalLcdSearchTool.stateIdCache = stateMap;
-    return stateMap;
-  }
+  // private async getStatesMetadata(): Promise<Map<string, number>> {
+  //   if (LocalLcdSearchTool.stateIdCache) {
+  //     return LocalLcdSearchTool.stateIdCache;
+  //   }
+  //   const response = await fetch(this.CMS_STATE_METADATA_API_URL);
+  //   if (!response.ok) {
+  //     throw new Error(
+  //       `Failed to fetch state metadata: ${response.status} ${response.statusText}`,
+  //     );
+  //   }
+  //   const states: StateMetaData = await response.json();
+  //   const stateMap = new Map<string, number>();
+  //   states.data.forEach((state) => {
+  //     stateMap.set(state.description.toLowerCase(), state.state_id);
+  //   });
+  //   LocalLcdSearchTool.stateIdCache = stateMap;
+  //   return stateMap;
+  // }
 
   /**
    * The core logic of the tool that gets executed when the LLM calls it.
@@ -94,20 +96,20 @@ class LocalLcdSearchTool extends StructuredTool<
     input: z.infer<typeof LocalLcdSearchInputSchema>,
   ): Promise<string> {
     const { query, state } = input;
+
     try {
       // 1. Get the two-letter state ID from the full state name.
-      const stateMap = await this.getStatesMetadata();
-      const stateId = stateMap.get(state.toLowerCase());
 
-      if (!stateId) {
-        return `Error: Could not find a valid state ID for '${state}'. Please provide a full, valid U.S. state name.`;
+      if (!state || !state.state_id) {
+        return `Error: Could not find a valid state ID for '${state.description}'. Please provide a full, valid U.S. state name.`;
       }
 
       // 2. Fetch Local Coverage Determinations for the specific state.
       // Request 'Final' status to get currently active policies.
       const lcdsResponse = await fetch(
-        `${this.CMS_LOCAL_LCDS_API_URL}?state_id=${stateId}`,
+        `${this.CMS_LOCAL_LCDS_API_URL}?state_id=${state.state_id}&status=A`,
       );
+
       if (!lcdsResponse.ok) {
         throw new Error(
           `Failed to fetch local LCDs for ${state}: ${lcdsResponse.status} ${lcdsResponse.statusText}`,
@@ -117,24 +119,30 @@ class LocalLcdSearchTool extends StructuredTool<
 
       // 3. Perform client-side filtering based on the query.
       const queryLower = query.toLowerCase();
-      const relevantLcds = allLcds.data.filter((lcd) => {
+      const p1 = queryLower.split("(")[0].trim();
+      const p2 = queryLower
+        .substring(queryLower.indexOf("(") + 1, queryLower.indexOf(")"))
+        .trim();
+
+      const lcds: any = [];
+
+      allLcds.data.filter((lcd) => {
         const titleLower = (lcd.title || "").toLowerCase();
         // Check if the query is in the title or summary
-        if (titleLower.includes(queryLower)) return lcd;
+        if (titleLower.includes(p1)) lcds.push(lcd);
+        if (titleLower.includes(p2)) lcds.push(lcd);
       });
 
-      console.log("relevantLcds", relevantLcds);
-
       // 4. Handle cases where no relevant LCDs are found.
-      if (relevantLcds.length === 0) {
+      if (lcds.length === 0) {
         return `No Local Coverage Determination (LCD) found for '${query}' in ${state}.`;
       }
 
       // 5. Format the output to be returned to the LLM.
       const outputResults: string[] = [];
       // Limit results to a reasonable number.
-      for (let i = 0; i < Math.min(relevantLcds.length, 1); i++) {
-        const lcd = relevantLcds[i];
+      for (let i = 0; i < Math.min(lcds.length, 1); i++) {
+        const lcd = lcds[i];
         // Construct the full, clickable URL for the LCD's detailed page on CMS.gov.
         const fullHtmlUrl = lcd.url && lcd.url ? `${lcd.url}` : "URL N/A";
 
@@ -146,8 +154,8 @@ class LocalLcdSearchTool extends StructuredTool<
       }
 
       return (
-        `Found ${relevantLcds.length} Local Coverage Determination(s) for '${query}' in ${state}. ` +
-        `Displaying top ${Math.min(relevantLcds.length, 5)}:\n` +
+        `Found ${lcds.length} Local Coverage Determination(s) for '${query}' in ${state}. ` +
+        `Displaying top ${Math.min(lcds.length, 5)}:\n` +
         outputResults.join("\n")
       );
     } catch (error: any) {

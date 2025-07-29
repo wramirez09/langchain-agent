@@ -16,7 +16,7 @@ export function FileUploadForm(props: Partial<DropzoneProps>) {
       onDrop={(files) => console.log("accepted files", files)}
       onReject={(files) => console.log("rejected files", files)}
       maxSize={5 * 1024 ** 2}
-      accept={[MIME_TYPES.png, MIME_TYPES.jpeg, "pdf"]}
+      accept={[MIME_TYPES.png, MIME_TYPES.jpeg]}
       className="mb-5 bg-white "
       {...props}
     >

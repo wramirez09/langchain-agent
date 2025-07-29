@@ -1,6 +1,7 @@
 // localArticleSearchTool.ts
 import { z } from "zod";
 import { StructuredTool } from "@langchain/core/tools";
+import { stat } from "fs";
 
 // Input schema for the Local Article search tool
 const LocalArticleSearchInputSchema = z.object({
@@ -10,9 +11,9 @@ const LocalArticleSearchInputSchema = z.object({
       "The disease or treatment query to search for in Local Coverage Articles.",
     ),
   state: z
-    .string()
+    .object({ state_id: z.number(), description: z.string() })
     .describe(
-      "The full name of the state (e.g., 'Illinois', 'California') to filter local coverage articles.",
+      "The full name of the state (e.g., 'Illinois', 'California') as the description and stated_id as a number used to filter local coverage articles.",
     ),
 });
 
@@ -63,38 +64,38 @@ class LocalCoverageArticleSearchTool extends StructuredTool<
   schema = LocalArticleSearchInputSchema;
 
   // CMS API URLs
-  private CMS_STATE_METADATA_API_URL =
-    "https://api.coverage.cms.gov/v1/metadata/states/";
+  // private CMS_STATE_METADATA_API_URL =
+  //   "https://api.coverage.cms.gov/v1/metadata/states/";
   private CMS_LOCAL_ARTICLES_API_URL =
     "https://api.coverage.cms.gov/v1/reports/local-coverage-articles/";
 
   // Static cache for state IDs (shared or separate, depending on design choice)
-  private static stateIdCache: Map<string, number> | null = null;
+  // private static stateIdCache: Map<string, number> | null = null;
 
   /**
    * Fetches and caches the mapping of state names to state IDs.
    * (Duplicate of LCD tool, ideally refactored into a shared utility)
    * @returns A Map from lowercase state name to two-letter state ID.
    */
-  private async getStatesMetadata(): Promise<Map<string, number>> {
-    if (LocalCoverageArticleSearchTool.stateIdCache) {
-      return LocalCoverageArticleSearchTool.stateIdCache;
-    }
-    const response = await fetch(this.CMS_STATE_METADATA_API_URL);
-    if (!response.ok) {
-      throw new Error(
-        `Failed to fetch state metadata: ${response.status} ${response.statusText}`,
-      );
-    }
-    const states: StateMetaData = await response.json();
+  // private async getStatesMetadata(): Promise<Map<string, number>> {
+  //   if (LocalCoverageArticleSearchTool.stateIdCache) {
+  //     return LocalCoverageArticleSearchTool.stateIdCache;
+  //   }
+  //   const response = await fetch(this.CMS_STATE_METADATA_API_URL);
+  //   if (!response.ok) {
+  //     throw new Error(
+  //       `Failed to fetch state metadata: ${response.status} ${response.statusText}`,
+  //     );
+  //   }
+  //   const states: StateMetaData = await response.json();
 
-    const stateMap = new Map<string, number>();
-    states.data.forEach((state) => {
-      stateMap.set(state.description.toLowerCase(), state.state_id);
-    });
-    LocalCoverageArticleSearchTool.stateIdCache = stateMap;
-    return stateMap;
-  }
+  //   const stateMap = new Map<string, number>();
+  //   states.data.forEach((state) => {
+  //     stateMap.set(state.description.toLowerCase(), state.state_id);
+  //   });
+  //   LocalCoverageArticleSearchTool.stateIdCache = stateMap;
+  //   return stateMap;
+  // }
 
   /**
    * The core logic of the tool.
@@ -107,31 +108,38 @@ class LocalCoverageArticleSearchTool extends StructuredTool<
     const { query, state } = input;
     try {
       // 1. Get the two-letter state ID.
-      const stateMap = await this.getStatesMetadata();
-      const stateId = stateMap.get(state.toLowerCase());
+      // const stateMap = await this.getStatesMetadata();
+      const stateId = state.state_id;
 
       if (!stateId) {
         return `Error: Could not find a valid state ID for '${state}'. Please provide a full, valid U.S. state name.`;
       }
 
       // 2. Fetch Local Coverage Articles for the specific state and 'Final' status.
-      const articlesResponse = await fetch(
+      const response = await fetch(
         `${this.CMS_LOCAL_ARTICLES_API_URL}?state_id=${stateId}`,
       );
 
-      if (!articlesResponse.ok) {
+      if (!response.ok) {
         throw new Error(
-          `Failed to fetch local articles for ${state}: ${articlesResponse.status} ${articlesResponse.statusText}`,
+          `Failed to fetch local articles for ${state}: ${response.status} ${response.statusText}`,
         );
       }
-      const allArticles: LocalCoverageArticle = await articlesResponse.json();
+      const allArticles: LocalCoverageArticle = await response.json();
 
       // 3. Perform client-side filtering.
       const queryLower = query.toLowerCase();
       const relevantArticles = allArticles.data.filter((article) => {
         const titleLower = (article.title || "").toLowerCase();
-        return titleLower.includes(queryLower);
+        const p1 = queryLower.split("(")[0].trim();
+        const p2 = queryLower
+          .substring(queryLower.indexOf("(") + 1, queryLower.indexOf(")"))
+          .trim();
+
+        if (titleLower.includes(p1) || titleLower.includes(p2)) return article;
       });
+
+      console.log({ relevantArticles });
 
       // 4. Handle no results.
       if (relevantArticles.length === 0) {

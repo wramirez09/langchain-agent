@@ -19,6 +19,7 @@ import { localCoverageArticleSearchTool } from "./tools/localArticleSearchTool";
 import { policyContentExtractorTool } from "./tools/policyContentExtractorTool";
 import { CignaPriorAuthLookupTool } from "./tools/CignaPriorAuthLookupTool";
 import { CarelonSearchTool } from "./tools/carelon_tool";
+import { EvolentSearchTool } from "./tools/evolent_tool";
 
 export const runtime = "edge";
 
@@ -58,9 +59,11 @@ Execute Policy Search Strategy:
 
 Carelon Guidelines: only use the carelon_guidelines_search tool with the user's query for treatment when user picks carelon and the insurance. if user choosed carelon then use the carelon_content_extractor tool to get the full content. Analyze this content for any prior authorization guidelines or health plan guidance.
 
-Local Coverage (Prioritized): If a patient's U.S. state is specified and medicare is selected and insurence, immediately use the local_lcd_search tool and the local_coverage_article_search tool. Local policies (LCDs and Articles) provide the most specific regional details.
+Evolent Guidelines: only use the Evolent_guidelines_search tool with the user's query for treatment when user picks Evolent and the insurance. if user choosed Evolent then use the Evolent_content_extractor tool to get the full content. Analyze this content for any prior authorization guidelines or health plan guidance.
 
-National Coverage: If the query is broad or lacks state information, or if local searches yield no results, use the ncd_coverage_search tool to find National Coverage Determinations (NCDs). NCDs establish foundational Medicare coverage rules nationwide.
+Local Coverage (Prioritized): If a patient's U.S. state is specified and medicare is selected for insurence, immediately use the local_lcd_search tool and the local_coverage_article_search tool. Local policies (LCDs and Articles) provide the most specific regional details. Extract the policy title, display ID, MAC, and URL for each relevant document along with guideline information using the policy_content_extractor for information in the related articles found and provide url as well.
+
+National Coverage: If medicare is selected and the query is broad or lacks state information, or if medicate is selected as payee and local searches yield no results, use the ncd_coverage_search tool to find National Coverage Determinations (NCDs). NCDs establish foundational Medicare coverage rules nationwide.
 
 Retrieve Full Policy Content: For any policy identified by the search tools (from Carelon, LCDs, LCAs, or NCDs), use the policy_content_extractor tool to fetch its complete text content from the provided URL.
 
@@ -187,6 +190,7 @@ export async function POST(req: NextRequest) {
     const tools = [
       new SerpAPI(),
       new CarelonSearchTool(),
+      new EvolentSearchTool(),
       new NCDCoverageSearchTool(),
       localLcdSearchTool,
       localCoverageArticleSearchTool,

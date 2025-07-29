@@ -11,7 +11,6 @@ import React, { ChangeEvent, useState } from "react";
 import { Data, StateData } from "../../../app/agents/metaData/states";
 import { ncdOptions } from "@/data/ncdOptions";
 
-import { isUndefined, set } from "lodash";
 import classes from "./FloatinLabelInput.module.css";
 import { FileUploadForm } from "../FileUpload";
 type Props = {
@@ -44,6 +43,16 @@ const FormInputs: React.FC<Props> = (props: Props) => {
   const [historyValue, setHistoryValue] = useState("");
   const [cptValue, setCptValue] = useState("");
 
+  const [formDisabledFields, setFormDisabledFields] = useState({
+    insurance: false,
+    state: false,
+    treatment: false,
+    diagnosis: false,
+    chat: false,
+    history: false,
+    cpt: false,
+  });
+
   const insuranceFloating =
     insureanceValue.length !== 0 || insuranceFocused || undefined;
   const stateFloating = stateValue.length !== 0 || stateFocused || undefined;
@@ -67,7 +76,7 @@ const FormInputs: React.FC<Props> = (props: Props) => {
             data={[
               { value: "medicare", label: "Medicare" },
               { value: "carelon", label: "Carelon" },
-              { value: "Any", label: "any" },
+              { value: "evolent", label: "Evolent" },
             ]}
             searchable
             clearable
@@ -77,6 +86,36 @@ const FormInputs: React.FC<Props> = (props: Props) => {
               if (value !== null) {
                 setInsrunceValue(value);
                 props.onStateFormStateChange("Insurance", value as string);
+              }
+              if (value === "evolent" || value === "carelon") {
+                setFormDisabledFields((prevState) => {
+                  return {
+                    ...prevState,
+                    state: true,
+                  };
+                });
+              } else {
+                setFormDisabledFields((prevState) => {
+                  return {
+                    ...prevState,
+                    state: false,
+                  };
+                });
+              }
+              if (value === "medicare") {
+                setFormDisabledFields((prevState) => {
+                  return {
+                    ...prevState,
+                    cpt: true,
+                  };
+                });
+              } else {
+                setFormDisabledFields((prevState) => {
+                  return {
+                    ...prevState,
+                    cpt: false,
+                  };
+                });
               }
             }}
             onFocus={() => setInsuranceFocused(true)}
@@ -105,6 +144,7 @@ const FormInputs: React.FC<Props> = (props: Props) => {
             onBlur={() => setStateFocused(false)}
             data-floating={stateFloating}
             labelProps={{ "data-floating": stateFloating }}
+            disabled={formDisabledFields.state}
           />
         </Grid.Col>
 
@@ -146,6 +186,7 @@ const FormInputs: React.FC<Props> = (props: Props) => {
             data-floating={cptFloating}
             labelProps={{ "data-floating": cptFloating }}
             rows={1}
+            disabled={formDisabledFields.cpt}
           />
         </Grid.Col>
 
