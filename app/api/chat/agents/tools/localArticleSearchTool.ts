@@ -139,7 +139,7 @@ class LocalCoverageArticleSearchTool extends StructuredTool<
         if (titleLower.includes(p1) || titleLower.includes(p2)) return article;
       });
 
-      console.log({ relevantArticles });
+      // console.log("LCD's", { relevantArticles });
 
       // 4. Handle no results.
       if (relevantArticles.length === 0) {

@@ -116,7 +116,7 @@ class LocalLcdSearchTool extends StructuredTool<
         );
       }
       const allLcds: LocalCoverageDetermination = await lcdsResponse.json();
-
+      // s
       // 3. Perform client-side filtering based on the query.
       const queryLower = query.toLowerCase();
       const p1 = queryLower.split("(")[0].trim();
@@ -152,6 +152,8 @@ class LocalLcdSearchTool extends StructuredTool<
             `    Direct URL (check for coverage criteria here): ${fullHtmlUrl}`,
         );
       }
+
+      console.log(`${outputResults.length} LCD's found`, { outputResults });
 
       return (
         `Found ${lcds.length} Local Coverage Determination(s) for '${query}' in ${state}. ` +

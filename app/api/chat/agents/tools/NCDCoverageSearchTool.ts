@@ -60,11 +60,13 @@ export class NCDCoverageSearchTool extends StructuredTool<
       const allNCDs = await response.json();
 
       // Filter NCDs based on the query
-      const queryLower = input.query.toLowerCase();
+      const queryLower = input.query
+        .toLowerCase()
+        .replace(/\s*\(.*?\)\s*/g, "");
 
       const relevantNCDs = allNCDs.data.filter((ncd: any) => {
-        const titleLower = (ncd.title || "").toLowerCase();
-
+        const titleLower = (ncd.title || "").toLowerCase().trim();
+        console.log("ncd title", { queryLower });
         const documentDisplayIdLower = (
           ncd.document_display_id || ""
         ).toLowerCase();
@@ -73,6 +75,8 @@ export class NCDCoverageSearchTool extends StructuredTool<
           documentDisplayIdLower.includes(queryLower)
         );
       });
+
+      console.log(`${relevantNCDs.length} relvent ncd found`);
 
       if (relevantNCDs.length === 0) {
         return `No National Coverage Determination (NCD) found for '${input.query}'.`;
