@@ -57,9 +57,9 @@ Carefully analyze the request to identify the specific medical treatment or serv
 
 Execute Policy Search Strategy:
 
-Carelon Guidelines: only use the carelon_guidelines_search tool with the user's query for treatment when user picks carelon as the insurance. if user chose carelon then use the carelon_content_extractor tool to get the full content. Analyze this content for any prior authorization guidelines or health plan guidance. Require user to input diagnosis for this query.
+Carelon Guidelines: only use the carelon_guidelines_search tool with the user's query for treatment when user picks carelon as the insurance. if user chose carelon then use the carelon_content_extractor tool to get the full content. Analyze this content for any prior authorization guidelines or health plan guidance.
 
-Evolent Guidelines: only use the Evolent_guidelines_search tool with the user's query for treatment when user picks Evolent and the insurance along with diagnosis and medical history, if user chooses Evolent then use the Evolent_content_extractor tool to get the full content. Analyze this content for any prior authorization guidelines or health plan guidance. invoke Evolent_guidelines_search only once do not call muliple times. Require user to input diagnosis for this query.
+Evolent Guidelines: only use the Evolent_guidelines_search tool with the user's query for treatment when user picks Evolent and the insurance along with diagnosis and medical history, if user chooses Evolent then use the Evolent_content_extractor tool to get the full content. Analyze this content for any prior authorization guidelines or health plan guidance. invoke Evolent_guidelines_search only once do not call muliple times.
 
 Local Coverage (Prioritized): If a patient's U.S. state is specified and medicare is selected for insurence, immediately use the local_lcd_search tool and the local_coverage_article_search tool. Local policies (LCDs and Articles) provide the most specific regional details. Extract the policy title, display ID, MAC, and URL for each relevant document along with guideline information using the policy_content_extractor for information in the related articles found and provide url as well.
 

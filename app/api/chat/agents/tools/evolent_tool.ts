@@ -16,12 +16,7 @@ const NCDSearchInputSchema = z.object({
 });
 
 const PolicyRelevanceFilterSchema = z.object({
-  is_relevant: z
-    .boolean()
-    .describe(
-      "true if the policy content is directly relevant to the patient's service and payer, false otherwise.",
-    ),
-  reasoning: z
+  content: z
     .string()
     .describe(
       "exctract information directly related to treatment and diagnosis",
@@ -52,25 +47,8 @@ export class EvolentSearchTool extends StructuredTool<
   constructor() {
     super();
 
-    // Create the runnable sequence for the filtering logic
-    this.relevanceFilterChain = RunnableSequence.from([
-      ChatPromptTemplate.fromMessages([
-        [
-          "system",
-          "You are a policy filtering expert. Your task is to determine if a raw policy document is relevant to a specific medical service. " +
-            "Output your decision as a structured JSON object with a 'is_relevant' boolean and a 'reasoning' string.",
-        ],
-        [
-          "human",
-          "Is the following policy content relevant to a policy lookup for:\n" +
-            "**Service:** {description_refined}\n" +
-            "**CPT Code:** {verified_cpt_code}\n" +
-            "**Policy Content:**\n" +
-            "```\n{raw_policy_content}\n```\n",
-        ],
-      ]),
-      this.relevanceFilterLLM.withStructuredOutput(PolicyRelevanceFilterSchema),
-    ]);
+    // Create the runnable sequence for the filtering logic.
+    // The prompt is updated to use the new structured input from the tool's `_call` method.
   }
 
   // Public call method for LangChain LLM
@@ -97,6 +75,41 @@ export class EvolentSearchTool extends StructuredTool<
       "https://ai-aug-carelon-hxdxaeczd9b4fdfc.canadacentral-01.azurewebsites.net/api/evolent/search?" +
         `q=${input.query.toLowerCase()}`,
     );
+
+    console.log({ evolentApiQuery: true });
+    this.relevanceFilterChain = RunnableSequence.from([
+      ChatPromptTemplate.fromMessages([
+        [
+          "system",
+          `You are a policy filtering expert. Your task is to filter throught the data and return only relevent information related to ${input.query} return only relevent and related information in a clear and concise manner`,
+        ],
+        [
+          "human",
+          `Retrieve Full Policy Content: For any policy identified by the search tools (from Carelon, LCDs, LCAs, or NCDs), use the policy_content_extractor tool to fetch its complete text content from the provided URL.
+
+          Capture All URLs: Crucially, for every relevant policy document found by any search tool, extract and store its full, direct URL.
+
+          Analyze and Extract Key Information from Policies:
+
+          For each retrieved policy document meticulously extract the following:
+
+          Prior Authorization Requirement: Is prior authorization required? State "YES," "NO," or "CONDITIONAL," and describe any conditions.
+
+          Medical Necessity Criteria: Detail the specific criteria that must be met for the service/treatment to be considered medically necessary.
+
+          Relevant Codes: List associated ICD-10 and CPT/HCPCS codes.
+
+          Required Documentation: Enumerate all documentation needed to support the prior authorization request.
+
+          Limitations and Exclusions: Note any specific limitations, non-covered indications, or exclusions.
+
+          Present Comprehensive Findings:
+
+          Summarize your findings clearly and concisely.`,
+        ],
+      ]),
+      this.relevanceFilterLLM.withStructuredOutput(PolicyRelevanceFilterSchema),
+    ]);
 
     try {
       const response = await fetch(evolentApiQuery, {
@@ -127,22 +140,19 @@ export class EvolentSearchTool extends StructuredTool<
           .replace(/\r/g, "")
           .replace(/\n/g, "")
           .replace(/\b[A-Z]+\b|[^a-zA-Z0-9 ]/g, "")
-          .replace(/\b\d{9,}\b/g, "")
-          .slice(0, -10817);
+          .replace(/\b\d{9,}\b/g, "");
       });
 
-      // Invoke the internal LLM chain
-      // const filterResult = await this.relevanceFilterChain.invoke(
-      //   outputResults[0],
-      // );
+      // Invoke the internal LLM chain with the correct input object.
+      const filterResult = await this.relevanceFilterLLM.invoke(outputResults);
 
-      console.log("filtered", { data: outputResults[0] });
+      console.log("filtered", { data: filterResult.content });
 
       if (!relevantData || outputResults.length === 0) {
         return `No Evolent data found for '${input.query}'.`;
       }
 
-      return `Found ${outputResults.length} Evolent Coverage Guideline(s) for '${input.query}'. ${outputResults[0]}`;
+      return `${filterResult.content}`;
     } catch (error: any) {
       return `Error calling Evolent API or processing data: ${error.message}`;
     }
