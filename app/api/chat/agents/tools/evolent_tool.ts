@@ -39,10 +39,10 @@ export class EvolentSearchTool extends StructuredTool<
   });
 
   // Define the internal LLM chain for filtering
-  private relevanceFilterChain: RunnableSequence<
-    any,
-    z.infer<typeof PolicyRelevanceFilterSchema>
-  >;
+  private relevanceFilterChain = RunnableSequence.from([
+    ChatPromptTemplate.fromMessages([]),
+    this.relevanceFilterLLM.withStructuredOutput(PolicyRelevanceFilterSchema),
+  ]);
 
   constructor() {
     super();
