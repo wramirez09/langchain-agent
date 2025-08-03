@@ -141,7 +141,7 @@ export class EvolentSearchTool extends StructuredTool<
           .replace(/\n/g, "")
           .replace(/\b[A-Z]+\b|[^a-zA-Z0-9 ]/g, "")
           .replace(/\b\d{9,}\b/g, "")
-          .slice(0, -1000);
+          .slice(0, -10817);
       });
 
       // Invoke the internal LLM chain with the correct input object.
