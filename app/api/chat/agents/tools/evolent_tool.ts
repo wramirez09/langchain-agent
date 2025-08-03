@@ -4,7 +4,6 @@ import { cleanRegex } from "./utils";
 import { ChatOpenAI } from "@langchain/openai";
 import { RunnableSequence } from "@langchain/core/runnables";
 import { ChatPromptTemplate } from "@langchain/core/prompts";
-import { replace } from "lodash";
 
 // Define the input schema for the tool using Zod
 const NCDSearchInputSchema = z.object({
@@ -76,7 +75,7 @@ export class EvolentSearchTool extends StructuredTool<
         `q=${input.query.toLowerCase()}`,
     );
 
-    console.log({ evolentApiQuery: true });
+    console.log({ evolentApiQuery: evolentApiQuery });
     this.relevanceFilterChain = RunnableSequence.from([
       ChatPromptTemplate.fromMessages([
         [
@@ -145,7 +144,9 @@ export class EvolentSearchTool extends StructuredTool<
       });
 
       // Invoke the internal LLM chain with the correct input object.
-      const filterResult = await this.relevanceFilterLLM.invoke(outputResults);
+      const filterResult = await this.relevanceFilterLLM.invoke(
+        outputResults[0],
+      );
 
       console.log("filtered", { data: filterResult.content });
 
