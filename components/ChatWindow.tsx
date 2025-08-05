@@ -74,7 +74,7 @@ export function ChatInput(props: {
   className?: string;
   actions?: ReactNode;
   onStateFormStateChange?: (key: string, value: string) => void;
-  onUpload?: (file: File) => Promise<void>;
+  onUpload: (file: File) => Promise<void>;
 }) {
   const disabled = props.loading && props.onStop == null;
   return (
