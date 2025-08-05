@@ -1,13 +1,9 @@
-import { NextRequest, NextResponse } from "next/server";
+import { NextResponse } from "next/server";
 import { RecursiveCharacterTextSplitter } from "langchain/text_splitter";
 import { OpenAIEmbeddings } from "@langchain/openai";
 import { SupabaseVectorStore } from "@langchain/community/vectorstores/supabase";
 import { createClient } from "@supabase/supabase-js";
-import { mkdir, rm } from "fs/promises";
-import path from "path";
-import { headers } from "next/headers";
 import { PDFLoader } from "@langchain/community/document_loaders/fs/pdf";
-import { NextApiRequest } from "next";
 
 function cleanText(text: any) {
   // Replace multiple newlines or spaces with a single one
@@ -28,8 +24,6 @@ if (!supabaseUrl || !supabaseServiceKey || !openApiKey) {
 }
 
 export async function POST(req: any) {
-  let filePath;
-
   try {
     const formData = await req.formData();
     const file = formData.get("file");
@@ -53,7 +47,7 @@ export async function POST(req: any) {
       chunkOverlap: 200,
     });
     const splitDocs = await textSplitter.splitDocuments(docs);
-    const client = createClient(supabaseUrl, supabaseServiceKey);
+    const client = createClient(supabaseUrl!, supabaseServiceKey!);
     const embeddings = new OpenAIEmbeddings();
 
     await SupabaseVectorStore.fromDocuments(splitDocs, embeddings, {
@@ -103,12 +97,5 @@ export async function POST(req: any) {
       },
       { status: 500 },
     );
-  } finally {
-    if (filePath) {
-      await rm(filePath).catch((err) =>
-        console.error(`Error deleting file at ${filePath}:`, err),
-      );
-      console.log(`Cleaned up temporary file at ${filePath}`);
-    }
   }
 }
