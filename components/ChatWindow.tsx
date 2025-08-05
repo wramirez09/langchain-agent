@@ -292,7 +292,12 @@ export function ChatWindow(props: {
     [chat, setFormContet, setInput],
   );
 
+  const [uploading, setUploading] = useState(false);
+
   async function handleUploadAndChat(file: any) {
+    // Set loading state to true at the start of the function
+    setUploading(true);
+
     const formData = new FormData();
     formData.append("file", file);
 
@@ -309,22 +314,22 @@ export function ChatWindow(props: {
       }
       const ingestData = await ingestResponse.json();
 
-      await chat.append(
-        { role: "user", content: ingestData.docs },
-        {
-          options: {
-            body: {
-              upload: true,
-              messages: [{ role: "user", content: ingestData.docs }],
-            },
-          },
-        },
-      );
+      // Check if the document content is valid before proceeding
+      if (!ingestData || !ingestData.docs) {
+        throw new Error("Ingested document content is empty or invalid.");
+      }
 
-      toast.success(ingestData.message);
+      toast.success("Document uploaded and ingested successfully!");
+
+      // Construct a new message with a clear prefix for the LLM
+      const docContentMessage = `Here is some new document content: "${ingestData.docs}". Please use this information to answer any future questions.`;
+
+      await chat.append({ role: "user", content: docContentMessage });
     } catch (e: any) {
       toast.error("Document upload failed", { description: e.message });
     } finally {
+      // Always set loading state back to false
+      setUploading(false);
     }
   }
 
@@ -348,7 +353,7 @@ export function ChatWindow(props: {
             value={chat.input}
             onChange={chat.handleInputChange}
             onSubmit={sendMessage}
-            loading={chat.isLoading || intermediateStepsLoading}
+            loading={chat.isLoading || intermediateStepsLoading || uploading}
             placeholder={props.placeholder ?? ""}
             onStateFormStateChange={handleFormStateChange}
             onUpload={handleUploadAndChat}

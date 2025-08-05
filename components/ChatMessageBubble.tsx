@@ -27,10 +27,7 @@ export function ChatMessageBubble(props: {
       )}
 
       <div className="whitespace-pre-wrap flex flex-col text-[#7f8b9d]">
-        <span>
-          {/* <MarkDownContetRenderer content={props.message.content} /> */}
-          {props.message.content}
-        </span>
+        <span>{markdownToTxt(props.message.content)}</span>
 
         {props.sources && props.sources.length ? (
           <>

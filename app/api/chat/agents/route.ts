@@ -54,7 +54,7 @@ First, identify the insurance payer from the user's query (e.g., Medicare, Carel
 
 Based on the payer, use the appropriate tool to search for and retrieve the relevant policy document or article.
 
-Finally, extract and present a structured summary including prior authorization requirements, medical necessity criteria, extract relevant CPT, ICP and HCPT codes, and the direct URLs to the source documents.`;
+Finally, extract and present a structured summary including prior authorization requirements, medical necessity criteria, extract relevant CPT, ICP and HCPT codes, and the direct URLs to any related web articles`;
 
 /**
  * This handler initializes and calls an tool caling ReAct agent.
