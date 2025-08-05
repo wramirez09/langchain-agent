@@ -5,6 +5,8 @@ import DEFAULT_RETRIEVAL_TEXT from "@/data/DefaultRetrievalText";
 import { Button } from "./ui/button";
 import { Textarea } from "./ui/textarea";
 
+const fileUploadEndPoint = "api/chat/retrieval_agents";
+
 export function UploadDocumentsForm() {
   const [isLoading, setIsLoading] = useState(false);
   const [document, setDocument] = useState(DEFAULT_RETRIEVAL_TEXT);

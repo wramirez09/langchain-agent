@@ -25,7 +25,8 @@ import { cn } from "@/utils/cn";
 import FormInputs from "@/components/ui/forms/Form";
 import { LeadGrid } from "./layouts/LeadGrid";
 import React from "react";
-import { Textarea, TextareaProps } from "@mantine/core";
+import { Grid, Textarea, TextareaProps } from "@mantine/core";
+import { FileUploadForm } from "./ui/FileUpload";
 
 type FormContent = {
   insurance?: string;
@@ -73,6 +74,7 @@ export function ChatInput(props: {
   className?: string;
   actions?: ReactNode;
   onStateFormStateChange?: (key: string, value: string) => void;
+  onUpload?: (file: File) => Promise<void>;
 }) {
   const disabled = props.loading && props.onStop == null;
   return (
@@ -95,6 +97,10 @@ export function ChatInput(props: {
             onStateFormStateChange={props.onStateFormStateChange!}
             chatOnChange={props.onChange}
           />
+          <FileUploadForm onUpload={props.onUpload} />
+          {/* <Grid.Col span={12}>
+            
+          </Grid.Col> */}
         </>
 
         <div className="flex justify-between ml-4 mr-2 mb-2">
@@ -124,22 +130,6 @@ export function ChatInput(props: {
         </div>
       </div>
     </form>
-  );
-}
-
-function ScrollToBottom(props: { className?: string }) {
-  const { isAtBottom, scrollToBottom } = useStickToBottomContext();
-
-  if (isAtBottom) return null;
-  return (
-    <Button
-      variant="outline"
-      className={props.className}
-      onClick={() => scrollToBottom()}
-    >
-      <ArrowDown className="w-4 h-4" />
-      <span>Scroll to bottom</span>
-    </Button>
   );
 }
 
@@ -302,6 +292,42 @@ export function ChatWindow(props: {
     [chat, setFormContet, setInput],
   );
 
+  async function handleUploadAndChat(file: any) {
+    const formData = new FormData();
+    formData.append("file", file);
+
+    try {
+      // First, call the ingest API to process the document
+      const ingestResponse = await fetch("/api/retrieval/ingest", {
+        method: "POST",
+        body: formData,
+      });
+
+      if (!ingestResponse.ok) {
+        const errorData = await ingestResponse.json();
+        throw new Error(errorData.message);
+      }
+      const ingestData = await ingestResponse.json();
+
+      await chat.append(
+        { role: "user", content: ingestData.docs },
+        {
+          options: {
+            body: {
+              upload: true,
+              messages: [{ role: "user", content: ingestData.docs }],
+            },
+          },
+        },
+      );
+
+      toast.success(ingestData.message);
+    } catch (e: any) {
+      toast.error("Document upload failed", { description: e.message });
+    } finally {
+    }
+  }
+
   return (
     <>
       <ChatLayout
@@ -325,31 +351,8 @@ export function ChatWindow(props: {
             loading={chat.isLoading || intermediateStepsLoading}
             placeholder={props.placeholder ?? ""}
             onStateFormStateChange={handleFormStateChange}
+            onUpload={handleUploadAndChat}
           >
-            {props.showIngestForm && (
-              <Dialog>
-                <DialogTrigger asChild>
-                  <Button
-                    variant="ghost"
-                    className="pl-2 pr-3 -ml-2"
-                    disabled={chat.messages.length !== 0}
-                  >
-                    <Paperclip className="size-4" />
-                    <span>Upload document</span>
-                  </Button>
-                </DialogTrigger>
-                <DialogContent>
-                  <DialogHeader>
-                    <DialogTitle>Upload document</DialogTitle>
-                    <DialogDescription>
-                      Upload a document to use for the chat.
-                    </DialogDescription>
-                  </DialogHeader>
-                  <UploadDocumentsForm />
-                </DialogContent>
-              </Dialog>
-            )}
-
             {props.showIntermediateStepsToggle && (
               <div className="flex items-center gap-2">
                 <Checkbox

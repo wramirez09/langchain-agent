@@ -12,7 +12,11 @@ import { toast } from "react-toastify";
 
 const fileUploadEndPoint = "/api/retrieval/ingest";
 
-export function FileUploadForm(props: Partial<DropzoneProps>) {
+export function FileUploadForm({
+  onUpload,
+}: {
+  onUpload: (file: File) => Promise<void>;
+}) {
   const openRef = useRef<() => void>(null);
   const [files, setFiles] = useState<FileWithPath[]>([]);
 
@@ -31,47 +35,46 @@ export function FileUploadForm(props: Partial<DropzoneProps>) {
     [setFiles, files],
   );
 
-  const handleFileUpload = async (fileToUpload: any) => {
-    const formData = new FormData();
-    formData.append("file", fileToUpload);
+  // const handleFileUpload = async (fileToUpload: any) => {
+  //   const formData = new FormData();
+  //   formData.append("file", fileToUpload);
 
-    try {
-      // Send the file to the API endpoint
-      const response = await fetch(fileUploadEndPoint, {
-        method: "POST",
-        body: formData,
-      });
+  //   try {
+  //     // Send the file to the API endpoint
+  //     const response = await fetch(fileUploadEndPoint, {
+  //       method: "POST",
+  //       body: formData,
+  //     });
 
-      if (!response.ok) {
-        throw new Error(`Upload failed with status: ${response.status}`);
-      }
+  //     if (!response.ok) {
+  //       throw new Error(`Upload failed with status: ${response.status}`);
+  //     }
 
-      const result = await response.json();
-      console.log(`File "${fileToUpload.name}" uploaded successfully:`, result);
-      toast(`"${fileToUpload.name}" uploaded successfully!`);
-    } catch (error) {
-      console.error(
-        `Error during file upload for "${fileToUpload.name}":`,
-        error,
-      );
-      toast(`Failed to upload "${fileToUpload.name}". Please try again.`);
-    } finally {
-    }
-  };
+  //     const result = await response.json();
+  //     console.log(`File "${fileToUpload.name}" uploaded successfully:`, result);
+  //     toast(`"${fileToUpload.name}" uploaded successfully!`);
+  //   } catch (error) {
+  //     console.error(
+  //       `Error during file upload for "${fileToUpload.name}":`,
+  //       error,
+  //     );
+  //     toast(`Failed to upload "${fileToUpload.name}". Please try again.`);
+  //   } finally {
+  //   }
+  // };
 
   return (
     <>
       <Dropzone
         onDrop={(file) => {
           setFiles(file);
-          handleFileUpload(file[0]);
+          onUpload(file[0]);
         }}
         onReject={(files) => console.log("rejected files", files)}
         maxSize={15 * 1024 ** 2}
         accept={[MIME_TYPES.pdf]}
         className="mb-5 bg-white"
         multiple={false}
-        {...props}
       >
         <Group
           justify="center"

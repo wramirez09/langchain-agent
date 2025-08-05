@@ -5,11 +5,19 @@ import { SupabaseVectorStore } from "@langchain/community/vectorstores/supabase"
 import { createClient } from "@supabase/supabase-js";
 import { mkdir, rm } from "fs/promises";
 import path from "path";
-
+import { headers } from "next/headers";
 import { PDFLoader } from "@langchain/community/document_loaders/fs/pdf";
 
+function cleanText(text: string): string {
+  // Replace multiple newlines or spaces with a single one
+  return text
+    .replace(/\n\s*\n/g, "\n")
+    .replace(/\s+/g, " ")
+    .trim();
+}
+
 const supabaseUrl = process.env.SUPABASE_URL;
-const supabaseServiceKey = process.env.SERPAPI_API_KEY;
+const supabaseServiceKey = process.env.SUPABASE_PRIVATE_KEY;
 const openApiKey = process.env.OPENAI_API_KEY;
 
 if (!supabaseUrl || !supabaseServiceKey || !openApiKey) {
@@ -57,23 +65,14 @@ export async function POST(req: NextRequest) {
     const loader = new PDFLoader(blob);
     const docs = await loader.load();
 
-    // Initialize the text splitter. This will break down the large document
-    // into smaller, more digestible chunks.
     const textSplitter = new RecursiveCharacterTextSplitter({
       chunkSize: 1000,
       chunkOverlap: 200,
     });
     const splitDocs = await textSplitter.splitDocuments(docs);
-
-    console.log({ supabaseServiceKey });
-    // Initialize the Supabase client with the URL and service key.
     const client = createClient(supabaseUrl!, supabaseServiceKey!);
-
-    // Create a new instance of the OpenAI embeddings model.
     const embeddings = new OpenAIEmbeddings();
 
-    // Embed the documents and store them in the specified Supabase table.
-    // This process converts text chunks into vector representations.
     await SupabaseVectorStore.fromDocuments(splitDocs, embeddings, {
       client,
       tableName: "documents",
@@ -84,24 +83,79 @@ export async function POST(req: NextRequest) {
       `Successfully embedded and stored ${splitDocs.length} documents in Supabase.`,
     );
 
-    // Return a success response to the client.
+    const vectorStore = new SupabaseVectorStore(embeddings, {
+      client: client,
+      tableName: "documents", // Your table name
+      queryName: "match_documents", // Your RPC function name
+    });
+
+    async function retrieveAllFromSupabase(
+      tableName: string | any,
+      columns = "*",
+    ) {
+      try {
+        const { data, error } = await client.from(tableName).select(columns);
+
+        if (error) {
+          console.error("Error retrieving all documents from Supabase:", error);
+          return [];
+        }
+
+        return data || [];
+      } catch (error) {
+        console.error("Unexpected error during Supabase retrieval:", error);
+        return []; // Return an empty array on error to prevent the app from crashing.
+      }
+    }
+
+    const allDocs = await retrieveAllFromSupabase("documents");
+    const { data, error } = await client
+      .from("documents")
+      .select("content, metadata");
+
+    let combinedContent = data?.map((doc) => doc.content).join("\n\n---\n\n");
+
+    if (combinedContent) {
+      combinedContent = cleanText(combinedContent);
+    }
+
+    const headersList = headers();
+    const domain = (await headersList).get("host");
+
+    fetch(`http://${domain}/api/chat/agents`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        upload: true,
+        messages: [{ role: "user", content: combinedContent ?? "" }],
+      }),
+    });
+
+    // Check if the agent's response was successful
+
+    // const errorBody = await agentResponse.json();
+    console.error("Agent API route error:");
     return NextResponse.json(
       {
-        message: `Successfully processed and stored file: ${fileName}`,
-        docs: splitDocs,
+        message: "An internal server error occurred in the agent.",
+        details: "error",
       },
       { status: 200 },
     );
+
+    // const agentData = await agentResponse.json();
   } catch (error) {
-    // Log and return an error response if anything goes wrong.
     console.error("API route error:", error);
     return NextResponse.json(
-      { message: "An internal server error occurred." },
+      {
+        message: "An internal server error occurred.",
+        error: error instanceof Error ? error.message : String(error),
+      },
       { status: 500 },
     );
   } finally {
-    // This block ensures the temporary file is deleted, whether the
-    // process succeeded or failed.
     if (filePath) {
       await rm(filePath).catch((err) =>
         console.error(`Error deleting file at ${filePath}:`, err),

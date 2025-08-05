@@ -9,6 +9,7 @@ export function ChatMessageBubble(props: {
   aiEmoji?: string;
   sources: any[];
 }) {
+  console.log(props);
   return (
     <div
       className={cn(
@@ -28,7 +29,7 @@ export function ChatMessageBubble(props: {
       <div className="whitespace-pre-wrap flex flex-col text-[#7f8b9d]">
         <span>
           {/* <MarkDownContetRenderer content={props.message.content} /> */}
-          {markdownToTxt(props.message.content)}
+          {props.message.content}
         </span>
 
         {props.sources && props.sources.length ? (

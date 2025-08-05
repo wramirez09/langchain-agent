@@ -226,9 +226,7 @@ const FormInputs: React.FC<Props> = (props: Props) => {
             resize="vertical"
           />
         </Grid.Col>
-        <Grid.Col span={12}>
-          <FileUploadForm />
-        </Grid.Col>
+
         <Grid.Col span={12}>
           <Textarea
             rows={2}

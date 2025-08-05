@@ -21,6 +21,7 @@ import { policyContentExtractorTool } from "./tools/policyContentExtractorTool";
 import { CarelonSearchTool } from "./tools/carelon_tool";
 import { EvolentSearchTool } from "./tools/evolent_tool";
 import { ChatPromptTemplate } from "@langchain/core/prompts";
+import { SupabaseRetrievalTool } from "./tools/supabaseRetrievalTool";
 
 export const runtime = "edge";
 
@@ -47,24 +48,13 @@ const convertLangChainMessageToVercelMessage = (message: BaseMessage) => {
     return { content: message.content, role: message._getType() };
   }
 };
-const AGENT_SYSTEM_TEMPLATE = `You are an expert Prior Authorization Assistant. Your role is to analyze a provider's query to find relevant policies from the available tools. Once you have located and retrieved the policy content, you must extract key information and present a final, structured summary to the user.`;
+const AGENT_SYSTEM_TEMPLATE = `You are an expert Prior Authorization Assistant. Your goal is to help healthcare providers determine prior authorization requirements for medical services.
 
-ChatPromptTemplate.fromMessages([
-  [
-    "system",
-    "You are a policy filtering expert. Your task is to determine if a raw policy document is relevant to a specific medical service. " +
-      "Output your decision as a structured JSON object with a 'is_relevant' boolean and a 'reasoning' string. " +
-      "The reasoning should be a clear, concise statement about why the document is or is not relevant to the service.",
-  ],
-  [
-    "human",
-    "Given the following service and CPT code, is the policy content below relevant?\n" +
-      "**Service:** {serviceDescription}\n" +
-      "**CPT Code:** {cptCode}\n" +
-      "**Policy Content:**\n" +
-      "```\n{rawPolicyContent}\n```",
-  ],
-]);
+First, identify the insurance payer from the user's query (e.g., Medicare, Carelon, Evolent).
+
+Based on the payer, use the appropriate tool to search for and retrieve the relevant policy document or article.
+
+Finally, extract and present a structured summary including prior authorization requirements, medical necessity criteria, extract relevant CPT, ICP and HCPT codes, and the direct URLs to the source documents.`;
 
 /**
  * This handler initializes and calls an tool caling ReAct agent.
@@ -76,6 +66,10 @@ export async function POST(req: NextRequest) {
   try {
     const body = await req.json();
     const returnIntermediateSteps = body.show_intermediate_steps;
+
+    if (body.upload) {
+      console.log(body);
+    }
     /**
      * We represent intermediate steps as system messages for display purposes,
      * but don't want them in the chat history.
@@ -90,6 +84,7 @@ export async function POST(req: NextRequest) {
     // Requires process.env.SERPAPI_API_KEY to be set: https://serpapi.com/
     // You can remove this or use a different tool instead.
     const tools = [
+      // new SupabaseRetrievalTool(),
       new SerpAPI(),
       new CarelonSearchTool(),
       new EvolentSearchTool(),
