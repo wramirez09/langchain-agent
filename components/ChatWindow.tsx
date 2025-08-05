@@ -295,15 +295,13 @@ export function ChatWindow(props: {
   const [uploading, setUploading] = useState(false);
 
   async function handleUploadAndChat(file: any) {
-    // Set loading state to true at the start of the function
     setUploading(true);
 
     const formData = new FormData();
     formData.append("file", file);
 
     try {
-      // First, call the ingest API to process the document
-      const ingestResponse = await fetch("/api/retrieval/ingest", {
+      const ingestResponse = await fetch(`/api/retrieval/ingest`, {
         method: "POST",
         body: formData,
       });
@@ -314,21 +312,19 @@ export function ChatWindow(props: {
       }
       const ingestData = await ingestResponse.json();
 
-      // Check if the document content is valid before proceeding
       if (!ingestData || !ingestData.docs) {
         throw new Error("Ingested document content is empty or invalid.");
       }
 
       toast.success("Document uploaded and ingested successfully!");
 
-      // Construct a new message with a clear prefix for the LLM
-      const docContentMessage = `Here is some new document content: "${ingestData.docs}". Please use this information to answer any future questions.`;
+      // **This is the key change:** Construct a single, immediate-use prompt.
+      const docContentMessage = `I have uploaded the following document. Please summarize the key prior authorization requirements, medical necessity criteria, and any relevant CPT/HCPCS codes mentioned in the document. \n\nDocument Content: "${ingestData.docs}"`;
 
       await chat.append({ role: "user", content: docContentMessage });
     } catch (e: any) {
       toast.error("Document upload failed", { description: e.message });
     } finally {
-      // Always set loading state back to false
       setUploading(false);
     }
   }
