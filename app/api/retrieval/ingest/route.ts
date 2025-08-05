@@ -7,6 +7,7 @@ import { mkdir, rm } from "fs/promises";
 import path from "path";
 import { headers } from "next/headers";
 import { PDFLoader } from "@langchain/community/document_loaders/fs/pdf";
+import { NextApiRequest } from "next";
 
 function cleanText(text: any) {
   // Replace multiple newlines or spaces with a single one
@@ -26,7 +27,7 @@ if (!supabaseUrl || !supabaseServiceKey || !openApiKey) {
   );
 }
 
-export async function POST(req) {
+export async function POST(req: any) {
   let filePath;
 
   try {
