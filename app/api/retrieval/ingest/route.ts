@@ -8,7 +8,7 @@ import path from "path";
 import { headers } from "next/headers";
 import { PDFLoader } from "@langchain/community/document_loaders/fs/pdf";
 
-function cleanText(text) {
+function cleanText(text: any) {
   // Replace multiple newlines or spaces with a single one
   return text
     .replace(/\n\s*\n/g, "\n")
