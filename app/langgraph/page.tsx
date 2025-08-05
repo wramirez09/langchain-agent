@@ -41,6 +41,9 @@ function EditMessage({
           Cancel
         </Button>
       }
+      onUpload={function (file: File): Promise<void> {
+        throw new Error("Function not implemented.");
+      }}
     />
   );
 }
@@ -167,6 +170,9 @@ function StatefulChatInput(props: {
         e.preventDefault();
         setInput("");
         props.onSubmit(input);
+      }}
+      onUpload={function (file: File): Promise<void> {
+        throw new Error("Function not implemented.");
       }}
     />
   );
