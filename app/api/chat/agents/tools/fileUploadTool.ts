@@ -7,42 +7,54 @@ import FormData from "form-data";
 import fetch from "cross-fetch";
 
 /**
- * A LangChain Tool that uploads a file to the Next.js API for processing.
- * This tool is designed to be used by a LangChain agent.
+ * A LangChain Tool that uploads a file to a retrieval agent for temporary
+ * processing and retrieval. The data is not permanently stored.
  */
 export class FileUploadTool extends Tool {
   // The name the LLM will use to reference this tool.
   name = "file_upload_tool";
 
   // A descriptive summary of the tool's functionality for the LLM.
+  // The description now specifies that the input includes a query.
   description =
-    "A tool for uploading files (e.g., PDF) to a retrieval agent. " +
-    "The input to this tool is the file path of the document to upload. " +
-    'Example: "/path/to/my_document.pdf"';
+    "A tool for uploading files (e.g., PDF) for temporary retrieval. " +
+    "The input to this tool must be a string containing a file path " +
+    "and a query, separated by '::'. " +
+    'Example: "/path/to/my_document.pdf::What is the main topic?"';
 
   /**
-   * @description The main logic of the tool. It takes a file path as input,
-   * reads the file, and sends it to the Next.js API route via a POST request.
-   * @param {string} filePath - The local path to the file to be uploaded.
-   * @returns {Promise<string>} A message indicating the success or failure of the upload.
+   * @description The main logic of the tool. It takes a file path and a query,
+   * reads the file, and sends both to the Next.js API route.
+   * @param {string} input - The combined file path and query, e.g., "path/to/file::query".
+   * @returns {Promise<string>} A message indicating the success or failure of the upload
+   * and the retrieved information.
    */
-  async _call(filePath: string) {
+  async _call(input: string) {
     try {
-      // 1. Check if the file exists at the given path.
+      // 1. Parse the input to get the file path and the query.
+      const [filePath, query] = input.split("::");
+
+      if (!filePath || !query) {
+        throw new Error(
+          "Input must contain both a file path and a query separated by '::'.",
+        );
+      }
+
+      // 2. Check if the file exists at the given path.
       await fs.access(filePath);
 
-      // 2. Read the file into a buffer.
+      // 3. Read the file into a buffer.
       const fileBuffer = await fs.readFile(filePath);
 
-      // 3. Create a FormData object, which is needed for multipart/form-data POST requests.
+      // 4. Create a FormData object, adding both the file and the query.
       const formData = new FormData();
       formData.append("file", fileBuffer, {
         filename: path.basename(filePath),
-        contentType: "application/pdf", // Assuming a PDF for this example.
+        contentType: "application/pdf",
       });
+      formData.append("query", query); // Add the query to the form data
 
-      // 4. Send the POST request to the Next.js API endpoint.
-      // Make sure to replace this URL if your app is hosted elsewhere.
+      // 5. Send the POST request to the Next.js API endpoint.
       const apiUrl = "http://localhost:3000/api/retrieval/ingest";
       const response = await fetch(apiUrl, {
         method: "POST",
@@ -52,7 +64,7 @@ export class FileUploadTool extends Tool {
         },
       });
 
-      // 5. Handle the API response.
+      // 6. Handle the API response.
       if (!response.ok) {
         const errorText = await response.text();
         throw new Error(
@@ -62,13 +74,18 @@ export class FileUploadTool extends Tool {
 
       const result = await response.json();
 
-      // 6. Return a success message that the agent can use.
-      return `File successfully uploaded and processed. API response: ${JSON.stringify(result)}`;
+      // 7. Format the retrieved documents into a useful string for the agent.
+      const retrievedDocs = result.docs
+        .map((doc: any) => doc.pageContent)
+        .join("\n---\n");
+
+      // 8. Return a success message with the retrieved data.
+      return `File successfully processed. Retrieved information:\n${retrievedDocs}`;
     } catch (error) {
       console.error("An error occurred during file upload:", error);
 
       // Return a descriptive error message for the agent.
-      return `Failed to upload file. Error: ${(error as Error).message}`;
+      return `Failed to process file. Error: ${(error as Error).message}`;
     }
   }
 }

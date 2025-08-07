@@ -292,16 +292,16 @@ export function ChatWindow(props: {
       }
       const ingestData = await ingestResponse.json();
 
-      if (!ingestData || !ingestData.docs) {
-        throw new Error("Ingested document content is empty or invalid.");
+      // HIGHLIGHT START: New logic to handle the generatedQuery from the API
+      if (!ingestData || !ingestData.generatedQuery) {
+        throw new Error("Generated query from document is empty or invalid.");
       }
 
-      toast.success("Document uploaded and ingested successfully!");
+      toast.success("Document uploaded and query generated successfully!");
 
-      // **This is the key change:** Construct a single, immediate-use prompt.
-      const docContentMessage = `I have uploaded the following document. Please summarize the key prior authorization requirements, medical necessity criteria, and any relevant CPT/HCPCS codes mentioned in the document. \n\nDocument Content: "${ingestData.docs}"`;
-
-      await chat.append({ role: "user", content: docContentMessage });
+      // Use the generatedQuery from the API response directly
+      await chat.append({ role: "user", content: ingestData.generatedQuery });
+      // HIGHLIGHT END
     } catch (e: any) {
       toast.error("Document upload failed", { description: e.message });
     } finally {

@@ -1,9 +1,15 @@
 import { NextResponse } from "next/server";
 import { RecursiveCharacterTextSplitter } from "langchain/text_splitter";
-import { OpenAIEmbeddings } from "@langchain/openai";
+import { ChatOpenAI, OpenAIEmbeddings } from "@langchain/openai";
 import { SupabaseVectorStore } from "@langchain/community/vectorstores/supabase";
 import { createClient } from "@supabase/supabase-js";
 import { PDFLoader } from "@langchain/community/document_loaders/fs/pdf";
+import { HumanMessage } from "@langchain/core/messages";
+
+const queryGenerationAgent = new ChatOpenAI({
+  model: "gpt-4o-mini", // A cost-effective model is good for this task
+  temperature: 0,
+});
 
 function cleanText(text: any) {
   return text
@@ -72,10 +78,39 @@ export async function POST(req: any) {
       combinedContent = cleanText(combinedContent);
     }
 
+    // HIGHLIGHT START
+    // This is the new agent-based query generation logic.
+    const queryPrompt = `
+      You are a medical information extraction assistant. Your task is to analyze the following document content from a patient's medical record or a prior authorization form.
+
+      Extract the core medical information and format it into a concise, focused search query. The query should be designed to help a Prior Authorization Assistant find relevant guidelines and policies.
+
+      The query should include:
+      - The primary treatment or medical service (e.g., "Insulin pump therapy")
+      - The diagnosis or condition (e.g., "Type 1 diabetes")
+      - Any relevant CPT or ICD-10 codes found (e.g., "ICD-10: E10.9")
+      - Key medical history points that might impact coverage.
+
+      Combine these points into a single, natural-language question. Do not include any filler text, just the query.
+      Example Output: "What are the prior authorization requirements for insulin pump therapy for a patient with Type 1 diabetes (ICD-10: E10.9)?"
+
+      Document Content to Analyze:
+      ${combinedContent}
+    `;
+
+    // Invoke the agent with the prompt
+    const result = await queryGenerationAgent.invoke([
+      new HumanMessage({ content: queryPrompt }),
+    ]);
+
+    const generatedQuery = result.content;
+    // HIGHLIGHT END
+
     return NextResponse.json(
       {
         message: "Document ingested successfully.",
         docs: combinedContent,
+        generatedQuery: generatedQuery,
       },
       { status: 200 },
     );
