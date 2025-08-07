@@ -6,7 +6,6 @@ import { createClient } from "@supabase/supabase-js";
 import { PDFLoader } from "@langchain/community/document_loaders/fs/pdf";
 
 function cleanText(text: any) {
-  // Replace multiple newlines or spaces with a single one
   return text
     .replace(/\n\s*\n/g, "\n")
     .replace(/\s+/g, " ")
@@ -29,7 +28,6 @@ export async function POST(req: any) {
     const file = formData.get("file");
 
     if (!file || !(file instanceof Blob)) {
-      console.error("No file uploaded or file is not a Blob.");
       return NextResponse.json(
         { message: "No file uploaded" },
         { status: 400 },
@@ -56,11 +54,6 @@ export async function POST(req: any) {
       queryName: "match_documents",
     });
 
-    console.log(
-      `Successfully embedded and stored ${splitDocs.length} documents in Supabase.`,
-    );
-
-    // Retrieve the content of the newly ingested documents
     const { data, error } = await client
       .from("documents")
       .select("content, metadata");
@@ -73,14 +66,12 @@ export async function POST(req: any) {
       );
     }
 
-    // Combine all document content into a single string
     let combinedContent = data?.map((doc) => doc.content).join("\n\n---\n\n");
 
     if (combinedContent) {
       combinedContent = cleanText(combinedContent);
     }
 
-    // Return the extracted content to the client
     return NextResponse.json(
       {
         message: "Document ingested successfully.",

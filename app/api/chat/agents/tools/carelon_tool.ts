@@ -1,6 +1,6 @@
 import { z } from "zod"; // For input schema validation
 import { StructuredTool, ToolRunnableConfig } from "@langchain/core/tools"; // Or from 'langchain/tools' in older versions
-import markdownToTxt from "markdown-to-txt";
+
 import { cleanRegex } from "./utils";
 
 // Define the input schema for the tool using Zod
@@ -21,10 +21,9 @@ export class CarelonSearchTool extends StructuredTool<
   schema = NCDSearchInputSchema;
 
   // Public call method for LangChain LLM
-  async call<
-    TArg extends unknown,
-    TConfig extends ToolRunnableConfig | undefined,
-  >(input: any, configArg?: TConfig): Promise<any> {
+  async call<TConfig extends ToolRunnableConfig | undefined>(
+    input: any,
+  ): Promise<any> {
     try {
       // Parse and validate the input using the schema
 

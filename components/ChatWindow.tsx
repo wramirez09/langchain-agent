@@ -5,35 +5,18 @@ import { useChat } from "ai/react";
 import { useCallback, useState } from "react";
 import type { FormEvent, ReactNode } from "react";
 import { toast } from "sonner";
-import { useStickToBottomContext } from "use-stick-to-bottom";
 
 import { ChatMessageBubble } from "@/components/ChatMessageBubble";
 import { IntermediateStep } from "./IntermediateStep";
 import { Button } from "./ui/button";
-import { ArrowDown, LoaderCircle, Paperclip } from "lucide-react";
+import { LoaderCircle } from "lucide-react";
 import { Checkbox } from "./ui/checkbox";
-import { UploadDocumentsForm } from "./UploadDocumentsForm";
-import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogHeader,
-  DialogTitle,
-  DialogTrigger,
-} from "./ui/dialog";
+
 import { cn } from "@/utils/cn";
 import FormInputs from "@/components/ui/forms/Form";
 import { LeadGrid } from "./layouts/LeadGrid";
 import React from "react";
-import { Grid, Textarea, TextareaProps } from "@mantine/core";
 import { FileUploadForm } from "./ui/FileUpload";
-
-type FormContent = {
-  insurance?: string;
-  treatment?: string;
-  state?: string;
-  diagnosis?: string;
-};
 
 function ChatMessages(props: {
   messages: Message[];
@@ -98,9 +81,6 @@ export function ChatInput(props: {
             chatOnChange={props.onChange}
           />
           <FileUploadForm onUpload={props.onUpload} />
-          {/* <Grid.Col span={12}>
-            
-          </Grid.Col> */}
         </>
 
         <div className="flex justify-between ml-4 mr-2 mb-2">

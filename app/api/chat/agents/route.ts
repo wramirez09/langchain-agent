@@ -20,8 +20,6 @@ import { policyContentExtractorTool } from "./tools/policyContentExtractorTool";
 
 import { CarelonSearchTool } from "./tools/carelon_tool";
 import { EvolentSearchTool } from "./tools/evolent_tool";
-import { ChatPromptTemplate } from "@langchain/core/prompts";
-import { SupabaseRetrievalTool } from "./tools/supabaseRetrievalTool";
 
 export const runtime = "edge";
 
@@ -50,30 +48,45 @@ const convertLangChainMessageToVercelMessage = (message: BaseMessage) => {
 };
 const AGENT_SYSTEM_TEMPLATE = `You are an expert Prior Authorization Assistant. Your goal is to help healthcare providers determine prior authorization requirements for medical services.
 
-First, identify the insurance payer from the user's query (e.g., Medicare, Carelon, Evolent).
+First, identify the insurance payer from the user's query (e.g., Medicare, Carelon, Evolent)
 
 Based on the payer, use the appropriate tool to search for and retrieve the relevant policy document or article.
 
-Finally, extract and present a structured summary including prior authorization requirements, medical necessity criteria, extract relevant CPT, ICP and HCPT codes, and the direct URLs to any related web articles`;
+if file is uploaded extract treatment, diagnosis and medical history from document and create queries and parameters and use all tools to fetch related documents and articles from all payees
 
-/**
- * This handler initializes and calls an tool caling ReAct agent.
- * See the docs for more information:
- *
- * https://langchain-ai.github.io/langgraphjs/tutorials/quickstart/
- */
+1. Analyze and Extract:
+    * For each policy document or data retrieved or returned, extract the following key information:
+      - Prior Authorization Requirements: Is prior authorization required? If so, under what conditions?
+      - Medical Necessity Criteria: What are the criteria for medical necessity?
+      - Relevant Codes: Identify the ICD-10 and CPT codes associated with the treatment/service.
+      - Required Documentation: What documentation is needed to support the prior authorization request?
+      - Limitations and Exclusions: Are there any specific limitations or exclusions that apply?
+2.  Present Findings:
+    * Summarize the findings in a clear, concise manner.
+    * Provide the user with a structured response that includes:
+      - if inusrance is evolent get Evalont guidelines retrieved from evolent_guidelines_search tool
+      - if insurance is carelon get Carelone guidelines retrieved from carelon_guidelines_search tool
+      - if insurance is medicare get Local coverage determinations (LCDs) and local coverage articles (LCA's) first, Titled as "Local Coverage Determinations", then national coverage determinations (NCDs) Titled "National Coverage Determinations (NCD's)". 
+
+      extract and display with the following information:
+      - The title and document display ID of each relevant policy.
+      - A brief description of the policy's content.
+      - The direct URL to the policy document.
+      - A summary of the prior authorization requirements, including:
+      - Whether prior authorization is required (YES/NO/CONDITIONAL).
+      - A summary of medical necessity criteria.
+      - A list of relevant ICD-10 and CPT codes.
+      - A summary of required documentation.
+      - Any limitations or exclusions that apply.
+      - A summary of the policy document's content.
+      - A list of relevant URLs to the policy documents
+6.  Follow Up:
+    * If the user has further questions or needs clarification, be ready to assist.`;
+
 export async function POST(req: NextRequest) {
   try {
     const body = await req.json();
     const returnIntermediateSteps = body.show_intermediate_steps;
-
-    if (body.upload) {
-      console.log(body);
-    }
-    /**
-     * We represent intermediate steps as system messages for display purposes,
-     * but don't want them in the chat history.
-     */
     const messages = (body.messages ?? [])
       .filter(
         (message: VercelChatMessage) =>
@@ -81,10 +94,7 @@ export async function POST(req: NextRequest) {
       )
       .map(convertVercelMessageToLangChainMessage);
 
-    // Requires process.env.SERPAPI_API_KEY to be set: https://serpapi.com/
-    // You can remove this or use a different tool instead.
     const tools = [
-      // new SupabaseRetrievalTool(),
       new SerpAPI(),
       new CarelonSearchTool(),
       new EvolentSearchTool(),
@@ -101,29 +111,10 @@ export async function POST(req: NextRequest) {
     const agent = createReactAgent({
       llm: chat,
       tools,
-      /**
-       * Modify the stock prompt in the prebuilt agent. See docs
-       * for how to customize your agent:
-       *
-       * https://langchain-ai.github.io/langgraphjs/tutorials/quickstart/
-       */
-
       messageModifier: new SystemMessage(AGENT_SYSTEM_TEMPLATE),
     });
 
     if (!returnIntermediateSteps) {
-      /**
-       * Stream back all generated tokens and steps from their runs.
-       *
-       * We do some filtering of the generated events and only stream back
-       * the final response as a string.
-       *
-       * For this specific type of tool calling ReAct agents with OpenAI, we can tell when
-       * the agent is ready to stream back final output when it no longer calls
-       * a tool and instead streams back content.
-       *
-       * See: https://langchain-ai.github.io/langgraphjs/how-tos/stream-tokens/
-       */
       const eventStream = await agent.streamEvents(
         { messages },
         { version: "v2" },
@@ -146,11 +137,6 @@ export async function POST(req: NextRequest) {
 
       return new StreamingTextResponse(transformStream);
     } else {
-      /**
-       * We could also pick intermediate steps out from `streamEvents` chunks, but
-       * they are generated as JSON objects, so streaming and displaying them with
-       * the AI SDK is more complicated.
-       */
       const result = await agent.invoke({ messages });
 
       return NextResponse.json(

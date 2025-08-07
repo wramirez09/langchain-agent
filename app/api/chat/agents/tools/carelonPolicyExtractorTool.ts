@@ -1,21 +1,16 @@
-// policyContentExtractorTool.ts
 import { z } from "zod";
 import { StructuredTool } from "@langchain/core/tools";
-import * as cheerio from "cheerio"; // For HTML parsing: npm install cheerio
+import * as cheerio from "cheerio";
 import { toast } from "sonner";
-// Input schema for the content extractor tool
+
 const PolicyContentExtractorInputSchema = z.object({
   policyUrl: z.string().url().describe("Carelon guideline url"),
-  // queryContext: z.string().optional().describe("Optional: The original user query context to guide content extraction (e.g., 'prior authorization for diabetes treatment')."),
 });
 
-// Interface for the structured details you *aim* to extract from the policy text.
-// This is what you would ideally want the LLM to return *after* it processes the raw content.
-// For this tool's _call method, we'll return a string representing the extracted content.
 export interface ExtractedPolicyDetails {
   priorAuthRequired: "YES" | "NO" | "CONDITIONAL" | "UNKNOWN";
   medicalNecessityCriteria: string[];
-  icd10Codes: { code: string; description: string; context: string }[]; // context: e.g., 'covered', 'excluded'
+  icd10Codes: { code: string; description: string; context: string }[];
   cptCodes: { code: string; description: string; context: string }[];
   requiredDocumentation: string[];
   limitationsExclusions: string[];
@@ -29,12 +24,6 @@ class CarelonContentExtractorTool extends StructuredTool<
   description = "Carelon content extraction tool";
   schema = PolicyContentExtractorInputSchema;
 
-  /**
-   * The core logic of the tool.
-   * Fetches the HTML, extracts the main text, and returns it.
-   * @param input The validated input from the LLM, matching PolicyContentExtractorInputSchema.
-   * @returns A string containing the extracted policy text or an error message.
-   */
   public async _call(
     input: z.infer<typeof PolicyContentExtractorInputSchema>,
   ): Promise<string> {
@@ -49,9 +38,6 @@ class CarelonContentExtractorTool extends StructuredTool<
       }
 
       const htmlContent = await response.text();
-
-      // Use cheerio to parse the HTML and extract the main textual content.
-      // This is a crucial step as CMS pages have lots of navigation, headers, footers.
       const $ = cheerio.load(htmlContent);
 
       // Attempt to find the main content block.

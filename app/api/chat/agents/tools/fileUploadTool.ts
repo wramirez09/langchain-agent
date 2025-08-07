@@ -61,7 +61,6 @@ export class FileUploadTool extends Tool {
       }
 
       const result = await response.json();
-      console.log("API response:", result);
 
       // 6. Return a success message that the agent can use.
       return `File successfully uploaded and processed. API response: ${JSON.stringify(result)}`;

@@ -78,8 +78,6 @@ export class CignaPriorAuthLookupTool extends StructuredTool<
       });
     }
 
-    // Perform a search for the treatment and extract related information
-    const normalizedPolicyContent = policyContent.toLowerCase();
     const normalizedTreatment = treatment.toLowerCase();
 
     // Use a regex to extract lines containing the treatment and related details
