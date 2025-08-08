@@ -46,6 +46,7 @@ export class NCDCoverageSearchTool extends StructuredTool<
     const CMS_NCD_BASE_HTML_URL = "https://api.coverage.cms.gov/v1/data/";
 
     try {
+      console.log("getting NCDs");
       // Fetch all NCDs from the CMS API
       const response = await fetch(CMS_NCD_API_URL, {
         method: "GET",

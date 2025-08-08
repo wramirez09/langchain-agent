@@ -1,7 +1,5 @@
-// localArticleSearchTool.ts
 import { z } from "zod";
 import { StructuredTool } from "@langchain/core/tools";
-import { stat } from "fs";
 
 // Input schema for the Local Article search tool
 const LocalArticleSearchInputSchema = z.object({
@@ -63,52 +61,14 @@ class LocalCoverageArticleSearchTool extends StructuredTool<
     "If multiple articles are found, it lists up to 1.";
   schema = LocalArticleSearchInputSchema;
 
-  // CMS API URLs
-  // private CMS_STATE_METADATA_API_URL =
-  //   "https://api.coverage.cms.gov/v1/metadata/states/";
   private CMS_LOCAL_ARTICLES_API_URL =
     "https://api.coverage.cms.gov/v1/reports/local-coverage-articles/";
 
-  // Static cache for state IDs (shared or separate, depending on design choice)
-  // private static stateIdCache: Map<string, number> | null = null;
-
-  /**
-   * Fetches and caches the mapping of state names to state IDs.
-   * (Duplicate of LCD tool, ideally refactored into a shared utility)
-   * @returns A Map from lowercase state name to two-letter state ID.
-   */
-  // private async getStatesMetadata(): Promise<Map<string, number>> {
-  //   if (LocalCoverageArticleSearchTool.stateIdCache) {
-  //     return LocalCoverageArticleSearchTool.stateIdCache;
-  //   }
-  //   const response = await fetch(this.CMS_STATE_METADATA_API_URL);
-  //   if (!response.ok) {
-  //     throw new Error(
-  //       `Failed to fetch state metadata: ${response.status} ${response.statusText}`,
-  //     );
-  //   }
-  //   const states: StateMetaData = await response.json();
-
-  //   const stateMap = new Map<string, number>();
-  //   states.data.forEach((state) => {
-  //     stateMap.set(state.description.toLowerCase(), state.state_id);
-  //   });
-  //   LocalCoverageArticleSearchTool.stateIdCache = stateMap;
-  //   return stateMap;
-  // }
-
-  /**
-   * The core logic of the tool.
-   * @param input The validated input from the LLM, matching LocalArticleSearchInputSchema.
-   * @returns A string summarizing the found articles or an error message.
-   */
   protected async _call(
     input: z.infer<typeof LocalArticleSearchInputSchema>,
   ): Promise<string> {
     const { query, state } = input;
     try {
-      // 1. Get the two-letter state ID.
-      // const stateMap = await this.getStatesMetadata();
       const stateId = state.state_id;
 
       if (!stateId) {
@@ -139,14 +99,10 @@ class LocalCoverageArticleSearchTool extends StructuredTool<
         if (titleLower.includes(p1) || titleLower.includes(p2)) return article;
       });
 
-      // console.log("LCD's", { relevantArticles });
-
-      // 4. Handle no results.
       if (relevantArticles.length === 0) {
         return `No Local Coverage Article found for '${query}' in ${state}.`;
       }
 
-      // 5. Format output.
       const outputResults: string[] = [];
       for (let i = 0; i < Math.min(relevantArticles.length, 10); i++) {
         const article = relevantArticles[i];

@@ -55,43 +55,11 @@ class LocalLcdSearchTool extends StructuredTool<
     "If multiple LCDs are found, it lists up to 10.";
   schema = LocalLcdSearchInputSchema;
 
-  // CMS API URLs for state metadata and local LCDs
-  // private CMS_STATE_METADATA_API_URL =
-  //   "https://api.coverage.cms.gov/v1/metadata/states/";
   private CMS_LOCAL_LCDS_API_URL =
     "https://api.coverage.cms.gov/v1/reports/local-coverage-final-lcds/";
 
-  // Static cache for state IDs to avoid repeated API calls for state metadata
   private static stateIdCache: Map<string, number> | null = null;
 
-  /**
-   * Fetches and caches the mapping of state names to state IDs.
-   * @returns A Map from lowercase state name to two-letter state ID.
-   */
-  // private async getStatesMetadata(): Promise<Map<string, number>> {
-  //   if (LocalLcdSearchTool.stateIdCache) {
-  //     return LocalLcdSearchTool.stateIdCache;
-  //   }
-  //   const response = await fetch(this.CMS_STATE_METADATA_API_URL);
-  //   if (!response.ok) {
-  //     throw new Error(
-  //       `Failed to fetch state metadata: ${response.status} ${response.statusText}`,
-  //     );
-  //   }
-  //   const states: StateMetaData = await response.json();
-  //   const stateMap = new Map<string, number>();
-  //   states.data.forEach((state) => {
-  //     stateMap.set(state.description.toLowerCase(), state.state_id);
-  //   });
-  //   LocalLcdSearchTool.stateIdCache = stateMap;
-  //   return stateMap;
-  // }
-
-  /**
-   * The core logic of the tool that gets executed when the LLM calls it.
-   * @param input The validated input from the LLM, matching LocalLcdSearchInputSchema.
-   * @returns A string summarizing the found LCDs or an error message.
-   */
   protected async _call(
     input: z.infer<typeof LocalLcdSearchInputSchema>,
   ): Promise<string> {

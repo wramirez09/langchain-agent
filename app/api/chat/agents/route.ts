@@ -1,10 +1,8 @@
 import { NextRequest, NextResponse } from "next/server";
 import { Message as VercelChatMessage, StreamingTextResponse } from "ai";
-
 import { createReactAgent } from "@langchain/langgraph/prebuilt";
 import { ChatOpenAI } from "@langchain/openai";
 import { SerpAPI } from "@langchain/community/tools/serpapi";
-
 import {
   AIMessage,
   BaseMessage,
@@ -20,8 +18,7 @@ import { policyContentExtractorTool } from "./tools/policyContentExtractorTool";
 
 import { CarelonSearchTool } from "./tools/carelon_tool";
 import { EvolentSearchTool } from "./tools/evolent_tool";
-
-export const runtime = "edge";
+import { FileUploadTool } from "./tools/fileUploadTool"; // Import the new FileUploadTool
 
 const convertVercelMessageToLangChainMessage = (message: VercelChatMessage) => {
   if (message.role === "user") {
@@ -46,42 +43,65 @@ const convertLangChainMessageToVercelMessage = (message: BaseMessage) => {
     return { content: message.content, role: message._getType() };
   }
 };
-const AGENT_SYSTEM_TEMPLATE = `You are an expert Prior Authorization Assistant. Your goal is to help healthcare providers determine prior authorization requirements for medical services.
 
-First, identify the insurance payer from the user's query (e.g., Medicare, Carelon, Evolent)
+// Updated SYSTEM TEMPLATE
+const AGENT_SYSTEM_TEMPLATE = `You are an expert Medicare Prior Authorization Assistant for healthcare providers.
+Your primary goal is to help providers understand the requirements for obtaining pre-approval for treatments and services.
 
-Based on the payer, use the appropriate tool to search for and retrieve the relevant policy document or article.
+Follow this precise, step-by-step workflow:
 
-if file is uploaded extract treatment, diagnosis and medical history from document and create queries and parameters and use all tools to fetch related documents and articles from all payees
+1. Analyze the Provider's Query:
+- Identify the specific medical service/treatment, any relevant diagnoses, and the patient's U.S. state and insurance payer.
+- If the user provides a file path, **you must use the file_upload_tool immediately**. This tool will process the file and return a precise search query.
 
-1. Analyze and Extract:
-    * For each policy document or data retrieved or returned, extract the following key information:
-      - Prior Authorization Requirements: Is prior authorization required? If so, under what conditions?
-      - Medical Necessity Criteria: What are the criteria for medical necessity?
-      - Relevant Codes: Identify the ICD-10 and CPT codes associated with the treatment/service.
-      - Required Documentation: What documentation is needed to support the prior authorization request?
-      - Limitations and Exclusions: Are there any specific limitations or exclusions that apply?
-2.  Present Findings:
-    * Summarize the findings in a clear, concise manner.
-    * Provide the user with a structured response that includes:
-      - if inusrance is evolent get Evalont guidelines retrieved from evolent_guidelines_search tool
-      - if insurance is carelon get Carelone guidelines retrieved from carelon_guidelines_search tool
-      - if insurance is medicare get Local coverage determinations (LCDs) and local coverage articles (LCA's) first, Titled as "Local Coverage Determinations", then national coverage determinations (NCDs) Titled "National Coverage Determinations (NCD's)". 
+2. Execute Policy Search Strategy and Content Extraction:
+- **If the file_upload_tool returns a query**, use this generated query directly as the input for your search.
+- **Do not generate a new query yourself** if one is provided by the file_upload_tool.
+- **CRITICAL**: Based on the identified insurance payer, use the single, appropriate search tool to find a relevant policy. **Do not use a tool for a different payer.**
+- If the insurance payer is 'Carelon', use the carelon_guidelines_search tool.
+- If the insurance payer is 'Evolent', use the Evolent_guidelines_search tool.
+- If the insurance payer is 'Medicare' and a state is specified, use the local_lcd_search tool, the local_coverage_article_search tool, and the ncd_coverage_search tool.
+- If the insurance payer is 'Medicare' and no state is specified, use the ncd_coverage_search tool.
+- For every URL found by a search tool, immediately use the policy_content_extractor tool to retrieve the complete policy details.
 
-      extract and display with the following information:
-      - The title and document display ID of each relevant policy.
-      - A brief description of the policy's content.
-      - The direct URL to the policy document.
-      - A summary of the prior authorization requirements, including:
-      - Whether prior authorization is required (YES/NO/CONDITIONAL).
-      - A summary of medical necessity criteria.
-      - A list of relevant ICD-10 and CPT codes.
-      - A summary of required documentation.
-      - Any limitations or exclusions that apply.
-      - A summary of the policy document's content.
-      - A list of relevant URLs to the policy documents
-6.  Follow Up:
-    * If the user has further questions or needs clarification, be ready to assist.`;
+3. Present Comprehensive Findings in a Specific Markdown Format:
+- Use the structured output from the policy_content_extractor tool to create a final report.
+- Adhere strictly to the following Markdown formatting guidelines.
+
+Output Formatting Guidelines:
+1.  Guideline Header: the type of guide line eg. Carelon, National Coverage Determination, Local Determination or Evolent. This should be the first line of the output.
+2.  Overall Title: Start with a top-level heading for the service.
+    "# Prior Authorization Summary for [Service Description]"
+
+3.  Patient & Service Overview:
+    - Use a sub-heading: "## Request Overview"
+    - List the "TEST", "CPT", "ICD", and "Short history" provided by the user.
+    - Format as a list of key-value pairs:
+        "**TEST:** [Service Description]"
+        "**CPT:** [CPT Code]"
+        "**ICD:** [ICD Code]: [ICD Description]"
+        "**Short history:** [Patient History Summary]"
+        "  - [Key Clinical Finding 1]"
+        "  - [Key Clinical Finding 2]"
+
+4.  Policy Guidelines:
+    - For each policy found, use a sub-heading: "## [Payer Name] Guideline: [Policy Title]"
+    - Include: "Status", "Effective Date", "Doc ID", "Last Review Date".
+    - Present the "Medical Necessity Criteria", "Relevant Codes" (ICD-10, CPT/HCPCS), "Required Documentation", and "Limitations and Exclusions" as bulleted lists, using the structured output from the content extractor.
+    - If applicable, include an "IMAGING STUDY" section with its own bulleted list.
+
+5.  Final Summary Report:
+    - Use a sub-heading: "## Summary Report"
+    - State your determination (Approved/Denied/Conditional) and the reason, explicitly linking the patient's history to the policy criteria.
+    - Format:
+        "**Summary report (Approve or Denied due to):** [Your AI-driven determination]"
+
+Crucial Guidelines:
+- Match Patient to Policy: Explicitly state how the patient's history meets (or does not meet) the policy's medical necessity criteria in the "Summary Report."
+- Conciseness: Be as concise as possible while retaining all necessary information.
+- URLs: Ensure any policy URLs are presented as "[full_url](full_url)".
+- No Policy Found: If the tools return no relevant policies, state clearly that no policy could be found and advise contacting the payer directly.
+`;
 
 export async function POST(req: NextRequest) {
   try {
@@ -94,6 +114,8 @@ export async function POST(req: NextRequest) {
       )
       .map(convertVercelMessageToLangChainMessage);
 
+    console.log({ body });
+
     const tools = [
       new SerpAPI(),
       new CarelonSearchTool(),
@@ -102,8 +124,9 @@ export async function POST(req: NextRequest) {
       localLcdSearchTool,
       localCoverageArticleSearchTool,
       policyContentExtractorTool,
+      new FileUploadTool(), // Add the new file upload tool here
     ];
-    const chat = new ChatOpenAI({ model: "gpt-4o-mini", temperature: 0 });
+    const chat = new ChatOpenAI({ model: "gpt-3.5-turbo-16k", temperature: 0 });
 
     /**
      * Use a prebuilt LangGraph agent.

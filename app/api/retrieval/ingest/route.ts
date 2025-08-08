@@ -92,8 +92,6 @@ export async function POST(req: any) {
       - Key medical history points that might impact coverage.
 
       Combine these points into a single, natural-language question. Do not include any filler text, just the query.
-      Example Output: "What are the prior authorization requirements for insulin pump therapy for a patient with Type 1 diabetes (ICD-10: E10.9)?"
-
       Document Content to Analyze:
       ${combinedContent}
     `;

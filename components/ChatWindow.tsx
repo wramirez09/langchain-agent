@@ -292,16 +292,28 @@ export function ChatWindow(props: {
       }
       const ingestData = await ingestResponse.json();
 
-      // HIGHLIGHT START: New logic to handle the generatedQuery from the API
       if (!ingestData || !ingestData.generatedQuery) {
         throw new Error("Generated query from document is empty or invalid.");
       }
 
       toast.success("Document uploaded and query generated successfully!");
 
-      // Use the generatedQuery from the API response directly
-      await chat.append({ role: "user", content: ingestData.generatedQuery });
-      // HIGHLIGHT END
+      // --- HIGHLIGHT START ---
+      // Get the current form inputs to combine with the generated query
+      const formInputString = Array.from(formContent.entries())
+        .map(([key, value]) => `${key}: ${value}`)
+        .filter(Boolean)
+        .join(" ");
+
+      let combinedInput = `Generated query from document: "${ingestData.generatedQuery}"`;
+
+      if (formInputString) {
+        combinedInput += `\nAdditional user input from form: "${formInputString}"`;
+      }
+
+      // Append the new combined message to the chat
+      await chat.append({ role: "user", content: combinedInput });
+      // --- HIGHLIGHT END ---
     } catch (e: any) {
       toast.error("Document upload failed", { description: e.message });
     } finally {
