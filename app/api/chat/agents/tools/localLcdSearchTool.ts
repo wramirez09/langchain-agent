@@ -1,8 +1,6 @@
 // localLcdSearchTool.ts
 import { z } from "zod";
 import { StructuredTool } from "@langchain/core/tools";
-import { stat } from "fs";
-import { de } from "zod/v4/locales";
 
 // Input schema for the LCD search tool
 const LocalLcdSearchInputSchema = z.object({
@@ -19,12 +17,6 @@ const LocalLcdSearchInputSchema = z.object({
 });
 
 // Interface for state metadata from the CMS API
-interface StateMetaData {
-  data: Array<{
-    description: string;
-    state_id: number;
-  }>;
-}
 
 // Interface for the expected structure of an LCD document from the API
 interface LocalCoverageDetermination {
@@ -51,7 +43,7 @@ class LocalLcdSearchTool extends StructuredTool<
   description =
     "Searches Local Coverage Determinations (LCDs) for a given disease or treatment query within a specific state. " +
     "LCDs define coverage criteria specific to a Medicare Administrative Contractor (MAC) region and often include detailed medical necessity guidelines. " +
-    "Returns the LCD title, display ID, MAC, and the direct URL for relevant LCDs. " +
+    "Returns the LCD title, display ID, MAC, CPT codes ICD codes and the direct URL for relevant LCDs. " +
     "If multiple LCDs are found, it lists up to 10.";
   schema = LocalLcdSearchInputSchema;
 

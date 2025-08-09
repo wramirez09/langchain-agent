@@ -7,7 +7,7 @@ import { PDFLoader } from "@langchain/community/document_loaders/fs/pdf";
 import { HumanMessage } from "@langchain/core/messages";
 
 const queryGenerationAgent = new ChatOpenAI({
-  model: "gpt-4o-mini", // A cost-effective model is good for this task
+  model: "gpt-4o", // A cost-effective model is good for this task
   temperature: 0,
 });
 

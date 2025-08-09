@@ -74,9 +74,9 @@ const FormInputs: React.FC<Props> = (props: Props) => {
             name="insurance"
             placeholder="Medicare or private insurance"
             data={[
-              { value: "medicare", label: "Medicare" },
-              { value: "carelon", label: "Carelon" },
-              { value: "evolent", label: "Evolent" },
+              { value: "Medicare", label: "Medicare" },
+              { value: "Carelon", label: "Carelon" },
+              { value: "Evolent", label: "Evolent" },
             ]}
             searchable
             clearable

@@ -3,7 +3,7 @@ import { StructuredTool, ToolRunnableConfig } from "@langchain/core/tools";
 import { loadSummarizationChain } from "langchain/chains";
 import { ChatOpenAI } from "@langchain/openai";
 import { Document } from "langchain/document";
-import { cleanRegex } from "./utils";
+import { cleanRegex } from "./utils"; // Assuming this utility is external and works as intended
 
 // Define the input schema for the tool
 const EvolentSearchInputSchema = z.object({
@@ -25,16 +25,14 @@ export class EvolentSearchTool extends StructuredTool<
     input: any,
   ): Promise<any> {
     try {
-      // The schema parsing is good, we'll keep this
       const parsedInput = this.schema.parse({ query: input.query });
       return await this._call(parsedInput);
     } catch (error: any) {
       console.error("Error in EvolentSearchTool call method:", error);
-      return `Error: ${error.message}`;
+      return `Error: An issue occurred while processing your request. Details: ${error.message}`;
     }
   }
 
-  // Internal method to fetch, clean, and summarize the content
   protected async _call(
     input: z.infer<typeof EvolentSearchInputSchema>,
   ): Promise<string> {
@@ -49,21 +47,21 @@ export class EvolentSearchTool extends StructuredTool<
         headers: { "Content-Type": "application/json" },
         cache: "no-store",
       });
+
       if (!response.ok) {
         throw new Error(`HTTP error! status: ${response.status}`);
       }
-      const relevantData = await response.json();
-      const body: { "@search.score": number; id: string; content: string } =
-        relevantData.value[0];
 
-      if (!body || !body.content) {
+      const relevantData = await response.json();
+      const firstResult = relevantData?.value?.[0];
+
+      if (!firstResult || !firstResult.content) {
         return `No Evolent data found for '${input.query}'.`;
       }
 
       // Perform initial cleaning of boilerplate text.
-      // The complex regex cleaning is kept as is, but it's not the primary
-      // performance bottleneck compared to the summarization chain.
-      const cleanedContent = body.content
+      // This regex-based cleaning is kept as is.
+      const cleanedContent = firstResult.content
         .replace(
           /auer BG, Long MD\. ACG Clinical Guideline: UlcerativeColitis in Adults\.[\s\S]*?DISCLAIMER\s*\.{5}\s*\d+/g,
           "",
@@ -78,33 +76,29 @@ export class EvolentSearchTool extends StructuredTool<
         .replace(/[A-Z\s]+\.{9}[\s\S]*?[A-Z\s]+\.{9}/g, "")
         .replace(cleanRegex, "")
         .replace(/\r/g, "")
-        .replace(/\n/g, "")
-        .slice(0, 8000);
-      // *** CHANGE START ***
-      // We will now use the 'stuff' chain, which is much faster for documents
-      // that fit within the LLM's context window, as it only makes one API call.
-      // We create a single document from the cleaned content.
+        .replace(/\n/g, "");
+      // We've removed the .slice(0, 8000) as gpt-4o has a large context window
+      // that can handle the full content, which is better for summarization accuracy.
+
+      // Create a single document from the cleaned content.
       const docs = [new Document({ pageContent: cleanedContent })];
 
-      // Initialize the LLM
+      // Initialize the LLM with a valid and powerful model.
       const llm = new ChatOpenAI({
-        modelName: "gpt-3.5-turbo-16k",
+        model: "gpt-4o",
         temperature: 0,
       });
 
-      // Create a summarization chain with the 'stuff' type.
-      // This is the key change for performance.
+      // Use the 'stuff' summarization chain for efficiency.
       const chain = loadSummarizationChain(llm, { type: "stuff" });
-
-      // Run the chain to get a final summary.
       const result = await chain.invoke({
         input_documents: docs,
       });
 
       return `Evolent Coverage Guideline(s) for '${input.query}':\n\n${result.text}`;
-      // *** CHANGE END ***
     } catch (error: any) {
-      return `Error calling Evolent API or processing data: ${error.message}`;
+      // More specific error message for better debugging.
+      return `Error calling Evolent API for query '${input.query}' or processing data: ${error.message}`;
     }
   }
 }

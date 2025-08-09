@@ -305,7 +305,7 @@ export function ChatWindow(props: {
         .filter(Boolean)
         .join(" ");
 
-      let combinedInput = `Generated query from document: "${ingestData.generatedQuery}"`;
+      let combinedInput = `Generated query from uploaded document: "${ingestData.generatedQuery}"`;
 
       if (formInputString) {
         combinedInput += `\nAdditional user input from form: "${formInputString}"`;

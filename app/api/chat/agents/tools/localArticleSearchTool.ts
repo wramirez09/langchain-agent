@@ -96,6 +96,8 @@ class LocalCoverageArticleSearchTool extends StructuredTool<
           .substring(queryLower.indexOf("(") + 1, queryLower.indexOf(")"))
           .trim();
 
+        console.log({ p1, p2 });
+
         if (titleLower.includes(p1) || titleLower.includes(p2)) return article;
       });
 
@@ -110,9 +112,13 @@ class LocalCoverageArticleSearchTool extends StructuredTool<
         const fullHtmlUrl = article.url;
 
         outputResults.push(
-          `  - Title: '${article.title}' (ID: ${article.document_display_id})\n` +
-            `    MAC: ${article.contractor_name_type}\n` +
-            `    Direct URL (check for ICD-10/CPT codes here): ${fullHtmlUrl}`,
+          `
+          Title: ${article.title}
+          Type: ${article.contractor_name_type}
+          Contractor: ${article.contractor_name_type}
+          Effective Date: ${article.effective_date}
+          Article URL: ${article.url}
+          `,
         );
       }
 
