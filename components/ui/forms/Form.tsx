@@ -87,7 +87,7 @@ const FormInputs: React.FC<Props> = (props: Props) => {
                 setInsrunceValue(value);
                 props.onStateFormStateChange("Insurance", value as string);
               }
-              if (value === "evolent" || value === "carelon") {
+              if (value === "Evolent" || value === "Carelon") {
                 setFormDisabledFields((prevState) => {
                   return {
                     ...prevState,
@@ -102,7 +102,7 @@ const FormInputs: React.FC<Props> = (props: Props) => {
                   };
                 });
               }
-              if (value === "medicare") {
+              if (value === "Medicare") {
                 setFormDisabledFields((prevState) => {
                   return {
                     ...prevState,

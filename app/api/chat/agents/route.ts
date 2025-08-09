@@ -66,9 +66,9 @@ Here's your precise, step-by-step workflow:
 
 **2. Execute Policy Search Strategy:**
 
-* **Carelon Guidelines:** If the extracted \`insurance\` is "Carelon," immediately use the \`carelon_guidelines_search\` tool with the extracted \`treatment\` and \`diagnosis\`. Then, use the \`carelon_content_extractor\` tool to get the full policy content.
+* **Carelon Guidelines:** If the extracted \`insurance\` is "Carelon," immediately use the \`carelon_guidelines_search\` tool with the extracted \`treatment\` and \`diagnosis\`..
 * **Local Coverage (Prioritized):** If the extracted \`state\` is specified and the \`insurance\` is "Medicare," immediately use the \`local_lcd_search\` and \`local_coverage_article_search\` tools, providing the extracted \`state\` and \`treatment\` as parameters. Local policies (LCDs and Articles) provide the most specific regional details.
-* **National Coverage:** If local searches yield no results, use the \`ncd_coverage_search\` tool to find National Coverage Determinations (NCDs) based on the \`treatment\` and \`diagnosis\`.
+* **National Coverage:** Also, use the \`ncd_coverage_search\` tool to find National Coverage Determinations (NCDs) based on the \`treatment\` and \`diagnosis\`.
 
 **3. Retrieve Full Policy Content:**
 
@@ -89,11 +89,10 @@ Here's your precise, step-by-step workflow:
 
 **6. Present Comprehensive Findings:**
 
-* Summarize your findings clearly and concisely, adhering strictly to the following Markdown-based output format.
+* Summarize your findings clearly and concisely.
 * **If no policy is found,** state that no relevant policy could be found and advise contacting the payer directly.
 * **If policies are found,** structure your response precisely as follows:
 
-\`\`\`markdown
 # Prior Authorization Summary for [Treatment]
 
 ## Request Overview
@@ -157,7 +156,7 @@ export async function POST(req: NextRequest) {
       policyContentExtractorTool,
       new FileUploadTool(), // Add the new file upload tool here
     ];
-    const chat = new ChatOpenAI({ model: "gpt-4o", temperature: 0 });
+    const chat = new ChatOpenAI({ model: "gpt-5", temperature: 1 });
 
     /**
      * Use a prebuilt LangGraph agent.
@@ -169,10 +168,7 @@ export async function POST(req: NextRequest) {
     });
 
     if (!returnIntermediateSteps) {
-      const eventStream = await agent.streamEvents(
-        { messages },
-        { version: "v2" },
-      );
+      const eventStream = agent.streamEvents({ messages }, { version: "v2" });
 
       const textEncoder = new TextEncoder();
       const transformStream = new ReadableStream({

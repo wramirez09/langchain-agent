@@ -67,7 +67,7 @@ export class NCDCoverageSearchTool extends StructuredTool<
 
       const relevantNCDs = allNCDs.data.filter((ncd: any) => {
         const titleLower = (ncd.title || "").toLowerCase().trim();
-        console.log("ncd title", { queryLower });
+
         const documentDisplayIdLower = (
           ncd.document_display_id || ""
         ).toLowerCase();

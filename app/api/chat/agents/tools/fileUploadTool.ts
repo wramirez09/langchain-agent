@@ -42,7 +42,7 @@ async function getSummaryFromDocs(
   });
 
   const payload = { contents: chatHistory };
-  const apiKey = "";
+  const apiKey = process.env.GOOGLE_LM_API;
   const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-preview-05-20:generateContent?key=${apiKey}`;
 
   try {

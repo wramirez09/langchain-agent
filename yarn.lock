@@ -6122,6 +6122,13 @@ __metadata:
   languageName: node
   linkType: hard
 
+"gpt-tokenizer@npm:^3.0.1":
+  version: 3.0.1
+  resolution: "gpt-tokenizer@npm:3.0.1"
+  checksum: 1f20605cd45c82f0ad820cf801658730986361efdffd816e02c060903a32a627b1bb087c0ef05464ff84e996e5448aea63220516f72a509c0d9582dba16e8738
+  languageName: node
+  linkType: hard
+
 "graceful-fs@npm:^4.2.6":
   version: 4.2.11
   resolution: "graceful-fs@npm:4.2.11"
@@ -6962,6 +6969,7 @@ __metadata:
     form-data: ^4.0.4
     formidable: ^3.5.4
     fs: ^0.0.1-security
+    gpt-tokenizer: ^3.0.1
     install: ^0.13.0
     langchain: ^0.3.27
     lodash: ^4.17.21

@@ -77,15 +77,12 @@ export class EvolentSearchTool extends StructuredTool<
         .replace(cleanRegex, "")
         .replace(/\r/g, "")
         .replace(/\n/g, "");
-      // We've removed the .slice(0, 8000) as gpt-4o has a large context window
-      // that can handle the full content, which is better for summarization accuracy.
 
-      // Create a single document from the cleaned content.
       const docs = [new Document({ pageContent: cleanedContent })];
 
       // Initialize the LLM with a valid and powerful model.
       const llm = new ChatOpenAI({
-        model: "gpt-4o",
+        model: "gpt-5",
         temperature: 0,
       });
 

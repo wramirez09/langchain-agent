@@ -65,6 +65,7 @@
     "form-data": "^4.0.4",
     "formidable": "^3.5.4",
     "fs": "^0.0.1-security",
+    "gpt-tokenizer": "^3.0.1",
     "install": "^0.13.0",
     "langchain": "^0.3.27",
     "lodash": "^4.17.21",
