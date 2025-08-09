@@ -96,8 +96,6 @@ class LocalCoverageArticleSearchTool extends StructuredTool<
           .substring(queryLower.indexOf("(") + 1, queryLower.indexOf(")"))
           .trim();
 
-        console.log({ p1, p2 });
-
         if (titleLower.includes(p1) || titleLower.includes(p2)) return article;
       });
 

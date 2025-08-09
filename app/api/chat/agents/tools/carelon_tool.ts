@@ -5,8 +5,11 @@ import { cleanRegex } from "./utils";
 
 // Define the input schema for the tool using Zod
 const NCDSearchInputSchema = z.object({
-  treatment: z.string(),
-  diagnosis: z.string(),
+  query: z
+    .string()
+    .describe(
+      "The disease or treatment query to search for in Carelon guidelines.",
+    ),
 });
 
 // Implement the tool class
@@ -38,7 +41,7 @@ export class CarelonSearchTool extends StructuredTool<
   ): Promise<string> {
     const carlonApiQuery = encodeURI(
       "https://ai-aug-carelon-hxdxaeczd9b4fdfc.canadacentral-01.azurewebsites.net/api/search?" +
-        `q=${input.treatment + " " + input.diagnosis}`,
+        `q=${input.query}`,
     );
 
     try {
@@ -63,10 +66,10 @@ export class CarelonSearchTool extends StructuredTool<
       });
 
       if (!relevantData) {
-        return `No Carelon data found for '${input.treatment}'.`;
+        return `No Carelon data found for '${input.query}'.`;
       }
 
-      return `Found Carelon Coverage Guideline(s) for '${input.treatment}'. ${outputResults[0]}`;
+      return `Found Carelon Coverage Guideline(s) for '${input.query}'. ${outputResults[0]}`;
     } catch (error: any) {
       return `Error calling Carelon API or processing data: ${error.message}`;
     }
