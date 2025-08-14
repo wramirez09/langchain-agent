@@ -10,6 +10,7 @@ const NCDSearchInputSchema = z.object({
     ),
 });
 
+const cache = new Map();
 // Implement the tool class
 export class NCDCoverageSearchTool extends StructuredTool<
   typeof NCDSearchInputSchema
@@ -44,6 +45,11 @@ export class NCDCoverageSearchTool extends StructuredTool<
     const CMS_NCD_API_URL =
       "https://api.coverage.cms.gov/v1/reports/national-coverage-ncd/";
     const CMS_NCD_BASE_HTML_URL = "https://api.coverage.cms.gov/v1/data/";
+
+    if (cache.has(input)) {
+      console.log("NCDCoverageSearchTool: Cache hit!");
+      console.log({ ...cache });
+    }
 
     try {
       console.log("getting NCDs");
@@ -102,6 +108,8 @@ export class NCDCoverageSearchTool extends StructuredTool<
             `    Direct URL for details: ${fullHtmlUrl}`,
         );
       }
+
+      cache.set(input, outputResults);
 
       return (
         `Found ${relevantNCDs.length} National Coverage Determination(s) for '${input.query}'. ` +
