@@ -124,7 +124,7 @@ export class FileUploadTool extends StructuredTool<
       formData.append("query", query); // Add the query to the form data
 
       // 4. Send the POST request to the Next.js API endpoint.
-      const apiUrl = "http://localhost:3000/api/retrieval/ingest";
+      const apiUrl = "/api/retrieval/ingest";
       const response = await fetch(apiUrl, {
         method: "POST",
         body: formData.getBuffer(),
