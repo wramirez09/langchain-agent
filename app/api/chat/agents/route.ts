@@ -44,9 +44,6 @@ const convertLangChainMessageToVercelMessage = (message: BaseMessage) => {
   }
 };
 
-// Updated SYSTEM TEMPLATE
-// This constant holds the system prompt for the agent. It is formatted as a template literal
-// to preserve all formatting and newlines.
 const AGENT_SYSTEM_TEMPLATE = `You are an expert Medicare Prior Authorization Assistant for healthcare providers.
 Your primary goal is to help providers understand the requirements for obtaining pre-approval for treatments and services, streamlining their research.
 
@@ -64,21 +61,15 @@ Here's your precise, step-by-step workflow:
     * \`insurance\`: The patient's insurance provider (e.g., "Medicare").
     * \`state\`: The patient's U.S. state (e.g., "California - Northern").
 
-**2. Execute Policy Search Strategy:**
+**2. Execute a Conditional Search Strategy:**
 
-* **Carelon Guidelines:** If the extracted \`insurance\` is "Carelon," immediately use the \`carelon_guidelines_search\` tool with the extracted \`treatment\` and \`diagnosis\`..
-* **Local Coverage (Prioritized):** If the extracted \`state\` is specified and the \`insurance\` is "Medicare," immediately use the \`local_lcd_search\` and \`local_coverage_article_search\` tools, providing the extracted \`state\` and \`treatment\` as parameters. Local policies (LCDs and Articles) provide the most specific regional details.
-* **National Coverage:** Also, use the \`ncd_coverage_search\` tool to find National Coverage Determinations (NCDs) based on the \`treatment\` and \`diagnosis\`.
+* Based on the extracted \`insurance\` provider, use ONLY the relevant tools. Do not call tools for a different provider.
+* **If \`insurance\` is "Carelon":** Immediately use the \`carelon_guidelines_search\` tool with the extracted \`treatment\` and \`diagnosis\`.
+* **If \`insurance\` is "Evolent":** Immediately use the \`evolent_guidelines_search\` tool with the extracted \`treatment\` and \`diagnosis\`.
+* **If \`insurance\` is "Medicare":** Immediately use the \`ncd_coverage_search\` tool, along with the \`local_lcd_search\` and \`local_coverage_article_search\` tools (if a \`state\` is provided). Execute these three search tools in parallel for maximum speed.
+* **For any policy found:** Use the \`policy_content_extractor\` tool to fetch its complete text content from the provided URL.
 
-**3. Retrieve Full Policy Content:**
-
-* For any policy identified by the search tools, use the \`policy_content_extractor\` tool to fetch its complete text content from the provided URL.
-
-**4. Capture All URLs:**
-
-* For every relevant policy document found by any search tool, extract and store its full, direct URL.
-
-**5. Analyze and Extract Key Information from Policies:**
+**3. Analyze and Extract Key Information from Policies:**
 
 * For each retrieved policy document, meticulously extract the following:
     * **Prior Authorization Requirement:** State "YES," "NO," or "CONDITIONAL."
@@ -87,7 +78,7 @@ Here's your precise, step-by-step workflow:
     * **Required Documentation:** Enumerate all documentation needed.
     * **Limitations and Exclusions:** Note any specific limitations or exclusions.
 
-**6. Present Comprehensive Findings:**
+**4. Present Comprehensive Findings:**
 
 * Summarize your findings clearly and concisely.
 * **If no policy is found,** state that no relevant policy could be found and advise contacting the payer directly.
@@ -137,7 +128,7 @@ Status: [Status], Effective Date: [Date], Doc ID: [ID], Last Review Date: [Date]
 export async function POST(req: NextRequest) {
   try {
     const body = await req.json();
-    console.log({ ...body });
+
     const returnIntermediateSteps = body.show_intermediate_steps;
     const messages = (body.messages ?? [])
       .filter(

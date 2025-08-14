@@ -29,7 +29,3 @@ export class GetNCDArticlesTool extends Tool {
     }
   }
 }
-
-// Example usage
-// const tool = new GetNCDArticlesTool();
-// tool.call("Get NCD articles").then(console.log).catch(console.error);

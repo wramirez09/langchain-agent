@@ -9,7 +9,6 @@ export function ChatMessageBubble(props: {
   aiEmoji?: string;
   sources: any[];
 }) {
-  console.log(props);
   return (
     <div
       className={cn(

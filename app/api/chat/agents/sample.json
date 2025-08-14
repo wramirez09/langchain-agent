@@ -370,7 +370,7 @@ Agent result: {
 ]
 },
  response_metadata: {
- model_name: 'gpt-4o-mini-2024-07-18',
+ model_name: 'gpt-5-mini-2024-07-18',
  usage: {
  prompt_tokens: 2379,
  completion_tokens: 21,
@@ -422,7 +422,7 @@ Agent result: {
  response_metadata: {
  tokenUsage: { promptTokens: 2379, completionTokens: 21, totalTokens: 2400 },
  finish_reason: 'tool_calls',
- model_name: 'gpt-4o-mini-2024-07-18',
+ model_name: 'gpt-5-mini-2024-07-18',
  usage: {
  prompt_tokens: 2379,
  completion_tokens: 21,
@@ -484,7 +484,7 @@ Agent result: {
  name: undefined,
  additional_kwargs: { function_call: undefined, tool_calls: undefined },
  response_metadata: {
- model_name: 'gpt-4o-mini-2024-07-18',
+ model_name: 'gpt-5-mini-2024-07-18',
  usage: {
  prompt_tokens: 2428,
  completion_tokens: 212,
@@ -517,7 +517,7 @@ Agent result: {
  response_metadata: {
  tokenUsage: { promptTokens: 2428, completionTokens: 212, totalTokens: 2640 },
  finish_reason: 'stop',
- model_name: 'gpt-4o-mini-2024-07-18',
+ model_name: 'gpt-5-mini-2024-07-18',
  usage: {
  prompt_tokens: 2428,
  completion_tokens: 212,

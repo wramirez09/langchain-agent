@@ -148,8 +148,6 @@ class PolicyContentExtractorTool extends StructuredTool<
   ): Promise<string> {
     const { policyUrl } = input;
 
-    console.log({ medicarePolicyURL: policyUrl });
-
     try {
       const response = await fetch(policyUrl);
       if (!response.ok) {
