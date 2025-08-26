@@ -1,4 +1,4 @@
-import { Button, Group, SimpleGrid, Text, Image } from "@mantine/core";
+// import { Button, Group, SimpleGrid, Text, Image } from "@mantine/core";
 import { IconUpload, IconPhoto, IconX } from "@tabler/icons-react";
 import {
   Dropzone,
@@ -54,7 +54,7 @@ export function FileUploadForm({
 
   return (
     <>
-      <Dropzone
+      {/* <Dropzone
         onDrop={(file) => {
           setFiles(file);
           onUpload(file[0]);
@@ -102,7 +102,7 @@ export function FileUploadForm({
           <Button onClick={() => openRef.current?.()}>Select files</Button>
         </Group>
         <div>{previews()}</div>
-      </Dropzone>
+      </Dropzone> */}
     </>
   );
 }

@@ -3,28 +3,28 @@ import { Public_Sans } from "next/font/google";
 import { Toaster } from "@/components/ui/sonner";
 import { NuqsAdapter } from "nuqs/adapters/next/app";
 import "./globals.css";
-import {
-  ColorSchemeScript,
-  MantineProvider,
-  mantineHtmlProps,
-} from "@mantine/core";
-import "@mantine/core/styles.css";
 import Image from "next/image";
 import logo from "@/public/images/logo-main.svg";
 
 import { NavbarMinimal } from "@/components/ui/navBar/NavbarMinimal";
+import FlyoutForm from "@/components/ui/FlyoutForm";
+import { Button } from "@/components/ui/button";
+import * as React from "react";
 
 const publicSans = Public_Sans({ subsets: ["latin"] });
 
-const Logo = () => <Image src={logo} alt="Agent Logo" className="h-8 w-auto" />;
+export const Logo = () => (
+  <Image src={logo} alt="NoteDoctor.Ai Logo" className="h-8 w-auto" />
+);
 
 export default function RootLayout({
   children,
 }: {
   children: React.ReactNode;
 }) {
+  const [openSheet, setOpenSheet] = React.useState(false);
   return (
-    <html lang="en" {...mantineHtmlProps}>
+    <html lang="en">
       <head>
         <title>
           MediAuth Pro | AI-Powered Prior Authorization & Policy Lookup for
@@ -55,28 +55,26 @@ export default function RootLayout({
           content="Streamline healthcare prior authorizations with MediAuth Pro. Our AI-powered platform provides instant Medicare NCD/LCD insights and Cigna policy guidance, simplifying approvals and reducing administrative burden for providers."
         />
         <meta name="twitter:image" content="/images/og-image.png" />
-        <ColorSchemeScript />
       </head>
       <body
         className={`${publicSans.className} overscroll-y-none`}
         style={{ overflow: "hidden" }}
       >
-        <MantineProvider>
-          <NuqsAdapter>
-            <div className="bg-secondary grid grid-rows-[auto,1fr] h-[100dvh] overscroll-y-none">
-              <div className="grid grid-cols-[1fr,auto] gap-2 p-4">
-                <div className="flex gap-4 flex-col md:flex-row md:items-center ml-2">
-                  <a
-                    href=""
-                    rel="noopener noreferrer"
-                    target="_blank"
-                    className="flex items-center gap-2"
-                  >
-                    <Logo />
-                    NoteDoctorAi
-                  </a>
-                  <nav className="flex gap-1 flex-col md:flex-row">
-                    {/* <ActiveLink href="/">🏴‍☠️ Chat</ActiveLink>
+        <NuqsAdapter>
+          <div className="bg-black grid grid-rows-[auto,1fr] overscroll-y-none h-[100vh]">
+            <div className="grid grid-cols-[1fr,auto] gap-2 p-4">
+              <div className="flex gap-4 flex-col md:flex-row md:items-center ml-2">
+                <a
+                  href=""
+                  rel="noopener noreferrer"
+                  target="_blank"
+                  className="flex items-center gap-2"
+                >
+                  <Logo />
+                  NoteDoctorAi
+                </a>
+                <nav className="flex gap-1 flex-col md:flex-row">
+                  {/* <ActiveLink href="/">🏴‍☠️ Chat</ActiveLink>
                     <ActiveLink href="/structured_output">
                       🧱 Structured Output
                     </ActiveLink>
@@ -89,24 +87,23 @@ export default function RootLayout({
                       🌊 React Server Components
                     </ActiveLink>
                     <ActiveLink href="/langgraph">🕸️ LangGraph</ActiveLink> */}
-                  </nav>
-                </div>
-
-                <div className="flex justify-center"></div>
+                </nav>
               </div>
-              <div
-                className="bg-background mx-4 relative grid rounded-2xl border border-slate-50 h-[90vh] shadow-lg"
-                style={{ overflowY: "hidden" }}
-              >
-                <NavbarMinimal />
-                <div className="absolute inset-0 overflow-hidden mb-0 md:mb-6 h-100vh flex flex-col justify-end md:justify-center align-items-center">
-                  {children}
-                </div>
+
+              <div className="flex justify-center"></div>
+            </div>
+            <div
+              className="bg-stone-950 mx-4 relative grid rounded-1xl  h-[90vh] shadow-lg"
+              style={{ overflowY: "hidden" }}
+            >
+              <NavbarMinimal />
+              <div className="absolute inset-0 overflow-hidden flex flex-col justify-end md:justify-center align-items-center">
+                {children}
               </div>
             </div>
-            <Toaster />
-          </NuqsAdapter>
-        </MantineProvider>
+          </div>
+          <Toaster />
+        </NuqsAdapter>
       </body>
     </html>
   );

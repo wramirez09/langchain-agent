@@ -9,7 +9,7 @@ import { toast } from "sonner";
 import { ChatMessageBubble } from "@/components/ChatMessageBubble";
 import { IntermediateStep } from "./IntermediateStep";
 import { Button } from "./ui/button";
-import { LoaderCircle } from "lucide-react";
+import { ArrowDown, LoaderCircle, Paperclip } from "lucide-react";
 import { Checkbox } from "./ui/checkbox";
 
 import { cn } from "@/utils/cn";
@@ -17,12 +17,24 @@ import FormInputs from "@/components/ui/forms/Form";
 import { LeadGrid } from "./layouts/LeadGrid";
 import React from "react";
 import { FileUploadForm } from "./ui/FileUpload";
+import { StickToBottom, useStickToBottomContext } from "use-stick-to-bottom";
+import { UploadDocumentsForm } from "./UploadDocumentsForm";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from "./ui/dialog";
+import { IconFileSearch, IconSend2 } from "@tabler/icons-react";
+import FlyoutForm from "./ui/FlyoutForm";
 
 function ChatMessages(props: {
   messages: Message[];
   emptyStateComponent: ReactNode;
   sourcesForMessages: Record<string, any>;
-  aiEmoji?: string;
+  aiEmoji?: any;
   className?: string;
 }) {
   return (
@@ -46,10 +58,49 @@ function ChatMessages(props: {
   );
 }
 
+function ScrollToBottom(props: { className?: string }) {
+  const { isAtBottom, scrollToBottom } = useStickToBottomContext();
+
+  if (isAtBottom) return null;
+  return (
+    <Button
+      variant="outline"
+      className={props.className}
+      onClick={() => scrollToBottom()}
+    >
+      <ArrowDown className="w-4 h-4" />
+      <span>Scroll to bottom</span>
+    </Button>
+  );
+}
+
+function StickyToBottomContent(props: {
+  content: ReactNode;
+  footer?: ReactNode;
+  className?: string;
+  contentClassName?: string;
+}) {
+  const context = useStickToBottomContext();
+
+  // scrollRef will also switch between overflow: unset to overflow: auto
+  return (
+    <div
+      ref={context.scrollRef}
+      className={cn("grid grid-rows-[1fr,auto]", props.className)}
+    >
+      <div ref={context.contentRef} className={props.contentClassName}>
+        {props.content}
+      </div>
+
+      {props.footer}
+    </div>
+  );
+}
+
 export function ChatInput(props: {
   onSubmit: (e: FormEvent<HTMLFormElement>) => void;
   onStop?: () => void;
-  value: string;
+  value: any;
   onChange: (e: React.ChangeEvent<HTMLInputElement>) => void;
   loading?: boolean;
   placeholder?: string;
@@ -57,68 +108,93 @@ export function ChatInput(props: {
   className?: string;
   actions?: ReactNode;
   onStateFormStateChange?: (key: string, value: string) => void;
-  onUpload: (file: File) => Promise<void>;
+  onUpload?: (file: File) => Promise<void>;
 }) {
   const disabled = props.loading && props.onStop == null;
+  const [sheetOpen, setSheetOpen] = React.useState(false);
   return (
-    <form
-      onSubmit={(e) => {
-        e.stopPropagation();
-        e.preventDefault();
+    <>
+      <form
+        onSubmit={(e) => {
+          e.stopPropagation();
+          e.preventDefault();
 
-        if (props.loading) {
-          props.onStop?.();
-        } else {
-          props.onSubmit(e);
-        }
-      }}
-      className={cn("flex w-full flex-col", props.className)}
-    >
-      <div className="border border-slate-50 bg-primary rounded-lg flex flex-col gap-2 max-w-[768px] w-full mx-auto shadow-lg">
-        <>
-          <FormInputs
-            onStateFormStateChange={props.onStateFormStateChange!}
-            chatOnChange={props.onChange}
+          if (props.loading) {
+            props.onStop?.();
+          } else {
+            props.onSubmit(e);
+          }
+        }}
+        className={cn("flex w-full flex-col", props.className)}
+      >
+        <div className="border border-slate-950 bg-black rounded-lg flex flex-col gap-2 max-w-[768px] w-full mx-auto align-middle">
+          <input
+            name="chat"
+            value={props.value}
+            placeholder={props.placeholder}
+            onChange={props.onChange}
+            className="border-none outline-none bg-transparent ml-3 pt-3
+          "
           />
-          <FileUploadForm onUpload={props.onUpload} />
-        </>
 
-        <div className="flex justify-between ml-4 mr-2 mb-2">
-          <div className="flex gap-3">{props.children}</div>
+          <div className="flex justify-between ml-4 mr-2 ">
+            <div className="flex items-center gap-2">
+              <div className="flex gap-3 justify-between">{props.children}</div>
 
-          <div className="flex gap-2 self-end m-2">
-            {props.actions}
-            <Button
-              type="submit"
-              className="self-end hover:bg-gray-950 hover:text-primary"
-              disabled={disabled}
-              variant="default"
-            >
-              {props.loading ? (
-                <span role="status" className="flex justify-center">
-                  <LoaderCircle className="animate-spin" />
-                  <span className="sr-only">Loading...</span>
-                </span>
-              ) : (
-                <span>Send</span>
-              )}
-            </Button>
-            <Button type="reset" variant={"secondary"}>
-              <span className="text-red-700">Reset</span>
-            </Button>
+              <Button
+                variant="ghost"
+                className="pl-2 pr-3 -ml-2"
+                onClick={() => setSheetOpen((open) => !open)}
+              >
+                <IconFileSearch stroke={1.25} />
+                <span>PreAuth Form</span>
+              </Button>
+            </div>
+
+            <div className="flex gap-2 self-end pb-2">
+              {props.actions}
+              <Button
+                type="submit"
+                className="self-end"
+                disabled={disabled}
+                variant={"ghost"}
+              >
+                {props.loading ? (
+                  <span role="status" className="flex justify-center">
+                    <LoaderCircle className="animate-spin" />
+                    <span className="sr-only">Loading...</span>
+                  </span>
+                ) : (
+                  <span>
+                    <IconSend2 />
+                  </span>
+                )}
+              </Button>
+            </div>
           </div>
         </div>
-      </div>
-    </form>
+      </form>
+      <FlyoutForm openSheet={sheetOpen} setOpenSheet={setSheetOpen} />
+    </>
   );
 }
 
-export function ChatLayout(props: { content: ReactNode; footer: ReactNode }) {
+export function ChatLayout(props: { content: ReactNode; form: ReactNode }) {
   return (
     <>
-      <div className="h-[80vh]">
-        <LeadGrid content={props.content} footer={props.footer} />
-      </div>
+      <StickToBottom>
+        <StickyToBottomContent
+          className="absolute inset-0"
+          contentClassName="py-8 px-2"
+          content={props.content}
+          footer={
+            <div className="sticky bottom-8 px-2">
+              <ScrollToBottom className="absolute bottom-full left-1/2 -translate-x-1/2 mb-4" />
+              {props.form}
+            </div>
+          }
+        />
+      </StickToBottom>
     </>
   );
 }
@@ -127,7 +203,7 @@ export function ChatWindow(props: {
   endpoint: string;
   emptyStateComponent?: ReactNode | JSX.Element | any;
   placeholder?: string;
-  emoji?: string;
+  emoji?: any;
   showIngestForm?: boolean;
   showIntermediateStepsToggle?: boolean;
 }) {
@@ -321,6 +397,8 @@ export function ChatWindow(props: {
     }
   }
 
+  // const [sheetOpen, setSheetOpen] = React.useState(false);
+
   return (
     <>
       <ChatLayout
@@ -336,31 +414,57 @@ export function ChatWindow(props: {
             />
           )
         }
-        footer={
-          <ChatInput
-            value={chat.input}
-            onChange={chat.handleInputChange}
-            onSubmit={sendMessage}
-            loading={chat.isLoading || intermediateStepsLoading || uploading}
-            placeholder={props.placeholder ?? ""}
-            onStateFormStateChange={handleFormStateChange}
-            onUpload={handleUploadAndChat}
-          >
-            {props.showIntermediateStepsToggle && (
-              <div className="flex items-center gap-2">
-                <Checkbox
-                  id="show_intermediate_steps"
-                  name="show_intermediate_steps"
-                  checked={showIntermediateSteps}
-                  disabled={chat.isLoading || intermediateStepsLoading}
-                  onCheckedChange={(e) => setShowIntermediateSteps(!!e)}
-                />
-                <label htmlFor="show_intermediate_steps" className="text-sm">
-                  Show intermediate steps
-                </label>
-              </div>
-            )}
-          </ChatInput>
+        form={
+          <>
+            <ChatInput
+              value={chat.input}
+              onChange={chat.handleInputChange}
+              onSubmit={sendMessage}
+              loading={chat.isLoading || intermediateStepsLoading}
+              placeholder={
+                props.placeholder ?? "What's it like to be a pirate?"
+              }
+            >
+              {props.showIngestForm && (
+                <Dialog>
+                  <DialogTrigger asChild>
+                    <Button
+                      variant="ghost"
+                      className="pl-2 pr-3 -ml-2"
+                      disabled={chat.messages.length !== 0}
+                    >
+                      <Paperclip className="size-4" />
+                      <span>Upload document</span>
+                    </Button>
+                  </DialogTrigger>
+                  <DialogContent>
+                    <DialogHeader>
+                      <DialogTitle>Upload document</DialogTitle>
+                      <DialogDescription>
+                        Upload a document to use for the chat.
+                      </DialogDescription>
+                    </DialogHeader>
+                    <UploadDocumentsForm />
+                  </DialogContent>
+                </Dialog>
+              )}
+
+              {props.showIntermediateStepsToggle && (
+                <div className="flex items-center gap-2">
+                  <Checkbox
+                    id="show_intermediate_steps"
+                    name="show_intermediate_steps"
+                    checked={showIntermediateSteps}
+                    disabled={chat.isLoading || intermediateStepsLoading}
+                    onCheckedChange={(e) => setShowIntermediateSteps(!!e)}
+                  />
+                  <label htmlFor="show_intermediate_steps" className="text-sm">
+                    Show intermediate steps
+                  </label>
+                </div>
+              )}
+            </ChatInput>
+          </>
         }
       />
     </>

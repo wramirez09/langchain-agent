@@ -10,7 +10,7 @@ import {
   IconSwitchHorizontal,
   IconUser,
 } from "@tabler/icons-react";
-import { Center, Stack, Tooltip, UnstyledButton } from "@mantine/core";
+
 // import { MantineLogo } from "@mantinex/mantine-logo";
 import classes from "./NavbarMinimal.module.css";
 import { z } from "zod";
@@ -64,19 +64,20 @@ export function NavbarMinimal() {
   ));
 
   return (
-    <nav className={`${classes.navbar} hidden md:block`}>
-      <Center>{/* <MantineLogo type="mark" size={30} /> */}</Center>
+    <></>
+    // <nav className={`${classes.navbar} hidden md:block`}>
+    //   <Center>{/* <MantineLogo type="mark" size={30} /> */}</Center>
 
-      <div className={classes.navbarMain}>
-        <Stack justify="center" gap={0}>
-          {links}
-        </Stack>
-      </div>
+    //   <div className={classes.navbarMain}>
+    //     <Stack justify="center" gap={0}>
+    //       {links}
+    //     </Stack>
+    //   </div>
 
-      <Stack justify="center" gap={0}>
-        {/* <NavbarLink icon={IconSwitchHorizontal} label="Change account" />
-        <NavbarLink icon={IconLogout} label="Logout" /> */}
-      </Stack>
-    </nav>
+    //   <Stack justify="center" gap={0}>
+    //     {/* <NavbarLink icon={IconSwitchHorizontal} label="Change account" />
+    //     <NavbarLink icon={IconLogout} label="Logout" /> */}
+    //   </Stack>
+    // </nav>
   );
 }
