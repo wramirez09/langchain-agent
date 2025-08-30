@@ -4148,5 +4148,5 @@ export const ncds = {
 };
 
 export const ncdOptions = ncds.data.map((ncd) => {
-  return { label: ncd.title, value: ncd.document_display_id };
+  return { label: ncd.title, value: ncd.title };
 });

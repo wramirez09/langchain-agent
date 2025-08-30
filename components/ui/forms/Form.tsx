@@ -1,11 +1,17 @@
 "use client";
 
-import React, { ChangeEvent, useState } from "react";
+import React, { ChangeEvent, useCallback, useState } from "react";
 import { Data, StateData } from "../../../app/agents/metaData/states";
 import { ncdOptions } from "@/data/ncdOptions";
 
 import classes from "./FloatinLabelInput.module.css";
 import { FileUploadForm } from "../FileUpload";
+import AutoCompleteSelect from "../AutoCompleteSelect";
+import { insruranceProvidersOptions } from "../../../data/selectOptions";
+import { Textarea } from "../textarea";
+
+import { Input } from "../input";
+
 type Props = {
   onStateFormStateChange: (key: string, value: string) => void;
   chatOnChange: (e: React.ChangeEvent<HTMLInputElement>) => void;
@@ -18,231 +24,104 @@ const getStateOptions = (data: StateData[]) => {
 };
 
 const FormInputs: React.FC<Props> = (props: Props) => {
-  const options = getStateOptions(Data);
+  const stateOptions = getStateOptions(Data);
 
-  const [insuranceFocused, setInsuranceFocused] = useState(false);
-  const [stateFocused, setStateFocused] = useState(false);
-  const [treatmentFocused, setTreatmentFocused] = useState(false);
-  const [diagnosisFocused, setDiagnosisFocused] = useState(false);
-  const [chatFocused, setChatFocused] = useState(false);
-  const [chathistoryFocused, setHistoryFocused] = useState(false);
-  const [cptFocused, setCptFocused] = useState(false);
+  const handleInsuranceSelectChange = useCallback(
+    (value: string) => {
+      console.log("INSURANCE SELECT CHANGE", { value });
+      props.onStateFormStateChange("Insurance", value);
+    },
+    [props.onStateFormStateChange],
+  );
 
-  const [insureanceValue, setInsrunceValue] = useState("");
-  const [stateValue, setStateValue] = useState("");
-  const [treatmentValue, settreatmentValue] = useState("");
-  const [diagnosisValue, setDiagnosisValue] = useState("");
-  const [chatValue, setChatValue] = useState("");
-  const [historyValue, setHistoryValue] = useState("");
-  const [cptValue, setCptValue] = useState("");
+  const handleStateSelectChange = useCallback(
+    (value: string) => {
+      props.onStateFormStateChange("State", value);
+    },
+    [props.onStateFormStateChange],
+  );
 
-  const [formDisabledFields, setFormDisabledFields] = useState({
-    insurance: false,
-    state: false,
-    treatment: false,
-    diagnosis: false,
-    chat: false,
-    history: false,
-    cpt: false,
-  });
+  const HandleTreatmentSelectChange = useCallback(
+    (value: string) => {
+      props.onStateFormStateChange("Treatment", value);
+    },
+    [props.onStateFormStateChange],
+  );
 
-  const insuranceFloating =
-    insureanceValue.length !== 0 || insuranceFocused || undefined;
-  const stateFloating = stateValue.length !== 0 || stateFocused || undefined;
-  const treatmentFloating =
-    treatmentValue.length !== 0 || treatmentFocused || undefined;
-  const diagnosisFloating =
-    diagnosisValue.length !== 0 || diagnosisFocused || undefined;
-  const chatFloating = chatValue.length !== 0 || chatFocused || undefined;
-  const chatHistoryFloating =
-    historyValue.length !== 0 || chathistoryFocused || undefined;
-  const cptFloating = cptValue.length !== 0 || cptFocused || undefined;
+  const handleCptChange = useCallback(
+    (e: ChangeEvent<any>) => {
+      props.onStateFormStateChange("CPT code(s)", e.target.value);
+    },
+    [props.onStateFormStateChange],
+  );
+
+  const handleDiagnosisChange = useCallback(
+    (e: ChangeEvent<any>) => {
+      props.onStateFormStateChange("Diagnosis", e.target.value);
+    },
+    [props.onStateFormStateChange],
+  );
+
+  const handleHistoryChange = useCallback(
+    (e: ChangeEvent<any>) => {
+      props.onStateFormStateChange("History", e.target.value);
+    },
+    [props.onStateFormStateChange],
+  );
 
   return (
-    <></>
-    // <section className="mt-8 mx-0 md:mx-8 px-2 md:px-8">
-    //   <div>
-    //     <div>
-    //       <Select
-    //         label="Insurance Provider"
-    //         name="insurance"
-    //         placeholder="Medicare or private insurance"
-    //         data={[
-    //           { value: "Medicare", label: "Medicare" },
-    //           { value: "Carelon", label: "Carelon" },
-    //           { value: "Evolent", label: "Evolent" },
-    //         ]}
-    //         searchable
-    //         clearable
-    //         classNames={classes}
-    //         className="text-white mb-3 mb-7"
-    //         onChange={(value) => {
-    //           if (value !== null) {
-    //             setInsrunceValue(value);
-    //             props.onStateFormStateChange("Insurance", value as string);
-    //           }
-    //           if (value === "Evolent" || value === "Carelon") {
-    //             setFormDisabledFields((prevState) => {
-    //               return {
-    //                 ...prevState,
-    //                 state: true,
-    //               };
-    //             });
-    //           } else {
-    //             setFormDisabledFields((prevState) => {
-    //               return {
-    //                 ...prevState,
-    //                 state: false,
-    //               };
-    //             });
-    //           }
-    //           if (value === "Medicare") {
-    //             setFormDisabledFields((prevState) => {
-    //               return {
-    //                 ...prevState,
-    //                 cpt: true,
-    //               };
-    //             });
-    //           } else {
-    //             setFormDisabledFields((prevState) => {
-    //               return {
-    //                 ...prevState,
-    //                 cpt: false,
-    //               };
-    //             });
-    //           }
-    //         }}
-    //         onFocus={() => setInsuranceFocused(true)}
-    //         onBlur={() => setInsuranceFocused(false)}
-    //         data-floating={insuranceFloating}
-    //         labelProps={{ "data-floating": insuranceFloating }}
-    //       />
-    //     </div>
-    //     <div>
-    //       <Select
-    //         label="State"
-    //         name="state"
-    //         placeholder="IL"
-    //         data={options}
-    //         searchable
-    //         clearable
-    //         classNames={classes}
-    //         className="text-white mb-3 mb-7"
-    //         onChange={(value: string | null, option: ComboboxItem) => {
-    //           if (value !== null) {
-    //             setStateValue(value);
-    //             props.onStateFormStateChange("State", value);
-    //           }
-    //         }}
-    //         onFocus={() => setStateFocused(true)}
-    //         onBlur={() => setStateFocused(false)}
-    //         data-floating={stateFloating}
-    //         labelProps={{ "data-floating": stateFloating }}
-    //         disabled={formDisabledFields.state}
-    //       />
-    //     </div>
-
-    //     <div>
-    //       <Select
-    //         label="Treatment"
-    //         name="treatment"
-    //         placeholder="Magnetic Resonance Imaging (MRI)"
-    //         data={ncdOptions}
-    //         searchable
-    //         clearable
-    //         classNames={classes}
-    //         className="text-white mb-3 mb-7"
-    //         onChange={(value, option) => {
-    //           if (option !== null) {
-    //             settreatmentValue(option.label);
-    //             props.onStateFormStateChange("Treatment", option.label);
-    //           }
-    //         }}
-    //         onFocus={() => setTreatmentFocused(true)}
-    //         onBlur={() => setTreatmentFocused(false)}
-    //         data-floating={treatmentFloating}
-    //         labelProps={{ "data-floating": treatmentFloating }}
-    //       />
-    //     </div>
-    //     <div>
-    //       <Textarea
-    //         label="CPT Code(s)"
-    //         name="CPT code(s)"
-    //         placeholder="CPT code(s)"
-    //         className="text-white mb-3 mb-7"
-    //         onChange={(event) => {
-    //           setCptValue(event.target.value);
-    //           props.onStateFormStateChange("CPT code(s)", event.target.value);
-    //         }}
-    //         classNames={classes}
-    //         onFocus={() => setCptFocused(true)}
-    //         onBlur={() => setCptFocused(false)}
-    //         data-floating={cptFloating}
-    //         labelProps={{ "data-floating": cptFloating }}
-    //         rows={1}
-    //         disabled={formDisabledFields.cpt}
-    //       />
-    //     </div>
-
-    //     <div>
-    //       <Textarea
-    //         label="Diagnosis"
-    //         name="diagnosis"
-    //         placeholder="diagnosis"
-    //         className="text-white mb-3 mb-7"
-    //         onChange={(event) => {
-    //           setDiagnosisValue(event.target.value);
-    //           props.onStateFormStateChange("Diagnosis", event.target.value);
-    //         }}
-    //         classNames={classes}
-    //         onFocus={() => setDiagnosisFocused(true)}
-    //         onBlur={() => setDiagnosisFocused(false)}
-    //         data-floating={diagnosisFloating}
-    //         labelProps={{ "data-floating": diagnosisFloating }}
-    //         resize="vertical"
-    //       />
-    //     </div>
-    //     <Grid span={12}>
-    //       <Textarea
-    //         label="Patient(s) Medical History"
-    //         name="medicalHistory"
-    //         placeholder="Patient(s) Medical History"
-    //         className="text-white mb-3 mb-0"
-    //         onChange={(event) => {
-    //           setHistoryValue(event.target.value);
-    //           props.onStateFormStateChange("History", event.target.value);
-    //         }}
-    //         classNames={classes}
-    //         onFocus={() => setHistoryFocused(true)}
-    //         onBlur={() => setHistoryFocused(false)}
-    //         data-floating={chatHistoryFloating}
-    //         labelProps={{ "data-floating": chatHistoryFloating }}
-    //         resize="vertical"
-    //       />
-    //     </Grid>
-
-    //     <Grid span={12}>
-    //       <Textarea
-    //         rows={2}
-    //         label="Chat Prompt"
-    //         name="Chat Prompt"
-    //         placeholder="Get NCD information about the selected treatment or service."
-    //         className="text-white mb-0 md:mb-0 md:pb-2"
-    //         onChange={(event) => {
-    //           setChatValue(event.target.value);
-    //           props.chatOnChange(
-    //             event as unknown as ChangeEvent<HTMLInputElement>,
-    //           );
-    //         }}
-    //         classNames={classes}
-    //         onFocus={() => setChatFocused(true)}
-    //         onBlur={() => setChatFocused(false)}
-    //         data-floating={chatFloating}
-    //         labelProps={{ "data-floating": chatFloating }}
-    //       />
-    //     </Grid>
-    //   </Grid>
-    // </section>
+    <section className="w-full mt-8 mx-0 md:mx-1">
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-5">
+        <div>
+          <label className={(classes.label, "text-zinc-200")}>
+            Insurance Provider
+          </label>
+          <AutoCompleteSelect
+            options={insruranceProvidersOptions}
+            onChange={(value) => handleInsuranceSelectChange(value)}
+          />
+        </div>
+        <div>
+          <label className={(classes.label, "text-zinc-200")}>State</label>
+          <AutoCompleteSelect
+            options={stateOptions}
+            onChange={handleStateSelectChange}
+          />
+        </div>
+      </div>
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-5">
+        <div>
+          <label className={(classes.label, "text-zinc-200")}>Treatment</label>
+          <AutoCompleteSelect
+            options={ncdOptions}
+            onChange={HandleTreatmentSelectChange}
+          />
+        </div>
+        <div className="mb-5">
+          <label className={(classes.label, "text-zinc-200")}>
+            CPT Code(s)
+          </label>
+          <Input
+            type="text"
+            placeholder="CPT Codes"
+            onChange={handleCptChange}
+          />
+        </div>
+      </div>
+      <div className="mb-5">
+        <label className={(classes.label, "text-zinc-200")}>Diagnosis</label>
+        <Textarea
+          placeholder="Magnetic Resonance Imaging"
+          onChange={handleDiagnosisChange}
+        />
+      </div>
+      <div className="mb-5">
+        <label className={(classes.label, "text-zinc-200")}>
+          Patient(s) Medical History
+        </label>
+        <Textarea placeholder="Meniscus tear" onChange={handleHistoryChange} />
+      </div>
+    </section>
   );
 };
 

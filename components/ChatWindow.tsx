@@ -174,7 +174,13 @@ export function ChatInput(props: {
           </div>
         </div>
       </form>
-      <FlyoutForm openSheet={sheetOpen} setOpenSheet={setSheetOpen} />
+      <FlyoutForm
+        openSheet={sheetOpen}
+        setOpenSheet={setSheetOpen}
+        submitAction={props.onSubmit}
+        onStateFormStateChange={props.onStateFormStateChange!}
+        chatOnChange={props.onChange}
+      />
     </>
   );
 }
@@ -246,6 +252,7 @@ export function ChatWindow(props: {
 
   async function sendMessage(e: FormEvent<HTMLFormElement>) {
     e.preventDefault();
+    console.log("SUBMITTING");
     if (chat.isLoading || intermediateStepsLoading) return;
 
     if (!showIntermediateSteps) {
@@ -342,6 +349,7 @@ export function ChatWindow(props: {
 
   const handleFormStateChange = useCallback(
     (key: string, value: string) => {
+      console.log("FORM CHANGE", { key, value });
       setFormContet((prev) => prev.set(key, value));
       setInput();
     },
@@ -424,6 +432,8 @@ export function ChatWindow(props: {
               placeholder={
                 props.placeholder ?? "What's it like to be a pirate?"
               }
+              onStateFormStateChange={handleFormStateChange}
+              onUpload={handleUploadAndChat}
             >
               {props.showIngestForm && (
                 <Dialog>
