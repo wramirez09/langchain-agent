@@ -14,6 +14,7 @@ import {
 // import { MantineLogo } from "@mantinex/mantine-logo";
 import classes from "./NavbarMinimal.module.css";
 import { z } from "zod";
+import { Button } from "../button";
 
 interface NavbarLinkProps {
   icon: typeof IconHome2;
@@ -30,13 +31,14 @@ function NavbarLink({ icon: Icon, label, active, onClick }: NavbarLinkProps) {
     //   transitionProps={{ duration: 0 }}
     //   style={{ zIndex: 2000 }}
     // >
-    <UnstyledButton
+    <Button
       onClick={onClick}
       className={classes.link}
       data-active={active || undefined}
+      variant={"ghost"}
     >
       <Icon size={20} stroke={1.5} />
-    </UnstyledButton>
+    </Button>
     // </Tooltip>
   );
 }
