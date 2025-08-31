@@ -1,11 +1,5 @@
 // import { Button, Group, SimpleGrid, Text, Image } from "@mantine/core";
-import { IconUpload, IconPhoto, IconX } from "@tabler/icons-react";
-import {
-  Dropzone,
-  DropzoneProps,
-  FileWithPath,
-  MIME_TYPES,
-} from "@mantine/dropzone";
+
 import { useRef, useState } from "react";
 import React from "react";
 import { toast } from "react-toastify";
@@ -18,7 +12,7 @@ export function FileUploadForm({
   onUpload: (file: File) => Promise<void>;
 }) {
   const openRef = useRef<() => void>(null);
-  const [files, setFiles] = useState<FileWithPath[]>([]);
+  const [files, setFiles] = useState([]);
 
   const previews = React.useCallback(
     () =>
