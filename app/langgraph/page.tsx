@@ -249,7 +249,7 @@ function ClientLanggraphPage() {
           </GuideInfoBox>
         )
       }
-      footer={
+      form={
         <StatefulChatInput
           loading={thread.isLoading}
           onStop={thread.stop}
