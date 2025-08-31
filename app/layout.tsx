@@ -13,7 +13,7 @@ import * as React from "react";
 
 const publicSans = Public_Sans({ subsets: ["latin"] });
 
-export const Logo = () => (
+export const Logo: React.FC = () => (
   <Image src={logo} alt="NoteDoctor.Ai Logo" className="h-8 w-auto" />
 );
 
