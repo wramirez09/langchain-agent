@@ -13,10 +13,6 @@ import * as React from "react";
 
 const publicSans = Public_Sans({ subsets: ["latin"] });
 
-export const Logo: React.FC = () => (
-  <Image src={logo} alt="NoteDoctor.Ai Logo" className="h-8 w-auto" />
-);
-
 export default function RootLayout({
   children,
 }: {
@@ -70,7 +66,11 @@ export default function RootLayout({
                   target="_blank"
                   className="flex items-center gap-2"
                 >
-                  <Logo />
+                  <Image
+                    src={logo}
+                    alt="NoteDoctor.Ai Logo"
+                    className="h-8 w-auto"
+                  />
                   NoteDoctorAi
                 </a>
                 <nav className="flex gap-1 flex-col md:flex-row">
