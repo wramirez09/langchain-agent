@@ -7,8 +7,7 @@ import Image from "next/image";
 import logo from "@/public/images/logo-main.svg";
 
 import { NavbarMinimal } from "@/components/ui/navBar/NavbarMinimal";
-import FlyoutForm from "@/components/ui/FlyoutForm";
-import { Button } from "@/components/ui/button";
+
 import * as React from "react";
 
 const publicSans = Public_Sans({ subsets: ["latin"] });
