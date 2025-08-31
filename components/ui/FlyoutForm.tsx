@@ -17,6 +17,7 @@ import {
 import { Form } from "multiparty";
 import { FormInput } from "lucide-react";
 import FormInputs from "./forms/Form";
+import { ChangeEventHandler } from "react";
 
 const FlyoutForm: React.FC<{
   openSheet: boolean;
@@ -39,8 +40,9 @@ const FlyoutForm: React.FC<{
     },
     [submitAction],
   );
+  const [open, setOpen] = React.useState(false);
   return (
-    <Sheet open={openSheet}>
+    <Sheet open={openSheet} onOpenChange={(open) => setOpenSheet(open)}>
       <SheetContent className="w-[60vw] bg-zinc-900">
         <SheetHeader>
           <SheetTitle>Prior Authorization Request</SheetTitle>
@@ -51,7 +53,9 @@ const FlyoutForm: React.FC<{
         </SheetHeader>
         <FormInputs
           onStateFormStateChange={onStateFormStateChange}
-          chatOnChange={chatOnChange}
+          chatOnChange={
+            chatOnChange as unknown as ChangeEventHandler<HTMLTextAreaElement>
+          }
         />
         <SheetFooter>
           <Button

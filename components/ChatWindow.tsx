@@ -16,9 +16,9 @@ import { cn } from "@/utils/cn";
 import FormInputs from "@/components/ui/forms/Form";
 import { LeadGrid } from "./layouts/LeadGrid";
 import React from "react";
-import { FileUploadForm } from "./ui/FileUpload";
+// import { FileUploadForm } from "./ui/FileUpload";
 import { StickToBottom, useStickToBottomContext } from "use-stick-to-bottom";
-import { UploadDocumentsForm } from "./UploadDocumentsForm";
+import UploadDocumentsForm from "./UploadDocumentsForm";
 import {
   Dialog,
   DialogContent,
@@ -195,7 +195,7 @@ export function ChatLayout(props: { content: ReactNode; form: ReactNode }) {
           content={props.content}
           footer={
             <div className="sticky bottom-8 px-2">
-              <ScrollToBottom className="absolute bottom-full left-1/2 -translate-x-1/2 mb-4" />
+              <ScrollToBottom className="absolute bottom-full left-1/2 -translate-x-1/2 mb-4 bg-black" />
               {props.form}
             </div>
           }
@@ -320,9 +320,6 @@ export function ChatWindow(props: {
     for (const message of intermediateStepMessages) {
       newMessages.push(message);
       chat.setMessages([...newMessages]);
-      await new Promise((resolve) =>
-        setTimeout(resolve, 1000 + Math.random() * 1000),
-      );
     }
 
     chat.setMessages([
@@ -349,7 +346,6 @@ export function ChatWindow(props: {
 
   const handleFormStateChange = useCallback(
     (key: string, value: string) => {
-      console.log("FORM CHANGE", { key, value });
       setFormContet((prev) => prev.set(key, value));
       setInput();
     },
@@ -358,7 +354,8 @@ export function ChatWindow(props: {
 
   const [uploading, setUploading] = useState(false);
 
-  async function handleUploadAndChat(file: any) {
+  async function handleUploadAndChat(file: File) {
+    toast("Uploading file and starting chat...");
     setUploading(true);
 
     const formData = new FormData();
@@ -369,6 +366,8 @@ export function ChatWindow(props: {
         method: "POST",
         body: formData,
       });
+
+      toast("File uploaded. Processing...");
 
       if (!ingestResponse.ok) {
         const errorData = await ingestResponse.json();
@@ -382,8 +381,7 @@ export function ChatWindow(props: {
 
       toast.success("Document uploaded and query generated successfully!");
 
-      // --- HIGHLIGHT START ---
-      // Get the current form inputs to combine with the generated query
+      // Combine with form input if needed
       const formInputString = Array.from(formContent.entries())
         .map(([key, value]) => `${key}: ${value}`)
         .filter(Boolean)
@@ -395,9 +393,7 @@ export function ChatWindow(props: {
         combinedInput += `\nAdditional user input from form: "${formInputString}"`;
       }
 
-      // Append the new combined message to the chat
       await chat.append({ role: "user", content: combinedInput });
-      // --- HIGHLIGHT END ---
     } catch (e: any) {
       toast.error("Document upload failed", { description: e.message });
     } finally {
@@ -405,7 +401,7 @@ export function ChatWindow(props: {
     }
   }
 
-  // const [sheetOpen, setSheetOpen] = React.useState(false);
+  const [modalOpen, setModalOpen] = React.useState(false);
 
   return (
     <>
@@ -433,10 +429,9 @@ export function ChatWindow(props: {
                 props.placeholder ?? "What's it like to be a pirate?"
               }
               onStateFormStateChange={handleFormStateChange}
-              onUpload={handleUploadAndChat}
             >
               {props.showIngestForm && (
-                <Dialog>
+                <Dialog open={modalOpen} onOpenChange={setModalOpen}>
                   <DialogTrigger asChild>
                     <Button
                       variant="ghost"
@@ -451,10 +446,13 @@ export function ChatWindow(props: {
                     <DialogHeader>
                       <DialogTitle>Upload document</DialogTitle>
                       <DialogDescription>
-                        Upload a document to use for the chat.
+                        We currently only support PDF files.
                       </DialogDescription>
                     </DialogHeader>
-                    <UploadDocumentsForm />
+                    <UploadDocumentsForm
+                      onUpload={handleUploadAndChat}
+                      setModalOpen={setModalOpen}
+                    />
                   </DialogContent>
                 </Dialog>
               )}

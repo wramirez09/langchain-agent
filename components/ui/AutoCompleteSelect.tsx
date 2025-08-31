@@ -60,8 +60,7 @@ const AutoCompleteSelect: React.FC<{
                   value={option.value}
                   onSelect={(currentValue: any) => {
                     setValue(currentValue === value ? "" : currentValue);
-                    // setOpen(false);
-                    // onChange?.(value);
+                    onChange?.(currentValue);
                   }}
                 >
                   {option.label}

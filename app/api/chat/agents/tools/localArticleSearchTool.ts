@@ -68,6 +68,10 @@ class LocalCoverageArticleSearchTool extends StructuredTool<
     input: z.infer<typeof LocalArticleSearchInputSchema>,
   ): Promise<string> {
     const { query, state } = input;
+
+    console.log(
+      `Searching Local Coverage Articles for query: '${query}' in state: '${state.description}'`,
+    );
     try {
       const stateId = state.state_id;
 

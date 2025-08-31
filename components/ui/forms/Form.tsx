@@ -1,11 +1,16 @@
 "use client";
 
-import React, { ChangeEvent, useCallback, useState } from "react";
+import React, {
+  ChangeEvent,
+  ChangeEventHandler,
+  useCallback,
+  useState,
+} from "react";
 import { Data, StateData } from "../../../app/agents/metaData/states";
 import { ncdOptions } from "@/data/ncdOptions";
 
 import classes from "./FloatinLabelInput.module.css";
-import { FileUploadForm } from "../FileUpload";
+
 import AutoCompleteSelect from "../AutoCompleteSelect";
 import { insruranceProvidersOptions } from "../../../data/selectOptions";
 import { Textarea } from "../textarea";
@@ -14,7 +19,7 @@ import { Input } from "../input";
 
 type Props = {
   onStateFormStateChange: (key: string, value: string) => void;
-  chatOnChange: (e: React.ChangeEvent<HTMLInputElement>) => void;
+  chatOnChange: ChangeEventHandler<HTMLTextAreaElement>;
 };
 const getStateOptions = (data: StateData[]) => {
   return data.map((state) => ({
@@ -28,7 +33,6 @@ const FormInputs: React.FC<Props> = (props: Props) => {
 
   const handleInsuranceSelectChange = useCallback(
     (value: string) => {
-      console.log("INSURANCE SELECT CHANGE", { value });
       props.onStateFormStateChange("Insurance", value);
     },
     [props.onStateFormStateChange],
@@ -120,6 +124,12 @@ const FormInputs: React.FC<Props> = (props: Props) => {
           Patient(s) Medical History
         </label>
         <Textarea placeholder="Meniscus tear" onChange={handleHistoryChange} />
+      </div>
+      <div className="mb-5">
+        <label className={(classes.label, "text-zinc-200")}>
+          Additional Chat Prompt Context (optional)
+        </label>
+        <Textarea placeholder="Get CPT codes" onChange={props.chatOnChange} />
       </div>
     </section>
   );

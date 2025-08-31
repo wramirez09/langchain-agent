@@ -1,152 +1,100 @@
 // policyContentExtractorTool.ts
 import { z } from "zod";
 import { StructuredTool } from "@langchain/core/tools";
-import * as cheerio from "cheerio"; // For HTML parsing: npm install cheerio
+import * as cheerio from "cheerio";
+import { ChatOpenAI } from "@langchain/openai";
+import { StructuredOutputParser } from "langchain/output_parsers";
 
-// Input schema for the content extractor tool
-const PolicyContentExtractorInputSchema = z.object({
-  policyUrl: z
-    .string()
-    .url()
-    .describe(
-      "The full URL of the Medicare policy document (NCD, LCD, or Article) to extract content from.",
-    ),
-});
+// ----------------------
+// Types & Schemas
+// ----------------------
 
-// Interface for the structured details you *aim* to extract from the policy text.
 export interface ExtractedPolicyDetails {
   priorAuthRequired: "YES" | "NO" | "CONDITIONAL" | "UNKNOWN";
   medicalNecessityCriteria: string[];
-  icd10Codes: { code: string; description: string; context: string }[]; // context: e.g., 'covered', 'excluded'
+  icd10Codes: { code: string; description: string; context: string }[];
   cptCodes: { code: string; description: string; context: string }[];
   requiredDocumentation: string[];
   limitationsExclusions: string[];
   summary: string;
 }
 
-/**
- * A helper function to call the Gemini API for structured data extraction.
- * @param content The text content to be parsed.
- * @returns A JSON object matching the ExtractedPolicyDetails interface or null on failure.
- */
-async function getStructuredPolicyDetails(
+const policyExtractionSchema = z.object({
+  priorAuthRequired: z.enum(["YES", "NO", "CONDITIONAL", "UNKNOWN"]),
+  medicalNecessityCriteria: z.array(z.string()),
+  icd10Codes: z.array(
+    z.object({
+      code: z.string(),
+      description: z.string(),
+      context: z.string(),
+    }),
+  ),
+  cptCodes: z.array(
+    z.object({
+      code: z.string(),
+      description: z.string(),
+      context: z.string(),
+    }),
+  ),
+  requiredDocumentation: z.array(z.string()),
+  limitationsExclusions: z.array(z.string()),
+  summary: z.string(),
+});
+
+const parser = StructuredOutputParser.fromZodSchema(policyExtractionSchema);
+
+// Tool input schema: only needs a URL
+const toolInputSchema = z.object({
+  policyUrl: z.string().url(),
+});
+
+// ----------------------
+// Extraction Logic
+// ----------------------
+
+export async function getStructuredPolicyDetails(
   content: string,
 ): Promise<ExtractedPolicyDetails | null> {
-  const chatHistory = [];
-  chatHistory.push({
-    role: "user",
-    parts: [
-      {
-        text: `Extract the following information from the policy text and return it as a JSON object: 
-        - priorAuthRequired: Is prior authorization required? (YES, NO, CONDITIONAL, UNKNOWN)
-        - medicalNecessityCriteria: A bulleted list of all clinical conditions, patient characteristics, or prior treatments required for coverage.
-        - icd10Codes: A list of codes with a description and context (e.g., covered or excluded).
-        - cptCodes: A list of codes with a description and context.
-        - requiredDocumentation: A checklist of specific medical records and notes needed for submission.
-        - limitationsExclusions: Any situations where the treatment is not covered or has restrictions.
-        - summary: A brief explanation of the policy's stance on the treatment.
-        
-        Policy Text:
-        ${content}`,
-      },
-    ],
+  const model = new ChatOpenAI({
+    modelName: "gpt-4o-mini", // swap for gpt-4o or gpt-4.1 for higher accuracy
+    temperature: 0,
   });
 
-  const payload = {
-    contents: chatHistory,
-    generationConfig: {
-      responseMimeType: "application/json",
-      responseSchema: {
-        type: "OBJECT",
-        properties: {
-          priorAuthRequired: { type: "STRING" },
-          medicalNecessityCriteria: {
-            type: "ARRAY",
-            items: { type: "STRING" },
-          },
-          icd10Codes: {
-            type: "ARRAY",
-            items: {
-              type: "OBJECT",
-              properties: {
-                code: { type: "STRING" },
-                description: { type: "STRING" },
-                context: { type: "STRING" },
-              },
-            },
-          },
-          cptCodes: {
-            type: "ARRAY",
-            items: {
-              type: "OBJECT",
-              properties: {
-                code: { type: "STRING" },
-                description: { type: "STRING" },
-                context: { type: "STRING" },
-              },
-            },
-          },
-          requiredDocumentation: {
-            type: "ARRAY",
-            items: { type: "STRING" },
-          },
-          limitationsExclusions: {
-            type: "ARRAY",
-            items: { type: "STRING" },
-          },
-          summary: { type: "STRING" },
-        },
-      },
-    },
-  };
+  const prompt = `
+You are an expert in healthcare policy extraction. 
+Extract the following information from the policy text and return valid JSON.
 
-  const apiKey = process.env.GOOGLE_LM_API;
-  const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-preview-05-20:generateContent?key=${apiKey}`;
+Policy Text:
+${content}
+
+${parser.getFormatInstructions()}
+`;
 
   try {
-    const response = await fetch(apiUrl, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(payload),
-    });
-
-    const result = await response.json();
-    if (
-      result.candidates &&
-      result.candidates.length > 0 &&
-      result.candidates[0].content &&
-      result.candidates[0].content.parts &&
-      result.candidates[0].content.parts.length > 0
-    ) {
-      const jsonString = result.candidates[0].content.parts[0].text;
-      return JSON.parse(jsonString) as ExtractedPolicyDetails;
-    }
-    console.error("Gemini API response structure is unexpected.");
-    return null;
+    const response = await model.invoke([{ role: "user", content: prompt }]);
+    const rawText = response.content?.toString() ?? "";
+    return await parser.parse(rawText);
   } catch (error) {
-    console.error("Error calling Gemini API for extraction:", error);
+    console.error("Error extracting policy details:", error);
     return null;
   }
 }
 
+// ----------------------
+// Tool Implementation
+// ----------------------
+
 class PolicyContentExtractorTool extends StructuredTool<
-  typeof PolicyContentExtractorInputSchema
+  z.infer<typeof toolInputSchema>
 > {
   name = "policy_content_extractor";
   description =
     "Fetches the full content of a Medicare policy document (NCD, LCD, or Article) from its URL and returns a structured JSON object. The object contains specific details like medical necessity criteria, ICD-10 and CPT codes, required documentation, and limitations. This tool is designed to provide a machine-readable summary for AI analysis.";
-  schema = PolicyContentExtractorInputSchema;
+  schema = toolInputSchema as any;
 
-  /**
-   * The core logic of the tool.
-   * Fetches the HTML, extracts the main text, and uses an LLM to parse it into a structured object.
-   * @param input The validated input from the LLM, matching PolicyContentExtractorInputSchema.
-   * @returns A JSON object containing the extracted policy details or an error message string.
-   */
-  public async _call(
-    input: z.infer<typeof PolicyContentExtractorInputSchema>,
-  ): Promise<string> {
+  public async _call(input: z.infer<typeof toolInputSchema>): Promise<string> {
     const { policyUrl } = input;
+    console.log(`Fetching and extracting content from: ${policyUrl}`);
 
     try {
       const response = await fetch(policyUrl);
@@ -159,20 +107,20 @@ class PolicyContentExtractorTool extends StructuredTool<
       const $ = cheerio.load(htmlContent);
 
       let extractedText = "";
-      // Use more robust selectors for common policy document structures
       const selectors =
         "div.document-view-section, .article-content, .coverage-summary";
       const elements = $(selectors);
-      elements.each((index, div) => {
-        extractedText += $(div).text().trim() + " ";
-      });
 
-      // If no suitable element was found, fall back to the entire body
-      if (!extractedText) {
+      if (elements.length > 0) {
+        extractedText = elements
+          .map((_, el) => $(el).text().trim())
+          .get()
+          .join("\n\n");
+      } else {
         extractedText = $("body").text().trim();
       }
 
-      extractedText = extractedText.replace(/\s+/g, " ").trim(); // Replace multiple spaces/newlines with single space
+      extractedText = extractedText.replace(/\s+/g, " ").trim();
 
       if (extractedText.length < 100) {
         const warning = `Extracted content too short for ${policyUrl}.`;
@@ -184,11 +132,12 @@ class PolicyContentExtractorTool extends StructuredTool<
         });
       }
 
-      // Use the internal LLM call to get structured JSON from the extracted text
       const structuredDetails = await getStructuredPolicyDetails(extractedText);
       if (structuredDetails) {
-        // Return the JSON string so the calling LLM can process it as an object
-        return JSON.stringify(structuredDetails);
+        return JSON.stringify({
+          policyUrl,
+          ...structuredDetails,
+        });
       } else {
         const errorMsg = `An error occurred during structured extraction from ${policyUrl}.`;
         console.error(errorMsg);
@@ -208,5 +157,5 @@ class PolicyContentExtractorTool extends StructuredTool<
   }
 }
 
-// Instantiate and export the tool.
+// Instantiate and export
 export const policyContentExtractorTool = new PolicyContentExtractorTool();
