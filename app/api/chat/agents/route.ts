@@ -18,168 +18,194 @@ import { policyContentExtractorTool } from "./tools/policyContentExtractorTool";
 
 import { CarelonSearchTool } from "./tools/carelon_tool";
 import { EvolentSearchTool } from "./tools/evolent_tool";
-import { FileUploadTool } from "./tools/fileUploadTool"; // Import the new FileUploadTool
+import { FileUploadTool } from "./tools/fileUploadTool";
 
+// ------------------------
+// Global LLM instance
+// ------------------------
+const chatLLM = new ChatOpenAI({
+  model: "gpt-5",
+  temperature: 1,
+  maxRetries: 3,
+});
+
+// ------------------------
+// Convert messages
+// ------------------------
 const convertVercelMessageToLangChainMessage = (message: VercelChatMessage) => {
-  if (message.role === "user") {
-    return new HumanMessage(message.content);
-  } else if (message.role === "assistant") {
-    return new AIMessage(message.content);
-  } else {
-    return new ChatMessage(message.content, message.role);
-  }
+  if (message.role === "user") return new HumanMessage(message.content);
+  if (message.role === "assistant") return new AIMessage(message.content);
+  return new ChatMessage(message.content, message.role);
 };
 
 const convertLangChainMessageToVercelMessage = (message: BaseMessage) => {
-  if (message._getType() === "human") {
+  if (message._getType() === "human")
     return { content: message.content, role: "user" };
-  } else if (message._getType() === "ai") {
+  if (message._getType() === "ai")
     return {
       content: message.content,
       role: "assistant",
       tool_calls: (message as AIMessage).tool_calls,
     };
-  } else {
-    return { content: message.content, role: message._getType() };
-  }
+  return { content: message.content, role: message._getType() };
 };
 
-const AGENT_SYSTEM_TEMPLATE = `You are an expert Medicare Prior Authorization Assistant for healthcare providers.
-Your primary goal is to help providers understand the requirements for obtaining pre-approval for treatments and services, streamlining their research.
+// ------------------------
+// Extract structured fields (CPT, ICD-10, medicalHistory optional, state conditional)
+// ------------------------
+const extractStructuredFields = (messages: VercelChatMessage[]) => {
+  const userMsg = messages.find((m) => m.role === "user")?.content ?? "";
 
-Here's your precise, step-by-step workflow:
+  const treatmentMatch = userMsg.match(/treatment[:\s]*(.*)/i);
+  const diagnosisMatch = userMsg.match(/diagnosis[:\s]*(.*)/i);
+  const insuranceMatch = userMsg.match(/insurance[:\s]*(.*)/i);
+  const stateMatch = userMsg.match(/state[:\s]*(.*)/i);
 
-**1. Analyze the User Request (Flexible Input):**
+  const cptMatch = userMsg.match(/CPT[:\s]*(\d+)/i);
+  const icdMatch = userMsg.match(/ICD[-\s]*10[:\s]*(\S+)/i);
+  const medicalHistoryMatch = userMsg.match(/history[:\s]*(.*)/i);
 
-* Your input may come from a direct form entry or be a structured message from a file upload.
-* **Intelligent Data Extraction:** Regardless of the format, meticulously extract the following key data points from the user's entire request:
-    * \`treatment\`: The specific medical treatment or service (e.g., "MRI lumbar spine").
-    * \`CPT\`: The CPT code associated with the treatment (e.g., "72158").
-    * \`diagnosis\`: The patient's diagnosis (e.g., "lower back pain with radiculopathy").
-    * \`ICD-10\`: The ICD-10 code (e.g., "M54.16").
-    * \`medical_history\`: A summary of the patient's clinical history, key findings, and symptoms.
-    * \`insurance\`: The patient's insurance provider (e.g., "Medicare").
-    * \`state\`: The patient's U.S. state (e.g., "California - Northern").
+  const insuranceValue = insuranceMatch?.[1]?.toLowerCase() ?? "";
 
-**2. Execute a Conditional Search Strategy:**
+  // Required fields
+  const missingFields = [];
+  if (!treatmentMatch?.[1]) missingFields.push("treatment");
+  if (!diagnosisMatch?.[1]) missingFields.push("diagnosis");
+  if (!insuranceMatch?.[1]) missingFields.push("insurance");
+  // state required only for Medicare
+  if (insuranceValue === "medicare" && !stateMatch?.[1])
+    missingFields.push("state");
 
-* Based on the extracted \`insurance\` provider, use ONLY the relevant tools. Do not call tools for a different provider.
-* **If \`insurance\` is "Carelon":** Immediately use the \`carelon_guidelines_search\` tool with the extracted \`treatment\` and \`diagnosis\`.
-* **If \`insurance\` is "Evolent":** Immediately use the \`evolent_guidelines_search\` tool with the extracted \`treatment\` and \`diagnosis\`.
-* **If \`insurance\` is "Medicare":** Immediately use the \`ncd_coverage_search\` tool, along with the \`local_lcd_search\` and \`local_coverage_article_search\` tools (if a \`state\` is provided). Execute these three search tools in parallel for maximum speed.
-* **For any policy found:** Use the \`policy_content_extractor\` tool to fetch its complete text content from the provided URL.
+  return {
+    treatment: treatmentMatch?.[1] ?? "",
+    diagnosis: diagnosisMatch?.[1] ?? "",
+    insurance: insuranceMatch?.[1] ?? "",
+    state: stateMatch?.[1] ?? "",
+    CPT: cptMatch?.[1] ?? "",
+    ICD10: icdMatch?.[1] ?? "",
+    medicalHistory: medicalHistoryMatch?.[1] ?? "",
+    missingFields,
+  };
+};
 
-**3. Analyze and Extract Key Information from Policies:**
-
-* For each retrieved policy document, meticulously extract the following:
-    * **Prior Authorization Requirement:** State "YES," "NO," or "CONDITIONAL."
-    * **Medical Necessity Criteria:** Detail the specific criteria.
-    * **Relevant Codes:** List associated ICD-10 and CPT/HCPCS codes.
-    * **Required Documentation:** Enumerate all documentation needed.
-    * **Limitations and Exclusions:** Note any specific limitations or exclusions.
-
-**4. Present Comprehensive Findings:**
-
-* Summarize your findings clearly and concisely.
-* **If no policy is found,** state that no relevant policy could be found and advise contacting the payer directly.
-* **If policies are found,** structure your response precisely as follows:
-
-# Prior Authorization Summary for [Treatment]
-
-## Request Overview
-**TEST:** [Treatment]
-**CPT:** [CPT Code]
-**ICD:** [ICD Code]: [Diagnosis]
-**Short history:** [Medical history summary]
-  - [Key Clinical Finding 1]
-  - [Key Clinical Finding 2]
-  - (etc.)
-
-## [Payer Name] Guideline: [Policy Title]
-Status: [Status], Effective Date: [Date], Doc ID: [ID], Last Review Date: [Date].
-[Policy Summary from the extracted content]
-
-**Medical Necessity Criteria:**
-* [Criterion 1]
-* [Criterion 2]
-* (etc.)
-
-**Relevant Codes:**
-* **ICD-10:** [List of ICD-10 codes]
-* **CPT/HCPCS:** [List of CPT/HCPCS codes]
-
-**Required Documentation:**
-* [Documentation Item 1]
-* [Documentation Item 2]
-* (etc.)
-
-**Limitations/Exclusions:**
-* [Limitation/Exclusion 1]
-* [Limitation/Exclusion 2]
-* (etc.)
-
-**Policy URL:** [full_url](full_url)
-
-## Summary Report
-**Summary report (Approve or Denied due to):** [Your AI-driven determination, e.g., "Approved as guideline met for medical necessity due to knee pain from trauma to knee, joint swelling and inability to extend knee." Explain how the patient's extracted history and findings meet or fail to meet the policy criteria.]
-\`\`\`
-`;
-
+// ------------------------
+// POST handler
+// ------------------------
 export async function POST(req: NextRequest) {
   try {
     const body = await req.json();
-
     const returnIntermediateSteps = body.show_intermediate_steps;
+
     const messages = (body.messages ?? [])
       .filter(
-        (message: VercelChatMessage) =>
-          message.role === "user" || message.role === "assistant",
+        (m: VercelChatMessage) => m.role === "user" || m.role === "assistant",
       )
       .map(convertVercelMessageToLangChainMessage);
 
-    const tools = [
-      new SerpAPI(),
-      new CarelonSearchTool(),
-      new EvolentSearchTool(),
-      new NCDCoverageSearchTool(),
-      localLcdSearchTool,
-      localCoverageArticleSearchTool,
-      policyContentExtractorTool,
-      new FileUploadTool(), // Add the new file upload tool here
-    ];
-    const chat = new ChatOpenAI({ model: "gpt-5", temperature: 1 });
+    const structuredFields = extractStructuredFields(body.messages ?? []);
+    const {
+      insurance,
+      treatment,
+      diagnosis,
+      state,
+      CPT,
+      ICD10,
+      medicalHistory,
+      missingFields,
+    } = structuredFields;
 
-    /**
-     * Use a prebuilt LangGraph agent.
-     */
+    // ------------------------
+    // Warn about missing required fields
+    // ------------------------
+    if (missingFields.length > 0) {
+      return NextResponse.json(
+        { error: `Missing required fields: ${missingFields.join(", ")}` },
+        { status: 400 },
+      );
+    }
+
+    // ------------------------
+    // Lazy tool selection
+    // ------------------------
+    const tools = [];
+    const insuranceValue = insurance?.toLowerCase();
+    if (insuranceValue === "carelon") tools.push(new CarelonSearchTool());
+    if (insuranceValue === "evolent") tools.push(new EvolentSearchTool());
+    if (insuranceValue === "medicare") {
+      tools.push(
+        new NCDCoverageSearchTool(),
+        localLcdSearchTool,
+        localCoverageArticleSearchTool,
+      );
+    }
+    tools.push(policyContentExtractorTool, new FileUploadTool(), new SerpAPI());
+
+    // ------------------------
+    // Dynamic system prompt with optional fields
+    // ------------------------
+    const systemPrompt = `
+You are an expert Medicare Prior Authorization Assistant.
+
+Verify that all required fields are present:
+* Treatment
+* Diagnosis
+* Insurance
+* State (required only for Medicare)
+
+Optional fields (may be empty):
+* CPT code
+* ICD-10 code
+* Medical history
+
+Insurance: ${insurance}
+Treatment: ${treatment}
+Diagnosis: ${diagnosis}
+State: ${state}
+CPT: ${CPT}
+ICD-10: ${ICD10}
+Medical history: ${medicalHistory}
+
+Use only tools relevant for this insurance. Provide a concise summary including:
+- Prior Authorization status (YES, NO, CONDITIONAL)
+- Medical necessity criteria
+- Relevant ICD-10 and CPT codes (if available)
+- Required documentation
+- Limitations/exclusions
+
+If no policy is found, clearly indicate that and advise contacting the payer.
+`;
+
+    // ------------------------
+    // Create prebuilt agent
+    // ------------------------
     const agent = createReactAgent({
-      llm: chat,
+      llm: chatLLM,
       tools,
-      messageModifier: new SystemMessage(AGENT_SYSTEM_TEMPLATE),
+      messageModifier: new SystemMessage(systemPrompt),
     });
 
+    // ------------------------
+    // Streaming or non-streaming
+    // ------------------------
     if (!returnIntermediateSteps) {
       const eventStream = agent.streamEvents({ messages }, { version: "v2" });
-
       const textEncoder = new TextEncoder();
       const transformStream = new ReadableStream({
         async start(controller) {
           for await (const { event, data } of eventStream) {
-            if (event === "on_chat_model_stream") {
-              // Intermediate chat model generations will contain tool calls and no content
-              if (!!data.chunk.content) {
-                controller.enqueue(textEncoder.encode(data.chunk.content));
-              }
+            if (
+              event === "on_chat_model_stream" &&
+              data.chunk.content?.trim()
+            ) {
+              controller.enqueue(textEncoder.encode(data.chunk.content));
             }
           }
           controller.close();
         },
       });
-
       return new StreamingTextResponse(transformStream);
     } else {
       const result = await agent.invoke({ messages });
-
       return NextResponse.json(
         {
           messages: result.messages.map(convertLangChainMessageToVercelMessage),

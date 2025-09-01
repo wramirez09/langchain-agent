@@ -1,8 +1,9 @@
 import { z } from "zod";
 import { StructuredTool, ToolRunnableConfig } from "@langchain/core/tools";
+import { ChatOpenAI } from "@langchain/openai";
 import { cleanRegex } from "./utils";
 
-// Define a schema specific to this tool to avoid naming conflicts
+// Define schema
 const CarelonSearchInputSchema = z.object({
   query: z
     .string()
@@ -11,102 +12,52 @@ const CarelonSearchInputSchema = z.object({
     ),
 });
 
-// The API key is provided by the canvas environment, so we leave it as an empty string.
-const apiKey = process.env.GOOGLE_LM_API;
-const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-preview-05-20:generateContent?key=${apiKey}`;
+// --- Replace Gemini with ChatGPT (OpenAI) ---
+const llm = new ChatOpenAI({
+  model: "gpt-4o-mini", // or "gpt-4o", depending on cost vs quality
+  temperature: 0,
+  maxRetries: 3, // already built-in retry
+});
 
 /**
- * A helper function to call the Gemini API for text summarization with exponential backoff.
- * @param content The text content to be summarized.
- * @param query The user's original query.
- * @returns A string containing the summary or an error message.
+ * Summarize documents using ChatGPT
  */
 async function getSummaryFromDocs(
   content: string,
   query: string,
 ): Promise<string> {
-  const maxRetries = 5;
-  let retryCount = 0;
-  let delay = 1000; // Start with a 1-second delay
+  // Truncate for safety — adjust per your model’s context window
+  const safeContent = content.slice(0, 16000);
 
-  // Truncate the content to a safe length to prevent token errors
-  const safeContent = content.slice(0, 8000);
+  const messages = [
+    {
+      role: "user" as const,
+      content: `Summarize the following Carelon guideline content based on the user's query.
+The summary should be concise, factual, and directly address the query.
 
-  const chatHistory = [];
-  chatHistory.push({
-    role: "user",
-    parts: [
-      {
-        text: `Summarize the following document content based on the user's query. The summary should be concise, factual, and directly address the query.
-        
-        User's Query: ${query}
-        
-        Document Content:
-        ${safeContent}`,
-      },
-    ],
-  });
+User's Query: ${query}
 
-  const payload = { contents: chatHistory };
-
-  const performFetchWithRetry = async (): Promise<string> => {
-    while (retryCount < maxRetries) {
-      try {
-        const response = await fetch(apiUrl, {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify(payload),
-        });
-
-        if (response.status === 429) {
-          retryCount++;
-          const jitter = Math.random() * 1000; // Add random jitter
-          await new Promise((resolve) => setTimeout(resolve, delay + jitter));
-          delay *= 2; // Exponentially increase the delay
-          continue; // Continue the loop to retry
-        }
-
-        if (!response.ok) {
-          throw new Error(`API request failed with status ${response.status}`);
-        }
-
-        const result = await response.json();
-        if (
-          result.candidates &&
-          result.candidates.length > 0 &&
-          result.candidates[0].content &&
-          result.candidates[0].content.parts &&
-          result.candidates[0].content.parts.length > 0
-        ) {
-          console.log({ data: result.candidates[0].content.parts[0].text });
-          return result.candidates[0].content.parts[0].text;
-        } else {
-          throw new Error(
-            "Invalid API response structure or no content found.",
-          );
-        }
-      } catch (error: any) {
-        console.error("Error during API call:", error);
-        throw error;
-      }
-    }
-    throw new Error(`Failed to generate summary after ${maxRetries} retries.`);
-  };
+Document Content:
+${safeContent}`,
+    },
+  ];
 
   try {
-    return await performFetchWithRetry();
-  } catch (error: any) {
-    return `Failed to generate summary. Error: ${error.message}`;
+    const response = await llm.invoke(messages);
+    return response.content?.toString().trim() || "No summary generated.";
+  } catch (err: any) {
+    console.error("Error during ChatGPT summarization:", err);
+    return `Failed to generate summary. Error: ${err.message}`;
   }
 }
 
-// Implement the tool class
+// --- Tool Implementation ---
 export class CarelonSearchTool extends StructuredTool<
   typeof CarelonSearchInputSchema
 > {
   name = "carelon_guidelines_search";
   description =
-    "Queries Carelon Guidelines search API and returns a summarized policy using a single, efficient API call.";
+    "Queries Carelon Guidelines search API and returns a summarized policy using ChatGPT.";
   schema = CarelonSearchInputSchema;
 
   async call<TConfig extends ToolRunnableConfig | undefined>(
@@ -147,19 +98,17 @@ export class CarelonSearchTool extends StructuredTool<
         return `No relevant guidelines found for the query: ${input.query}`;
       }
 
-      // Combine and clean the content into a single string
+      // ✅ Optimize content cleaning: one pass instead of multiple
       const combinedContent = body
         .map((c) =>
           c.content
             .replace(/\.{25}[\s\S]*?\.{25}/g, "")
             .replace(/\\nSTATEMENT[\s\S]*?\.\{4\} 4/g, "")
             .replace(cleanRegex, "")
-            .replace(/\r/g, "")
-            .replace(/\n/g, ""),
+            .replace(/[\r\n]+/g, " "),
         )
         .join(" ");
 
-      // Pass the entire content to the summarization function in a single call
       const summary = await getSummaryFromDocs(combinedContent, input.query);
 
       return `Found Carelon Coverage Guideline(s) for '${input.query}'. Here is a summary of the most relevant information:\n\n${summary}`;

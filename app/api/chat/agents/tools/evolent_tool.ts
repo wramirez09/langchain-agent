@@ -1,11 +1,9 @@
 import { z } from "zod";
 import { StructuredTool, ToolRunnableConfig } from "@langchain/core/tools";
-import { loadSummarizationChain } from "langchain/chains";
 import { ChatOpenAI } from "@langchain/openai";
-import { Document } from "langchain/document";
-import { cleanRegex } from "./utils"; // Assuming this utility is external and works as intended
+import { cleanRegex } from "./utils"; // Assume external cleaning regex utility
 
-// Define the input schema for the tool
+// Input schema
 const EvolentSearchInputSchema = z.object({
   query: z
     .string()
@@ -14,11 +12,19 @@ const EvolentSearchInputSchema = z.object({
     ),
 });
 
+// ⚡ Global LLM instance for speed (keeps warm, reused across calls)
+const llm = new ChatOpenAI({
+  model: "gpt-4o", // fast, cheaper than GPT-4
+  temperature: 0,
+  maxRetries: 3,
+});
+
 export class EvolentSearchTool extends StructuredTool<
   typeof EvolentSearchInputSchema
 > {
   name = "evolent_guidelines_search";
-  description = "Searches Evolent Guidelines and provides a summarized policy.";
+  description =
+    "Searches Evolent Guidelines and provides a fast summarized policy.";
   schema = EvolentSearchInputSchema;
 
   async call<TConfig extends ToolRunnableConfig | undefined>(
@@ -29,7 +35,7 @@ export class EvolentSearchTool extends StructuredTool<
       return await this._call(parsedInput);
     } catch (error: any) {
       console.error("Error in EvolentSearchTool call method:", error);
-      return `Error: An issue occurred while processing your request. Details: ${error.message}`;
+      return `Error: ${error.message}`;
     }
   }
 
@@ -59,43 +65,38 @@ export class EvolentSearchTool extends StructuredTool<
         return `No Evolent data found for '${input.query}'.`;
       }
 
-      // Perform initial cleaning of boilerplate text.
-      // This regex-based cleaning is kept as is.
+      // ⚡ Combined cleaning regex (single pass)
       const cleanedContent = firstResult.content
         .replace(
-          /auer BG, Long MD\. ACG Clinical Guideline: UlcerativeColitis in Adults\.[\s\S]*?DISCLAIMER\s*\.{5}\s*\d+/g,
+          /auer BG, Long MD\. ACG Clinical Guideline: UlcerativeColitis in Adults\.[\s\S]*?DISCLAIMER\s*\.{5}\s*\d+|\.{25}[\s\S]*?\.{25}|\s*Page \d+ of \d+ Evolent Clinical Guideline[\s\S]*?Implementation Date: \w+ \d+\.\.\. \d+[\s\S]*?DISCLAIMER\s*\.{5}\s*\d+|\\nSTATEMENT[\s\S]*?\.\{4\} 4|TABLE OF CONTENTS STATEMENT[\s\S]*?CODING \.\. 2|[A-Z\s]+\.{9}[\s\S]*?[A-Z\s]+\.{9}/g,
           "",
         )
-        .replace(/\.{25}[\s\S]*?\.{25}/g, "")
-        .replace(
-          /\s*Page \d+ of \d+ Evolent Clinical Guideline[\s\S]*?Implementation Date: \w+ \d+\.\.\. \d+[\s\S]*?DISCLAIMER\s*\.{5}\s*\d+/g,
-          "",
-        )
-        .replace(/\\nSTATEMENT[\s\S]*?\.\{4\} 4/g, "")
-        .replace(/TABLE OF CONTENTS STATEMENT[\s\S]*?CODING \.\. 2/g, "")
-        .replace(/[A-Z\s]+\.{9}[\s\S]*?[A-Z\s]+\.{9}/g, "")
         .replace(cleanRegex, "")
-        .replace(/\r/g, "")
-        .replace(/\n/g, "");
+        .replace(/[\r\n]+/g, " ");
 
-      const docs = [new Document({ pageContent: cleanedContent })];
+      // ⚡ Truncate to first 12k chars for speed
+      const truncatedContent = cleanedContent.slice(0, 12000);
 
-      // Initialize the LLM with a valid and powerful model.
-      const llm = new ChatOpenAI({
-        model: "gpt-5",
-        temperature: 0,
-      });
+      // Prepare LLM prompt
+      const summaryPrompt = `
+Summarize the following Evolent guideline content based on the user's query.
+The summary should be concise, factual, and directly address the query.
 
-      // Use the 'stuff' summarization chain for efficiency.
-      const chain = loadSummarizationChain(llm, { type: "stuff" });
-      const result = await chain.invoke({
-        input_documents: docs,
-      });
+User's Query: ${input.query}
 
-      return `Evolent Coverage Guideline(s) for '${input.query}':\n\n${result.text}`;
+Document Content:
+${truncatedContent}
+      `;
+
+      // ⚡ Direct LLM call (no chain overhead)
+      const result = await llm.invoke([
+        { role: "user", content: summaryPrompt },
+      ]);
+
+      return `Evolent Coverage Guideline(s) for '${input.query}':\n\n${result.content}`;
     } catch (error: any) {
-      // More specific error message for better debugging.
-      return `Error calling Evolent API for query '${input.query}' or processing data: ${error.message}`;
+      console.error("Error in EvolentSearchTool:", error);
+      return `Error calling Evolent API for '${input.query}': ${error.message}`;
     }
   }
 }

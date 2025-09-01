@@ -62,17 +62,6 @@ export function FileUpload({
     }
   };
 
-  React.useEffect(() => {
-    if (progress === 100) {
-      setTimeout(() => {
-        setProgress(0);
-        setIsUploading(false);
-        setIsLoading(true);
-        setModalOpen(false);
-      }, 1000);
-    }
-  }, [progress, setIsLoading, setModalOpen]);
-
   const {
     getRootProps,
     getInputProps,

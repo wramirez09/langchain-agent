@@ -3,19 +3,20 @@
 import React, { useState, type FormEvent } from "react";
 import { Button } from "./ui/button";
 import { FileUpload } from "./ui/FileUpload";
+import { toast } from "sonner";
 
 const UploadDocumentsForm: React.FC<{
   onUpload: (file: any) => Promise<any>;
   setModalOpen: React.Dispatch<React.SetStateAction<boolean>>;
-}> = ({ onUpload, setModalOpen }) => {
-  const [isLoading, setIsLoading] = useState(false);
+  setIsLoading: React.Dispatch<React.SetStateAction<boolean>>;
+}> = ({ onUpload, setModalOpen, setIsLoading }) => {
   const [document, setDocument] = useState<File | undefined>();
 
   const handelFileUpload = async (e: FormEvent) => {
     e.preventDefault();
-    setIsLoading(true);
+
     await onUpload(document);
-    setIsLoading(false);
+    setModalOpen(false);
   };
 
   return (
@@ -26,7 +27,7 @@ const UploadDocumentsForm: React.FC<{
         setModalOpen={setModalOpen}
       />
       <Button type="submit" onClick={handelFileUpload}>
-        <span className={isLoading ? "hidden" : ""}>Upload</span>
+        <span>Submit</span>
       </Button>
     </form>
   );

@@ -402,7 +402,7 @@ export function ChatWindow(props: {
   }
 
   const [modalOpen, setModalOpen] = React.useState(false);
-
+  const [isLoading, setIsLoading] = useState(false);
   return (
     <>
       <ChatLayout
@@ -431,7 +431,12 @@ export function ChatWindow(props: {
               onStateFormStateChange={handleFormStateChange}
             >
               {props.showIngestForm && (
-                <Dialog open={modalOpen} onOpenChange={setModalOpen}>
+                <Dialog
+                  open={modalOpen}
+                  onOpenChange={() => {
+                    setModalOpen(!modalOpen);
+                  }}
+                >
                   <DialogTrigger asChild>
                     <Button
                       variant="ghost"
@@ -452,6 +457,7 @@ export function ChatWindow(props: {
                     <UploadDocumentsForm
                       onUpload={handleUploadAndChat}
                       setModalOpen={setModalOpen}
+                      setIsLoading={setIsLoading}
                     />
                   </DialogContent>
                 </Dialog>
