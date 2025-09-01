@@ -127,7 +127,7 @@ export function ChatInput(props: {
         }}
         className={cn("flex w-full flex-col", props.className)}
       >
-        <div className="border border-slate-950 bg-black rounded-lg flex flex-col gap-2 max-w-[768px] w-full mx-auto align-middle">
+        <div className="border border-[#a8afba] bg-gray-300 rounded-lg flex flex-col gap-2 max-w-[768px] w-full mx-auto align-middle">
           <input
             name="chat"
             value={props.value}
@@ -138,16 +138,16 @@ export function ChatInput(props: {
           />
 
           <div className="flex justify-between ml-4 mr-2 ">
-            <div className="flex items-center gap-2">
-              <div className="flex gap-3 justify-between">{props.children}</div>
+            <div className="flex items-center gap-5">
+              <div className="flex gap-1 justify-between">{props.children}</div>
 
               <Button
                 variant="ghost"
-                className="pl-2 pr-3 -ml-2"
+                className="pl-2 pr-3 -ml-2 -mr-2 hover:bg-[#e1e8f3] bg-gray-300 text-black mr-2"
                 onClick={() => setSheetOpen((open) => !open)}
               >
-                <IconFileSearch stroke={1.25} />
-                <span>PreAuth Form</span>
+                <IconFileSearch stroke={1.25} color="#238dd2" />
+                <span className="text-[#238dd2]">PreAuth Form</span>
               </Button>
             </div>
 
@@ -155,9 +155,8 @@ export function ChatInput(props: {
               {props.actions}
               <Button
                 type="submit"
-                className="self-end"
+                className="self-end bg-transparent hover:bg-[#e1e8f3]"
                 disabled={disabled}
-                variant={"ghost"}
               >
                 {props.loading ? (
                   <span role="status" className="flex justify-center">
@@ -166,7 +165,7 @@ export function ChatInput(props: {
                   </span>
                 ) : (
                   <span>
-                    <IconSend2 />
+                    <IconSend2 className="text-[#238dd2] hover:text-white" />
                   </span>
                 )}
               </Button>
@@ -195,7 +194,7 @@ export function ChatLayout(props: { content: ReactNode; form: ReactNode }) {
           content={props.content}
           footer={
             <div className="sticky bottom-8 px-2">
-              <ScrollToBottom className="absolute bottom-full left-1/2 -translate-x-1/2 mb-4 bg-black" />
+              <ScrollToBottom className="absolute bottom-full left-1/2 -translate-x-1/2 mb-4 bg-gray-200" />
               {props.form}
             </div>
           }
@@ -440,11 +439,11 @@ export function ChatWindow(props: {
                   <DialogTrigger asChild>
                     <Button
                       variant="ghost"
-                      className="pl-2 pr-3 -ml-2"
+                      className="pl-2 pr-3 -ml-2 hover:bg-[#e1e8f3] bg-gray-300 text-black"
                       disabled={chat.messages.length !== 0}
                     >
-                      <Paperclip className="size-4" />
-                      <span>Upload document</span>
+                      <Paperclip className="size-4" color="#238dd2" />
+                      <span className="text-[#238dd2]">Upload document</span>
                     </Button>
                   </DialogTrigger>
                   <DialogContent>

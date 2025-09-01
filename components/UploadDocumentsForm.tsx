@@ -26,7 +26,7 @@ const UploadDocumentsForm: React.FC<{
         setIsLoading={setIsLoading}
         setModalOpen={setModalOpen}
       />
-      <Button type="submit" onClick={handelFileUpload}>
+      <Button type="submit" onClick={handelFileUpload} className="bg-gray-400">
         <span>Submit</span>
       </Button>
     </form>

@@ -35,7 +35,7 @@ const AutoCompleteSelect: React.FC<{
           variant="outline"
           role="combobox"
           aria-expanded={open}
-          className="w-full justify-between mb-5 text-gray-200 bg-zinc-600"
+          className="w-full justify-between mb-5 text-gray-700 bg-gray-300 border-[#a8afba]"
         >
           {value
             ? options.find((option: SelectOption) => option.value === value)
@@ -55,7 +55,7 @@ const AutoCompleteSelect: React.FC<{
             <CommandGroup>
               {options.map((option) => (
                 <CommandItem
-                  className="text-white pointer-events-auto"
+                  className="text-gray-600 pointer-events-auto"
                   key={option.value}
                   value={option.value}
                   onSelect={(currentValue: any) => {

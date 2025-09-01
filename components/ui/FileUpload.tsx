@@ -78,22 +78,22 @@ export function FileUpload({
   });
 
   return (
-    <div className="space-y-4 bg-black">
+    <div className="space-y-4 bg-gray-200">
       <div
         {...getRootProps()}
         className={cn(
           "flex h-48 w-full cursor-pointer items-center justify-center rounded-md border-2 border-dashed transition-colors",
           isDragActive
             ? "border-primary bg-primary/10"
-            : "border-gray-300 bg-gray-50 hover:border-gray-400 dark:border-gray-700 dark:bg-gray-500",
+            : "border-gray-300 bg-gray-50 hover:border-gray-400 dark:border-gray-700 dark:bg-gray-200",
         )}
       >
         <input {...getInputProps()} />
         <div className="text-center">
           {isDragActive ? (
-            <p className="text-primary-foreground">Drop the files here ...</p>
+            <p className="text-black">Drop the files here ...</p>
           ) : (
-            <p className="flex flex-row items-center">
+            <p className="flex flex-row items-center text-black">
               <IconDragDrop
                 stroke={1.25}
                 width={25}
@@ -116,7 +116,7 @@ export function FileUpload({
                 key={file.name}
                 className="flex items-center justify-between p-2"
               >
-                <div className="flex items-center gap-2">
+                <div className="flex items-center gap-2 text-black">
                   <span>{file.name}</span>
                 </div>
               </li>

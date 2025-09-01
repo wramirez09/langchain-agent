@@ -88,7 +88,7 @@ function Message(props: {
       {props.message.type === "human" && (
         <div className="ml-auto flex justify-end items-center gap-2 mt-2">
           <button
-            className="text-muted-foreground text-right text-sm"
+            className="text-gray-900 text-right text-sm"
             type="button"
             onClick={() => setIsEditing(true)}
           >
@@ -102,7 +102,7 @@ function Message(props: {
       {props.message.type === "ai" && (
         <div className="mt-2 flex items-center justify-start gap-2">
           {props.actions}
-          <div className="text-sm text-muted-foreground">
+          <div className="text-sm text-gray-900">
             <button type="button" onClick={props.onRegenerate}>
               Regenerate
             </button>
@@ -131,10 +131,10 @@ function BranchPicker(props: {
           props.onSelect(next);
         }}
       >
-        <ChevronLeft className="w-4 h-4 text-muted-foreground" />
+        <ChevronLeft className="w-4 h-4 text-gray-900" />
       </button>
 
-      <span className="text-muted-foreground">
+      <span className="text-gray-900">
         {index + 1} / {props.branches.length}
       </span>
 
@@ -147,7 +147,7 @@ function BranchPicker(props: {
           props.onSelect(next);
         }}
       >
-        <ChevronRight className="w-4 h-4 text-muted-foreground" />
+        <ChevronRight className="w-4 h-4 text-gray-900" />
       </button>
     </div>
   );

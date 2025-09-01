@@ -43,9 +43,11 @@ const FlyoutForm: React.FC<{
   const [open, setOpen] = React.useState(false);
   return (
     <Sheet open={openSheet} onOpenChange={(open) => setOpenSheet(open)}>
-      <SheetContent className="w-[60vw] bg-zinc-900">
+      <SheetContent className="w-[60vw] bg-gray-200 border border-gray-400 shadow-lg">
         <SheetHeader>
-          <SheetTitle>Prior Authorization Request</SheetTitle>
+          <SheetTitle className="text-xl">
+            Prior Authorization Request
+          </SheetTitle>
           <SheetDescription>
             Please provide the necessary patient and clinical information to
             begin the prior authorization process.
@@ -68,9 +70,10 @@ const FlyoutForm: React.FC<{
           </Button>
           <SheetClose asChild>
             <Button
-              variant="ghost"
               onClick={() => setOpenSheet(false)}
               type="submit"
+              variant="default"
+              className="bg-red-700 text-white hover:bg-gray-600 mb-5"
             >
               Cancel
             </Button>

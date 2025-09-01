@@ -1,5 +1,6 @@
 /** @type {import('tailwindcss').Config} */
 module.exports = {
+  darkMode: ["class"], // 👈 allows dark theme switching via class="dark"
   content: [
     "./pages/**/*.{js,ts,jsx,tsx,mdx}",
     "./components/**/*.{js,ts,jsx,tsx,mdx}",
@@ -11,14 +12,14 @@ module.exports = {
         border: "hsl(var(--border))",
         input: "hsl(var(--input))",
         ring: "hsl(var(--ring))",
-        background: "#fff",
+        background: "hsl(var(--background))", // 👈 switched to token instead of hardcoding #fff
         foreground: "hsl(var(--foreground))",
         primary: {
           DEFAULT: "hsl(var(--primary))",
           foreground: "hsl(var(--primary-foreground))",
         },
         secondary: {
-          DEFAULT: "#efefef",
+          DEFAULT: "hsl(var(--secondary))", // 👈 made token-based
           foreground: "hsl(var(--secondary-foreground))",
         },
         destructive: {

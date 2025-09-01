@@ -56,7 +56,7 @@ export default function RootLayout({
         style={{ overflow: "hidden" }}
       >
         <NuqsAdapter>
-          <div className="bg-black grid grid-rows-[auto,1fr] overscroll-y-none h-[100vh]">
+          <div className="bg-gray-200 grid grid-rows-[auto,1fr] overscroll-y-none h-[100vh]">
             <div className="grid grid-cols-[1fr,auto] gap-2 p-4">
               <div className="flex gap-4 flex-col md:flex-row md:items-center ml-2">
                 <a
@@ -92,7 +92,7 @@ export default function RootLayout({
               <div className="flex justify-center"></div>
             </div>
             <div
-              className="bg-stone-950 mx-4 relative grid rounded-1xl  h-[90vh] shadow-lg"
+              className="bg-gray-100 mx-4 relative grid rounded-1xl  h-[90vh] shadow-lg"
               style={{ overflowY: "hidden" }}
             >
               <NavbarMinimal />
