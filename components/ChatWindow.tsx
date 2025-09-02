@@ -27,8 +27,15 @@ import {
   DialogTitle,
   DialogTrigger,
 } from "./ui/dialog";
-import { IconFileSearch, IconSend2 } from "@tabler/icons-react";
+import {
+  IconFileSearch,
+  IconFileTypePdf,
+  IconSend2,
+} from "@tabler/icons-react";
 import FlyoutForm from "./ui/FlyoutForm";
+import { PDFDownloadLink } from "@react-pdf/renderer";
+import PdfDoc from "./PdfDoc";
+import Link from "next/link";
 
 function ChatMessages(props: {
   messages: Message[];
@@ -109,9 +116,11 @@ export function ChatInput(props: {
   actions?: ReactNode;
   onStateFormStateChange?: (key: string, value: string) => void;
   onUpload?: (file: File) => Promise<void>;
+  messages: Message[];
 }) {
   const disabled = props.loading && props.onStop == null;
   const [sheetOpen, setSheetOpen] = React.useState(false);
+
   return (
     <>
       <form
@@ -133,7 +142,7 @@ export function ChatInput(props: {
             value={props.value}
             placeholder={props.placeholder}
             onChange={props.onChange}
-            className="border-none outline-none bg-transparent ml-3 pt-3
+            className="border-none outline-none bg-transparent ml-3 pt-3 text-gray-800
           "
           />
 
@@ -143,11 +152,28 @@ export function ChatInput(props: {
 
               <Button
                 variant="ghost"
-                className="pl-2 pr-3 -ml-2 -mr-2 hover:bg-[#e1e8f3] bg-gray-300 text-black mr-2"
+                className="pl-2 pr-3 -ml-2 -mr-2 hover:bg-[#e1e8f3] bg-gray-300  mr-2"
                 onClick={() => setSheetOpen((open) => !open)}
               >
                 <IconFileSearch stroke={1.25} color="#238dd2" />
                 <span className="text-[#238dd2]">PreAuth Form</span>
+              </Button>
+
+              <Button
+                variant={"ghost"}
+                className="pl-2 pr-3 -ml-2 -mr-2 hover:bg-[#e1e8f3] bg-gray-300 text-[#238dd2] mr-2"
+              >
+                <IconFileTypePdf stroke={2} color="#238dd2" />
+                <Link
+                  target="_blank"
+                  className="text-[#238dd2]"
+                  href={{
+                    pathname: "/pdf",
+                    query: { data: JSON.stringify(props.messages) },
+                  }}
+                >
+                  Export
+                </Link>
               </Button>
             </div>
 
@@ -428,6 +454,7 @@ export function ChatWindow(props: {
                 props.placeholder ?? "What's it like to be a pirate?"
               }
               onStateFormStateChange={handleFormStateChange}
+              messages={chat.messages}
             >
               {props.showIngestForm && (
                 <Dialog

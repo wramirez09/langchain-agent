@@ -100,7 +100,7 @@ const FormInputs: React.FC<Props> = (props: Props) => {
             type="text"
             placeholder="CPT Codes"
             onChange={handleCptChange}
-            className="border border-[#a8afba] text-[] focus-visible:ring-ring  bg-gray-300"
+            className="border border-[#a8afba] text-[] focus-visible:ring-ring  bg-gray-300 text-gray-800"
           />
         </div>
       </div>
@@ -113,7 +113,7 @@ const FormInputs: React.FC<Props> = (props: Props) => {
         <Textarea
           placeholder="Magnetic Resonance Imaging"
           onChange={handleDiagnosisChange}
-          className="border border-[#a8afba] text-[] focus-visible:ring-ring"
+          className="border border-[#a8afba] text-[] focus-visible:ring-ring text-gray-800"
         />
       </div>
 
@@ -125,7 +125,7 @@ const FormInputs: React.FC<Props> = (props: Props) => {
         <Textarea
           placeholder="Meniscus tear"
           onChange={handleHistoryChange}
-          className="border border-[#a8afba] text-[] focus-visible:ring-ring"
+          className="border border-[#a8afba] text-[] focus-visible:ring-ring text-gray-800"
         />
       </div>
 
@@ -137,7 +137,7 @@ const FormInputs: React.FC<Props> = (props: Props) => {
         <Textarea
           placeholder="Get CPT codes"
           onChange={props.chatOnChange}
-          className="border border-[#a8afba] text-[] focus-visible:ring-ring"
+          className="border border-[#a8afba] text-[] focus-visible:ring-ring text-gray-800"
         />
       </div>
     </section>

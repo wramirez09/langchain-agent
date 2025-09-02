@@ -47,7 +47,7 @@ const AutoCompleteSelect: React.FC<{
       <PopoverContent className="p-0">
         <Command>
           <CommandInput
-            placeholder="Searchme..."
+            placeholder="Search..."
             className="h-9 pointer-events-auto"
           />
           <CommandList>
@@ -55,7 +55,7 @@ const AutoCompleteSelect: React.FC<{
             <CommandGroup>
               {options.map((option) => (
                 <CommandItem
-                  className="text-gray-600 pointer-events-auto"
+                  className="text-gray-600 pointer-events-auto hover:bg-[#535963]"
                   key={option.value}
                   value={option.value}
                   onSelect={(currentValue: any) => {
