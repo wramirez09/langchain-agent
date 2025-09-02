@@ -1,12 +1,11 @@
 "use client";
 
 import React, { Suspense } from "react";
-
 import PdfDoc from "@/components/PdfDoc";
 import { Message } from "ai/react";
 import { useSearchParams } from "next/navigation";
 
-const SuspendedPDF = () => {
+const SuspendedPDFInner = () => {
   const params = useSearchParams();
   const stringData = params.get("data");
 
@@ -14,11 +13,16 @@ const SuspendedPDF = () => {
   try {
     messages = stringData ? JSON.parse(stringData) : [];
   } catch (err) {
-    return <div>Loading...</div>;
+    return <div>Invalid data</div>;
   }
+
+  return <PdfDoc name="User" role="Viewer" messages={messages} />;
+};
+
+const SuspendedPDF = () => {
   return (
-    <Suspense>
-      <PdfDoc name="User" role="Viewer" messages={messages} />
+    <Suspense fallback={<div>Loading PDF...</div>}>
+      <SuspendedPDFInner />
     </Suspense>
   );
 };
