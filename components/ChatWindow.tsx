@@ -36,6 +36,7 @@ import FlyoutForm from "./ui/FlyoutForm";
 import { PDFDownloadLink } from "@react-pdf/renderer";
 import PdfDoc from "./PdfDoc";
 import Link from "next/link";
+import { runtime } from "@/app/api/chat/route";
 
 function ChatMessages(props: {
   messages: Message[];

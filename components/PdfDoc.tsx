@@ -8,6 +8,7 @@ import {
   View,
   StyleSheet,
   Image,
+  PDFViewer,
 } from "@react-pdf/renderer";
 import { type Message } from "ai";
 import logo from "@/public/images/logo-main.svg";
@@ -58,33 +59,35 @@ type PdfProps = {
 };
 
 const PdfDoc: React.FC<PdfProps> = ({ name, role, messages }) => (
-  <Document>
-    <Page style={styles.page}>
-      <View style={styles.header}>
-        <Image src={logo} style={styles.logo} cache fixed />
-        <View>
-          <Text style={styles.companyName}>NoteDoctor.Ai</Text>
-          {/* <Text style={styles.subtitle}>
+  <PDFViewer width="100%" height="100%">
+    <Document>
+      <Page style={styles.page}>
+        <View style={styles.header}>
+          <Image src={logo} style={styles.logo} cache fixed />
+          <View>
+            <Text style={styles.companyName}>NoteDoctor.Ai</Text>
+            {/* <Text style={styles.subtitle}>
             Chat generated for {name} ({role})
           </Text> */}
+          </View>
         </View>
-      </View>
-      {/* Header */}
-      <View style={styles.header}>
-        <Text style={styles.title}>Chat Transcript</Text>
-        {/* <Text style={styles.subtitle}>
+        {/* Header */}
+        <View style={styles.header}>
+          <Text style={styles.title}>Chat Transcript</Text>
+          {/* <Text style={styles.subtitle}>
           Generated for {name} ({role})
         </Text> */}
-      </View>
-
-      {/* Messages */}
-      {messages.map((message, index) => (
-        <View key={index} style={styles.messageContainer}>
-          <Text style={styles.messageText}>{message.content}</Text>
         </View>
-      ))}
-    </Page>
-  </Document>
+
+        {/* Messages */}
+        {messages.map((message, index) => (
+          <View key={index} style={styles.messageContainer}>
+            <Text style={styles.messageText}>{message.content}</Text>
+          </View>
+        ))}
+      </Page>
+    </Document>
+  </PDFViewer>
 );
 
 export default PdfDoc;

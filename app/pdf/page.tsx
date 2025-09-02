@@ -1,28 +1,30 @@
 "use client";
+
+import React, { Suspense } from "react";
+
 import PdfDoc from "@/components/PdfDoc";
-import { PDFViewer } from "@react-pdf/renderer";
 import { Message } from "ai/react";
 import { useSearchParams } from "next/navigation";
-import * as React from "react";
 
-const Viewer = () => {
+const SuspendedPDF = () => {
   const params = useSearchParams();
   const stringData = params.get("data");
-  const data: Message[] = JSON.parse(stringData!);
-  console.log("params", { data: data });
-  //   let receivedData = [];
-  //   if (data) {
-  //     try {
-  //       receivedData = JSON.parse(data as string);
-  //     } catch (error) {
-  //       console.error("Error parsing data from URL:", error);
-  //     }
-  //   }
+
+  let messages: Message[] = [];
+  try {
+    messages = stringData ? JSON.parse(stringData) : [];
+  } catch (err) {
+    return <div>Loading...</div>;
+  }
   return (
-    <PDFViewer height={"100%"}>
-      <PdfDoc messages={data} name={""} role={""} />
-    </PDFViewer>
+    <Suspense>
+      <PdfDoc name="User" role="Viewer" messages={messages} />
+    </Suspense>
   );
 };
 
-export default Viewer;
+const Page: React.FC = () => {
+  return <SuspendedPDF />;
+};
+
+export default Page;
