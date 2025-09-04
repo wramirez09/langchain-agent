@@ -9,14 +9,13 @@ import { toast } from "sonner";
 import { ChatMessageBubble } from "@/components/ChatMessageBubble";
 import { IntermediateStep } from "./IntermediateStep";
 import { Button } from "./ui/button";
-import { ArrowDown, LoaderCircle, Paperclip } from "lucide-react";
+import { ArrowDown, LoaderCircle } from "lucide-react";
 import { Checkbox } from "./ui/checkbox";
 
 import { cn } from "@/utils/cn";
-import FormInputs from "@/components/ui/forms/Form";
-import { LeadGrid } from "./layouts/LeadGrid";
+
 import React from "react";
-// import { FileUploadForm } from "./ui/FileUpload";
+
 import { StickToBottom, useStickToBottomContext } from "use-stick-to-bottom";
 import UploadDocumentsForm from "./UploadDocumentsForm";
 import {
@@ -31,12 +30,12 @@ import {
   IconFileSearch,
   IconFileTypePdf,
   IconSend2,
+  IconSettings,
+  IconUpload,
 } from "@tabler/icons-react";
 import FlyoutForm from "./ui/FlyoutForm";
-import { PDFDownloadLink } from "@react-pdf/renderer";
-import PdfDoc from "./PdfDoc";
 import Link from "next/link";
-import { runtime } from "@/app/api/chat/route";
+import MobileDrawer from "./ui/MobileDrawer";
 
 function ChatMessages(props: {
   messages: Message[];
@@ -46,7 +45,7 @@ function ChatMessages(props: {
   className?: string;
 }) {
   return (
-    <div className="flex flex-col max-w-[768px] mx-auto pb-12 w-full">
+    <div className="flex flex-col mx-auto pb-12 w-full">
       {props.messages.map((m, i) => {
         if (m.role === "system") {
           return <IntermediateStep key={m.id} message={m} />;
@@ -94,7 +93,7 @@ function StickyToBottomContent(props: {
   return (
     <div
       ref={context.scrollRef}
-      className={cn("grid grid-rows-[1fr,auto]", props.className)}
+      className={cn("grid grid-rows-[1fr,auto] bottom-fixed-element mb-3 md:mb-0", props.className)}
     >
       <div ref={context.contentRef} className={props.contentClassName}>
         {props.content}
@@ -104,6 +103,9 @@ function StickyToBottomContent(props: {
     </div>
   );
 }
+
+
+
 
 export function ChatInput(props: {
   onSubmit: (e: FormEvent<HTMLFormElement>) => void;
@@ -122,6 +124,24 @@ export function ChatInput(props: {
   const disabled = props.loading && props.onStop == null;
   const [sheetOpen, setSheetOpen] = React.useState(false);
 
+  const [openMobileDrawer, setOpenMobileDrawer] =
+    React.useState<boolean>(false);
+
+  const handleMobileDrawerOptionSelection = useCallback((option: "upload" | "export" | "form") => {
+
+    if (option) {
+      console.log('selection', option)
+      switch (option) {
+        case "upload":
+
+          break;
+
+        default:
+          break;
+      }
+    }
+  }, [])
+
   return (
     <>
       <form
@@ -137,46 +157,63 @@ export function ChatInput(props: {
         }}
         className={cn("flex w-full flex-col", props.className)}
       >
-        <div className="border border-[#a8afba] bg-gray-300 rounded-lg flex flex-col gap-2 max-w-[768px] w-full mx-auto align-middle">
+        <div className="border border-[#a8afba] bg-gray-300 rounded-lg flex flex-col gap-1 max-w-[768px] w-full mx-auto align-middle">
           <input
             name="chat"
             value={props.value}
             placeholder={props.placeholder}
             onChange={props.onChange}
-            className="border-none outline-none bg-transparent ml-3 pt-3 text-gray-800
+            className="border-none outline-none bg-transparent px-3 pt-3 text-gray-800
           "
           />
 
           <div className="flex justify-between ml-4 mr-2 ">
-            <div className="flex items-center gap-5">
-              <div className="flex gap-1 justify-between">{props.children}</div>
+            <div className="flex flex-col sm:flex-row sm:items-center gap-3 sm:gap-1">
+              {/* Extra children (like upload, checkboxes, etc.) */}
+              <div className="flex flex-wrap gap-1">{props.children}</div>
 
               <Button
                 variant="ghost"
-                className="pl-2 pr-3 -ml-2 -mr-2 hover:bg-[#e1e8f3] bg-gray-300  mr-2"
+                className="hidden md:flex items-center hover:bg-[#e1e8f3] bg-gray-300 text-[#238dd2] hover:text-[#238dd2] p-1"
                 onClick={() => setSheetOpen((open) => !open)}
               >
-                <IconFileSearch stroke={1.25} color="#238dd2" />
-                <span className="text-[#238dd2]">PreAuth Form</span>
+                <IconFileSearch
+                  stroke={1.25}
+                  className="shrink-0 text-[#238dd2]"
+                  width={20}
+                />
+                PreAuth Form
               </Button>
 
               <Button
-                variant={"ghost"}
-                className="pl-2 pr-3 -ml-2 -mr-2 hover:bg-[#e1e8f3] bg-gray-300 text-[#238dd2] mr-2"
+                variant="ghost"
+                className="hidden md:flex items-center hover:bg-[#e1e8f3] bg-gray-300 p-1"
               >
-                <IconFileTypePdf stroke={2} color="#238dd2" />
+                <IconFileTypePdf
+                  stroke={1.25}
+                  className="shrink-0 text-[#238dd2]"
+                  width={20}
+                />
+
                 <Link
                   target="_blank"
-                  className="text-[#238dd2]"
+                  className="text-[#238dd2] text-sm p-1"
                   href={{
                     pathname: "/pdf",
                     query: { data: JSON.stringify(props.messages) },
                   }}
-                >
-                  Export
-                </Link>
+                >PDF Export</Link>
+              </Button>
+
+              <Button className="flex md:hidden items-center hover:bg-[#e1e8f3] bg-gray-300 text-[#238dd2] hover:text-[#238dd2] mb-2" onClick={() => { setOpenMobileDrawer((prevOpen: boolean) => !prevOpen) }}>
+                <IconSettings stroke={1.5} width={16} />
               </Button>
             </div>
+            <MobileDrawer
+              setOpen={setOpenMobileDrawer}
+              onChange={handleMobileDrawerOptionSelection}
+              open={openMobileDrawer}
+            />
 
             <div className="flex gap-2 self-end pb-2">
               {props.actions}
@@ -191,9 +228,10 @@ export function ChatInput(props: {
                     <span className="sr-only">Loading...</span>
                   </span>
                 ) : (
-                  <span>
-                    <IconSend2 className="text-[#238dd2] hover:text-white" />
-                  </span>
+                  <IconSend2
+                    className="text-[#238dd2] hover:text-white"
+                    width={16}
+                  />
                 )}
               </Button>
             </div>
@@ -213,21 +251,21 @@ export function ChatInput(props: {
 
 export function ChatLayout(props: { content: ReactNode; form: ReactNode }) {
   return (
-    <>
-      <StickToBottom>
-        <StickyToBottomContent
-          className="absolute inset-0"
-          contentClassName="py-8 px-2"
-          content={props.content}
-          footer={
-            <div className="sticky bottom-8 px-2">
-              <ScrollToBottom className="absolute bottom-full left-1/2 -translate-x-1/2 mb-4 bg-gray-200" />
-              {props.form}
-            </div>
-          }
-        />
-      </StickToBottom>
-    </>
+
+    <StickToBottom>
+      <StickyToBottomContent
+        className="absolute inset-0"
+        contentClassName="py-8 px-2"
+        content={props.content}
+        footer={
+          <div className="sticky bottom-8 px-2">
+            <ScrollToBottom className="absolute bottom-full left-1/2 -translate-x-1/2 mb-4 bg-gray-200" />
+            {props.form}
+          </div>
+        }
+      />
+    </StickToBottom>
+
   );
 }
 
@@ -430,84 +468,87 @@ export function ChatWindow(props: {
   const [modalOpen, setModalOpen] = React.useState(false);
   const [isLoading, setIsLoading] = useState(false);
   return (
-    <>
-      <ChatLayout
-        content={
-          chat.messages.length === 0 ? (
-            <div>{props.emptyStateComponent}</div>
-          ) : (
-            <ChatMessages
-              aiEmoji={props.emoji}
-              messages={chat.messages}
-              emptyStateComponent={props.emptyStateComponent}
-              sourcesForMessages={sourcesForMessages}
-            />
-          )
-        }
-        form={
-          <>
-            <ChatInput
-              value={chat.input}
-              onChange={chat.handleInputChange}
-              onSubmit={sendMessage}
-              loading={chat.isLoading || intermediateStepsLoading}
-              placeholder={
-                props.placeholder ?? "What's it like to be a pirate?"
-              }
-              onStateFormStateChange={handleFormStateChange}
-              messages={chat.messages}
-            >
-              {props.showIngestForm && (
-                <Dialog
-                  open={modalOpen}
-                  onOpenChange={() => {
-                    setModalOpen(!modalOpen);
-                  }}
-                >
-                  <DialogTrigger asChild>
-                    <Button
-                      variant="ghost"
-                      className="pl-2 pr-3 -ml-2 hover:bg-[#e1e8f3] bg-gray-300 text-black"
-                      disabled={chat.messages.length !== 0}
-                    >
-                      <Paperclip className="size-4" color="#238dd2" />
-                      <span className="text-[#238dd2]">Upload document</span>
-                    </Button>
-                  </DialogTrigger>
-                  <DialogContent>
-                    <DialogHeader>
-                      <DialogTitle>Upload document</DialogTitle>
-                      <DialogDescription>
-                        We currently only support PDF files.
-                      </DialogDescription>
-                    </DialogHeader>
-                    <UploadDocumentsForm
-                      onUpload={handleUploadAndChat}
-                      setModalOpen={setModalOpen}
-                      setIsLoading={setIsLoading}
-                    />
-                  </DialogContent>
-                </Dialog>
-              )}
+    <div className="flex flex-col min-h-[100dvh] bg-gray-100 font-sans">
+      <div className="flex-1 overflow-y-auto p-4 space-y-4">
+        <ChatLayout
 
-              {props.showIntermediateStepsToggle && (
-                <div className="flex items-center gap-2">
-                  <Checkbox
-                    id="show_intermediate_steps"
-                    name="show_intermediate_steps"
-                    checked={showIntermediateSteps}
-                    disabled={chat.isLoading || intermediateStepsLoading}
-                    onCheckedChange={(e) => setShowIntermediateSteps(!!e)}
-                  />
-                  <label htmlFor="show_intermediate_steps" className="text-sm">
-                    Show intermediate steps
-                  </label>
-                </div>
-              )}
-            </ChatInput>
-          </>
-        }
-      />
-    </>
+          content={
+            chat.messages.length === 0 ? (
+              <div>{props.emptyStateComponent}</div>
+            ) : (
+              <ChatMessages
+                aiEmoji={props.emoji}
+                messages={chat.messages}
+                emptyStateComponent={props.emptyStateComponent}
+                sourcesForMessages={sourcesForMessages}
+              />
+            )
+          }
+          form={
+            <>
+              <ChatInput
+                value={chat.input}
+                onChange={chat.handleInputChange}
+                onSubmit={sendMessage}
+                loading={chat.isLoading || intermediateStepsLoading}
+                placeholder={
+                  props.placeholder ?? "What's it like to be a pirate?"
+                }
+                onStateFormStateChange={handleFormStateChange}
+                messages={chat.messages}
+              >
+                {props.showIngestForm && (
+                  <Dialog
+                    open={modalOpen}
+                    onOpenChange={() => {
+                      setModalOpen(!modalOpen);
+                    }}
+                  >
+                    <DialogTrigger asChild>
+                      <Button
+                        variant="ghost"
+                        className="pl-2 pr-3 -ml-2 hover:bg-[#e1e8f3] bg-gray-300 hidden md:flex p-1 text-[#238dd2] hover:text-[#238dd2]"
+                        disabled={chat.messages.length !== 0}
+                      >
+                        <IconUpload stroke={1.5} color="#238dd2" width={20} />
+                        File Upload
+                      </Button>
+                    </DialogTrigger>
+                    <DialogContent>
+                      <DialogHeader>
+                        <DialogTitle>Upload document</DialogTitle>
+                        <DialogDescription>
+                          We currently only support PDF files.
+                        </DialogDescription>
+                      </DialogHeader>
+                      <UploadDocumentsForm
+                        onUpload={handleUploadAndChat}
+                        setModalOpen={setModalOpen}
+                        setIsLoading={setIsLoading}
+                      />
+                    </DialogContent>
+                  </Dialog>
+                )}
+
+                {props.showIntermediateStepsToggle && (
+                  <div className="flex items-center gap-2">
+                    <Checkbox
+                      id="show_intermediate_steps"
+                      name="show_intermediate_steps"
+                      checked={showIntermediateSteps}
+                      disabled={chat.isLoading || intermediateStepsLoading}
+                      onCheckedChange={(e) => setShowIntermediateSteps(!!e)}
+                    />
+                    <label htmlFor="show_intermediate_steps" className="text-sm">
+                      Show intermediate steps
+                    </label>
+                  </div>
+                )}
+              </ChatInput>
+            </>
+          }
+        />
+      </div>
+    </div>
   );
 }
