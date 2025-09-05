@@ -15,13 +15,13 @@ export function ChatMessageBubble(props: {
       className={cn(
         `rounded-[24px] mb-8 flex mx-0 md:mx-8`,
         props.message.role === "user"
-          ? "bg-secondary text-secondary-foreground px-4 py-2"
+          ? "bg-gray-300 text-black px-4 py-2"
           : null,
         props.message.role === "user" ? "ml-auto" : "mr-auto",
       )}
     >
       {props.message.role !== "user" && props.aiEmoji && (
-        <div className="mr-4 border bg-secondary -mt-2 rounded-full w-10 h-10 flex-shrink-0 flex items-center justify-center">
+        <div className="text-black mr-4 border bg-gray-300 -mt-2 rounded-full w-10 h-10 flex-shrink-0 flex items-center justify-center">
           {props.aiEmoji}
         </div>
       )}

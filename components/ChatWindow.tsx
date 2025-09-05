@@ -45,7 +45,7 @@ function ChatMessages(props: {
   className?: string;
 }) {
   return (
-    <div className="flex flex-col mx-auto pb-12 w-full">
+    <div className="flex flex-col max-w-[768px] mx-auto pb-12 w-full">
       {props.messages.map((m, i) => {
         if (m.role === "system") {
           return <IntermediateStep key={m.id} message={m} />;
@@ -71,6 +71,7 @@ function ScrollToBottom(props: { className?: string }) {
   if (isAtBottom) return null;
   return (
     <Button
+      type="button"
       variant="outline"
       className={props.className}
       onClick={() => scrollToBottom()}
@@ -173,6 +174,7 @@ export function ChatInput(props: {
               <div className="flex flex-wrap gap-1">{props.children}</div>
 
               <Button
+                type="button"
                 variant="ghost"
                 className="hidden md:flex items-center hover:bg-[#e1e8f3] bg-gray-300 text-[#238dd2] hover:text-[#238dd2] p-1"
                 onClick={() => setSheetOpen((open) => !open)}
@@ -186,6 +188,7 @@ export function ChatInput(props: {
               </Button>
 
               <Button
+                type="button"
                 variant="ghost"
                 className="hidden md:flex items-center hover:bg-[#e1e8f3] bg-gray-300 p-1"
               >
@@ -205,7 +208,7 @@ export function ChatInput(props: {
                 >PDF Export</Link>
               </Button>
 
-              <Button className="flex md:hidden items-center hover:bg-[#e1e8f3] bg-gray-300 text-[#238dd2] hover:text-[#238dd2] mb-2" onClick={() => { setOpenMobileDrawer((prevOpen: boolean) => !prevOpen) }}>
+              <Button type="button" className="flex md:hidden items-center hover:bg-[#e1e8f3] bg-gray-300 text-[#238dd2] hover:text-[#238dd2] mb-2" onClick={() => { setOpenMobileDrawer((prevOpen: boolean) => !prevOpen) }}>
                 <IconSettings stroke={1.5} width={16} />
               </Button>
             </div>
@@ -259,7 +262,7 @@ export function ChatLayout(props: { content: ReactNode; form: ReactNode }) {
         content={props.content}
         footer={
           <div className="sticky bottom-8 px-2">
-            <ScrollToBottom className="absolute bottom-full left-1/2 -translate-x-1/2 mb-4 bg-gray-200" />
+            <ScrollToBottom className="absolute bottom-full left-1/2 -translate-x-1/2 mb-4 bg-gray-200 text-black" />
             {props.form}
           </div>
         }
@@ -309,20 +312,21 @@ export function ChatWindow(props: {
     },
     streamMode: "text",
     onError: (e) =>
-      toast.error(`Error while processing your request`, {
+      toast.error(`Error while processing your request in Chat`, {
         description: e.message,
       }),
   });
 
   async function sendMessage(e: FormEvent<HTMLFormElement>) {
-    e.preventDefault();
-    console.log("SUBMITTING");
+    // e.preventDefault();
+    console.log("message", { sendMessage })
+
     if (chat.isLoading || intermediateStepsLoading) return;
 
-    if (!showIntermediateSteps) {
-      chat.handleSubmit(e);
-      return;
-    }
+    // if (!showIntermediateSteps) {
+    //   chat.handleSubmit(e);
+    //   return;
+    // }
 
     // Some extra work to show intermediate steps properly
     setIntermediateStepsLoading(true);
@@ -336,7 +340,7 @@ export function ChatWindow(props: {
     });
 
     chat.setMessages(messagesWithUserReply);
-
+    console.log({ ep: props.endpoint, messagesWithUserReply })
     const response = await fetch(props.endpoint, {
       method: "POST",
       body: JSON.stringify({
@@ -345,6 +349,7 @@ export function ChatWindow(props: {
       }),
     });
     const json = await response.json();
+    console.log({ response })
     setIntermediateStepsLoading(false);
 
     if (!response.ok) {
@@ -410,6 +415,7 @@ export function ChatWindow(props: {
 
   const handleFormStateChange = useCallback(
     (key: string, value: string) => {
+      console.log(key, value)
       setFormContet((prev) => prev.set(key, value));
       setInput();
     },
@@ -506,6 +512,7 @@ export function ChatWindow(props: {
                   >
                     <DialogTrigger asChild>
                       <Button
+                        type="button"
                         variant="ghost"
                         className="pl-2 pr-3 -ml-2 hover:bg-[#e1e8f3] bg-gray-300 hidden md:flex p-1 text-[#238dd2] hover:text-[#238dd2]"
                         disabled={chat.messages.length !== 0}
