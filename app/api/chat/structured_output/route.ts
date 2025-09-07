@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 
 import { z } from "zod";
 
-import { ChatOpenAI } from "@langchain/openai";
+import { llmSummarizer } from "@/lib/llm";
 import { PromptTemplate } from "@langchain/core/prompts";
 
 export const runtime = "edge";
@@ -31,10 +31,6 @@ export async function POST(req: NextRequest) {
     /**
      * Function calling is currently only supported with ChatOpenAI models
      */
-    const model = new ChatOpenAI({
-      temperature: 0.8,
-      model: "gpt-5",
-    });
 
     /**
      * We use Zod (https://zod.dev) to define our schema for convenience,
@@ -60,7 +56,7 @@ export async function POST(req: NextRequest) {
      *
      * Under the hood, uses tool calling by default.
      */
-    const functionCallingModel = model.withStructuredOutput(schema, {
+    const functionCallingModel = llmSummarizer.withStructuredOutput(schema, {
       name: "output_formatter",
     });
 

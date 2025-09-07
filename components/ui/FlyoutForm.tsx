@@ -13,6 +13,7 @@ import {
 import FormInputs from "./forms/Form";
 import { ChangeEventHandler } from "react";
 import { ScrollArea } from "@/components/ui/scroll-area";
+import { useBodyPointerEvents } from "@/utils/use-body-pointer-events";
 const FlyoutForm: React.FC<{
   openSheet: boolean;
   setOpenSheet: React.Dispatch<React.SetStateAction<boolean>>;
@@ -36,45 +37,56 @@ const FlyoutForm: React.FC<{
     );
     const [open, setOpen] = React.useState(false);
     return (
-      <Sheet open={openSheet} onOpenChange={(open) => setOpenSheet(open)}>
-        <SheetContent className="w-[100vw]  bg-gray-200 border border-gray-400 shadow-lg">
-          <ScrollArea className="h-[100vh]">
-            <SheetHeader>
-              <SheetTitle className="text-xl">
+      <Sheet open={openSheet} onOpenChange={(open) => {
+        return setOpenSheet(open)
+      }}>
+        <SheetContent className="w-full max-w-2xl bg-white border-blue-200 shadow-lg p-0">
+          <div className="flex flex-col h-full">
+            <SheetHeader className="px-6 pt-6 pb-4 border-b border-blue-100 bg-blue-50">
+              <SheetTitle className="text-xl text-gray-900">
                 Prior Authorization Request
               </SheetTitle>
-              <SheetDescription>
+              <SheetDescription className="text-gray-700">
                 Please provide the necessary patient and clinical information to
                 begin the prior authorization process.
               </SheetDescription>
             </SheetHeader>
-            <FormInputs
-              onStateFormStateChange={onStateFormStateChange}
-              chatOnChange={
-                chatOnChange as unknown as ChangeEventHandler<HTMLTextAreaElement>
-              }
-            />
-            <SheetFooter className="flex-row gap-3 mr-6">
-              <Button
-                type="submit"
-                variant={"default"}
-                className="mb-5"
-                onClick={handleSubmit}
-              >
-                Submit
-              </Button>
-              <SheetClose asChild>
+            
+            <ScrollArea className="flex-1 px-6 py-4">
+              <FormInputs
+                onStateFormStateChange={onStateFormStateChange}
+                chatOnChange={
+                  chatOnChange as unknown as ChangeEventHandler<HTMLTextAreaElement>
+                }
+              />
+            </ScrollArea>
+            
+            <div className="border-t border-blue-100 bg-white px-6 py-4">
+              <div className="flex items-center gap-3">
                 <Button
-                  onClick={() => setOpenSheet(false)}
                   type="submit"
-                  variant="default"
-                  className="bg-red-700 text-white hover:bg-gray-600 mb-5"
+                  variant={"default"}
+                  className="flex-1 bg-[#1e7dbf] hover:bg-[#1a6da8] text-white"
+                  onClick={handleSubmit}
                 >
-                  Cancel
+                  Submit
                 </Button>
-              </SheetClose>
-            </SheetFooter>
-          </ScrollArea>
+                <SheetClose asChild>
+                  <Button
+                    onClick={() => {
+                      setOpenSheet(false);
+                      useBodyPointerEvents(false);
+                    }}
+                    type="button"
+                    variant="outline"
+                    className="flex-1 border-gray-300 text-gray-700 hover:bg-gray-50"
+                  >
+                    Cancel
+                  </Button>
+                </SheetClose>
+              </div>
+            </div>
+          </div>
         </SheetContent>
       </Sheet>
     );

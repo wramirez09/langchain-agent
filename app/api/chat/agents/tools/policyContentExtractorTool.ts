@@ -2,7 +2,7 @@
 import { z } from "zod";
 import { StructuredTool } from "@langchain/core/tools";
 import * as cheerio from "cheerio";
-import { ChatOpenAI } from "@langchain/openai";
+import { llmSummarizer } from "@/lib/llm";
 import { StructuredOutputParser } from "langchain/output_parsers";
 
 // ----------------------
@@ -55,10 +55,6 @@ const toolInputSchema = z.object({
 export async function getStructuredPolicyDetails(
   content: string,
 ): Promise<ExtractedPolicyDetails | null> {
-  const model = new ChatOpenAI({
-    modelName: "gpt-4o-mini", // swap for gpt-4o or gpt-4.1 for higher accuracy
-    temperature: 0,
-  });
 
   const prompt = `
 You are an expert in healthcare policy extraction. 
@@ -71,7 +67,7 @@ ${parser.getFormatInstructions()}
 `;
 
   try {
-    const response = await model.invoke([{ role: "user", content: prompt }]);
+    const response = await llmSummarizer.invoke([{ role: "user", content: prompt }]);
     const rawText = response.content?.toString() ?? "";
     return await parser.parse(rawText);
   } catch (error) {
@@ -96,13 +92,33 @@ class PolicyContentExtractorTool extends StructuredTool<
     const { policyUrl } = input;
     console.log(`Fetching and extracting content from: ${policyUrl}`);
 
+    // Set up abort controller with max listeners
+    const controller = new AbortController();
+    const signal = controller.signal;
+
+    // Type assertion to access EventTarget methods
+    const eventTarget = signal as unknown as EventTarget & { setMaxListeners?: (n: number) => void };
+    if (eventTarget.setMaxListeners) {
+      eventTarget.setMaxListeners(1500);
+    }
+
+    const timeout = setTimeout(() => {
+      if (!signal.aborted) {
+        controller.abort();
+      }
+    }, 30000);
+
     try {
-      const response = await fetch(policyUrl);
+      const response = await fetch(policyUrl, { signal });
+
       if (!response.ok) {
         throw new Error(
           `Failed to fetch policy content from ${policyUrl}: ${response.status} ${response.statusText}`,
         );
       }
+
+      // Clear the timeout if the request succeeds
+      clearTimeout(timeout);
       const htmlContent = await response.text();
       const $ = cheerio.load(htmlContent);
 

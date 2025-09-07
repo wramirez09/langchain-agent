@@ -40,8 +40,25 @@ class EvolentContentExtractorTool extends StructuredTool<
   ): Promise<string> {
     const { policyUrl } = input;
     toast("getting data from Evolent");
+    
+    // Set up abort controller with max listeners
+    const controller = new AbortController();
+    const signal = controller.signal;
+    const eventTarget = signal as unknown as EventTarget & { setMaxListeners?: (n: number) => void };
+    if (eventTarget.setMaxListeners) {
+      eventTarget.setMaxListeners(1);
+    }
+    
+    const timeout = setTimeout(() => {
+      if (!signal.aborted) {
+        controller.abort();
+      }
+    }, 30000);
+
     try {
-      const response = await fetch(policyUrl);
+      const response = await fetch(policyUrl, { signal });
+      clearTimeout(timeout);
+      
       if (!response.ok) {
         throw new Error(
           `Failed to fetch policy content from ${policyUrl}: ${response.status} ${response.statusText}`,

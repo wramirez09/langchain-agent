@@ -45,12 +45,18 @@ async function getSummaryFromDocs(
   const apiKey = process.env.GOOGLE_LM_API;
   const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-preview-05-20:generateContent?key=${apiKey}`;
 
+  const controller = new AbortController();
+  const timeout = setTimeout(() => controller.abort(), 60000); // 60 second timeout for LLM
+  
   try {
     const response = await fetch(apiUrl, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify(payload),
+      signal: controller.signal,
     });
+    
+    clearTimeout(timeout);
 
     const result = await response.json();
     if (
@@ -125,13 +131,19 @@ export class FileUploadTool extends StructuredTool<
 
       // 4. Send the POST request to the Next.js API endpoint.
       const apiUrl = "/api/retrieval/ingest";
+      const controller = new AbortController();
+      const timeout = setTimeout(() => controller.abort(), 30000);
+      
       const response = await fetch(apiUrl, {
         method: "POST",
         body: formData.getBuffer(),
         headers: {
           ...formData.getHeaders(),
         },
+        signal: controller.signal,
       });
+      
+      clearTimeout(timeout);
 
       // 5. Handle the API response.
       if (!response.ok) {

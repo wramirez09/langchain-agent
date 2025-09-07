@@ -1,6 +1,6 @@
 import { z } from "zod";
 import { StructuredTool, ToolRunnableConfig } from "@langchain/core/tools";
-import { ChatOpenAI } from "@langchain/openai";
+import { llmSummarizer } from "@/lib/llm";
 import { cleanRegex } from "./utils"; // Assume external cleaning regex utility
 
 // Input schema
@@ -12,12 +12,6 @@ const EvolentSearchInputSchema = z.object({
     ),
 });
 
-// ⚡ Global LLM instance for speed (keeps warm, reused across calls)
-const llm = new ChatOpenAI({
-  model: "gpt-4o", // fast, cheaper than GPT-4
-  temperature: 0,
-  maxRetries: 3,
-});
 
 export class EvolentSearchTool extends StructuredTool<
   typeof EvolentSearchInputSchema
@@ -47,12 +41,18 @@ export class EvolentSearchTool extends StructuredTool<
         `q=${input.query}`,
     );
 
+    const controller = new AbortController();
+    const timeout = setTimeout(() => controller.abort(), 30000);
+    
     try {
       const response = await fetch(evolentApiQuery, {
         method: "GET",
         headers: { "Content-Type": "application/json" },
         cache: "no-store",
+        signal: controller.signal,
       });
+      
+      clearTimeout(timeout);
 
       if (!response.ok) {
         throw new Error(`HTTP error! status: ${response.status}`);
@@ -89,7 +89,7 @@ ${truncatedContent}
       `;
 
       // ⚡ Direct LLM call (no chain overhead)
-      const result = await llm.invoke([
+      const result = await llmSummarizer.invoke([
         { role: "user", content: summaryPrompt },
       ]);
 

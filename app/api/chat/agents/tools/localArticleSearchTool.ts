@@ -1,5 +1,5 @@
 import { z } from "zod";
-import { StructuredTool } from "@langchain/core/tools";
+import { Tool } from "@langchain/core/tools";
 
 // Input schema for the Local Article search tool
 const LocalArticleSearchInputSchema = z.object({
@@ -22,6 +22,8 @@ interface StateMetaData {
 }
 
 // Interface for the expected structure of a Local Coverage Article from the API
+const cache = new Map<string, string>();
+
 interface LocalCoverageArticle {
   meta: {
     status: {
@@ -50,24 +52,23 @@ interface LocalCoverageArticle {
   ];
 }
 
-class LocalCoverageArticleSearchTool extends StructuredTool<
-  typeof LocalArticleSearchInputSchema
-> {
+class LocalCoverageArticleSearchTool extends Tool {
   name = "local_coverage_article_search";
   description =
     "Searches Local Coverage Articles (LCAs) for a given disease or treatment query within a specific state. " +
     "LCAs provide detailed billing, coding (including ICD-10/CPT), and documentation requirements that support LCDs. " +
     "Returns the article title, display ID, MAC, and the direct URL for relevant LCAs. " +
     "If multiple articles are found, it lists up to 1.";
-  schema = LocalArticleSearchInputSchema;
 
   private CMS_LOCAL_ARTICLES_API_URL =
     "https://api.coverage.cms.gov/v1/reports/local-coverage-articles/";
 
-  protected async _call(
-    input: z.infer<typeof LocalArticleSearchInputSchema>,
-  ): Promise<string> {
-    const { query, state } = input;
+  protected async _call(input: string): Promise<string> {
+    if (cache.has(input)) {
+      console.log("LocalCoverageArticleSearchTool: Cache hit!");
+      return cache.get(input)!;
+    }
+    const { query, state } = JSON.parse(input);
 
     console.log(
       `Searching Local Coverage Articles for query: '${query}' in state: '${state.description}'`,
@@ -80,9 +81,17 @@ class LocalCoverageArticleSearchTool extends StructuredTool<
       }
 
       // 2. Fetch Local Coverage Articles for the specific state and 'Final' status.
+      const controller = new AbortController();
+      const timeout = setTimeout(() => controller.abort(), 30000);
+      
       const response = await fetch(
         `${this.CMS_LOCAL_ARTICLES_API_URL}?state_id=${stateId}`,
+        {
+          signal: controller.signal,
+        }
       );
+      
+      clearTimeout(timeout);
 
       if (!response.ok) {
         throw new Error(
@@ -124,11 +133,12 @@ class LocalCoverageArticleSearchTool extends StructuredTool<
         );
       }
 
-      return (
-        `Found ${relevantArticles.length} Local Coverage Article(s) for '${query}' in ${state}. ` +
+      const result = `Found ${relevantArticles.length} Local Coverage Article(s) for '${query}' in ${state}. ` +
         `Displaying top ${Math.min(relevantArticles.length, 5)}:\n` +
-        outputResults.join("\n")
-      );
+        outputResults.join("\n");
+
+      cache.set(input, result);
+      return result;
     } catch (error: any) {
       console.error("Error in LocalCoverageArticleSearchTool:", error);
       return `An error occurred while searching for local articles: ${error.message}`;

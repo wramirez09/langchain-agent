@@ -108,6 +108,7 @@ body {
   /* standard definition (as fallback) */
   height: 100dvh;
   /* dynamic vh will make the trick on iOS */
+  pointer-events: auto !important;
 }
 
 .bottom-fixed-element {

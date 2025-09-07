@@ -5,7 +5,7 @@ import { Data, StateData } from "../../../app/agents/metaData/states";
 import { ncdOptions } from "@/data/ncdOptions";
 
 import AutoCompleteSelect from "../AutoCompleteSelect";
-import { insruranceProvidersOptions } from "../../../data/selectOptions";
+import { insuranceProvidersOptions } from "../../../data/selectOptions";
 import { Textarea } from "../textarea";
 import { Input } from "../input";
 
@@ -59,20 +59,20 @@ const FormInputs: React.FC<Props> = (props: Props) => {
   );
 
   return (
-    <section className="w-full mt-8 mx-0 md:mx-1">
+    <section className="w-full max-w-3xl mx-auto px-4 space-y-6">
       {/* Row 1 */}
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-5">
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-x-6 gap-y-4">
         <div>
-          <label className="block text-sm font-semi-bold text-black mb-1">
+          <label className="block text-sm font-medium text-gray-900 mb-1">
             Insurance Provider
           </label>
           <AutoCompleteSelect
-            options={insruranceProvidersOptions}
+            options={insuranceProvidersOptions}
             onChange={handleInsuranceSelectChange}
           />
         </div>
         <div>
-          <label className="block text-sm font-semi-bold text-black mb-1">
+          <label className="block text-sm font-medium text-gray-900 mb-1">
             State
           </label>
           <AutoCompleteSelect
@@ -83,9 +83,9 @@ const FormInputs: React.FC<Props> = (props: Props) => {
       </div>
 
       {/* Row 2 */}
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-5">
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-x-6 gap-y-4">
         <div>
-          <label className="block text-sm font-semi-bold text-black mb-1">
+          <label className="block text-sm font-medium text-gray-900 mb-1">
             Treatment
           </label>
           <AutoCompleteSelect
@@ -94,51 +94,50 @@ const FormInputs: React.FC<Props> = (props: Props) => {
           />
         </div>
         <div>
-          <label className="block text-sm font-semi-bold text-black mb-1">
+          <label className="block text-sm font-medium text-gray-900 mb-1">
             CPT Code(s)
           </label>
           <Input
-            type="text"
+            className="w-full h-9 bg-white border-blue-200 text-gray-900 focus-visible:ring-blue-300 focus-visible:border-blue-400"
             placeholder="CPT Codes"
             onChange={handleCptChange}
-            className="border border-[#a8afba] text-[] focus-visible:ring-ring  bg-gray-300 text-gray-800 placeholder:text-xs"
           />
         </div>
       </div>
 
       {/* Diagnosis */}
-      <div className="mb-5">
+      <div>
         <label className="block text-sm font-semi-bold text-black mb-1">
           Diagnosis
         </label>
         <Textarea
+          className="w-full bg-white border-blue-200 text-gray-900 focus-visible:ring-blue-300 focus-visible:border-blue-400 min-h-[100px] max-h-[200px] overflow-y-auto resize-y"
           placeholder="Magnetic Resonance Imaging"
           onChange={handleDiagnosisChange}
-          className="border border-[#a8afba] text-[] focus-visible:ring-ring text-gray-800"
         />
       </div>
 
       {/* History */}
-      <div className="mb-5">
+      <div>
         <label className="block text-sm font-semi-bold text-black mb-1">
           Patient(s) Medical History
         </label>
         <Textarea
+          className="w-full bg-white border-blue-200 text-gray-900 focus-visible:ring-blue-300 focus-visible:border-blue-400 min-h-[100px] max-h-[200px] overflow-y-auto resize-y"
           placeholder="Meniscus tear"
           onChange={handleHistoryChange}
-          className="border border-[#a8afba] text-[] focus-visible:ring-ring text-gray-800"
         />
       </div>
 
       {/* Chat Context */}
-      <div className="mb-5">
+      <div>
         <label className="block text-sm font-semi-bold text-black mb-1">
           Additional Chat Prompt Context (optional)
         </label>
         <Textarea
+          className="w-full bg-white border-blue-200 text-gray-900 focus-visible:ring-blue-300 focus-visible:border-blue-400 min-h-[100px] max-h-[200px] overflow-y-auto resize-y"
           placeholder="Get CPT codes"
           onChange={props.chatOnChange}
-          className="border border-[#a8afba] text-[] focus-visible:ring-ring text-gray-800"
         />
       </div>
     </section>

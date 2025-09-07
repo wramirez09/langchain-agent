@@ -1,14 +1,12 @@
 import { NextResponse } from "next/server";
 import { RecursiveCharacterTextSplitter } from "langchain/text_splitter";
-import { ChatOpenAI, OpenAIEmbeddings } from "@langchain/openai";
+import { OpenAIEmbeddings } from "@langchain/openai";
+import { llmAgent } from "@/lib/llm";
 import { SupabaseVectorStore } from "@langchain/community/vectorstores/supabase";
 import { createClient } from "@supabase/supabase-js";
 import { PDFLoader } from "@langchain/community/document_loaders/fs/pdf";
 import { HumanMessage } from "@langchain/core/messages";
 
-const queryGenerationAgent = new ChatOpenAI({
-  model: "gpt-5",
-});
 
 function cleanText(text: any) {
   return text
@@ -96,7 +94,7 @@ export async function POST(req: any) {
     `;
 
     // Invoke the agent with the prompt
-    const result = await queryGenerationAgent.invoke([
+    const result = await llmAgent.invoke([
       new HumanMessage({ content: queryPrompt }),
     ]);
 

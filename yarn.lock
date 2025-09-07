@@ -3138,18 +3138,25 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@tabler/icons-react@npm:^3.34.0":
-  version: 3.34.0
-  resolution: "@tabler/icons-react@npm:3.34.0"
+"@tabler/icons-react@npm:^3.34.1":
+  version: 3.34.1
+  resolution: "@tabler/icons-react@npm:3.34.1"
   dependencies:
-    "@tabler/icons": 3.34.0
+    "@tabler/icons": 3.34.1
   peerDependencies:
     react: ">= 16"
-  checksum: d482145ac69b29b9d19de6269725615d50159374076857fe4f16f69cf8b75442b92a93e882da75704dbe30cfbe3a3ca67cd4673b28880aba5c77531d15df45a5
+  checksum: 2567e29056fb246d75bb58ecf5fc1bbd7d83928f0ac9f267b9d031319b1048fc3e2d5e6979644e0ab94882affd21560621d0a0583ee8a4af6695dadf219143ea
   languageName: node
   linkType: hard
 
-"@tabler/icons@npm:3.34.0, @tabler/icons@npm:^3.34.0":
+"@tabler/icons@npm:3.34.1":
+  version: 3.34.1
+  resolution: "@tabler/icons@npm:3.34.1"
+  checksum: 1c5d8d848bc5fd9832c9feafc850ba0e736a81ffd3cfbe68a02a786c560ffead700e25c19b7ea5fbfb5812b823113e0ae9ef517ff2add4383eb119f33b3006e0
+  languageName: node
+  linkType: hard
+
+"@tabler/icons@npm:^3.34.0":
   version: 3.34.0
   resolution: "@tabler/icons@npm:3.34.0"
   checksum: 659dc673b62bde12b8418e544d23c022180b32d345e479ba97a3d23531e164d7445716bc0904ce084d08e1ddf9d5fe0da11edd1e86b3c8eda7a53cbca819c162
@@ -6660,6 +6667,28 @@ __metadata:
   languageName: node
   linkType: hard
 
+"framer-motion@npm:^12.23.12":
+  version: 12.23.12
+  resolution: "framer-motion@npm:12.23.12"
+  dependencies:
+    motion-dom: ^12.23.12
+    motion-utils: ^12.23.6
+    tslib: ^2.4.0
+  peerDependencies:
+    "@emotion/is-prop-valid": "*"
+    react: ^18.0.0 || ^19.0.0
+    react-dom: ^18.0.0 || ^19.0.0
+  peerDependenciesMeta:
+    "@emotion/is-prop-valid":
+      optional: true
+    react:
+      optional: true
+    react-dom:
+      optional: true
+  checksum: 85c2a64c12cd7d3dcaeed44ec11843b5c6955da97a82895f89355fe58bfbd8f876c6272585fff54ba661d7a54218efd44b8ca072c6988d414ab4577f4d28a135
+  languageName: node
+  linkType: hard
+
 "fs-extra@npm:^7.0.1":
   version: 7.0.1
   resolution: "fs-extra@npm:7.0.1"
@@ -7824,7 +7853,7 @@ __metadata:
     "@react-pdf/renderer": ^4.3.0
     "@supabase/supabase-js": ^2.49.8
     "@tabler/icons": ^3.34.0
-    "@tabler/icons-react": ^3.34.0
+    "@tabler/icons-react": ^3.34.1
     "@tiptap/extension-link": ^2.14.0
     "@tiptap/pm": ^2.14.0
     "@tiptap/react": ^2.14.0
@@ -7856,6 +7885,7 @@ __metadata:
     eslint-plugin-prettier: ^5.5.3
     form-data: ^4.0.4
     formidable: ^3.5.4
+    framer-motion: ^12.23.12
     fs: ^0.0.1-security
     gpt-tokenizer: ^3.0.1
     install: ^0.13.0
@@ -7882,6 +7912,7 @@ __metadata:
     react-dropzone: ^14.3.8
     react-markdown: 8.0.6
     react-pro-sidebar: ^1.1.0
+    react-stick-to-bottom: ^1.0.0
     react-toastify: ^11.0.5
     recharts: 2
     remark-gfm: ^4.0.1
@@ -9205,6 +9236,22 @@ __metadata:
   version: 2.2.3
   resolution: "module-alias@npm:2.2.3"
   checksum: 6169187f69de8dcf8af8fab4d9e53ada6338a43f7670d38d0b27a089c28f9eb18d85a6fd46f11b54c63079a68449b85d071d7db0ac067f9f7faedbcd6231456d
+  languageName: node
+  linkType: hard
+
+"motion-dom@npm:^12.23.12":
+  version: 12.23.12
+  resolution: "motion-dom@npm:12.23.12"
+  dependencies:
+    motion-utils: ^12.23.6
+  checksum: 3fb9450a9a3312ff11a9d0f7e6d44474c2bc66409cd7a2b4a29fc0e2e641414a4e1f869c0110d92bbaf5b4663bb49edccc745fad077d03169d96c2a361f7dc73
+  languageName: node
+  linkType: hard
+
+"motion-utils@npm:^12.23.6":
+  version: 12.23.6
+  resolution: "motion-utils@npm:12.23.6"
+  checksum: e7c0b1d7a893c5979eab529f2bd269031f71f8d23cbf8be2ec8785558544ee45b9ba7b23390f9a46f2f0a493903b6adc0666229de3b05e977a0bfc3c5fb13d8b
   languageName: node
   linkType: hard
 
@@ -10612,7 +10659,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"react-dom@npm:^18.3.1":
+"react-dom@npm:^18.2.0, react-dom@npm:^18.3.1":
   version: 18.3.1
   resolution: "react-dom@npm:18.3.1"
   dependencies:
@@ -10771,6 +10818,16 @@ __metadata:
   languageName: node
   linkType: hard
 
+"react-stick-to-bottom@npm:^1.0.0":
+  version: 1.0.0
+  resolution: "react-stick-to-bottom@npm:1.0.0"
+  dependencies:
+    react: ^18.2.0
+    react-dom: ^18.2.0
+  checksum: 647e109c805c61eec62701b611f103489e4cfbe2e5870a1fee20cb0e12a095d87f803ae0674ce44ec9409769ce5b7a37bcf6a00dcdad606ee09522e549e88724
+  languageName: node
+  linkType: hard
+
 "react-style-singleton@npm:^2.2.2, react-style-singleton@npm:^2.2.3":
   version: 2.2.3
   resolution: "react-style-singleton@npm:2.2.3"
@@ -10814,7 +10871,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"react@npm:^18.3.1":
+"react@npm:^18.2.0, react@npm:^18.3.1":
   version: 18.3.1
   resolution: "react@npm:18.3.1"
   dependencies:

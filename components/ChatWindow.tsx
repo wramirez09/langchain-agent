@@ -1,21 +1,10 @@
 "use client";
 
 import { type Message } from "ai";
-import { useChat } from "ai/react";
-import { useCallback, useState } from "react";
-import type { FormEvent, ReactNode } from "react";
-import { toast } from "sonner";
-
-import { ChatMessageBubble } from "@/components/ChatMessageBubble";
-import { IntermediateStep } from "./IntermediateStep";
-import { Button } from "./ui/button";
-import { ArrowDown, LoaderCircle } from "lucide-react";
+import { useBodyPointerEvents } from "@/utils/use-body-pointer-events";
 import { Checkbox } from "./ui/checkbox";
-
 import { cn } from "@/utils/cn";
-
-import React from "react";
-
+import React, { FormEvent, ReactNode, useCallback, useState } from "react";
 import { StickToBottom, useStickToBottomContext } from "use-stick-to-bottom";
 import UploadDocumentsForm from "./UploadDocumentsForm";
 import {
@@ -36,6 +25,12 @@ import {
 import FlyoutForm from "./ui/FlyoutForm";
 import Link from "next/link";
 import MobileDrawer from "./ui/MobileDrawer";
+import { toast } from "sonner";
+import { useChat } from "ai/react";
+import { ArrowDown, LoaderCircle } from "lucide-react";
+import { ChatMessageBubble } from "./ChatMessageBubble";
+import { IntermediateStep } from "./IntermediateStep";
+import { Button } from "./ui/button";
 
 function ChatMessages(props: {
   messages: Message[];
@@ -72,7 +67,7 @@ function ScrollToBottom(props: { className?: string }) {
   return (
     <Button
       type="button"
-      variant="outline"
+      variant="ghost"
       className={props.className}
       onClick={() => scrollToBottom()}
     >
@@ -105,9 +100,6 @@ function StickyToBottomContent(props: {
   );
 }
 
-
-
-
 export function ChatInput(props: {
   onSubmit: (e: FormEvent<HTMLFormElement>) => void;
   onStop?: () => void;
@@ -119,32 +111,38 @@ export function ChatInput(props: {
   className?: string;
   actions?: ReactNode;
   onStateFormStateChange?: (key: string, value: string) => void;
-  onUpload?: (file: File) => Promise<void>;
   messages: Message[];
+  sheetOpen: boolean;
+  setSheetOpen: React.Dispatch<React.SetStateAction<boolean>>;
+  openMobileDrawer: boolean;
+  setOpenMobileDrawer: React.Dispatch<React.SetStateAction<boolean>>;
+  modalOpen: boolean;
+  setModalOpen: React.Dispatch<React.SetStateAction<boolean>>;
 }) {
+
+
+
   const disabled = props.loading && props.onStop == null;
-  const [sheetOpen, setSheetOpen] = React.useState(false);
 
-  const [openMobileDrawer, setOpenMobileDrawer] =
-    React.useState<boolean>(false);
-
-  const handleMobileDrawerOptionSelection = useCallback((option: "upload" | "export" | "form") => {
-
+  const handleMobileDrawerOptionSelection = useCallback((option: string) => {
     if (option) {
-      console.log('selection', option)
       switch (option) {
         case "upload":
-
+          props.setModalOpen(true);
           break;
-
+        case "form":
+          props.setSheetOpen(true);
+          break;
         default:
           break;
       }
+      props.setOpenMobileDrawer(false);
+      useBodyPointerEvents(false);
     }
-  }, [])
+  }, [props.setModalOpen, props.setSheetOpen, props.setOpenMobileDrawer]);
 
   return (
-    <>
+    <div className="w-full max-w-4xl mx-auto">
       <form
         onSubmit={(e) => {
           e.stopPropagation();
@@ -156,105 +154,94 @@ export function ChatInput(props: {
             props.onSubmit(e);
           }
         }}
-        className={cn("flex w-full flex-col", props.className)}
+        className={cn("w-full", props.className)}
       >
-        <div className="border border-[#a8afba] bg-gray-300 rounded-lg flex flex-col gap-1 max-w-[768px] w-full mx-auto align-middle">
-          <input
-            name="chat"
-            value={props.value}
-            placeholder={props.placeholder}
-            onChange={props.onChange}
-            className="border-none outline-none bg-transparent px-3 pt-3 text-gray-800
-          "
-          />
+        <div className="border border-blue-200 bg-blue-50 rounded-lg flex flex-col max-w-[768px] w-full mx-auto">
+          <div className="flex flex-wrap items-center gap-2 px-4 py-3">
+            {props.children}
+            
+            <Button
+              type="button"
+              variant="ghost"
+              className="hidden sm:flex items-center hover:bg-blue-100 bg-white/50 border border-blue-100 text-[#1e7dbf] hover:text-[#1e7dbf] p-1.5 text-sm h-8"
+              onClick={() => props.setSheetOpen((open) => !open)}
+            >
+              <IconFileSearch stroke={1.25} className="shrink-0 text-[#238dd2] mr-1.5" width={16} />
+              <span>Pre-Auth Form</span>
+            </Button>
 
-          <div className="flex justify-between ml-4 mr-2 ">
-            <div className="flex flex-col sm:flex-row sm:items-center gap-3 sm:gap-1">
-              {/* Extra children (like upload, checkboxes, etc.) */}
-              <div className="flex flex-wrap gap-1">{props.children}</div>
-
-              <Button
-                type="button"
-                variant="ghost"
-                className="hidden md:flex items-center hover:bg-[#e1e8f3] bg-gray-300 text-[#238dd2] hover:text-[#238dd2] p-1"
-                onClick={() => setSheetOpen((open) => !open)}
+            <Button
+              type="button"
+              variant="ghost"
+              className="hidden sm:flex items-center hover:bg-blue-100 bg-white/50 border border-blue-100 p-1.5 text-sm h-8"
+            >
+              <IconFileTypePdf stroke={1.25} className="shrink-0 text-[#238dd2] mr-1.5" width={16} />
+              <Link
+                target="_blank"
+                className="text-[#238dd2] hover:text-[#1e7dbf] text-sm"
+                href={{
+                  pathname: "/pdf",
+                  query: { data: JSON.stringify(props.messages) },
+                }}
               >
-                <IconFileSearch
-                  stroke={1.25}
-                  className="shrink-0 text-[#238dd2]"
-                  width={20}
-                />
-                PreAuth Form
-              </Button>
+                PDF Export
+              </Link>
+            </Button>
 
-              <Button
-                type="button"
-                variant="ghost"
-                className="hidden md:flex items-center hover:bg-[#e1e8f3] bg-gray-300 p-1"
-              >
-                <IconFileTypePdf
-                  stroke={1.25}
-                  className="shrink-0 text-[#238dd2]"
-                  width={20}
-                />
-
-                <Link
-                  target="_blank"
-                  className="text-[#238dd2] text-sm p-1"
-                  href={{
-                    pathname: "/pdf",
-                    query: { data: JSON.stringify(props.messages) },
-                  }}
-                >PDF Export</Link>
-              </Button>
-
-              <Button type="button" className="flex md:hidden items-center hover:bg-[#e1e8f3] bg-gray-300 text-[#238dd2] hover:text-[#238dd2] mb-2" onClick={() => { setOpenMobileDrawer((prevOpen: boolean) => !prevOpen) }}>
-                <IconSettings stroke={1.5} width={16} />
-              </Button>
-            </div>
-            <MobileDrawer
-              setOpen={setOpenMobileDrawer}
-              onChange={handleMobileDrawerOptionSelection}
-              open={openMobileDrawer}
-            />
-
-            <div className="flex gap-2 self-end pb-2">
-              {props.actions}
-              <Button
-                type="submit"
-                className="self-end bg-transparent hover:bg-[#e1e8f3]"
-                disabled={disabled}
-              >
-                {props.loading ? (
-                  <span role="status" className="flex justify-center">
-                    <LoaderCircle className="animate-spin" />
-                    <span className="sr-only">Loading...</span>
-                  </span>
-                ) : (
-                  <IconSend2
-                    className="text-[#238dd2] hover:text-white"
-                    width={16}
-                  />
-                )}
-              </Button>
-            </div>
+            <Button
+              type="button"
+              className="md:hidden flex items-center hover:bg-blue-100 bg-blue-50 text-[#1e7dbf] hover:text-[#1e7dbf] p-1.5 h-8"
+              onClick={() => props.setOpenMobileDrawer((prev) => !prev)}
+            >
+              <IconSettings stroke={1.5} width={16} />
+            </Button>
           </div>
+          
+          <div className="relative px-3 pb-2">
+            <hr className="border-t border-blue-100/80 mt-1 mb-2" />
+          </div>
+          
+          <div className="flex items-center px-4 py-3 bg-white/80 rounded-lg mx-3 mb-3 border border-blue-100">
+            <input
+              name="chat"
+              value={props.value}
+              placeholder={props.placeholder}
+              onChange={props.onChange}
+              className="w-full outline-none bg-transparent text-gray-900 placeholder-gray-500 text-base"
+            />
+            
+            <Button
+              type="submit"
+              className="bg-white hover:bg-blue-50 ml-2 h-10 w-10 flex-shrink-0 rounded-lg border border-blue-100 shadow-sm"
+              disabled={disabled}
+            >
+              {props.loading ? (
+                <span role="status" className="flex items-center justify-center">
+                  <LoaderCircle className="animate-spin h-4 w-4 text-[#238dd2]" />
+                  <span className="sr-only">Loading...</span>
+                </span>
+              ) : (
+                <IconSend2
+                  className="text-[#1e7dbf] hover:text-[#1e7dbf]"
+                  width={18}
+                />
+              )}
+            </Button>
+          </div>
+          <MobileDrawer
+            setOpen={props.setOpenMobileDrawer}
+            onChange={handleMobileDrawerOptionSelection}
+            open={props.openMobileDrawer}
+            messages={props.messages}
+          />
         </div>
       </form>
-      <FlyoutForm
-        openSheet={sheetOpen}
-        setOpenSheet={setSheetOpen}
-        submitAction={props.onSubmit}
-        onStateFormStateChange={props.onStateFormStateChange!}
-        chatOnChange={props.onChange}
-      />
-    </>
+    </div>
   );
 }
 
 export function ChatLayout(props: { content: ReactNode; form: ReactNode }) {
   return (
-
     <StickToBottom>
       <StickyToBottomContent
         className="absolute inset-0"
@@ -262,13 +249,12 @@ export function ChatLayout(props: { content: ReactNode; form: ReactNode }) {
         content={props.content}
         footer={
           <div className="sticky bottom-8 px-2">
-            <ScrollToBottom className="absolute bottom-full left-1/2 -translate-x-1/2 mb-4 bg-gray-200 text-black" />
+            <ScrollToBottom className="absolute bottom-full left-1/2 -translate-x-1/2 mb-4 bg-white border border-blue-200 text-gray-900 hover:bg-blue-50 hover:text-blue-900" />
             {props.form}
           </div>
         }
       />
     </StickToBottom>
-
   );
 }
 
@@ -283,14 +269,20 @@ export function ChatWindow(props: {
   const [showIntermediateSteps, setShowIntermediateSteps] = useState(
     !!props.showIntermediateStepsToggle,
   );
-  const [intermediateStepsLoading, setIntermediateStepsLoading] =
-    useState(false);
+  const [intermediateStepsLoading, setIntermediateStepsLoading] = useState(false);
+  const [sheetOpen, setSheetOpen] = React.useState(false);
+  const [openMobileDrawer, setOpenMobileDrawer] = React.useState<boolean>(false);
+  const [modalOpen, setModalOpen] = React.useState(false);
+  const [isLoading, setIsLoading] = useState(false);
+  const [uploading, setUploading] = useState(false);
+
+  useBodyPointerEvents(sheetOpen || openMobileDrawer || modalOpen);
 
   const [sourcesForMessages, setSourcesForMessages] = useState<
     Record<string, any>
   >({});
 
-  const [formContent, setFormContet] = React.useState<Map<string, string>>(
+  const [formContent, setFormContent] = useState<Map<string, string>>(
     new Map(),
   );
 
@@ -318,17 +310,8 @@ export function ChatWindow(props: {
   });
 
   async function sendMessage(e: FormEvent<HTMLFormElement>) {
-    // e.preventDefault();
-    console.log("message", { sendMessage })
-
     if (chat.isLoading || intermediateStepsLoading) return;
 
-    // if (!showIntermediateSteps) {
-    //   chat.handleSubmit(e);
-    //   return;
-    // }
-
-    // Some extra work to show intermediate steps properly
     setIntermediateStepsLoading(true);
 
     chat.setInput("");
@@ -340,7 +323,7 @@ export function ChatWindow(props: {
     });
 
     chat.setMessages(messagesWithUserReply);
-    console.log({ ep: props.endpoint, messagesWithUserReply })
+
     const response = await fetch(props.endpoint, {
       method: "POST",
       body: JSON.stringify({
@@ -349,7 +332,7 @@ export function ChatWindow(props: {
       }),
     });
     const json = await response.json();
-    console.log({ response })
+
     setIntermediateStepsLoading(false);
 
     if (!response.ok) {
@@ -415,14 +398,11 @@ export function ChatWindow(props: {
 
   const handleFormStateChange = useCallback(
     (key: string, value: string) => {
-      console.log(key, value)
-      setFormContet((prev) => prev.set(key, value));
+      setFormContent((prev) => prev.set(key, value));
       setInput();
     },
-    [chat, setFormContet, setInput],
+    [chat, setFormContent, setInput],
   );
-
-  const [uploading, setUploading] = useState(false);
 
   async function handleUploadAndChat(file: File) {
     toast("Uploading file and starting chat...");
@@ -450,6 +430,7 @@ export function ChatWindow(props: {
       }
 
       toast.success("Document uploaded and query generated successfully!");
+      setModalOpen(false);
 
       // Combine with form input if needed
       const formInputString = Array.from(formContent.entries())
@@ -471,13 +452,10 @@ export function ChatWindow(props: {
     }
   }
 
-  const [modalOpen, setModalOpen] = React.useState(false);
-  const [isLoading, setIsLoading] = useState(false);
   return (
     <div className="flex flex-col min-h-[100dvh] bg-gray-100 font-sans">
       <div className="flex-1 overflow-y-auto p-4 space-y-4">
         <ChatLayout
-
           content={
             chat.messages.length === 0 ? (
               <div>{props.emptyStateComponent}</div>
@@ -502,56 +480,68 @@ export function ChatWindow(props: {
                 }
                 onStateFormStateChange={handleFormStateChange}
                 messages={chat.messages}
+                sheetOpen={sheetOpen}
+                setSheetOpen={setSheetOpen}
+                openMobileDrawer={openMobileDrawer}
+                setOpenMobileDrawer={setOpenMobileDrawer}
+                modalOpen={modalOpen}
+                setModalOpen={setModalOpen}
               >
+                {props.showIntermediateStepsToggle && (
+                  <div className="flex items-center gap-2 bg-white/50 rounded px-2 py-1 border border-blue-100">
+                  <Checkbox
+                    id="show_intermediate_steps"
+                    name="show_intermediate_steps"
+                    checked={showIntermediateSteps}
+                    disabled={chat.isLoading || intermediateStepsLoading}
+                    onCheckedChange={(e) => setShowIntermediateSteps(!!e)}
+                    className="h-4 w-4 border-gray-300 text-[#1e7dbf] focus:ring-[#1e7dbf]"
+                  />
+                  <label htmlFor="show_intermediate_steps" className="text-sm text-gray-600">
+                    Show steps
+                  </label>
+                </div>
+                )}
                 {props.showIngestForm && (
                   <Dialog
                     open={modalOpen}
-                    onOpenChange={() => {
-                      setModalOpen(!modalOpen);
-                    }}
+                    onOpenChange={() => setModalOpen(!modalOpen)}
                   >
                     <DialogTrigger asChild>
                       <Button
                         type="button"
                         variant="ghost"
-                        className="pl-2 pr-3 -ml-2 hover:bg-[#e1e8f3] bg-gray-300 hidden md:flex p-1 text-[#238dd2] hover:text-[#238dd2]"
+                        className="hidden sm:flex items-center hover:bg-blue-100 bg-white/50 border border-blue-100 text-[#1e7dbf] hover:text-[#1e7dbf] p-1.5 text-sm h-8"
                         disabled={chat.messages.length !== 0}
                       >
-                        <IconUpload stroke={1.5} color="#238dd2" width={20} />
-                        File Upload
+                        <IconUpload stroke={1.5} width={16} className="mr-1.5" />
+                        <span>Upload PDF</span>
                       </Button>
                     </DialogTrigger>
-                    <DialogContent>
+                    <DialogContent className="bg-white border-blue-200">
                       <DialogHeader>
-                        <DialogTitle>Upload document</DialogTitle>
-                        <DialogDescription>
-                          We currently only support PDF files.
+                        <DialogTitle className="text-gray-900">Add a document to start the analysis</DialogTitle>
+                        <DialogDescription className="text-gray-700">
+                          Upload a PDF file to extract and analyze its contents
                         </DialogDescription>
                       </DialogHeader>
                       <UploadDocumentsForm
                         onUpload={handleUploadAndChat}
                         setModalOpen={setModalOpen}
                         setIsLoading={setIsLoading}
+                        uploading={uploading}
                       />
                     </DialogContent>
                   </Dialog>
                 )}
-
-                {props.showIntermediateStepsToggle && (
-                  <div className="flex items-center gap-2">
-                    <Checkbox
-                      id="show_intermediate_steps"
-                      name="show_intermediate_steps"
-                      checked={showIntermediateSteps}
-                      disabled={chat.isLoading || intermediateStepsLoading}
-                      onCheckedChange={(e) => setShowIntermediateSteps(!!e)}
-                    />
-                    <label htmlFor="show_intermediate_steps" className="text-sm">
-                      Show intermediate steps
-                    </label>
-                  </div>
-                )}
               </ChatInput>
+              <FlyoutForm
+                openSheet={sheetOpen}
+                setOpenSheet={setSheetOpen}
+                submitAction={sendMessage}
+                onStateFormStateChange={handleFormStateChange}
+                chatOnChange={chat.handleInputChange}
+              />
             </>
           }
         />

@@ -1,6 +1,6 @@
 import { z } from "zod";
 import { StructuredTool, ToolRunnableConfig } from "@langchain/core/tools";
-import { ChatOpenAI } from "@langchain/openai";
+import { llmSummarizer } from "@/lib/llm";
 import { cleanRegex } from "./utils";
 
 // Define schema
@@ -12,12 +12,6 @@ const CarelonSearchInputSchema = z.object({
     ),
 });
 
-// --- Replace Gemini with ChatGPT (OpenAI) ---
-const llm = new ChatOpenAI({
-  model: "gpt-4o-mini", // or "gpt-4o", depending on cost vs quality
-  temperature: 0,
-  maxRetries: 3, // already built-in retry
-});
 
 /**
  * Summarize documents using ChatGPT
@@ -43,7 +37,7 @@ ${safeContent}`,
   ];
 
   try {
-    const response = await llm.invoke(messages);
+    const response = await llmSummarizer.invoke(messages);
     return response.content?.toString().trim() || "No summary generated.";
   } catch (err: any) {
     console.error("Error during ChatGPT summarization:", err);
@@ -80,12 +74,18 @@ export class CarelonSearchTool extends StructuredTool<
         `q=${input.query}`,
     );
 
+    const controller = new AbortController();
+    const timeout = setTimeout(() => controller.abort(), 30000);
+    
     try {
       const response = await fetch(carlonApiQuery, {
         method: "GET",
         headers: { "Content-Type": "application/json" },
         cache: "no-store",
+        signal: controller.signal,
       });
+      
+      clearTimeout(timeout);
 
       if (!response.ok) {
         throw new Error(`HTTP error! status: ${response.status}`);

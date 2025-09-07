@@ -11,7 +11,8 @@ import {
   HumanMessage,
   SystemMessage,
 } from "@langchain/core/messages";
-import { ChatOpenAI, OpenAIEmbeddings } from "@langchain/openai";
+import { OpenAIEmbeddings } from "@langchain/openai";
+import { llmAgent } from "@/lib/llm";
 import { createRetrieverTool } from "langchain/tools/retriever";
 import { createReactAgent } from "@langchain/langgraph/prebuilt";
 
@@ -67,10 +68,6 @@ export async function POST(req: NextRequest) {
       .map(convertVercelMessageToLangChainMessage);
     const returnIntermediateSteps = body.show_intermediate_steps;
 
-    const chatModel = new ChatOpenAI({
-      model: "gpt-5",
-      temperature: 0.2,
-    });
 
     const client = createClient(
       process.env.SUPABASE_URL!,
@@ -97,7 +94,7 @@ export async function POST(req: NextRequest) {
      * Use a prebuilt LangGraph agent.
      */
     const agent = await createReactAgent({
-      llm: chatModel,
+      llm: llmAgent,
       tools: [tool],
       /**
        * Modify the stock prompt in the prebuilt agent. See docs

@@ -1,66 +1,44 @@
 "use client";
 
-import React, { useState, useEffect, SetStateAction, Dispatch } from "react";
-import {
-  useDropzone,
-  DropzoneRootProps,
-  DropzoneInputProps,
-} from "react-dropzone";
-import { Button } from "./button";
-import { Progress } from "./progress";
-
+import React, { useState } from "react";
+import { useDropzone, DropzoneInputProps } from "react-dropzone";
 import { cn } from "@/utils/cn";
-import { IconDragDrop } from "@tabler/icons-react";
-import { toast } from "react-toastify";
+import { toast } from "sonner";
 
 interface FileUploadProps {
-  setDocument: Dispatch<SetStateAction<File | undefined>>;
-  setIsLoading: Dispatch<SetStateAction<boolean>>;
-  setModalOpen: Dispatch<SetStateAction<boolean>>;
+  setDocument: (file: File | undefined) => void;
+  setIsLoading: (loading: boolean) => void;
+  setModalOpen: (open: boolean) => void;
   maxFiles?: number;
   maxSize?: number;
   accept?: Record<string, string[]>;
-  progress?: number;
 }
 
 export function FileUpload({
   maxFiles = 1,
   maxSize = 1024 * 1024 * 10, // 10MB
-  accept = {
-    "application/pdf": [".pdf"],
-  },
+  accept = { "application/pdf": [".pdf"] },
   setDocument,
   setIsLoading,
   setModalOpen,
 }: FileUploadProps) {
   const [files, setFiles] = useState<File[]>([]);
-  const [isUploading, setIsUploading] = useState<boolean>(false);
+  const [isUploading, setIsUploading] = useState(false);
   const [progress, setProgress] = useState(0);
-
-  const getErrorMessage = (error: any): string => {
-    switch (error.code) {
-      case 'file-too-large':
-        return 'File exceeds 10MB limit. Please choose a smaller file.';
-      case 'file-invalid-type':
-        return 'Only PDF files are supported.';
-      case 'too-many-files':
-        return 'Please upload one file at a time.';
-      default:
-        return 'An error occurred while uploading. Please try again.';
-    }
-  };
 
   const onDrop = (acceptedFiles: File[], fileRejections: any[]) => {
     if (fileRejections.length > 0) {
       const error = fileRejections[0].errors[0];
-      toast.error(getErrorMessage(error));
+      const errorMessage = error.code === 'file-too-large' 
+        ? 'File is too large. Maximum size is 10MB.'
+        : 'Invalid file type. Please upload a PDF file.';
+      toast.error(errorMessage);
       return;
     }
 
     if (acceptedFiles.length > 0) {
-      const newFiles = acceptedFiles.slice(0, maxFiles);
-      setFiles(newFiles);
-      setDocument(newFiles[0]);
+      setFiles(acceptedFiles.slice(0, maxFiles));
+      setDocument(acceptedFiles[0]);
       simulateUpload();
     }
   };
@@ -69,25 +47,18 @@ export function FileUpload({
     setIsUploading(true);
     setProgress(0);
     
-    const updateProgress = () => {
-      setProgress(prev => {
-        const nextProgress = Math.min(prev + 10, 100);
-        if (nextProgress === 100) {
-          setTimeout(() => setIsUploading(false), 500);
-        }
-        return nextProgress;
-      });
-    };
-
     const interval = setInterval(() => {
-      if (progress >= 100) {
-        clearInterval(interval);
-        return;
-      }
-      updateProgress();
+      setProgress((prev) => {
+        if (prev >= 100) {
+          clearInterval(interval);
+          setTimeout(() => {
+            setIsUploading(false);
+          }, 500);
+          return 100;
+        }
+        return prev + 10;
+      });
     }, 100);
-
-    return () => clearInterval(interval);
   };
 
   const { getRootProps, getInputProps, isDragActive } = useDropzone({
@@ -100,34 +71,24 @@ export function FileUpload({
   });
 
   return (
-    <div className="w-full space-y-4 transition-all duration-200">
+    <div className="w-full space-y-4">
       <div
         {...getRootProps()}
         className={cn(
           "group relative border-2 border-dashed rounded-xl p-8 text-center transition-all duration-200 cursor-pointer",
-          "focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2",
           isDragActive 
-            ? "border-blue-500 bg-blue-50/70 scale-[1.01] shadow-sm" 
+            ? "border-blue-500 bg-blue-50/50" 
             : "border-blue-200 hover:border-blue-400 hover:bg-blue-50/30"
         )}
-        aria-label="File upload area"
       >
-        <input {...(getInputProps() as DropzoneInputProps)} className="sr-only" />
+        <input {...(getInputProps() as DropzoneInputProps)} />
         <div className="pointer-events-none">
-          <div className={cn(
-            "mx-auto flex h-20 w-20 items-center justify-center rounded-2xl bg-blue-50 mb-4",
-            "transition-all duration-200 group-hover:bg-blue-100 group-hover:scale-105",
-            isDragActive && "scale-110 bg-blue-100"
-          )}>
+          <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-full bg-blue-50 group-hover:bg-blue-100 transition-colors">
             <svg 
-              className={cn(
-                "h-9 w-9 text-blue-600 transition-transform duration-200",
-                isDragActive && "scale-110"
-              )} 
+              className="h-8 w-8 text-blue-600" 
               fill="none" 
               viewBox="0 0 24 24" 
               stroke="currentColor"
-              aria-hidden="true"
             >
               <path 
                 strokeLinecap="round" 
@@ -137,17 +98,14 @@ export function FileUpload({
               />
             </svg>
           </div>
-          <p className="text-base font-semibold text-gray-900 mb-1">
-            {isDragActive ? "Drop to upload" : "Add Your Document"}
+          <p className="mt-4 text-sm font-medium text-gray-900">
+            {isDragActive ? "Drop your PDF here" : "Drag and drop your PDF"}
           </p>
-          <p className="text-sm text-gray-600">
-            <span className="font-medium text-blue-600 group-hover:text-blue-500 transition-colors">
-              Choose a file
-            </span>{' '}
-            or drag and drop
+          <p className="mt-1 text-sm text-gray-500">
+            or <span className="font-medium text-blue-600 hover:text-blue-500">browse files</span>
           </p>
-          <p className="mt-2 text-xs text-gray-500">
-            PDF format (max 10MB)
+          <p className="mt-2 text-xs text-gray-400">
+            PDF (max. 10MB)
           </p>
         </div>
       </div>

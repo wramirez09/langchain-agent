@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { Message as VercelChatMessage, StreamingTextResponse } from "ai";
 
-import { ChatOpenAI } from "@langchain/openai";
+import { llmAgent } from "@/lib/llm";
 import { PromptTemplate } from "@langchain/core/prompts";
 import { HttpResponseOutputParser } from "langchain/output_parsers";
 
@@ -42,10 +42,7 @@ export async function POST(req: NextRequest) {
      * See a full list of supported models at:
      * https://js.langchain.com/docs/modules/model_io/models/
      */
-    const model = new ChatOpenAI({
-      temperature: 0.8,
-      model: "gpt-5",
-    });
+    const model = llmAgent;
 
     /**
      * Chat models stream message chunks rather than bytes, so this
@@ -59,7 +56,7 @@ export async function POST(req: NextRequest) {
      * import { RunnableSequence } from "@langchain/core/runnables";
      * const chain = RunnableSequence.from([prompt, model, outputParser]);
      */
-    const chain = prompt.pipe(model).pipe(outputParser);
+    const chain = prompt.pipe(llmAgent).pipe(outputParser);
 
     const stream = await chain.stream({
       chat_history: formattedPreviousMessages.join("\n"),

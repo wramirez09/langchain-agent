@@ -11,9 +11,30 @@ const SuspendedPDFInner = () => {
 
   let messages: Message[] = [];
   try {
-    messages = stringData ? JSON.parse(stringData) : [];
+    const parsedMessages = stringData ? JSON.parse(stringData) : [];
+    // Filter out tool call messages and system messages
+    messages = parsedMessages.filter((message: Message) => {
+      // Skip if it's a system message
+      if (message.role === 'system') return false;
+      
+      // Skip if it's a tool call message (contains action or tool_call_id)
+      if (message.content && (
+        (typeof message.content === 'string' && 
+         (message.content.includes('"action":') || 
+          message.content.includes('"tool_call_id":') ||
+          message.content.includes('"tool_calls":') ||
+          message.content.trim().startsWith('{') && message.content.trim().endsWith('}'))) ||
+        (typeof message.content === 'object' && 
+         ('action' in message.content || 'tool_call_id' in message.content || 'tool_calls' in message.content))
+      )) {
+        return false;
+      }
+      
+      return true;
+    });
   } catch (err) {
-    return <div>Invalid data</div>;
+    console.error('Error parsing messages:', err);
+    return <div>Error processing chat data</div>;
   }
 
   return <PdfDoc name="User" role="Viewer" messages={messages} />;

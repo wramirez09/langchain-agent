@@ -5,9 +5,7 @@ import { NuqsAdapter } from "nuqs/adapters/next/app";
 import "./globals.css";
 import Image from "next/image";
 import logo from "@/public/images/logo-main.svg";
-
 import { NavbarMinimal } from "@/components/ui/navBar/NavbarMinimal";
-
 import * as React from "react";
 
 const publicSans = Public_Sans({ subsets: ["latin"] });
@@ -27,7 +25,7 @@ export default function RootLayout({
           Healthcare
         </title>
         <link rel="shortcut icon" href="/images/" />
-        <meta name="apple-mobile-web-app-capable" content="yes" />
+        <meta name="mobile-web-app-capable" content="yes" />
         <meta name="viewport" content="width=device-width, initial-scale=1" />
         <meta
           name="description"

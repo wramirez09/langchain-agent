@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { Message as VercelChatMessage, StreamingTextResponse } from "ai";
 import { createReactAgent } from "@langchain/langgraph/prebuilt";
-import { ChatOpenAI } from "@langchain/openai";
+import { llmAgent } from "@/lib/llm";
 import { SerpAPI } from "@langchain/community/tools/serpapi";
 import {
   AIMessage,
@@ -10,6 +10,7 @@ import {
   HumanMessage,
   SystemMessage,
 } from "@langchain/core/messages";
+import { cache, generateCacheKey, TTL } from "@/lib/cache";
 
 import { NCDCoverageSearchTool } from "./tools/NCDCoverageSearchTool";
 import { localLcdSearchTool } from "./tools/localLcdSearchTool";
@@ -137,6 +138,21 @@ export async function POST(req: NextRequest) {
       )
       .map(convertVercelMessageToLangChainMessage);
 
+    // Generate cache key based on messages content
+    const cacheKey = generateCacheKey(
+      'chat-agents',
+      JSON.stringify(messages.slice(-2)), // Cache based on last 2 messages
+      returnIntermediateSteps ? 'with-steps' : 'no-steps'
+    );
+
+    // Check cache for non-streaming requests
+    if (returnIntermediateSteps) {
+      const cachedResult = cache.get(cacheKey);
+      if (cachedResult) {
+        return NextResponse.json(cachedResult, { status: 200 });
+      }
+    }
+
     const tools = [
       new SerpAPI(),
       new CarelonSearchTool(),
@@ -147,13 +163,12 @@ export async function POST(req: NextRequest) {
       policyContentExtractorTool,
       new FileUploadTool(), // Add the new file upload tool here
     ];
-    const chat = new ChatOpenAI({ model: "gpt-5", temperature: 1 });
 
     /**
      * Use a prebuilt LangGraph agent.
      */
     const agent = createReactAgent({
-      llm: chat,
+      llm: llmAgent,
       tools,
       messageModifier: new SystemMessage(AGENT_SYSTEM_TEMPLATE),
     });
@@ -179,13 +194,15 @@ export async function POST(req: NextRequest) {
       return new StreamingTextResponse(transformStream);
     } else {
       const result = await agent.invoke({ messages });
+      
+      const response = {
+        messages: result.messages.map(convertLangChainMessageToVercelMessage),
+      };
 
-      return NextResponse.json(
-        {
-          messages: result.messages.map(convertLangChainMessageToVercelMessage),
-        },
-        { status: 200 },
-      );
+      // Cache the result for future requests
+      cache.set(cacheKey, response, TTL.MEDIUM);
+
+      return NextResponse.json(response, { status: 200 });
     }
   } catch (e: any) {
     return NextResponse.json({ error: e.message }, { status: e.status ?? 500 });

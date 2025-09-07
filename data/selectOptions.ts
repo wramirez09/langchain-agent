@@ -1,9 +1,11 @@
-export type SelectOption = {
+export interface SelectOption {
   value: string;
   label: string;
-};
+  disabled?: boolean;
+  icon?: React.ReactNode;
+}
 
-export const insruranceProvidersOptions: SelectOption[] = [
+export const insuranceProvidersOptions: SelectOption[] = [
   {
     value: "Medicare",
     label: "Medicare",
