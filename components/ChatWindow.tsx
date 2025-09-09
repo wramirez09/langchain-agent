@@ -25,12 +25,13 @@ import {
 import FlyoutForm from "./ui/FlyoutForm";
 import Link from "next/link";
 import MobileDrawer from "./ui/MobileDrawer";
-import { toast } from "sonner";
+import { toast, Toaster } from "sonner";
 import { useChat } from "ai/react";
 import { ArrowDown, LoaderCircle } from "lucide-react";
 import { ChatMessageBubble } from "./ChatMessageBubble";
 import { IntermediateStep } from "./IntermediateStep";
 import { Button } from "./ui/button";
+import { useEffect } from "react";
 
 function ChatMessages(props: {
   messages: Message[];
@@ -40,7 +41,9 @@ function ChatMessages(props: {
   className?: string;
 }) {
   return (
-    <div className="flex flex-col max-w-[768px] mx-auto pb-12 w-full">
+    <div className="relative flex flex-col max-w-[768px] mx-auto pb-12 w-full">
+      <div className="sticky bottom-0 left-0 right-0 h-12 bg-gradient-to-t from-gray-100 to-transparent pointer-events-none z-10" />
+      <Toaster position="top-right" richColors />
       {props.messages.map((m, i) => {
         if (m.role === "system") {
           return <IntermediateStep key={m.id} message={m} />;
@@ -159,48 +162,53 @@ export function ChatInput(props: {
         <div className="border border-blue-200 bg-blue-50 rounded-lg flex flex-col max-w-[768px] w-full mx-auto">
           <div className="flex flex-wrap items-center gap-2 px-4 py-3">
             {props.children}
-            
-            <Button
-              type="button"
-              variant="ghost"
-              className="hidden sm:flex items-center hover:bg-blue-100 bg-white/50 border border-blue-100 text-[#1e7dbf] hover:text-[#1e7dbf] p-1.5 text-sm h-8"
-              onClick={() => props.setSheetOpen((open) => !open)}
-            >
-              <IconFileSearch stroke={1.25} className="shrink-0 text-[#238dd2] mr-1.5" width={16} />
-              <span>Pre-Auth Form</span>
-            </Button>
 
             <Button
               type="button"
               variant="ghost"
-              className="hidden sm:flex items-center hover:bg-blue-100 bg-white/50 border border-blue-100 p-1.5 text-sm h-8"
+              size="sm"
+              className="hidden sm:flex items-center hover:bg-blue-100 bg-white/50 border border-blue-100 text-[#1e7dbf] hover:text-[#1e7dbf] px-3 h-8"
+              onClick={() => props.setSheetOpen((open) => !open)}
             >
-              <IconFileTypePdf stroke={1.25} className="shrink-0 text-[#238dd2] mr-1.5" width={16} />
+              <IconFileSearch className="w-4 h-4 text-[#238dd2] mr-1" strokeWidth={1.5} />
+              <span>Pre-Authorization</span>
+            </Button>
+
+            <Button
+              asChild
+              type="button"
+              variant="ghost"
+              size="sm"
+              className="hidden sm:flex items-center hover:bg-blue-100 bg-white/50 border border-blue-100 text-[#1e7dbf] hover:text-[#1e7dbf] px-3 h-8"
+            >
               <Link
                 target="_blank"
-                className="text-[#238dd2] hover:text-[#1e7dbf] text-sm"
                 href={{
                   pathname: "/pdf",
                   query: { data: JSON.stringify(props.messages) },
                 }}
+                className="flex items-center hidden sm:flex items-center hover:bg-blue-100 bg-white/50 border border-blue-100 text-[#1e7dbf] hover:text-[#1e7dbf] px-3 h-8 rounded-md"
               >
-                PDF Export
+                <IconFileTypePdf className="w-4 h-4 text-[#238dd2] mr-2" strokeWidth={1.5} />
+                <span className="text-xs font-medium">File Export</span>
               </Link>
             </Button>
 
             <Button
               type="button"
-              className="md:hidden flex items-center hover:bg-blue-100 bg-blue-50 text-[#1e7dbf] hover:text-[#1e7dbf] p-1.5 h-8"
+              variant="ghost"
+              size="icon"
+              className="md:hidden hover:bg-blue-100 bg-blue-50 text-[#1e7dbf] hover:text-[#1e7dbf] w-8 h-8"
               onClick={() => props.setOpenMobileDrawer((prev) => !prev)}
             >
-              <IconSettings stroke={1.5} width={16} />
+              <IconSettings className="w-4 h-4" strokeWidth={1.5} />
             </Button>
           </div>
-          
+
           <div className="relative px-3 pb-2">
             <hr className="border-t border-blue-100/80 mt-1 mb-2" />
           </div>
-          
+
           <div className="flex items-center px-4 py-3 bg-white/80 rounded-lg mx-3 mb-3 border border-blue-100">
             <input
               name="chat"
@@ -209,7 +217,7 @@ export function ChatInput(props: {
               onChange={props.onChange}
               className="w-full outline-none bg-transparent text-gray-900 placeholder-gray-500 text-base"
             />
-            
+
             <Button
               type="submit"
               className="bg-white hover:bg-blue-50 ml-2 h-10 w-10 flex-shrink-0 rounded-lg border border-blue-100 shadow-sm"
@@ -289,6 +297,7 @@ export function ChatWindow(props: {
   const chat = useChat({
     api: props.endpoint,
     onResponse(response) {
+      // Handle sources from response
       const sourcesHeader = response.headers.get("x-sources");
       const sources = sourcesHeader
         ? JSON.parse(Buffer.from(sourcesHeader, "base64").toString("utf8"))
@@ -301,12 +310,40 @@ export function ChatWindow(props: {
           [messageIndexHeader]: sources,
         });
       }
+
+      // Handle toast notifications from the API
+      try {
+        const toastHeader = response.headers.get('x-toast-notifications');
+        if (toastHeader) {
+          const toastData = JSON.parse(toastHeader);
+          if (Array.isArray(toastData)) {
+            toastData.forEach((toastItem: { message: string; type: string }) => {
+              const { message, type } = toastItem;
+              switch (type) {
+                case 'success':
+                  toast.success(message);
+                  break;
+                case 'error':
+                  toast.error(message);
+                  break;
+                case 'loading':
+                  toast.loading(message);
+                  break;
+                default:
+                  toast(message);
+              }
+            });
+          }
+        }
+      } catch (e) {
+        console.error('Error processing toast notifications:', e);
+      }
     },
-    streamMode: "text",
-    onError: (e) =>
+    onError: (e) => {
       toast.error(`Error while processing your request in Chat`, {
         description: e.message,
-      }),
+      });
+    },
   });
 
   async function sendMessage(e: FormEvent<HTMLFormElement>) {
@@ -405,49 +442,88 @@ export function ChatWindow(props: {
   );
 
   async function handleUploadAndChat(file: File) {
-    toast("Uploading file and starting chat...");
+    if (!file) {
+      toast.error("No file selected");
+      return;
+    }
+
+    // Validate file type
+    if (file.type !== 'application/pdf') {
+      toast.error("Only PDF files are supported");
+      return;
+    }
+
+    // Validate file size (10MB max)
+    const maxSize = 10 * 1024 * 1024; // 10MB
+    if (file.size > maxSize) {
+      toast.error("File size exceeds 10MB limit");
+      return;
+    }
+
     setUploading(true);
+    const toastId = toast.loading("Uploading file...");
 
     const formData = new FormData();
     formData.append("file", file);
 
     try {
-      const ingestResponse = await fetch(`/api/retrieval/ingest`, {
-        method: "POST",
+      console.log('Sending file to API...');
+      const response = await fetch('/api/retrieval/ingest', {
+        method: 'POST',
         body: formData,
       });
 
-      toast("File uploaded. Processing...");
+      console.log('Received response, parsing JSON...');
+      const data = await response.json();
+      console.log('Parsed response data:', data);
 
-      if (!ingestResponse.ok) {
-        const errorData = await ingestResponse.json();
-        throw new Error(errorData.message);
-      }
-      const ingestData = await ingestResponse.json();
-
-      if (!ingestData || !ingestData.generatedQuery) {
-        throw new Error("Generated query from document is empty or invalid.");
+      if (!response.ok) {
+        const errorMsg = data?.error || 'Failed to process file';
+        console.error('API Error:', errorMsg);
+        throw new Error(errorMsg);
       }
 
-      toast.success("Document uploaded and query generated successfully!");
+      if (!data.success) {
+        console.error('API returned unsuccessful response:', data);
+        throw new Error(data.error || 'Failed to process document');
+      }
+
+      if (!data.generatedQuery) {
+        console.error('No generated query in response:', data);
+        throw new Error("Failed to generate query from document");
+      }
+
+      toast.success("Document processed successfully!", { id: toastId });
       setModalOpen(false);
 
-      // Combine with form input if needed
+      // Combine with form input if available
       const formInputString = Array.from(formContent.entries())
         .map(([key, value]) => `${key}: ${value}`)
         .filter(Boolean)
         .join(" ");
 
-      let combinedInput = `Generated query from uploaded document: "${ingestData.generatedQuery}"`;
+      let combinedInput = `Generated query from uploaded document: "${data.generatedQuery}"`;
 
       if (formInputString) {
-        combinedInput += `\nAdditional user input from form: "${formInputString}"`;
+        combinedInput += `\nAdditional user input: "${formInputString}"`;
       }
 
+      console.log('Appending message to chat...');
       await chat.append({ role: "user", content: combinedInput });
-    } catch (e: any) {
-      toast.error("Document upload failed", { description: e.message });
+      
+    } catch (error: any) {
+      console.error("Upload error:", {
+        message: error.message,
+        stack: error.stack,
+        name: error.name
+      });
+      
+      toast.error("Upload failed", { 
+        description: error.message || "An unknown error occurred",
+        id: toastId 
+      });
     } finally {
+      console.log('Upload process completed');
       setUploading(false);
     }
   }
@@ -489,18 +565,18 @@ export function ChatWindow(props: {
               >
                 {props.showIntermediateStepsToggle && (
                   <div className="flex items-center gap-2 bg-white/50 rounded px-2 py-1 border border-blue-100">
-                  <Checkbox
-                    id="show_intermediate_steps"
-                    name="show_intermediate_steps"
-                    checked={showIntermediateSteps}
-                    disabled={chat.isLoading || intermediateStepsLoading}
-                    onCheckedChange={(e) => setShowIntermediateSteps(!!e)}
-                    className="h-4 w-4 border-gray-300 text-[#1e7dbf] focus:ring-[#1e7dbf]"
-                  />
-                  <label htmlFor="show_intermediate_steps" className="text-sm text-gray-600">
-                    Show steps
-                  </label>
-                </div>
+                    <Checkbox
+                      id="show_intermediate_steps"
+                      name="show_intermediate_steps"
+                      checked={showIntermediateSteps}
+                      disabled={chat.isLoading || intermediateStepsLoading}
+                      onCheckedChange={(e) => setShowIntermediateSteps(!!e)}
+                      className="h-4 w-4 border-gray-300 text-[#1e7dbf] focus:ring-[#1e7dbf]"
+                    />
+                    <label htmlFor="show_intermediate_steps" className="text-sm text-gray-600">
+                      Show steps
+                    </label>
+                  </div>
                 )}
                 {props.showIngestForm && (
                   <Dialog
@@ -511,11 +587,12 @@ export function ChatWindow(props: {
                       <Button
                         type="button"
                         variant="ghost"
-                        className="hidden sm:flex items-center hover:bg-blue-100 bg-white/50 border border-blue-100 text-[#1e7dbf] hover:text-[#1e7dbf] p-1.5 text-sm h-8"
+                        size="sm"
+                        className="hidden sm:flex items-center hover:bg-blue-100 bg-white/50 border border-blue-100 text-[#1e7dbf] hover:text-[#1e7dbf] px-3 h-8"
                         disabled={chat.messages.length !== 0}
                       >
-                        <IconUpload stroke={1.5} width={16} className="mr-1.5" />
-                        <span>Upload PDF</span>
+                        <IconUpload className="w-4 h-4 text-[#238dd2] mr-1" strokeWidth={1.5} />
+                        <span>Upload File</span>
                       </Button>
                     </DialogTrigger>
                     <DialogContent className="bg-white border-blue-200">

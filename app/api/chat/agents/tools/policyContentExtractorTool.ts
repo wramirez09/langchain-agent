@@ -109,34 +109,56 @@ class PolicyContentExtractorTool extends StructuredTool<
     }, 30000);
 
     try {
-      const response = await fetch(policyUrl, { signal });
+      // Check if this is a CMS NCD URL and use the direct CMS page
+      const ncdMatch = policyUrl.match(/ncdid=([^&]+)/);
+      let fetchUrl = policyUrl;
+      
+      // If it's a CMS NCD URL, use the direct CMS page instead of the API
+      if (ncdMatch) {
+        const ncdId = ncdMatch[1];
+        fetchUrl = `https://www.cms.gov/medicare-coverage-database/view/ncd.aspx?ncdid=${ncdId}`;
+        console.log(`Fetching NCD content from CMS page: ${fetchUrl}`);
+      }
+      
+      const response = await fetch(fetchUrl, { signal });
 
       if (!response.ok) {
         throw new Error(
-          `Failed to fetch policy content from ${policyUrl}: ${response.status} ${response.statusText}`,
+          `Failed to fetch policy content: ${response.status} ${response.statusText}`,
         );
       }
 
       // Clear the timeout if the request succeeds
       clearTimeout(timeout);
-      const htmlContent = await response.text();
-      const $ = cheerio.load(htmlContent);
+      const contentType = response.headers.get('content-type') || '';
+      let extractedText: string;
 
-      let extractedText = "";
-      const selectors =
-        "div.document-view-section, .article-content, .coverage-summary";
-      const elements = $(selectors);
-
-      if (elements.length > 0) {
-        extractedText = elements
-          .map((_, el) => $(el).text().trim())
-          .get()
-          .join("\n\n");
+      if (contentType.includes('application/json')) {
+        // Handle CMS API JSON response
+        const data = await response.json();
+        if (data && data.data && data.data.content) {
+          // If we have structured content, use it
+          extractedText = data.data.content;
+        } else {
+          // Fallback to stringifying the response
+          extractedText = JSON.stringify(data, null, 2);
+        }
       } else {
-        extractedText = $("body").text().trim();
+        // Handle regular HTML response
+        const html = await response.text();
+        const $ = cheerio.load(html);
+
+        // Extract the main content, removing scripts, styles, and other non-content elements
+        $('script, style, nav, footer, header, iframe, noscript').remove();
+        
+        // Get the text content
+        extractedText = $('body').text()
+          .replace(/\s+/g, ' ') // Replace multiple spaces with single space
+          .trim();
       }
 
-      extractedText = extractedText.replace(/\s+/g, " ").trim();
+      // Clean up the extracted text
+      extractedText = extractedText.replace(/\s+/g, ' ').trim();
 
       if (extractedText.length < 100) {
         const warning = `Extracted content too short for ${policyUrl}.`;

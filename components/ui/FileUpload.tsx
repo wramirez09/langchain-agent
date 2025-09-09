@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useEffect, SetStateAction, Dispatch } from "react";
+import React, { useState, useEffect, useCallback, SetStateAction, Dispatch } from "react";
 import {
   useDropzone,
   DropzoneRootProps,
@@ -36,6 +36,7 @@ export function FileUpload({
   const [files, setFiles] = useState<File[]>([]);
   const [isUploading, setIsUploading] = useState<boolean>(false);
   const [progress, setProgress] = useState(0);
+  const [error, setError] = useState<string | null>(null);
 
   const getErrorMessage = (error: any): string => {
     switch (error.code) {
@@ -50,45 +51,32 @@ export function FileUpload({
     }
   };
 
-  const onDrop = (acceptedFiles: File[], fileRejections: any[]) => {
+  // Update parent document when files change
+  useEffect(() => {
+    if (files.length > 0) {
+      setDocument(files[0]);
+    } else {
+      setDocument(undefined);
+    }
+  }, [files, setDocument]);
+
+  const onDrop = useCallback((acceptedFiles: File[], fileRejections: any[]) => {
+    setError(null);
+    
     if (fileRejections.length > 0) {
       const error = fileRejections[0].errors[0];
-      toast.error(getErrorMessage(error));
+      const errorMessage = getErrorMessage(error);
+      toast.error(errorMessage);
+      setError(errorMessage);
       return;
     }
 
     if (acceptedFiles.length > 0) {
       const newFiles = acceptedFiles.slice(0, maxFiles);
       setFiles(newFiles);
-      setDocument(newFiles[0]);
-      simulateUpload();
+      // Note: setDocument is now called via the useEffect above
     }
-  };
-
-  const simulateUpload = () => {
-    setIsUploading(true);
-    setProgress(0);
-    
-    const updateProgress = () => {
-      setProgress(prev => {
-        const nextProgress = Math.min(prev + 10, 100);
-        if (nextProgress === 100) {
-          setTimeout(() => setIsUploading(false), 500);
-        }
-        return nextProgress;
-      });
-    };
-
-    const interval = setInterval(() => {
-      if (progress >= 100) {
-        clearInterval(interval);
-        return;
-      }
-      updateProgress();
-    }, 100);
-
-    return () => clearInterval(interval);
-  };
+  }, [maxFiles]);
 
   const { getRootProps, getInputProps, isDragActive } = useDropzone({
     onDrop,
@@ -171,7 +159,6 @@ export function FileUpload({
           </div>
         </div>
       )}
-
       {isUploading && (
         <div className="space-y-3 rounded-lg border border-blue-100 bg-white p-4 shadow-sm">
           <div className="flex items-center justify-between">

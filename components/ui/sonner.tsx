@@ -1,6 +1,7 @@
 "use client";
 import { useTheme } from "next-themes";
 import { Toaster as Sonner } from "sonner";
+import { cn } from "@/utils/cn";
 
 type ToasterProps = React.ComponentProps<typeof Sonner>;
 
@@ -9,18 +10,36 @@ const Toaster = ({ ...props }: ToasterProps) => {
 
   return (
     <Sonner
-      theme={theme as ToasterProps["theme"]}
+      theme="dark"
+      position="top-right"
       className="toaster group"
       toastOptions={{
-        classNames: {
-          toast:
-            "group toast group-[.toaster]:bg-neutral-700 group-[.toaster]:text-foreground group-[.toaster]:border-border group-[.toaster]:shadow-lg px-4 py-3",
-          description: "group-[.toast]:text-gray-900 -mt-0.5",
-          actionButton:
-            "group-[.toast]:bg-primary group-[.toast]:text-primary-foreground",
-          cancelButton: "group-[.toast]:bg-muted group-[.toast]:text-gray-900",
+        style: {
+          background: '#1f2937', // bg-neutral-800
+          border: '1px solid #374151', // border-gray-700
+          color: 'white',
+          margin: '0.5rem 0',
+          zIndex: 100,
         },
+        classNames: {
+          toast: cn(
+            "group toast w-full max-w-sm"
+          ),
+          title: "font-semibold text-white",
+          description: "text-gray-100 -mt-0.5 text-sm",
+          actionButton: cn(
+            "bg-blue-600 text-white hover:bg-blue-700",
+            "px-3 py-1.5 text-sm font-medium rounded-md"
+          ),
+          cancelButton: cn(
+            "bg-gray-600 text-white hover:bg-gray-700",
+            "px-3 py-1.5 text-sm font-medium rounded-md"
+          ),
+        },
+        unstyled: false,
       }}
+      visibleToasts={3}
+      gap={12}
       {...props}
     />
   );

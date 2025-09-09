@@ -15,11 +15,39 @@ const UploadDocumentsForm: React.FC<{
 }> = ({ onUpload, setModalOpen, setIsLoading, uploading }) => {
   const [document, setDocument] = useState<File | undefined>();
 
-  const handelFileUpload = async (e: FormEvent) => {
+  const handleFileUpload = async (e: FormEvent) => {
     e.preventDefault();
+    
+    if (!document) {
+      console.error('No document selected');
+      toast.error('Please select a file to upload');
+      return;
+    }
 
-    await onUpload(document);
-    setModalOpen(false);
+    console.log('Starting file upload with document:', {
+      name: document.name,
+      type: document.type,
+      size: document.size
+    });
+
+    try {
+      setIsLoading(true);
+      console.log('Calling onUpload with document...');
+      await onUpload(document);
+      console.log('File upload successful');
+      setModalOpen(false);
+      toast.success('File uploaded successfully');
+    } catch (error: any) {
+      console.error('Upload error:', {
+        error: error.message,
+        stack: error.stack,
+        name: error.name
+      });
+      toast.error(`Upload failed: ${error.message || 'Unknown error'}`);
+    } finally {
+      console.log('Upload process completed');
+      setIsLoading(false);
+    }
   };
 
   return (
@@ -41,13 +69,13 @@ const UploadDocumentsForm: React.FC<{
             variant="outline"
             onClick={() => setModalOpen(false)}
             className="w-full sm:w-[120px] px-5 text-gray-700 border-gray-300 hover:bg-gray-50 focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
-            disabled={uploading}
+            disabled={uploading || !document}
           >
             Cancel
           </Button>
           <Button
             type="submit"
-            onClick={handelFileUpload}
+            onClick={handleFileUpload}
             className={cn(
               "w-full sm:w-[180px] px-6 text-white transition-colors",
               "bg-blue-600 hover:bg-blue-700",
