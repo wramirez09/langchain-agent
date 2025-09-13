@@ -220,7 +220,7 @@ export function ChatInput(props: {
 
             <Button
               type="submit"
-              className="bg-white hover:bg-blue-50 ml-2 h-10 w-10 flex-shrink-0 rounded-lg border border-blue-100 shadow-sm"
+              className="bg-white hover:bg-blue-50 ml-2 h-13 w-13 flex-shrink-0 rounded-lg border border-blue-100 shadow-sm"
               disabled={disabled}
             >
               {props.loading ? (
@@ -231,7 +231,7 @@ export function ChatInput(props: {
               ) : (
                 <IconSend2
                   className="text-[#1e7dbf] hover:text-[#1e7dbf]"
-                  width={18}
+                  width={16}
                 />
               )}
             </Button>
