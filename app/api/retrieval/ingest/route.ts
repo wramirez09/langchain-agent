@@ -8,13 +8,6 @@ import { PDFLoader } from "@langchain/community/document_loaders/fs/pdf";
 import { HumanMessage } from "@langchain/core/messages";
 
 
-function cleanText(text: any) {
-  return text
-    .replace(/\n\s*\n/g, "\n")
-    .replace(/\s+/g, " ")
-    .trim();
-}
-
 const supabaseUrl = process.env.SUPABASE_URL;
 const supabaseServiceKey = process.env.SUPABASE_PRIVATE_KEY;
 const openApiKey = process.env.OPENAI_API_KEY;
@@ -27,17 +20,18 @@ if (!supabaseUrl || !supabaseServiceKey || !openApiKey) {
 
 export async function POST(req: Request) {
   try {
+
     console.log('Received file upload request');
-    
+
     const formData = await req.formData();
     const file = formData.get("file");
 
     if (!file) {
       console.error('No file found in form data');
       return NextResponse.json(
-        { 
+        {
           success: false,
-          error: "No file uploaded" 
+          error: "No file uploaded"
         },
         { status: 400 }
       );
@@ -46,9 +40,9 @@ export async function POST(req: Request) {
     if (!(file instanceof Blob)) {
       console.error('Invalid file format:', file);
       return NextResponse.json(
-        { 
+        {
           success: false,
-          error: "Invalid file format" 
+          error: "Invalid file format"
         },
         { status: 400 }
       );
@@ -58,9 +52,9 @@ export async function POST(req: Request) {
     if (file.type !== 'application/pdf') {
       console.error('Unsupported file type:', file.type);
       return NextResponse.json(
-        { 
+        {
           success: false,
-          error: "Only PDF files are supported" 
+          error: "Only PDF files are supported"
         },
         { status: 400 }
       );
@@ -78,17 +72,18 @@ export async function POST(req: Request) {
 
     // Process the PDF file
     console.log('Processing PDF file...');
+
     const arrayBuffer = await file.arrayBuffer();
     const buffer = Buffer.from(arrayBuffer);
-    
+
     const blob = new Blob([buffer], { type: file.type });
     const loader = new PDFLoader(blob);
-    
+
     const docs = await loader.load().catch(error => {
       console.error("Error loading PDF:", error);
       throw new Error("Failed to process PDF file. The file may be corrupted or not a valid PDF.");
     });
-    
+
     if (!docs || docs.length === 0) {
       throw new Error("No content could be extracted from the PDF.");
     }
@@ -98,7 +93,7 @@ export async function POST(req: Request) {
       chunkSize: 1000,
       chunkOverlap: 200,
     });
-    
+
     const splitDocs = await textSplitter.splitDocuments(docs).catch(error => {
       console.error("Error splitting document:", error);
       throw new Error("Failed to process document content.");
@@ -131,6 +126,7 @@ The query should include:
 
 Combine these points into a single, natural-language question. Do not include any filler text, just the query.
 Document Content to Analyze:
+
 ${splitDocs.slice(0, 5).map(doc => doc.pageContent).join("\n\n---\n\n")}`;
 
     // Invoke the agent with the prompt
@@ -139,12 +135,12 @@ ${splitDocs.slice(0, 5).map(doc => doc.pageContent).join("\n\n---\n\n")}`;
     ]);
 
     const generatedQuery = result.content;
-    
+
     console.log('Successfully processed PDF and generated query');
     return NextResponse.json(
-      { 
+      {
         success: true,
-        generatedQuery: result.content,
+        generatedQuery: generatedQuery,
         documentId: `doc_${Date.now()}`
       },
       { status: 200 }
@@ -153,11 +149,11 @@ ${splitDocs.slice(0, 5).map(doc => doc.pageContent).join("\n\n---\n\n")}`;
   } catch (error: any) {
     console.error("Error in ingest API:", error);
     return NextResponse.json(
-      { 
+      {
         success: false,
-        error: error.message || "Internal server error" 
+        error: error.message || "Internal server error"
       },
-      { 
+      {
         status: error.status || 500,
         headers: {
           'Content-Type': 'application/json'

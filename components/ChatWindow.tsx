@@ -296,53 +296,72 @@ export function ChatWindow(props: {
 
   const chat = useChat({
     api: props.endpoint,
+    streamMode: 'text',
     onResponse(response) {
-      // Handle sources from response
-      const sourcesHeader = response.headers.get("x-sources");
-      const sources = sourcesHeader
-        ? JSON.parse(Buffer.from(sourcesHeader, "base64").toString("utf8"))
-        : [];
-
-      const messageIndexHeader = response.headers.get("x-message-index");
-      if (sources.length && messageIndexHeader !== null) {
-        setSourcesForMessages({
-          ...sourcesForMessages,
-          [messageIndexHeader]: sources,
-        });
-      }
-
-      // Handle toast notifications from the API
       try {
-        const toastHeader = response.headers.get('x-toast-notifications');
-        if (toastHeader) {
-          const toastData = JSON.parse(toastHeader);
-          if (Array.isArray(toastData)) {
-            toastData.forEach((toastItem: { message: string; type: string }) => {
-              const { message, type } = toastItem;
-              switch (type) {
-                case 'success':
-                  toast.success(message);
-                  break;
-                case 'error':
-                  toast.error(message);
-                  break;
-                case 'loading':
-                  toast.loading(message);
-                  break;
-                default:
-                  toast(message);
-              }
-            });
+        // Handle sources from response
+        const sourcesHeader = response.headers.get("x-sources");
+        let sources = [];
+
+        if (sourcesHeader) {
+          try {
+            sources = JSON.parse(sourcesHeader);
+          } catch (error) {
+            console.warn("Failed to parse sources header:", error);
+            sources = [];
           }
         }
-      } catch (e) {
-        console.error('Error processing toast notifications:', e);
+
+        const messageIndexHeader = response.headers.get("x-message-index");
+        if (sources.length && messageIndexHeader !== null) {
+          setSourcesForMessages({
+            ...sourcesForMessages,
+            [messageIndexHeader]: sources,
+          });
+        }
+
+        // Handle toast notifications from the API
+        try {
+          const toastHeader = response.headers.get('x-toast-notifications');
+          if (toastHeader) {
+            const toastData = JSON.parse(toastHeader);
+            if (Array.isArray(toastData)) {
+              toastData.forEach((toastItem: { message: string; type: string }) => {
+                const { message, type } = toastItem;
+                switch (type) {
+                  case 'success':
+                    toast.success(message);
+                    break;
+                  case 'error':
+                    toast.error(message);
+                    break;
+                  case 'loading':
+                    toast.loading(message);
+                    break;
+                  default:
+                    toast(message);
+                }
+              });
+            }
+          }
+        } catch (e) {
+          console.error('Error processing toast notifications:', e);
+        }
+      } catch (error) {
+        console.error('Error in onResponse handler:', error);
       }
     },
     onError: (e) => {
-      toast.error(`Error while processing your request in Chat`, {
-        description: e.message,
-      });
+      console.error('Chat error:', e);
+      // Don't show error toast for stream parsing issues
+      if (!e.message.includes('Failed to parse stream')) {
+        toast.error(`Error while processing your request in Chat`, {
+          description: e.message,
+        });
+      }
+    },
+    onFinish: (message) => {
+      console.log('Chat finished:', message);
     },
   });
 
@@ -473,7 +492,8 @@ export function ChatWindow(props: {
         body: formData,
       });
 
-      console.log('Received response, parsing JSON...');
+      console.log('Received response, parsing JSON...', response);
+
       const data = await response.json();
       console.log('Parsed response data:', data);
 
@@ -509,18 +529,20 @@ export function ChatWindow(props: {
       }
 
       console.log('Appending message to chat...');
+      console.log({ combinedInput });
+
       await chat.append({ role: "user", content: combinedInput });
-      
+
     } catch (error: any) {
       console.error("Upload error:", {
         message: error.message,
         stack: error.stack,
         name: error.name
       });
-      
-      toast.error("Upload failed", { 
+
+      toast.error("Upload failed", {
         description: error.message || "An unknown error occurred",
-        id: toastId 
+        id: toastId
       });
     } finally {
       console.log('Upload process completed');
