@@ -6,18 +6,21 @@ import { FileUpload } from "./ui/FileUpload";
 import { toast } from "sonner";
 import { LoaderCircle } from "lucide-react";
 import { cn } from "@/utils/cn";
+import AutoCompleteSelect from "./ui/AutoCompleteSelect";
+import { insuranceProvidersOptions } from "@/data/selectOptions";
 
 const UploadDocumentsForm: React.FC<{
-  onUpload: (file: any) => Promise<any>;
+  onUpload: (file: any, insurance?: string) => Promise<any>;
   setModalOpen: React.Dispatch<React.SetStateAction<boolean>>;
   setIsLoading: React.Dispatch<React.SetStateAction<boolean>>;
   uploading: boolean;
 }> = ({ onUpload, setModalOpen, setIsLoading, uploading }) => {
   const [document, setDocument] = useState<File | undefined>();
+  const [selectedInsurance, setSelectedInsurance] = useState<string>("");
 
   const handleFileUpload = async (e: FormEvent) => {
     e.preventDefault();
-    
+
     if (!document) {
       console.error('No document selected');
       toast.error('Please select a file to upload');
@@ -27,13 +30,14 @@ const UploadDocumentsForm: React.FC<{
     console.log('Starting file upload with document:', {
       name: document.name,
       type: document.type,
-      size: document.size
+      size: document.size,
+      insurance: selectedInsurance
     });
 
     try {
       setIsLoading(true);
-      console.log('Calling onUpload with document...');
-      await onUpload(document);
+      console.log('Calling onUpload with document and insurance...');
+      await onUpload(document, selectedInsurance);
       console.log('File upload successful');
       setModalOpen(false);
       toast.success('File uploaded successfully');
@@ -53,6 +57,17 @@ const UploadDocumentsForm: React.FC<{
   return (
     <form className="relative flex flex-col gap-6 w-full">
       <div className="space-y-6">
+        <div>
+          <label className="block text-sm font-medium text-gray-900 mb-2">
+            Insurance Provider
+          </label>
+          <AutoCompleteSelect
+            options={insuranceProvidersOptions}
+            onChange={setSelectedInsurance}
+
+          />
+        </div>
+
         <div className="flex items-center justify-center w-full">
           <FileUpload
             setDocument={setDocument}

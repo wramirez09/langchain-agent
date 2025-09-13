@@ -130,7 +130,8 @@ export async function POST(req: NextRequest) {
   try {
     const body = await req.json();
 
-    const returnIntermediateSteps = body.show_intermediate_steps;
+    // const returnIntermediateSteps = body.show_intermediate_steps;
+    const returnIntermediateSteps = false;
     const messages = (body.messages ?? [])
       .filter(
         (message: VercelChatMessage) =>
@@ -194,7 +195,7 @@ export async function POST(req: NextRequest) {
       return new StreamingTextResponse(transformStream);
     } else {
       const result = await agent.invoke({ messages });
-      
+
       const response = {
         messages: result.messages.map(convertLangChainMessageToVercelMessage),
       };

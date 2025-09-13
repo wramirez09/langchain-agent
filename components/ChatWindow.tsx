@@ -460,7 +460,7 @@ export function ChatWindow(props: {
     [chat, setFormContent, setInput],
   );
 
-  async function handleUploadAndChat(file: File) {
+  async function handleUploadAndChat(file: File, insurance?: string) {
     if (!file) {
       toast.error("No file selected");
       return;
@@ -524,6 +524,10 @@ export function ChatWindow(props: {
 
       let combinedInput = `Generated query from uploaded document: "${data.generatedQuery}"`;
 
+      if (insurance) {
+        combinedInput += `\nInsurance Provider: ${insurance}`;
+      }
+
       if (formInputString) {
         combinedInput += `\nAdditional user input: "${formInputString}"`;
       }
@@ -585,21 +589,7 @@ export function ChatWindow(props: {
                 modalOpen={modalOpen}
                 setModalOpen={setModalOpen}
               >
-                {props.showIntermediateStepsToggle && (
-                  <div className="flex items-center gap-2 bg-white/50 rounded px-2 py-1 border border-blue-100">
-                    <Checkbox
-                      id="show_intermediate_steps"
-                      name="show_intermediate_steps"
-                      checked={showIntermediateSteps}
-                      disabled={chat.isLoading || intermediateStepsLoading}
-                      onCheckedChange={(e) => setShowIntermediateSteps(!!e)}
-                      className="h-4 w-4 border-gray-300 text-[#1e7dbf] focus:ring-[#1e7dbf]"
-                    />
-                    <label htmlFor="show_intermediate_steps" className="text-sm text-gray-600">
-                      Show steps
-                    </label>
-                  </div>
-                )}
+
                 {props.showIngestForm && (
                   <Dialog
                     open={modalOpen}
