@@ -8,10 +8,6 @@ import { LogoutButton } from "./logout-button";
 
 const TopBar: React.FC = async () => {
 
-    const currentPath = window.location.pathname;
-    console.log('path', currentPath);
-
-    const isLoggedIn = currentPath === "/auth/login"
     return <div className="grid grid-cols-[1fr,auto] gap-2 px-4 py-2 md:py-3">
         <div className="flex gap-4 flex-col md:flex-row md:items-center ml-2">
             <a
@@ -28,8 +24,7 @@ const TopBar: React.FC = async () => {
                 <span className="text-xs md:text-md text-black">NoteDoctor.Ai</span>
             </a>
         </div>
-
-        {!isLoggedIn && <div className="flex justify-end"><LogoutButton /></div>}
+        <LogoutButton />
     </div>
 }
 
