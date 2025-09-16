@@ -121,7 +121,6 @@ export function ChatInput(props: {
   setOpenMobileDrawer: React.Dispatch<React.SetStateAction<boolean>>;
   modalOpen: boolean;
   setModalOpen: React.Dispatch<React.SetStateAction<boolean>>;
-  userData: any
 }) {
 
 
@@ -147,9 +146,7 @@ export function ChatInput(props: {
 
   return (
     <div className="max-w-[768px] w-full mx-auto">
-      <p className='text-muted text-xs'>
-        <span className='font-semi-bold'>{props.userData.claims.email}</span>
-      </p>
+
       <form
         onSubmit={(e) => {
           e.stopPropagation();
@@ -277,7 +274,7 @@ export function ChatWindow(props: {
   emoji?: any;
   showIngestForm?: boolean;
   showIntermediateStepsToggle?: boolean;
-  userData: any
+
 }) {
   const [showIntermediateSteps, setShowIntermediateSteps] = useState(
     !!props.showIntermediateStepsToggle,
@@ -593,7 +590,7 @@ export function ChatWindow(props: {
                 setOpenMobileDrawer={setOpenMobileDrawer}
                 modalOpen={modalOpen}
                 setModalOpen={setModalOpen}
-                userData={props.userData}
+
               >
 
                 {props.showIngestForm && (

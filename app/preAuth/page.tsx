@@ -17,7 +17,6 @@ export default async function Home() {
 
     return (
         <ChatWindow
-            userData={data}
             endpoint="api/chat/agents"
             placeholder=""
             showIngestForm
