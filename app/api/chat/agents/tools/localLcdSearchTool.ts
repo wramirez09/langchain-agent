@@ -1,6 +1,6 @@
 // localLcdSearchTool.ts
 import { z } from "zod";
-import { Tool } from "@langchain/core/tools";
+import { StructuredTool, Tool } from "@langchain/core/tools";
 
 // Input schema for the LCD search tool
 const LocalLcdSearchInputSchema = z.object({
@@ -38,8 +38,11 @@ interface LocalCoverageDetermination {
   }>;
 }
 
-class LocalLcdSearchTool extends Tool {
+class LocalLcdSearchTool extends StructuredTool<
+  typeof LocalLcdSearchInputSchema
+> {
   name = "local_lcd_search";
+  schema = LocalLcdSearchInputSchema;
   description =
     "Searches Local Coverage Determinations (LCDs) for a given disease or treatment query within a specific state. " +
     "LCDs define coverage criteria specific to a Medicare Administrative Contractor (MAC) region and often include detailed medical necessity guidelines. " +
@@ -49,14 +52,13 @@ class LocalLcdSearchTool extends Tool {
   private CMS_LOCAL_LCDS_API_URL =
     "https://api.coverage.cms.gov/v1/reports/local-coverage-final-lcds/";
 
-  private static stateIdCache: Map<string, number> | null = null;
 
-  protected async _call(input: string): Promise<string> {
-    if (cache.has(input)) {
+  protected async _call(input: z.infer<typeof LocalLcdSearchInputSchema>): Promise<string> {
+    if (cache.has(input.toString())) {
       console.log("LocalLcdSearchTool: Cache hit!");
-      return cache.get(input)!;
+      return cache.get(input.toString())!;
     }
-    const { query, state } = JSON.parse(input);
+    const { query, state } = input;
 
     try {
       // 1. Get the two-letter state ID from the full state name.
@@ -69,14 +71,14 @@ class LocalLcdSearchTool extends Tool {
       // Request 'Final' status to get currently active policies.
       const controller = new AbortController();
       const timeout = setTimeout(() => controller.abort(), 30000);
-      
+
       const lcdsResponse = await fetch(
         `${this.CMS_LOCAL_LCDS_API_URL}?state_id=${state.state_id}&status=A`,
         {
           signal: controller.signal,
         }
       );
-      
+
       clearTimeout(timeout);
 
       if (!lcdsResponse.ok) {
@@ -117,8 +119,8 @@ class LocalLcdSearchTool extends Tool {
 
         outputResults.push(
           `  - Title: '${lcd.title}' (ID: ${lcd.document_display_id})\n` +
-            `    MAC: ${lcd.contractor_name_type}\n` +
-            `    Direct URL (check for coverage criteria here): ${fullHtmlUrl}`,
+          `    MAC: ${lcd.contractor_name_type}\n` +
+          `    Direct URL (check for coverage criteria here): ${fullHtmlUrl}`,
         );
       }
 
@@ -128,7 +130,7 @@ class LocalLcdSearchTool extends Tool {
         `Displaying top ${Math.min(lcds.length, 5)}:\n` +
         outputResults.join("\n");
 
-      cache.set(input, result);
+      cache.set(input.toString(), result);
       return result;
     } catch (error: any) {
       console.error("Error in LocalLcdSearchTool:", error);

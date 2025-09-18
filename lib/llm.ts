@@ -2,7 +2,7 @@ import { ChatOpenAI } from "@langchain/openai";
 
 // For the main agent - optimized for performance with GPT-4o
 export const llmAgent = new ChatOpenAI({
-  model: "gpt-4o",               // Using GPT-4o for optimal performance
+  model: "gpt-5",               // Using GPT-4o for optimal performance
   // Balanced creativity and focus
   maxRetries: 2,                 // Limit retries to reduce latency
   maxConcurrency: 3,             // Reduced concurrency to avoid rate limits
