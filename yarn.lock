@@ -1601,23 +1601,23 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@langchain/core@npm:^0.3.66":
-  version: 0.3.66
-  resolution: "@langchain/core@npm:0.3.66"
+"@langchain/core@npm:^0.3.77":
+  version: 0.3.77
+  resolution: "@langchain/core@npm:0.3.77"
   dependencies:
     "@cfworker/json-schema": ^4.0.2
     ansi-styles: ^5.0.0
     camelcase: 6
     decamelize: 1.2.0
     js-tiktoken: ^1.0.12
-    langsmith: ^0.3.46
+    langsmith: ^0.3.67
     mustache: ^4.2.0
     p-queue: ^6.6.2
     p-retry: 4
     uuid: ^10.0.0
     zod: ^3.25.32
     zod-to-json-schema: ^3.22.3
-  checksum: af802bfe0f7c2eaf3dfd8ab6f55c0fba454adb429f3a2fc835cce9c918ed2930c8e1bbfc956e0ae2873925a2ae2d71ecce333ae4dba1bb56e8c5d9c981f4c019
+  checksum: cecf78aaa49055ff7a20d405d1db961365c782c2ca1006ed02c2169db5e03f41f1630aa2057956ce24768a1e1ccb5607555113b4eaa45ae2fcfe69d7715ab81d
   languageName: node
   linkType: hard
 
@@ -7856,7 +7856,7 @@ __metadata:
   dependencies:
     "@ijsto/react-slideout": ^1.4.0
     "@langchain/community": ^0.3.49
-    "@langchain/core": ^0.3.66
+    "@langchain/core": ^0.3.77
     "@langchain/langgraph": ^0.2.57
     "@langchain/langgraph-sdk": ^0.0.60
     "@langchain/openai": ^0.5.11
@@ -7945,7 +7945,7 @@ __metadata:
     typescript: 5.1.6
     use-stick-to-bottom: ^1.0.44
     vaul: ^1.1.2
-    zod: ^3.25.51
+    zod: latest
     zod-to-json-schema: ^3.23.2
   languageName: unknown
   linkType: soft
@@ -8043,9 +8043,9 @@ __metadata:
   languageName: node
   linkType: hard
 
-"langsmith@npm:^0.3.46":
-  version: 0.3.50
-  resolution: "langsmith@npm:0.3.50"
+"langsmith@npm:^0.3.67":
+  version: 0.3.69
+  resolution: "langsmith@npm:0.3.69"
   dependencies:
     "@types/uuid": ^10.0.0
     chalk: ^4.1.2
@@ -8068,7 +8068,7 @@ __metadata:
       optional: true
     openai:
       optional: true
-  checksum: 8bb0151c1cc9e51399924c87ea406bb36e30bc9836cb59a0c97197952b58c17ce6420203b82a94ba4f1d3c580c593eae12ef9f769255d6a2ae279bc022ee91b0
+  checksum: 1345ef27d7319836c0b2574654a8c44e1e3ab95e3033b9dc0d036bb869a7412edbd6b2fe797516919a7dab77c75bee23334fc299e06d4e1a93d8917209bd8fb2
   languageName: node
   linkType: hard
 
@@ -13150,10 +13150,17 @@ __metadata:
   languageName: node
   linkType: hard
 
-"zod@npm:^3.23.8, zod@npm:^3.24.1, zod@npm:^3.25.32, zod@npm:^3.25.51":
+"zod@npm:^3.23.8, zod@npm:^3.24.1, zod@npm:^3.25.32":
   version: 3.25.67
   resolution: "zod@npm:3.25.67"
   checksum: 56ab904d33b1cd00041ce64ae05b0628fcbfeb7e707fa31cd498a97b540135e4dfe685200c9c62aea307695ee132870b4bc34f035228ea728aa75cc96a4954cb
+  languageName: node
+  linkType: hard
+
+"zod@npm:latest":
+  version: 4.1.9
+  resolution: "zod@npm:4.1.9"
+  checksum: e8890d0255dc4744b2af8995d487943c3d51ab36fc1631fe4ea0d1e51445cb1d1e459146a2eb2c95bbf4bb05f88a03add8aac9758b96b932a6d2f79c99332fba
   languageName: node
   linkType: hard
 

@@ -51,23 +51,26 @@ Your primary goal is to help providers understand the requirements for obtaining
 Here's your precise, step-by-step workflow:
 
 **1. Analyze the User Request (Flexible Input):**
+** Analyze the Provider's Query:
+- Identify the specific medical service/treatment, any relevant diagnoses, and the patient's U.S. state and insurance payer.
 
 * Your input may come from a direct form entry or be a structured message from a file upload.
 * **Intelligent Data Extraction:** Regardless of the format, meticulously extract the following key data points from the user's entire request:
-    * \`treatment\`: The specific medical treatment or service (e.g., "MRI lumbar spine").
-    * \`CPT\`: The CPT code associated with the treatment (e.g., "72158").
-    * \`diagnosis\`: The patient's diagnosis (e.g., "lower back pain with radiculopathy").
-    * \`ICD-10\`: The ICD-10 code (e.g., "M54.16").
+* \`insurance\`: The patient's insurance provider (e.g., "Medicare").
+* \`state\`: The patient's U.S. state (e.g., "California - Northern").
+* \`treatment\`: The specific medical treatment or service (e.g., "MRI lumbar spine").
+* \`CPT\`: The CPT code associated with the treatment (e.g., "72158").
+* \`diagnosis\`: The patient's diagnosis (e.g., "lower back pain with radiculopathy").
+* \`ICD-10\`: The ICD-10 code (e.g., "M54.16").
     * \`medical_history\`: A summary of the patient's clinical history, key findings, and symptoms.
-    * \`insurance\`: The patient's insurance provider (e.g., "Medicare").
-    * \`state\`: The patient's U.S. state (e.g., "California - Northern").
+ 
 
 **2. Execute a Conditional Search Strategy:**
 
 * Based on the extracted \`insurance\` provider, use ONLY the relevant tools. Do not call tools for a different provider.
 * **If \`insurance\` is "Carelon":** Immediately use the \`carelon_guidelines_search\` tool with the extracted \`treatment\` and \`diagnosis\`.
 * **If \`insurance\` is "Evolent":** Immediately use the \`evolent_guidelines_search\` tool with the extracted \`treatment\` and \`diagnosis\`.
-* **If \`insurance\` is "Medicare":** Immediately use the \`ncd_coverage_search\` tool, along with the \`local_lcd_search\` and \`local_coverage_article_search\` tools (if a \`state\` is provided). Execute these three search tools in parallel for maximum speed.
+* **If \`insurance\` is "Medicare":** Immediately use the \`ncd_coverage_search\` tool, along with the \`local_lcd_search\` and \`local_coverage_article_search\` tools (if a \`state\` is provided). Execute these three search tools in parallel for maximum speed. Assure data passed to \`local_lcd_search\` and \`ncd_coverage_search\` tool is in the format expected by the tool. For local_lcd_search tool, pass the \`query\` and \`state\` properties in JSON format.
 * **For any policy found:** Use the \`policy_content_extractor\` tool to fetch its complete text content from the provided URL.
 
 **3. Analyze and Extract Key Information from Policies:**
@@ -129,8 +132,6 @@ Status: [Status], Effective Date: [Date], Doc ID: [ID], Last Review Date: [Date]
 export async function POST(req: NextRequest) {
   try {
     const body = await req.json();
-
-    // const returnIntermediateSteps = body.show_intermediate_steps;
     const returnIntermediateSteps = false;
     const messages = (body.messages ?? [])
       .filter(
@@ -139,20 +140,11 @@ export async function POST(req: NextRequest) {
       )
       .map(convertVercelMessageToLangChainMessage);
 
-    // Generate cache key based on messages content
     const cacheKey = generateCacheKey(
       'chat-agents',
-      JSON.stringify(messages.slice(-2)), // Cache based on last 2 messages
+      JSON.stringify(messages.slice(-2)),
       returnIntermediateSteps ? 'with-steps' : 'no-steps'
     );
-
-    // Check cache for non-streaming requests
-    if (returnIntermediateSteps) {
-      const cachedResult = cache.get(cacheKey);
-      if (cachedResult) {
-        return NextResponse.json(cachedResult, { status: 200 });
-      }
-    }
 
     const tools = [
       new SerpAPI(),
@@ -162,12 +154,9 @@ export async function POST(req: NextRequest) {
       localLcdSearchTool,
       localCoverageArticleSearchTool,
       policyContentExtractorTool,
-      new FileUploadTool(), // Add the new file upload tool here
+      new FileUploadTool(),
     ];
 
-    /**
-     * Use a prebuilt LangGraph agent.
-     */
     const agent = createReactAgent({
       llm: llmAgent,
       tools,
@@ -175,37 +164,71 @@ export async function POST(req: NextRequest) {
     });
 
     if (!returnIntermediateSteps) {
-      const eventStream = agent.streamEvents({ messages }, { version: "v2" });
+      const controller = new AbortController();
+      const timeoutId = setTimeout(() => {
+        controller.abort();
+      }, 30000);
 
-      const textEncoder = new TextEncoder();
-      const transformStream = new ReadableStream({
-        async start(controller) {
-          for await (const { event, data } of eventStream) {
-            if (event === "on_chat_model_stream") {
-              // Intermediate chat model generations will contain tool calls and no content
-              if (!!data.chunk.content) {
-                controller.enqueue(textEncoder.encode(data.chunk.content));
-              }
-            }
+      try {
+        const eventStream = agent.streamEvents(
+          { messages },
+          {
+            version: "v2",
+            signal: controller.signal
           }
-          controller.close();
-        },
-      });
+        );
 
-      return new StreamingTextResponse(transformStream);
+        const textEncoder = new TextEncoder();
+        const transformStream = new ReadableStream({
+          async start(streamController) {
+            try {
+              let hasContent = false;
+
+              for await (const { event, data } of eventStream) {
+                if (event === "on_chat_model_stream") {
+                  if (data.chunk?.content) {
+                    hasContent = true;
+                    streamController.enqueue(textEncoder.encode(data.chunk.content));
+                  }
+                } else if (event === "on_chain_end" && hasContent) {
+                  streamController.close();
+                  break;
+                }
+              }
+
+              if (!hasContent) {
+                streamController.close();
+              }
+            } catch (streamError) {
+              if (!streamController.desiredSize) {
+                streamController.error(streamError);
+              }
+            } finally {
+              clearTimeout(timeoutId);
+            }
+          },
+        });
+
+        return new StreamingTextResponse(transformStream);
+      } catch (error) {
+        clearTimeout(timeoutId);
+        throw error;
+      }
     } else {
       const result = await agent.invoke({ messages });
-
       const response = {
         messages: result.messages.map(convertLangChainMessageToVercelMessage),
       };
 
-      // Cache the result for future requests
-      cache.set(cacheKey, response, TTL.MEDIUM);
-
       return NextResponse.json(response, { status: 200 });
     }
   } catch (e: any) {
-    return NextResponse.json({ error: e.message }, { status: e.status ?? 500 });
+    return NextResponse.json(
+      {
+        error: e.message || "An unknown error occurred",
+        stack: process.env.NODE_ENV === "development" ? e.stack : undefined
+      },
+      { status: 500 }
+    );
   }
 }

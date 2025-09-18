@@ -1,9 +1,11 @@
 // localLcdSearchTool.ts
 import { z } from "zod";
-import { Tool } from "@langchain/core/tools";
+import { StructuredTool } from "@langchain/core/tools";
+import { stat } from "fs";
+import { de } from "zod/v4/locales";
 
 // Input schema for the LCD search tool
-const LocalLcdSearchInputSchema = z.object({
+export const LocalLcdSearchInputSchema = z.object({
   query: z
     .string()
     .describe(
@@ -17,10 +19,14 @@ const LocalLcdSearchInputSchema = z.object({
 });
 
 // Interface for state metadata from the CMS API
+interface StateMetaData {
+  data: Array<{
+    description: string;
+    state_id: number;
+  }>;
+}
 
 // Interface for the expected structure of an LCD document from the API
-const cache = new Map<string, string>();
-
 interface LocalCoverageDetermination {
   data: Array<{
     document_id: "string";
@@ -38,25 +44,29 @@ interface LocalCoverageDetermination {
   }>;
 }
 
-class LocalLcdSearchTool extends Tool {
+class LocalLcdSearchTool extends StructuredTool<
+  typeof LocalLcdSearchInputSchema
+> {
   name = "local_lcd_search";
   description =
     "Searches Local Coverage Determinations (LCDs) for a given disease or treatment query within a specific state. " +
     "LCDs define coverage criteria specific to a Medicare Administrative Contractor (MAC) region and often include detailed medical necessity guidelines. " +
-    "Returns the LCD title, display ID, MAC, CPT codes ICD codes and the direct URL for relevant LCDs. " +
+    "Returns the LCD title, display ID, MAC, and the direct URL for relevant LCDs. " +
     "If multiple LCDs are found, it lists up to 10.";
+  schema = LocalLcdSearchInputSchema;
 
   private CMS_LOCAL_LCDS_API_URL =
     "https://api.coverage.cms.gov/v1/reports/local-coverage-final-lcds/";
 
   private static stateIdCache: Map<string, number> | null = null;
 
-  protected async _call(input: string): Promise<string> {
-    if (cache.has(input)) {
-      console.log("LocalLcdSearchTool: Cache hit!");
-      return cache.get(input)!;
-    }
-    const { query, state } = JSON.parse(input);
+  protected async _call(
+    input: z.infer<typeof LocalLcdSearchInputSchema>,
+  ): Promise<string> {
+
+    console.log("input LCD", input); // this need to be a json object
+
+    const { query, state } = input;
 
     try {
       // 1. Get the two-letter state ID from the full state name.
@@ -67,17 +77,9 @@ class LocalLcdSearchTool extends Tool {
 
       // 2. Fetch Local Coverage Determinations for the specific state.
       // Request 'Final' status to get currently active policies.
-      const controller = new AbortController();
-      const timeout = setTimeout(() => controller.abort(), 30000);
-      
       const lcdsResponse = await fetch(
         `${this.CMS_LOCAL_LCDS_API_URL}?state_id=${state.state_id}&status=A`,
-        {
-          signal: controller.signal,
-        }
       );
-      
-      clearTimeout(timeout);
 
       if (!lcdsResponse.ok) {
         throw new Error(
@@ -117,19 +119,18 @@ class LocalLcdSearchTool extends Tool {
 
         outputResults.push(
           `  - Title: '${lcd.title}' (ID: ${lcd.document_display_id})\n` +
-            `    MAC: ${lcd.contractor_name_type}\n` +
-            `    Direct URL (check for coverage criteria here): ${fullHtmlUrl}`,
+          `    MAC: ${lcd.contractor_name_type}\n` +
+          `    Direct URL (check for coverage criteria here): ${fullHtmlUrl}`,
         );
       }
 
       console.log(`${outputResults.length} LCD's found`, { outputResults });
 
-      const result = `Found ${lcds.length} Local Coverage Determination(s) for '${query}' in ${state}. ` +
+      return (
+        `Found ${lcds.length} Local Coverage Determination(s) for '${query}' in ${state}. ` +
         `Displaying top ${Math.min(lcds.length, 5)}:\n` +
-        outputResults.join("\n");
-
-      cache.set(input, result);
-      return result;
+        outputResults.join("\n")
+      );
     } catch (error: any) {
       console.error("Error in LocalLcdSearchTool:", error);
       return `An error occurred while searching for local LCDs: ${error.message}`;

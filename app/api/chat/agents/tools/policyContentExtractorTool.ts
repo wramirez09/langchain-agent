@@ -3,7 +3,6 @@ import { z } from "zod";
 import { StructuredTool } from "@langchain/core/tools";
 import * as cheerio from "cheerio";
 import { llmSummarizer } from "@/lib/llm";
-import { StructuredOutputParser } from "langchain/output_parsers";
 
 // ----------------------
 // Types & Schemas
@@ -41,12 +40,31 @@ const policyExtractionSchema = z.object({
   summary: z.string(),
 });
 
-const parser = StructuredOutputParser.fromZodSchema(policyExtractionSchema);
-
 // Tool input schema: only needs a URL
 const toolInputSchema = z.object({
   policyUrl: z.string().url(),
 });
+
+// Helper function to process policy content before sending to LLM
+function processPolicyContent(content: string): string {
+  try {
+    // Basic HTML cleaning if needed
+    const $ = cheerio.load(content);
+    // Remove script and style elements
+    $('script, style, nav, footer, header, iframe').remove();
+    // Get text content
+    let text = $('body').text();
+    // Clean up whitespace
+    text = text
+      .replace(/\s+/g, ' ')
+      .replace(/\n\s*\n/g, '\n')
+      .trim();
+    // Truncate to avoid token limits (adjust as needed)
+    return text.substring(0, 10000);
+  } catch (error) {
+    return content; // Return original content if processing fails
+  }
+}
 
 // ----------------------
 // Extraction Logic
@@ -63,15 +81,14 @@ Extract the following information from the policy text and return valid JSON.
 Policy Text:
 ${content}
 
-${parser.getFormatInstructions()}
+${policyExtractionSchema.shape}
 `;
 
   try {
     const response = await llmSummarizer.invoke([{ role: "user", content: prompt }]);
     const rawText = response.content?.toString() ?? "";
-    return await parser.parse(rawText);
+    return policyExtractionSchema.parse(rawText);
   } catch (error) {
-    console.error("Error extracting policy details:", error);
     return null;
   }
 }
@@ -80,7 +97,7 @@ ${parser.getFormatInstructions()}
 // Tool Implementation
 // ----------------------
 
-class PolicyContentExtractorTool extends StructuredTool<
+export class PolicyContentExtractorTool extends StructuredTool<
   z.infer<typeof toolInputSchema>
 > {
   name = "policy_content_extractor";
@@ -88,109 +105,34 @@ class PolicyContentExtractorTool extends StructuredTool<
     "Fetches the full content of a Medicare policy document (NCD, LCD, or Article) from its URL and returns a structured JSON object. The object contains specific details like medical necessity criteria, ICD-10 and CPT codes, required documentation, and limitations. This tool is designed to provide a machine-readable summary for AI analysis.";
   schema = toolInputSchema as any;
 
-  public async _call(input: z.infer<typeof toolInputSchema>): Promise<string> {
-    const { policyUrl } = input;
-    console.log(`Fetching and extracting content from: ${policyUrl}`);
-
-    // Set up abort controller with max listeners
-    const controller = new AbortController();
-    const signal = controller.signal;
-
-    // Type assertion to access EventTarget methods
-    const eventTarget = signal as unknown as EventTarget & { setMaxListeners?: (n: number) => void };
-    if (eventTarget.setMaxListeners) {
-      eventTarget.setMaxListeners(1500);
-    }
-
-    const timeout = setTimeout(() => {
-      if (!signal.aborted) {
-        controller.abort();
-      }
-    }, 30000);
-
+  async _call(input: z.infer<typeof toolInputSchema>) {
     try {
-      // Check if this is a CMS NCD URL and use the direct CMS page
-      const ncdMatch = policyUrl.match(/ncdid=([^&]+)/);
-      let fetchUrl = policyUrl;
-      
-      // If it's a CMS NCD URL, use the direct CMS page instead of the API
-      if (ncdMatch) {
-        const ncdId = ncdMatch[1];
-        fetchUrl = `https://www.cms.gov/medicare-coverage-database/view/ncd.aspx?ncdid=${ncdId}`;
-        console.log(`Fetching NCD content from CMS page: ${fetchUrl}`);
-      }
-      
-      const response = await fetch(fetchUrl, { signal });
+      const response = await fetch(input.policyUrl);
 
       if (!response.ok) {
-        throw new Error(
-          `Failed to fetch policy content: ${response.status} ${response.statusText}`,
-        );
+        throw new Error(`Failed to fetch policy content: ${response.status} ${response.statusText}`);
       }
 
-      // Clear the timeout if the request succeeds
-      clearTimeout(timeout);
-      const contentType = response.headers.get('content-type') || '';
-      let extractedText: string;
+      const content = await response.text();
+      const processedContent = processPolicyContent(content);
 
-      if (contentType.includes('application/json')) {
-        // Handle CMS API JSON response
-        const data = await response.json();
-        if (data && data.data && data.data.content) {
-          // If we have structured content, use it
-          extractedText = data.data.content;
-        } else {
-          // Fallback to stringifying the response
-          extractedText = JSON.stringify(data, null, 2);
+      const llmResponse = await llmSummarizer.invoke(`Extract policy details: ${processedContent}`);
+      const rawText = llmResponse?.content?.toString() || '';
+
+      try {
+        let jsonStr = rawText;
+        const jsonMatch = rawText.match(/```(?:json)?\n([\s\S]*?)\n```/);
+        if (jsonMatch && jsonMatch[1]) {
+          jsonStr = jsonMatch[1];
         }
-      } else {
-        // Handle regular HTML response
-        const html = await response.text();
-        const $ = cheerio.load(html);
 
-        // Extract the main content, removing scripts, styles, and other non-content elements
-        $('script, style, nav, footer, header, iframe, noscript').remove();
-        
-        // Get the text content
-        extractedText = $('body').text()
-          .replace(/\s+/g, ' ') // Replace multiple spaces with single space
-          .trim();
+        const parsed = policyExtractionSchema.parse(JSON.parse(jsonStr));
+        return JSON.stringify(parsed);
+      } catch (error) {
+        throw new Error(`Failed to parse policy data: ${error instanceof Error ? error.message : 'Unknown error'}`);
       }
-
-      // Clean up the extracted text
-      extractedText = extractedText.replace(/\s+/g, ' ').trim();
-
-      if (extractedText.length < 100) {
-        const warning = `Extracted content too short for ${policyUrl}.`;
-        console.warn(warning);
-        return JSON.stringify({
-          error: warning,
-          details:
-            "HTML structure might have changed or content is minimal. Please review the URL directly.",
-        });
-      }
-
-      const structuredDetails = await getStructuredPolicyDetails(extractedText);
-      if (structuredDetails) {
-        return JSON.stringify({
-          policyUrl,
-          ...structuredDetails,
-        });
-      } else {
-        const errorMsg = `An error occurred during structured extraction from ${policyUrl}.`;
-        console.error(errorMsg);
-        return JSON.stringify({
-          error: errorMsg,
-          details:
-            "The LLM failed to parse the content into the expected JSON format.",
-        });
-      }
-    } catch (error: any) {
-      console.error("Error in PolicyContentExtractorTool:", error);
-      return JSON.stringify({
-        error: `An error occurred while extracting policy content from ${policyUrl}`,
-        details: error.message,
-      });
+    } catch (error) {
+      throw error; // Re-throw to be handled by the agent
     }
   }
 }

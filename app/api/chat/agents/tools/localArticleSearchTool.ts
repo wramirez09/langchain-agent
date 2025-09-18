@@ -1,58 +1,50 @@
 import { z } from "zod";
-import { Tool } from "@langchain/core/tools";
+import { StructuredTool } from "@langchain/core/tools";
+import { LocalLcdSearchInputSchema } from "./localLcdSearchTool";
 
-// Input schema for the Local Article search tool
 const LocalArticleSearchInputSchema = z.object({
-  query: z
-    .string()
-    .describe(
-      "The disease or treatment query to search for in Local Coverage Articles.",
-    ),
+  query: z.string().describe("The disease or treatment query to search for in Local Coverage Articles."),
   state: z
     .object({ state_id: z.number(), description: z.string() })
-    .describe(
-      "The full name of the state (e.g., 'Illinois', 'California') as the description and stated_id as a number used to filter local coverage articles.",
-    ),
+    .describe("The full name of the state (e.g., 'Illinois', 'California') as the description and stated_id as a number used to filter local coverage articles."),
 });
 
 type StateIdentifier = { state_id: number; description: string };
-// Interface for state metadata (re-used)
 interface StateMetaData {
   data: Array<StateIdentifier>;
 }
 
-// Interface for the expected structure of a Local Coverage Article from the API
-const cache = new Map<string, string>();
+const cache = new Map<string, { data: string; timestamp: number }>();
+const CACHE_TTL = 15 * 60 * 1000;
 
 interface LocalCoverageArticle {
   meta: {
     status: {
-      id: 0;
+      id: number;
       message: string;
     };
     notes: string;
     fields: string[];
     children: string[];
   };
-  data: [
-    {
-      document_id: string;
-      document_version: 0;
-      document_display_id: string;
-      document_type: string;
-      note: string;
-      title: string;
-      contractor_name_type: string;
-      updated_on: string;
-      updated_on_sort: string;
-      effective_date: string;
-      retirement_date: string;
-      url: string;
-    },
-  ];
+  data: Array<{
+    document_id: string;
+    document_version: number;
+    document_display_id: string;
+    document_type: string;
+    note: string;
+    title: string;
+    contractor_name_type: string;
+    updated_on: string;
+    updated_on_sort: string;
+    effective_date: string;
+    retirement_date: string;
+    url: string;
+  }>;
 }
 
-class LocalCoverageArticleSearchTool extends Tool {
+class LocalCoverageArticleSearchTool extends StructuredTool<typeof LocalArticleSearchInputSchema> {
+  schema = LocalArticleSearchInputSchema;
   name = "local_coverage_article_search";
   description =
     "Searches Local Coverage Articles (LCAs) for a given disease or treatment query within a specific state. " +
@@ -60,92 +52,98 @@ class LocalCoverageArticleSearchTool extends Tool {
     "Returns the article title, display ID, MAC, and the direct URL for relevant LCAs. " +
     "If multiple articles are found, it lists up to 1.";
 
-  private CMS_LOCAL_ARTICLES_API_URL =
-    "https://api.coverage.cms.gov/v1/reports/local-coverage-articles/";
+  private CMS_LOCAL_ARTICLES_API_URL = "https://api.coverage.cms.gov/v1/reports/local-coverage-articles/";
 
-  protected async _call(input: string): Promise<string> {
-    if (cache.has(input)) {
-      console.log("LocalCoverageArticleSearchTool: Cache hit!");
-      return cache.get(input)!;
+  protected async _call(input: z.infer<typeof LocalArticleSearchInputSchema>): Promise<string> {
+    const { query, state } = input;
+
+    // Check cache first
+    const cacheKey = JSON.stringify(input);
+    const cacheEntry = cache.get(cacheKey);
+    if (cacheEntry && (Date.now() - cacheEntry.timestamp) < CACHE_TTL) {
+      return cacheEntry.data;
     }
-    const { query, state } = JSON.parse(input);
 
-    console.log(
-      `Searching Local Coverage Articles for query: '${query}' in state: '${state.description}'`,
-    );
+    if (!state?.state_id || !state?.description) {
+      return JSON.stringify({
+        error: "Invalid state provided",
+        message: "Please provide a valid state object with state_id and description."
+      });
+    }
+
+    const controller = new AbortController();
+    const timeout = 30000;
+    const timeoutId = setTimeout(() => controller.abort(), timeout);
+
     try {
-      const stateId = state.state_id;
-
-      if (!stateId) {
-        return `Error: Could not find a valid state ID for '${state}'. Please provide a full, valid U.S. state name.`;
-      }
-
-      // 2. Fetch Local Coverage Articles for the specific state and 'Final' status.
-      const controller = new AbortController();
-      const timeout = setTimeout(() => controller.abort(), 30000);
-      
-      const response = await fetch(
-        `${this.CMS_LOCAL_ARTICLES_API_URL}?state_id=${stateId}`,
-        {
-          signal: controller.signal,
+      const apiUrl = `${this.CMS_LOCAL_ARTICLES_API_URL}?state_id=${state.state_id}`;
+      const response = await fetch(apiUrl, {
+        signal: controller.signal,
+        headers: {
+          'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36'
         }
-      );
-      
-      clearTimeout(timeout);
-
-      if (!response.ok) {
-        throw new Error(
-          `Failed to fetch local articles for ${state}: ${response.status} ${response.statusText}`,
-        );
-      }
-      const allArticles: LocalCoverageArticle = await response.json();
-
-      // 3. Perform client-side filtering.
-      const queryLower = query.toLowerCase();
-      const relevantArticles = allArticles.data.filter((article) => {
-        const titleLower = (article.title || "").toLowerCase();
-        const p1 = queryLower.split("(")[0].trim();
-        const p2 = queryLower
-          .substring(queryLower.indexOf("(") + 1, queryLower.indexOf(")"))
-          .trim();
-
-        if (titleLower.includes(p1) || titleLower.includes(p2)) return article;
       });
 
+      if (!response.ok) {
+        return JSON.stringify({
+          error: "Failed to fetch articles",
+          message: `HTTP error! status: ${response.status}`
+        });
+      }
+
+      const data: LocalCoverageArticle = await response.json();
+
+      if (!data.data || data.data.length === 0) {
+        return JSON.stringify({
+          message: `No Local Coverage Articles found for '${query}' in ${state.description}.`,
+          results: []
+        });
+      }
+
+      const queryLower = query.toLowerCase();
+      const relevantArticles = data.data.filter(article =>
+        article.title && article.title.toLowerCase().includes(queryLower)
+      );
+
       if (relevantArticles.length === 0) {
-        return `No Local Coverage Article found for '${query}' in ${state}.`;
+        return JSON.stringify({
+          message: `No relevant Local Coverage Articles found for '${query}' in ${state.description}.`,
+          results: []
+        });
       }
 
-      const outputResults: string[] = [];
-      for (let i = 0; i < Math.min(relevantArticles.length, 10); i++) {
-        const article = relevantArticles[i];
-        // Construct full URL for the detailed article page.
-        const fullHtmlUrl = article.url;
+      const resultCount = Math.min(relevantArticles.length, 1);
+      const outputResults = relevantArticles.slice(0, resultCount).map(article => ({
+        title: article.title,
+        document_id: article.document_display_id,
+        mac: article.contractor_name_type,
+        url: article.url || '',
+        updated_on: article.updated_on,
+        effective_date: article.effective_date
+      }));
 
-        outputResults.push(
-          `
-          Title: ${article.title}
-          Type: ${article.contractor_name_type}
-          Contractor: ${article.contractor_name_type}
-          Effective Date: ${article.effective_date}
-          Article URL: ${article.url}
-          `,
-        );
-      }
+      const result = JSON.stringify({
+        message: `Found ${relevantArticles.length} Local Coverage Article(s) for '${query}' in ${state.description}`,
+        count: relevantArticles.length,
+        results: outputResults
+      });
 
-      const result = `Found ${relevantArticles.length} Local Coverage Article(s) for '${query}' in ${state}. ` +
-        `Displaying top ${Math.min(relevantArticles.length, 5)}:\n` +
-        outputResults.join("\n");
-
-      cache.set(input, result);
+      cache.set(cacheKey, { data: result, timestamp: Date.now() });
       return result;
-    } catch (error: any) {
-      console.error("Error in LocalCoverageArticleSearchTool:", error);
-      return `An error occurred while searching for local articles: ${error.message}`;
+    } catch (error) {
+      clearTimeout(timeoutId);
+      if (error instanceof Error && error.name === 'AbortError') {
+        return JSON.stringify({
+          error: "Request timed out",
+          message: "The request took too long to complete. Please try again with a more specific query."
+        });
+      }
+      return JSON.stringify({
+        error: "An error occurred",
+        message: error instanceof Error ? error.message : "Unknown error occurred"
+      });
     }
   }
 }
 
-// Instantiate and export the tool.
-export const localCoverageArticleSearchTool =
-  new LocalCoverageArticleSearchTool();
+export const localCoverageArticleSearchTool = new LocalCoverageArticleSearchTool();
