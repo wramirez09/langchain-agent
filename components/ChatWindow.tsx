@@ -368,80 +368,72 @@ export function ChatWindow(props: {
   });
 
   async function sendMessage(e: FormEvent<HTMLFormElement>) {
+    e.preventDefault();
     if (chat.isLoading || intermediateStepsLoading) return;
 
-    setIntermediateStepsLoading(true);
-
+    // Clear the input field
+    const userMessage = chat.input;
     chat.setInput("");
 
-    const messagesWithUserReply = chat.messages.concat({
-      id: chat.messages.length.toString(),
-      content: chat.input,
-      role: "user",
-    });
+    try {
+      setIntermediateStepsLoading(true);
 
-    chat.setMessages(messagesWithUserReply);
-
-    const response = await fetch(props.endpoint, {
-      method: "POST",
-      body: JSON.stringify({
-        messages: messagesWithUserReply,
-        show_intermediate_steps: true,
-      }),
-    });
-    const json = await response.json();
-
-    setIntermediateStepsLoading(false);
-
-    if (!response.ok) {
-      toast.error(`Error while processing your request`, {
-        description: json.error,
+      // Append the user message
+      await chat.append({
+        role: "user",
+        content: userMessage,
       });
-      return;
-    }
 
-    const responseMessages: Message[] = json.messages;
-
-    const toolCallMessages = responseMessages.filter(
-      (responseMessage: Message) => {
-        return (
-          (responseMessage.role === "assistant" &&
-            !!responseMessage.tool_calls?.length) ||
-          responseMessage.role === "tool"
-        );
-      },
-    );
-
-    const intermediateStepMessages = [];
-    for (let i = 0; i < toolCallMessages.length; i += 2) {
-      const aiMessage = toolCallMessages[i];
-      const toolMessage = toolCallMessages[i + 1];
-      intermediateStepMessages.push({
-        id: (messagesWithUserReply.length + i / 2).toString(),
-        role: "system" as const,
-        content: JSON.stringify({
-          action: aiMessage.tool_calls?.[0],
-          observation: toolMessage.content,
+      // Get the response from the API
+      const response = await fetch(props.endpoint, {
+        method: "POST",
+        body: JSON.stringify({
+          messages: [...chat.messages, { role: "user", content: userMessage }],
+          show_intermediate_steps: true,
         }),
       });
-    }
 
-    const newMessages = messagesWithUserReply;
-    for (const message of intermediateStepMessages) {
-      newMessages.push(message);
-      chat.setMessages([...newMessages]);
-    }
+      const json = await response.json();
 
-    chat.setMessages([
-      ...newMessages,
-      {
-        id: newMessages.length.toString(),
-        content: responseMessages[responseMessages.length - 1].content,
-        role: "assistant",
-      },
-    ]);
+      if (!response.ok) {
+        throw new Error(json.error || 'Failed to get response from server');
+      }
+
+      const responseMessages: Message[] = json.messages;
+      const lastMessage = responseMessages[responseMessages.length - 1];
+
+      // Append the assistant's response
+      if (lastMessage) {
+        await chat.append({
+          role: "assistant",
+          content: lastMessage.content,
+        });
+      }
+
+      // Handle intermediate steps if any
+      const toolCallMessages = responseMessages.filter(
+        (msg) => msg.role === "assistant" && msg.tool_calls?.length
+      );
+
+      for (const message of toolCallMessages) {
+        const toolCall = message.tool_calls?.[0];
+        if (toolCall && typeof toolCall === 'object' && 'function' in toolCall) {
+          await chat.append({
+            role: "tool",
+            content: toolCall.function.arguments || "",
+            tool_call_id: toolCall.id,
+          });
+        }
+      }
+    } catch (error: any) {
+      console.error('Error in sendMessage:', error);
+      toast.error('Failed to send message', {
+        description: error.message || 'An unknown error occurred',
+      });
+    } finally {
+      setIntermediateStepsLoading(false);
+    }
   }
-
   const setInput = useCallback(() => {
     if (formContent.size === 0) {
       chat.setInput("");

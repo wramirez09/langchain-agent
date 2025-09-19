@@ -1,6 +1,7 @@
 // localLcdSearchTool.ts
 import { z } from "zod";
 import { StructuredTool, Tool } from "@langchain/core/tools";
+import { llmSummarizer } from "@/lib/llm";
 
 // Input schema for the LCD search tool
 const LocalLcdSearchInputSchema = z.object({
@@ -52,6 +53,29 @@ class LocalLcdSearchTool extends StructuredTool<
   private CMS_LOCAL_LCDS_API_URL =
     "https://api.coverage.cms.gov/v1/reports/local-coverage-final-lcds/";
 
+  private async fetchAndSummarizeLcd(url: string, query: string): Promise<string> {
+    try {
+      const response = await fetch(url);
+      const html = await response.text();
+
+      // Create a prompt for summarization
+      const messages = [
+        { type: "system" as const, content: "You are a helpful assistant that summarizes HTML content from medical coverage documents." },
+        {
+          type: "human" as const, content: `Please provide a concise summary of the following HTML content focusing on how it relates to the query: "${query}"
+        
+        HTML Content:
+        ${html.substring(0, 8000)}`
+        } // Limiting length to avoid token limits
+      ];
+
+      const summary = await llmSummarizer.invoke(messages);
+      return summary.content as string;
+    } catch (error: any) {
+      console.error("Error fetching and summarizing LCD:", error);
+      return "[Failed to summarize]";
+    }
+  }
 
   protected async _call(input: z.infer<typeof LocalLcdSearchInputSchema>): Promise<string> {
     if (cache.has(input.toString())) {
@@ -62,13 +86,11 @@ class LocalLcdSearchTool extends StructuredTool<
 
     try {
       // 1. Get the two-letter state ID from the full state name.
-
       if (!state || !state.state_id) {
         return `Error: Could not find a valid state ID for '${state.description}'. Please provide a full, valid U.S. state name.`;
       }
 
       // 2. Fetch Local Coverage Determinations for the specific state.
-      // Request 'Final' status to get currently active policies.
       const controller = new AbortController();
       const timeout = setTimeout(() => controller.abort(), 30000);
 
@@ -87,7 +109,7 @@ class LocalLcdSearchTool extends StructuredTool<
         );
       }
       const allLcds: LocalCoverageDetermination = await lcdsResponse.json();
-      // s
+
       // 3. Perform client-side filtering based on the query.
       const queryLower = query.toLowerCase();
       const p1 = queryLower.split("(")[0].trim();
@@ -99,7 +121,7 @@ class LocalLcdSearchTool extends StructuredTool<
 
       allLcds.data.filter((lcd) => {
         const titleLower = (lcd.title || "").toLowerCase();
-        // Check if the query is in the title or summary
+        // Check if the query is in the title
         if (titleLower.includes(p1)) lcds.push(lcd);
         if (titleLower.includes(p2)) lcds.push(lcd);
       });
@@ -112,23 +134,33 @@ class LocalLcdSearchTool extends StructuredTool<
       // 5. Format the output to be returned to the LLM.
       const outputResults: string[] = [];
       // Limit results to a reasonable number.
-      for (let i = 0; i < Math.min(lcds.length, 1); i++) {
+      const maxResults = Math.min(lcds.length, 3); // Reduced to 3 to manage API calls
+
+      for (let i = 0; i < maxResults; i++) {
         const lcd = lcds[i];
         // Construct the full, clickable URL for the LCD's detailed page on CMS.gov.
-        const fullHtmlUrl = lcd.url && lcd.url ? `${lcd.url}` : "URL N/A";
+        const fullHtmlUrl = lcd.url ? `${lcd.url}` : "URL N/A";
+
+        // Get summary for this LCD
+        const summary = lcd.url
+          ? await this.fetchAndSummarizeLcd(lcd.url, query)
+          : "[No URL available for summarization]";
 
         outputResults.push(
-          `  - Title: '${lcd.title}' (ID: ${lcd.document_display_id})\n` +
-          `    MAC: ${lcd.contractor_name_type}\n` +
-          `    Direct URL (check for coverage criteria here): ${fullHtmlUrl}`,
+          `## ${lcd.title} (ID: ${lcd.document_display_id || 'N/A'})\n` +
+          `- **MAC:** ${lcd.contractor_name_type || 'N/A'}\n` +
+          `- **Effective Date:** ${lcd.effective_date || 'N/A'}\n` +
+          `- **Last Updated:** ${lcd.updated_on || 'N/A'}\n` +
+          `- **Summary:** ${summary}\n` +
+          `- **Direct URL:** ${fullHtmlUrl}\n`
         );
       }
 
-      console.log(`${outputResults.length} LCD's found`, { outputResults });
+      console.log(`${outputResults.length} LCD's found and summarized`);
 
       const result = `Found ${lcds.length} Local Coverage Determination(s) for '${query}' in ${state}. ` +
-        `Displaying top ${Math.min(lcds.length, 5)}:\n` +
-        outputResults.join("\n");
+        `Displaying top ${maxResults} with summaries:\n\n` +
+        outputResults.join("\n\n");
 
       cache.set(input.toString(), result);
       return result;
