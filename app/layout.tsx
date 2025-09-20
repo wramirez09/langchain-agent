@@ -1,5 +1,4 @@
-
-import { Public_Sans } from "next/font/google";
+import { Inter, Public_Sans } from "next/font/google";
 import { Toaster } from "@/components/ui/sonner";
 import { NuqsAdapter } from "nuqs/adapters/next/app";
 import "./globals.css";
@@ -9,7 +8,8 @@ import * as React from "react";
 
 import TopBar from "@/components/TopBar";
 
-const publicSans = Public_Sans({ subsets: ["latin"] });
+const inter = Inter({ subsets: ["latin"], variable: '--font-inter' });
+const publicSans = Public_Sans({ subsets: ["latin"], variable: '--font-public-sans' });
 
 export default async function RootLayout({
   children,
@@ -17,9 +17,8 @@ export default async function RootLayout({
   children: React.ReactNode;
 }) {
 
-
   return (
-    <html lang="en">
+    <html lang="en" className={`${inter.variable} ${publicSans.variable} font-sans`}>
       <head>
 
         <title>
@@ -54,7 +53,6 @@ export default async function RootLayout({
         <meta name="twitter:image" content="/images/og-image.png" />
       </head>
       <body
-        className={`${publicSans.className}`}
         style={{ height: "100dvh" }}
       >
         <NuqsAdapter>

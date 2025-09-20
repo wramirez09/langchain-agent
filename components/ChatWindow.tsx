@@ -373,6 +373,13 @@ export function ChatWindow(props: {
     setIsLoading(true);
     setIntermediateStepsLoading(true);
 
+    const loadingToastTimeout_1 = setTimeout(() => {
+      toast.info('Processing your request', {
+        description: 'hang in there we are getting everything ready for you',
+        duration: 5000,
+      });
+    }, 6000); // 1 minutes = 60,000ms
+
     // Set a timeout for the "still working" toast
     const loadingToastTimeout = setTimeout(() => {
       toast.info('Still working on your request', {
@@ -461,6 +468,7 @@ export function ChatWindow(props: {
       });
     } finally {
       // Clear the timeout when the request completes
+      clearTimeout(loadingToastTimeout_1);
       clearTimeout(loadingToastTimeout);
       setIntermediateStepsLoading(false);
       setIsLoading(false);
@@ -509,6 +517,19 @@ export function ChatWindow(props: {
 
     setUploading(true);
     const toastId = toast.loading("Uploading file...");
+    const loadingToastTimeout1 = setTimeout(() => {
+      toast.info('Processing your document', {
+        description: 'Hang in there, we\'re extracting the content...',
+        duration: 5000,
+      });
+    }, 30000); // Show after 30 seconds
+
+    const loadingToastTimeout2 = setTimeout(() => {
+      toast.info('Still processing your document', {
+        description: 'This is taking longer than usual. Please wait...',
+        duration: 5000,
+      });
+    }, 60000); // Show after 1
 
     const formData = new FormData();
     formData.append("file", file);
@@ -520,7 +541,7 @@ export function ChatWindow(props: {
         body: formData,
       });
 
-      console.log('Received response, parsing JSON...', uploadResponse);
+      toast('Received response, processing...');
 
       const data = await uploadResponse.json();
       console.log('Parsed response data:', data);
@@ -560,7 +581,7 @@ export function ChatWindow(props: {
         combinedInput += `\nAdditional user input: "${formInputString}"`;
       }
 
-      console.log('Appending message to chat...');
+      toast('Appending message to chat...');
       console.log({ combinedInput });
 
       await chat.append({ role: "user", content: combinedInput });
@@ -577,7 +598,10 @@ export function ChatWindow(props: {
         id: toastId
       });
     } finally {
-      console.log('Upload process completed');
+      // Clear all timeouts
+      clearTimeout(loadingToastTimeout1);
+      clearTimeout(loadingToastTimeout2);
+      toast('Upload process completed');
       setUploading(false);
     }
   }

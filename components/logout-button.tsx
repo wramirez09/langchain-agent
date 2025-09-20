@@ -3,9 +3,27 @@
 import { createClient } from '@/utils/client'
 import { Button } from '@/components/ui/button'
 import { useRouter } from 'next/navigation'
+import { useEffect, useState } from 'react'
 
 export function LogoutButton() {
   const router = useRouter()
+  const [isLoggedIn, setIsLoggedIn] = useState(false)
+
+  useEffect(() => {
+    const checkAuth = async () => {
+      const supabase = createClient()
+      const { data: { session } } = await supabase.auth.getSession()
+      setIsLoggedIn(!!session)
+    }
+
+    checkAuth()
+
+    const { data: { subscription } } = createClient().auth.onAuthStateChange((_event, session) => {
+      setIsLoggedIn(!!session)
+    })
+
+    return () => subscription.unsubscribe()
+  }, [])
 
   const logout = async () => {
     const supabase = createClient()
@@ -13,5 +31,15 @@ export function LogoutButton() {
     router.push('/auth/login')
   }
 
-  return <Button onClick={logout}>Logout</Button>
+  if (!isLoggedIn) return null
+
+  return (
+    <Button
+      onClick={logout}
+      variant="outline"
+      className="h-9"
+    >
+      Logout
+    </Button>
+  )
 }
