@@ -2,7 +2,7 @@
 
 import { type Message } from "ai";
 import { useBodyPointerEvents } from "@/utils/use-body-pointer-events";
-import { Checkbox } from "./ui/checkbox";
+
 import { cn } from "@/utils/cn";
 import React, { FormEvent, ReactNode, useCallback, useState } from "react";
 import { StickToBottom, useStickToBottomContext } from "use-stick-to-bottom";
@@ -31,7 +31,8 @@ import { ArrowDown, LoaderCircle } from "lucide-react";
 import { ChatMessageBubble } from "./ChatMessageBubble";
 import { IntermediateStep } from "./IntermediateStep";
 import { Button } from "./ui/button";
-import { useEffect } from "react";
+
+import { markdownToTxt } from 'markdown-to-txt';
 
 function ChatMessages(props: {
   messages: Message[];
@@ -276,9 +277,7 @@ export function ChatWindow(props: {
   showIntermediateStepsToggle?: boolean;
 
 }) {
-  const [showIntermediateSteps, setShowIntermediateSteps] = useState(
-    !!props.showIntermediateStepsToggle,
-  );
+
   const [intermediateStepsLoading, setIntermediateStepsLoading] = useState(false);
   const [sheetOpen, setSheetOpen] = React.useState(false);
   const [openMobileDrawer, setOpenMobileDrawer] = React.useState<boolean>(false);
@@ -369,14 +368,23 @@ export function ChatWindow(props: {
 
   async function sendMessage(e: FormEvent<HTMLFormElement>) {
     e.preventDefault();
-    if (chat.isLoading || intermediateStepsLoading) return;
+    if (isLoading) return;
 
-    // Clear the input field
-    const userMessage = chat.input;
-    chat.setInput("");
+    setIsLoading(true);
+    setIntermediateStepsLoading(true);
+
+    // Set a timeout for the "still working" toast
+    const loadingToastTimeout = setTimeout(() => {
+      toast.info('Still working on your request', {
+        description: 'Please wait a bit longer while we process your request...',
+        duration: 5000,
+      });
+    }, 60000); // 1 minutes = 60,000ms
 
     try {
-      setIntermediateStepsLoading(true);
+      // Clear the input field
+      const userMessage = chat.input;
+      chat.setInput("");
 
       // Append the user message
       await chat.append({
@@ -387,27 +395,48 @@ export function ChatWindow(props: {
       // Get the response from the API
       const response = await fetch(props.endpoint, {
         method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
         body: JSON.stringify({
           messages: [...chat.messages, { role: "user", content: userMessage }],
-          show_intermediate_steps: true,
         }),
       });
 
-      const json = await response.json();
+      // First, get the raw response text
+      const responseText = await response.text();
+
+      // Try to parse it as JSON
+      let json;
+      try {
+        json = JSON.parse(responseText);
+      } catch (parseError) {
+        console.error('Failed to parse JSON response:', {
+          responseText,
+          error: parseError
+        });
+        throw new Error('Received invalid response from the server');
+      }
 
       if (!response.ok) {
         throw new Error(json.error || 'Failed to get response from server');
       }
 
-      const responseMessages: Message[] = json.messages;
+      const responseMessages: Message[] = json.messages || [];
       const lastMessage = responseMessages[responseMessages.length - 1];
 
       // Append the assistant's response
-      if (lastMessage) {
+      if (lastMessage && lastMessage.content) {
+        // Only convert markdown to text when displaying
         await chat.append({
           role: "assistant",
-          content: lastMessage.content,
+          content: markdownToTxt(lastMessage.content),
         });
+
+        // Reset loading states and return to prevent further processing
+        setIntermediateStepsLoading(false);
+        setIsLoading(false);
+        return;
       }
 
       // Handle intermediate steps if any
@@ -420,7 +449,7 @@ export function ChatWindow(props: {
         if (toolCall && typeof toolCall === 'object' && 'function' in toolCall) {
           await chat.append({
             role: "tool",
-            content: toolCall.function.arguments || "",
+            content: markdownToTxt(toolCall.function.arguments || ""),
             tool_call_id: toolCall.id,
           });
         }
@@ -431,9 +460,14 @@ export function ChatWindow(props: {
         description: error.message || 'An unknown error occurred',
       });
     } finally {
+      // Clear the timeout when the request completes
+      clearTimeout(loadingToastTimeout);
       setIntermediateStepsLoading(false);
+      setIsLoading(false);
+
     }
   }
+
   const setInput = useCallback(() => {
     if (formContent.size === 0) {
       chat.setInput("");
@@ -481,17 +515,17 @@ export function ChatWindow(props: {
 
     try {
       console.log('Sending file to API...');
-      const response = await fetch('/api/retrieval/ingest', {
+      const uploadResponse = await fetch('/api/retrieval/ingest', {
         method: 'POST',
         body: formData,
       });
 
-      console.log('Received response, parsing JSON...', response);
+      console.log('Received response, parsing JSON...', uploadResponse);
 
-      const data = await response.json();
+      const data = await uploadResponse.json();
       console.log('Parsed response data:', data);
 
-      if (!response.ok) {
+      if (!uploadResponse.ok) {
         const errorMsg = data?.error || 'Failed to process file';
         console.error('API Error:', errorMsg);
         throw new Error(errorMsg);
