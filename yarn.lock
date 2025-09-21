@@ -7933,7 +7933,6 @@ __metadata:
     react-markdown: 8.0.6
     react-pro-sidebar: ^1.1.0
     react-stick-to-bottom: ^1.0.0
-    react-toastify: ^11.0.5
     recharts: 2
     remark-gfm: ^4.0.1
     shadcn-ui: ^0.9.5
@@ -10861,18 +10860,6 @@ __metadata:
     "@types/react":
       optional: true
   checksum: a7b0bf493c9231065ebafa84c4237aed997c746c561196121b7de82fe155a5355b372db5070a3ac9fe980cf7f60dc0f1e8cf6402a2aa5b2957392932ccf76e76
-  languageName: node
-  linkType: hard
-
-"react-toastify@npm:^11.0.5":
-  version: 11.0.5
-  resolution: "react-toastify@npm:11.0.5"
-  dependencies:
-    clsx: ^2.1.1
-  peerDependencies:
-    react: ^18 || ^19
-    react-dom: ^18 || ^19
-  checksum: e2150aabe6a2b70d1d06bd6d4ef14d14e7ff38703980339660a34ef2251df206c4850dbf52a483aacf22265b41a8af0e27210ce20bf10ea7df4600e492a58352
   languageName: node
   linkType: hard
 

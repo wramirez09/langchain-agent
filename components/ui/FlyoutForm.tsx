@@ -51,7 +51,7 @@ const FlyoutForm: React.FC<{
                 begin the prior authorization process.
               </SheetDescription>
             </SheetHeader>
-            
+
             <ScrollArea className="flex-1 px-6 py-4">
               <FormInputs
                 onStateFormStateChange={onStateFormStateChange}
@@ -60,13 +60,13 @@ const FlyoutForm: React.FC<{
                 }
               />
             </ScrollArea>
-            
+
             <div className="border-t border-blue-100 bg-white px-6 py-4">
               <div className="flex items-center gap-3">
                 <Button
                   type="submit"
                   variant={"default"}
-                  className="flex-1 bg-[#1e7dbf] hover:bg-[#1a6da8] text-white"
+                  className="flex-1 bg-gradient text-white shadow-md hover:shadot-none"
                   onClick={handleSubmit}
                 >
                   Submit
@@ -77,9 +77,7 @@ const FlyoutForm: React.FC<{
                       setOpenSheet(false);
                       useBodyPointerEvents(false);
                     }}
-                    type="button"
-                    variant="outline"
-                    className="flex-1 border-gray-300 text-gray-700 hover:bg-gray-50"
+                    className="flex-1 button-ghost text-red-500"
                   >
                     Cancel
                   </Button>

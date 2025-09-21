@@ -63,7 +63,7 @@ const FormInputs: React.FC<Props> = (props: Props) => {
       {/* Row 1 */}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-x-6 gap-y-4">
         <div>
-          <label className="block text-sm font-medium text-gray-900 mb-1">
+          <label className="block text-md font-medium text-gray-900 mb-1">
             Insurance Provider
           </label>
           <AutoCompleteSelect
@@ -72,7 +72,7 @@ const FormInputs: React.FC<Props> = (props: Props) => {
           />
         </div>
         <div>
-          <label className="block text-sm font-medium text-gray-900 mb-1">
+          <label className="block text-md font-medium text-gray-900 mb-1">
             State
           </label>
           <AutoCompleteSelect
@@ -85,7 +85,7 @@ const FormInputs: React.FC<Props> = (props: Props) => {
       {/* Row 2 */}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-x-6 gap-y-4">
         <div>
-          <label className="block text-sm font-medium text-gray-900 mb-1">
+          <label className="block text-md font-medium text-gray-900 mb-1">
             Treatment
           </label>
           <AutoCompleteSelect
@@ -94,7 +94,7 @@ const FormInputs: React.FC<Props> = (props: Props) => {
           />
         </div>
         <div>
-          <label className="block text-sm font-medium text-gray-900 mb-1">
+          <label className="block text-md font-medium text-gray-900 mb-1">
             CPT Code(s)
           </label>
           <Input
@@ -107,7 +107,7 @@ const FormInputs: React.FC<Props> = (props: Props) => {
 
       {/* Diagnosis */}
       <div>
-        <label className="block text-sm font-semi-bold text-black mb-1">
+        <label className="block text-md font-semi-bold text-black mb-1">
           Diagnosis
         </label>
         <Textarea
@@ -119,7 +119,7 @@ const FormInputs: React.FC<Props> = (props: Props) => {
 
       {/* History */}
       <div>
-        <label className="block text-sm font-semi-bold text-black mb-1">
+        <label className="block text-md font-semi-bold text-black mb-1">
           Patient(s) Medical History
         </label>
         <Textarea
@@ -131,7 +131,7 @@ const FormInputs: React.FC<Props> = (props: Props) => {
 
       {/* Chat Context */}
       <div>
-        <label className="block text-sm font-semi-bold text-black mb-1">
+        <label className="block text-md font-semi-bold text-black mb-1">
           Additional Chat Prompt Context (optional)
         </label>
         <Textarea

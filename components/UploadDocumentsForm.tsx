@@ -83,7 +83,7 @@ const UploadDocumentsForm: React.FC<{
             type="button"
             variant="outline"
             onClick={() => setModalOpen(false)}
-            className="w-full sm:w-[120px] px-5 text-gray-700 border-gray-300 hover:bg-gray-50 focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
+            className="w-full sm:w-[120px] px-5 text-dark button-ghost"
             disabled={uploading || !document}
           >
             Cancel

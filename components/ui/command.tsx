@@ -48,7 +48,7 @@ const CommandInput = React.forwardRef<
     <CommandPrimitive.Input
       ref={ref}
       className={cn(
-        "flex h-10 w-full rounded-md bg-transparent py-3 text-sm outline-none placeholder:text-gray-900 disabled:cursor-not-allowed disabled:opacity-50 text-black",
+        "flex h-10 w-full rounded-md bg-transparent py-3 text-md outline-none placeholder:text-gray-900 disabled:cursor-not-allowed disabled:opacity-50 text-black",
         className,
       )}
       {...props}
@@ -63,23 +63,23 @@ const CommandList = React.forwardRef<
   React.ComponentPropsWithoutRef<typeof CommandPrimitive.List>
 >(({ className, ...props }, ref) => {
   const listRef = React.useRef<HTMLDivElement>(null);
-  
+
   // Handle wheel events on the list
   const handleWheel = (e: React.WheelEvent) => {
     if (!listRef.current) return;
-    
+
     const { scrollTop, scrollHeight, clientHeight } = listRef.current;
     const isAtTop = scrollTop === 0;
     const isAtBottom = Math.ceil(scrollTop + clientHeight) >= scrollHeight;
-    
+
     // Prevent scroll chaining to parent elements
     if ((e.deltaY < 0 && isAtTop) || (e.deltaY > 0 && isAtBottom)) {
       e.stopPropagation();
     }
   };
-  
+
   return (
-    <div 
+    <div
       ref={listRef}
       onWheel={handleWheel}
       className="overflow-hidden"
@@ -101,7 +101,7 @@ const CommandEmpty = React.forwardRef<
 >((props, ref) => (
   <CommandPrimitive.Empty
     ref={ref}
-    className="py-6 text-center text-sm"
+    className="py-6 text-center text-md"
     {...props}
   />
 ));
@@ -143,7 +143,7 @@ const CommandItem = React.forwardRef<
   <CommandPrimitive.Item
     ref={ref}
     className={cn(
-      "relative flex cursor-default gap-2 select-none items-center rounded-sm px-2 py-1.5 text-sm outline-none",
+      "relative flex cursor-default gap-2 select-none items-center rounded-sm px-2 py-1.5 text-md outline-none",
       "data-[disabled=true]:pointer-events-none data-[disabled=true]:opacity-50",
       "[&_svg]:pointer-events-none [&_svg]:size-4 [&_svg]:shrink-0",
       className,

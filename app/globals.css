@@ -166,3 +166,34 @@ body {
   /* W3C, IE 10+/ Edge, Firefox 16+, Chrome 26+, Opera 12+, Safari 7+ */
 
 }
+
+.toast-base {
+  background: #396afc;
+  /* fallback for old browsers */
+  background: -webkit-linear-gradient(to top, #2948ff, #396afc);
+  /* Chrome 10-25, Safari 5.1-6 */
+  background: linear-gradient(to top, #2948ff, #396afc);
+  /* W3C, IE 10+/ Edge, Firefox 16+, Chrome 26+, Opera 12+, Safari 7+ */
+
+
+
+}
+
+/* Toast spinner styling */
+[data-sonner-toast] [data-loading="true"] {
+  --spinner-color: white !important;
+}
+
+[data-sonner-toast] [data-loading="true"]::after {
+  border-color: white transparent transparent transparent !important;
+}
+
+[data-sonner-toast] [data-loading="true"]::before {
+  border-color: rgba(255, 255, 255, 0.2) !important;
+}
+
+.sonner-loading-bar {
+  color: white !important;
+  stroke: white !important;
+
+}

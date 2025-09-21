@@ -10,35 +10,30 @@ const Toaster = ({ ...props }: ToasterProps) => {
 
   return (
     <Sonner
-      theme="dark"
+      theme="light"
       position="top-right"
-      className="toaster group"
+      className="toaster"
+      expand={true}
       toastOptions={{
-        style: {
-          background: '#1f2937', // bg-neutral-800
-          border: '1px solid #374151', // border-gray-700
-          color: 'white',
-          margin: '0.5rem 0',
-          zIndex: 100,
-        },
         classNames: {
           toast: cn(
-            "group toast w-full max-w-sm"
+            "toast w-full max-w-sm toast-base text-white p-3 border-0"
           ),
           title: "font-semibold text-white",
-          description: "text-gray-100 -mt-0.5 text-sm",
+          description: "text-gray-100 -mt-0.5 text-md",
           actionButton: cn(
             "bg-blue-600 text-white hover:bg-blue-700",
-            "px-3 py-1.5 text-sm font-medium rounded-md"
+            "px-3 py-1.5 text-md font-medium rounded-md"
           ),
           cancelButton: cn(
             "bg-gray-600 text-white hover:bg-gray-700",
-            "px-3 py-1.5 text-sm font-medium rounded-md"
+            "px-3 py-1.5 text-md font-medium rounded-md"
           ),
+          loading: "[--normal-bg:white] [--normal-border:transparent] [--normal-text:white] [--spinner-color:#fff] text-white bg-white"
         },
         unstyled: false,
       }}
-      visibleToasts={3}
+      visibleToasts={10}
       gap={12}
       {...props}
     />

@@ -3,15 +3,11 @@
 import React, { useState, useEffect, useCallback, SetStateAction, Dispatch } from "react";
 import {
   useDropzone,
-  DropzoneRootProps,
   DropzoneInputProps,
 } from "react-dropzone";
-import { Button } from "./button";
-import { Progress } from "./progress";
 
 import { cn } from "@/utils/cn";
-import { IconDragDrop } from "@tabler/icons-react";
-import { toast } from "react-toastify";
+import { toast } from "@/utils/use-toast";
 
 interface FileUploadProps {
   setDocument: Dispatch<SetStateAction<File | undefined>>;
@@ -62,11 +58,15 @@ export function FileUpload({
 
   const onDrop = useCallback((acceptedFiles: File[], fileRejections: any[]) => {
     setError(null);
-    
+
     if (fileRejections.length > 0) {
       const error = fileRejections[0].errors[0];
       const errorMessage = getErrorMessage(error);
-      toast.error(errorMessage);
+      toast({
+        title: "Upload Error",
+        description: errorMessage,
+        variant: "destructive",
+      });
       setError(errorMessage);
       return;
     }
@@ -75,6 +75,10 @@ export function FileUpload({
       const newFiles = acceptedFiles.slice(0, maxFiles);
       setFiles(newFiles);
       // Note: setDocument is now called via the useEffect above
+      toast({
+        title: "File selected",
+        description: `File is ready to upload`,
+      });
     }
   }, [maxFiles]);
 
@@ -94,8 +98,8 @@ export function FileUpload({
         className={cn(
           "group relative border-2 border-dashed rounded-xl p-8 text-center transition-all duration-200 cursor-pointer",
           "focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2",
-          isDragActive 
-            ? "border-blue-500 bg-blue-50/70 scale-[1.01] shadow-sm" 
+          isDragActive
+            ? "border-blue-500 bg-blue-50/70 scale-[1.01] shadow-sm"
             : "border-blue-200 hover:border-blue-400 hover:bg-blue-50/30"
         )}
         aria-label="File upload area"
@@ -107,28 +111,28 @@ export function FileUpload({
             "transition-all duration-200 group-hover:bg-blue-100 group-hover:scale-105",
             isDragActive && "scale-110 bg-blue-100"
           )}>
-            <svg 
+            <svg
               className={cn(
                 "h-9 w-9 text-blue-600 transition-transform duration-200",
                 isDragActive && "scale-110"
-              )} 
-              fill="none" 
-              viewBox="0 0 24 24" 
+              )}
+              fill="none"
+              viewBox="0 0 24 24"
               stroke="currentColor"
               aria-hidden="true"
             >
-              <path 
-                strokeLinecap="round" 
-                strokeLinejoin="round" 
-                strokeWidth={1.5} 
-                d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12" 
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth={1.5}
+                d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12"
               />
             </svg>
           </div>
           <p className="text-base font-semibold text-gray-900 mb-1">
             {isDragActive ? "Drop to upload" : "Add Your Document"}
           </p>
-          <p className="text-sm text-gray-600">
+          <p className="text-md text-gray-600">
             <span className="font-medium text-blue-600 group-hover:text-blue-500 transition-colors">
               Choose a file
             </span>{' '}
@@ -149,10 +153,10 @@ export function FileUpload({
               </svg>
             </div>
             <div className="ml-3 flex-1">
-              <p className="text-sm font-medium text-green-800">
+              <p className="text-md font-medium text-green-800">
                 {files[0].name}
               </p>
-              <p className="mt-1 text-sm text-green-700">
+              <p className="mt-1 text-md text-green-700">
                 Ready to upload
               </p>
             </div>
@@ -162,13 +166,13 @@ export function FileUpload({
       {isUploading && (
         <div className="space-y-3 rounded-lg border border-blue-100 bg-white p-4 shadow-sm">
           <div className="flex items-center justify-between">
-            <p className="text-sm font-medium text-gray-900">
+            <p className="text-md font-medium text-gray-900">
               {files[0]?.name || 'Document'}
             </p>
             <span className="text-xs font-medium text-blue-600">{progress}%</span>
           </div>
           <div className="h-2 overflow-hidden rounded-full bg-blue-50">
-            <div 
+            <div
               className="h-full bg-blue-600 transition-all duration-300 ease-out"
               style={{ width: `${progress}%` }}
             />

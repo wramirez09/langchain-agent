@@ -42,7 +42,7 @@ export function AutoCompleteSelect({
           <Button
             variant="outline"
             className={cn(
-              "w-full justify-between text-gray-900 bg-white text-sm border-blue-200",
+              "w-full justify-between text-gray-900 bg-white text-md border-blue-200",
               "hover:bg-blue-50 hover:border-blue-300 h-10 px-3",
               "focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 focus:outline-none"
             )}
@@ -63,9 +63,9 @@ export function AutoCompleteSelect({
             </svg>
           </Button>
         </PopoverTrigger>
-        <PopoverContent 
+        <PopoverContent
           className="w-[var(--radix-popover-trigger-width)] min-w-[240px] p-0 border border-gray-200 bg-white shadow-lg rounded-lg overflow-hidden"
-          align="start" 
+          align="start"
           sideOffset={8}
           side="bottom"
         >
@@ -91,7 +91,7 @@ export function AutoCompleteSelect({
         <div className="flex-1 overflow-y-auto">
           <div className="sticky top-0 z-10 bg-blue-50/95 backdrop-blur-sm px-4 pt-4 pb-2 border-b border-blue-100">
             <h3 className="text-lg font-medium text-gray-900">Select an option</h3>
-            <p className="text-sm text-gray-500 mt-0.5">Choose from the available options</p>
+            <p className="text-md text-gray-500 mt-0.5">Choose from the available options</p>
           </div>
           <div className="p-4">
             <StatusList
@@ -121,7 +121,7 @@ export function StatusList({
   showSearch?: boolean;
 }) {
   return (
-    <Command 
+    <Command
       className="bg-white rounded-lg border border-blue-100 shadow-sm flex flex-col h-full"
       shouldFilter={true}
       loop={true}
@@ -150,8 +150,8 @@ export function StatusList({
     >
       {showSearch && (
         <div className="px-3 pt-2 pb-1.5 border-b border-blue-100 bg-white">
-          <CommandInput 
-            placeholder="Search options..." 
+          <CommandInput
+            placeholder="Search options..."
             className="w-full bg-white text-gray-900 focus-visible:ring-0 focus-visible:ring-offset-0 border-0 focus-visible:outline-none"
           />
         </div>
@@ -170,7 +170,7 @@ export function StatusList({
                 setOpen(false);
               }}
               className={cn(
-                "flex items-center gap-3 px-4 py-3 text-sm text-gray-800 rounded-md",
+                "flex items-center gap-3 px-4 py-3 text-md text-gray-800 rounded-md",
                 "hover:bg-gray-100 cursor-pointer transition-colors duration-150",
                 "active:bg-gray-200 focus:bg-gray-100 focus:outline-none focus-visible:ring-1 focus-visible:ring-blue-200"
               )}
