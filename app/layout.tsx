@@ -56,14 +56,41 @@ export default async function RootLayout({
         style={{ height: "100dvh" }}
       >
         <NuqsAdapter>
+<<<<<<< Updated upstream
           <div className="bg-gray-200 grid grid-rows-[auto,1fr] overflow-y-scroll h-full">
+<<<<<<< Updated upstream
             <TopBar />
+=======
+            <div className="grid grid-cols-[1fr,auto] gap-2 px-4 py-2 md:py-3">
+              <div className="flex gap-4 flex-col md:flex-row md:items-center ml-2">
+                <a
+                  href=""
+                  rel="noopener noreferrer"
+                  target="_blank"
+                  className="flex items-center gap-2"
+                >
+                  <Image
+                    src={logo}
+                    alt="NoteDoctor.Ai Logo"
+                    className="h-5 md:h-8 w-auto "
+                  />
+                  <span className="text-xs md:text-md text-black">NoteDoctor.Ai</span>
+                </a>
+              </div>
+
+              <div className="flex justify-center"></div>
+            </div>
+=======
+          <div className="bg-gradient grid grid-rows-[auto,1fr] overflow-y-scroll h-full">
+            <TopBar />
+>>>>>>> Stashed changes
+>>>>>>> Stashed changes
             <div
-              className="bg-gray-100 mx-4 relative grid rounded-1xl  h-[90vh] shadow-lg"
+              className="bg-gradient mx-0 relative grid rounded-1xl shadow-lg"
               style={{ overflowY: "hidden" }}
             >
               <NavbarMinimal />
-              <div className="absolute inset-0 overflow-hidden flex flex-col justify-end md:justify-center align-items-center">
+              <div className="bg-gradient absolute inset-0 overflow-hidden flex flex-col justify-end md:justify-center align-items-center">
                 {children}
               </div>
             </div>

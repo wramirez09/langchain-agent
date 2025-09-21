@@ -84,7 +84,11 @@ export function LoginForm({ className, ...props }: React.ComponentPropsWithoutRe
           )}
           <Button
             type="submit"
+<<<<<<< Updated upstream
             className="w-full"
+=======
+            className="w-full bg-gradient text-white"
+>>>>>>> Stashed changes
             disabled={isLoading}
           >
             {isLoading ? (
@@ -98,7 +102,11 @@ export function LoginForm({ className, ...props }: React.ComponentPropsWithoutRe
           </Button>
         </div>
       </form>
+<<<<<<< Updated upstream
       <div className="text-center text-sm text-gray-600">
+=======
+      <div className="text-center text-sm text-dark">
+>>>>>>> Stashed changes
         Don't have an account?{' '}
         <Link
           href="/auth/sign-up"

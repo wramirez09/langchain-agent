@@ -37,7 +37,11 @@ export function LogoutButton() {
     <Button
       onClick={logout}
       variant="outline"
+<<<<<<< Updated upstream
       className="h-9"
+=======
+      className="h-9 bg-gradient border-none shadow-md hover:shadow-none transition duration-200 ease-in-out"
+>>>>>>> Stashed changes
     >
       Logout
     </Button>

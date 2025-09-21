@@ -42,9 +42,19 @@ function ChatMessages(props: {
   className?: string;
 }) {
   return (
+<<<<<<< Updated upstream
     <div className="relative flex flex-col max-w-[768px] mx-auto pb-12 w-full">
       <div className="sticky bottom-0 left-0 right-0 h-12 bg-gradient-to-t from-gray-100 to-transparent pointer-events-none z-10" />
       <Toaster position="top-right" richColors />
+=======
+<<<<<<< Updated upstream
+    <div className="flex flex-col max-w-[768px] mx-auto pb-12 w-full">
+=======
+    <div className="relative flex flex-col max-w-[768px] mx-auto pb-12 w-full bg-transparent">
+      <div className="sticky bottom-0 left-0 right-0 h-12 pointer-events-none z-10" />
+      <Toaster position="top-right" richColors />
+>>>>>>> Stashed changes
+>>>>>>> Stashed changes
       {props.messages.map((m, i) => {
         if (m.role === "system") {
           return <IntermediateStep key={m.id} message={m} />;
@@ -297,13 +307,32 @@ export function ChatWindow(props: {
 
   const chat = useChat({
     api: props.endpoint,
+<<<<<<< Updated upstream
     streamMode: 'text',
+=======
+<<<<<<< Updated upstream
+=======
+    streamMode: 'text',
+    onFinish() {
+      // This runs when the stream is complete
+      setIntermediateStepsLoading(false);
+      setIsLoading(false);
+    },
+    onError(error) {
+      console.error('Chat error:', error);
+      setIntermediateStepsLoading(false);
+      setIsLoading(false);
+      toast.error('An error occurred while processing your message');
+    },
+>>>>>>> Stashed changes
+>>>>>>> Stashed changes
     onResponse(response) {
       try {
         // Handle sources from response
         const sourcesHeader = response.headers.get("x-sources");
         let sources = [];
 
+<<<<<<< Updated upstream
         if (sourcesHeader) {
           try {
             sources = JSON.parse(sourcesHeader);
@@ -358,6 +387,14 @@ export function ChatWindow(props: {
       if (!e.message.includes('Failed to parse stream')) {
         toast.error(`Error while processing your request in Chat`, {
           description: e.message,
+=======
+<<<<<<< Updated upstream
+      const messageIndexHeader = response.headers.get("x-message-index");
+      if (sources.length && messageIndexHeader !== null) {
+        setSourcesForMessages({
+          ...sourcesForMessages,
+          [messageIndexHeader]: sources,
+>>>>>>> Stashed changes
         });
       }
     },
@@ -475,6 +512,143 @@ export function ChatWindow(props: {
 
     }
   }
+=======
+        if (sourcesHeader) {
+          try {
+            sources = JSON.parse(sourcesHeader);
+          } catch (error) {
+            console.warn("Failed to parse sources header:", error);
+            sources = [];
+          }
+        }
+
+        const messageIndexHeader = response.headers.get("x-message-index");
+        if (sources.length && messageIndexHeader !== null) {
+          setSourcesForMessages({
+            ...sourcesForMessages,
+            [messageIndexHeader]: sources,
+          });
+        }
+
+        // Handle toast notifications from the API
+        try {
+          const toastHeader = response.headers.get('x-toast-notifications');
+          if (toastHeader) {
+            const toastData = JSON.parse(toastHeader);
+            if (Array.isArray(toastData)) {
+              toastData.forEach((toastItem: { message: string; type: string }) => {
+                const { message, type } = toastItem;
+                switch (type) {
+                  case 'success':
+                    toast.success(message);
+                    break;
+                  case 'error':
+                    toast.error(message);
+                    break;
+                  case 'loading':
+                    toast.loading(message);
+                    break;
+                  default:
+                    toast(message);
+                }
+              });
+            }
+          }
+        } catch (e) {
+          console.error('Error processing toast notifications:', e);
+        }
+      } catch (error) {
+        console.error('Error in onResponse handler:', error);
+      }
+    },
+  });
+
+  async function sendMessage(e: React.FormEvent<HTMLFormElement>) {
+    e.preventDefault();
+
+    // Reset loading states
+    setIsLoading(true);
+    setIntermediateStepsLoading(true);
+
+    try {
+      // Clear the input field
+      const userMessage = chat.input;
+      chat.setInput("");
+
+      // Append the user message
+      await chat.append({
+        role: "user",
+        content: userMessage,
+      });
+
+      // Get the response from the API
+      console.log('Sending request to:', props.endpoint);
+      const response = await fetch(props.endpoint, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          messages: [...chat.messages, { role: "user", content: userMessage }],
+        }),
+      });
+
+      // Get the raw response text and content type
+      const contentType = response.headers.get('content-type') || '';
+      const responseText = await response.text();
+
+      console.log('Response status:', response.status, response.statusText);
+      console.log('Content-Type:', contentType);
+      console.log('Response text:', responseText.substring(0, 500));
+
+      let responseData;
+
+      // Handle both JSON and plain text responses
+      if (contentType.includes('application/json')) {
+        try {
+          responseData = JSON.parse(responseText);
+          console.log('Parsed JSON response:', responseData);
+        } catch (error) {
+          console.error('Failed to parse JSON response:', error);
+          throw new Error('Received invalid JSON response from the server');
+        }
+      } else {
+        // Handle plain text response
+        console.log('Received plain text response');
+        responseData = {
+          messages: [
+            { role: 'assistant', content: responseText }
+          ]
+        };
+      }
+
+      if (!response.ok) {
+        throw new Error(responseData.error || 'Failed to get response from server');
+      }
+
+      const responseMessages: Message[] = responseData.messages || [];
+      const lastMessage = responseMessages[responseMessages.length - 1];
+
+      // Append the assistant's response
+      if (lastMessage && lastMessage.content) {
+        await chat.append({
+          role: "assistant",
+          content: markdownToTxt(lastMessage.content),
+        });
+      }
+
+    } catch (error: any) {
+      console.error('Error in sendMessage:', error);
+      toast.error('Failed to send message', {
+        description: error.message || 'An unknown error occurred',
+      });
+    } finally {
+      // Clear loading states
+      setIntermediateStepsLoading(false);
+      setIsLoading(false);
+    }
+  };
+>>>>>>> Stashed changes
 
   const setInput = useCallback(() => {
     if (formContent.size === 0) {
@@ -608,7 +782,7 @@ export function ChatWindow(props: {
 
   return (
     <div className="flex flex-col min-h-[100dvh] bg-gray-100 font-sans">
-      <div className="flex-1 overflow-y-auto p-4 space-y-4">
+      <div className="chat-bg flex-1 overflow-y-auto p-4 space-y-4">
         <ChatLayout
           content={
             chat.messages.length === 0 ? (

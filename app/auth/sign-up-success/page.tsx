@@ -4,7 +4,11 @@ import Link from 'next/link';
 
 export default function Page() {
   return (
+<<<<<<< Updated upstream
     <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-blue-50 via-white to-blue-100 p-6">
+=======
+    <div className="min-h-screen flex items-center justify-center bg-gradient p-6">
+>>>>>>> Stashed changes
       <div className="w-full max-w-md text-center">
         <div className="bg-white rounded-xl shadow-md p-8">
           <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-full bg-green-100 mb-6">
