@@ -25,7 +25,7 @@ import {
 import FlyoutForm from "./ui/FlyoutForm";
 import Link from "next/link";
 import MobileDrawer from "./ui/MobileDrawer";
-import { toast, Toaster } from "sonner";
+import { toast } from "sonner";
 import { useChat } from "ai/react";
 import { ArrowDown, LoaderCircle } from "lucide-react";
 import { ChatMessageBubble } from "./ChatMessageBubble";
@@ -44,7 +44,7 @@ function ChatMessages(props: {
   return (
     <div className="relative flex flex-col max-w-[768px] mx-auto pb-12 w-full bg-transparent">
       <div className="sticky bottom-0 left-0 right-0 h-12 pointer-events-none z-10" />
-      <Toaster position="top-right" richColors />
+      {/* <Toaster position="top-right" richColors /> */}
       {props.messages.map((m, i) => {
         if (m.role === "system") {
           return <IntermediateStep key={m.id} message={m} />;
@@ -365,13 +365,29 @@ export function ChatWindow(props: {
     },
   });
 
-  async function sendMessage(e: React.FormEvent<HTMLFormElement>) {
+  const sendMessage = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
+
+    if (chat.isLoading) return;
+
+    // Declare timeout variables at the function level
+    let loadingToastTimeout1: NodeJS.Timeout | null = null;
+    let loadingToastTimeout2: NodeJS.Timeout | null = null;
 
     // Reset loading states
     setIsLoading(true);
     setIntermediateStepsLoading(true);
 
+    // Set up the loading toasts
+    loadingToastTimeout1 = setTimeout(() => {
+      toast.info('Processing your request');
+    }, 20000); // Show after 20 seconds
+
+    loadingToastTimeout2 = setTimeout(() => {
+      toast.info('Still processing your request');
+    }, 60000); // Show after 1 minute
+
+    toast.info('Sending request to our AI agent');
     try {
       // Clear the input field
       const userMessage = chat.input;
@@ -383,69 +399,26 @@ export function ChatWindow(props: {
         content: userMessage,
       });
 
-      // Get the response from the API
-      console.log('Sending request to:', props.endpoint);
       const response = await fetch(props.endpoint, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
         },
         body: JSON.stringify({
-          messages: [...chat.messages, { role: "user", content: userMessage }],
+          messages: chat.messages,
         }),
       });
 
-      // Get the raw response text and content type
-      const contentType = response.headers.get('content-type') || '';
-      const responseText = await response.text();
-
-      console.log('Response status:', response.status, response.statusText);
-      console.log('Content-Type:', contentType);
-      console.log('Response text:', responseText.substring(0, 500));
-
-      let responseData;
-
-      // Handle both JSON and plain text responses
-      if (contentType.includes('application/json')) {
-        try {
-          responseData = JSON.parse(responseText);
-          console.log('Parsed JSON response:', responseData);
-        } catch (error) {
-          console.error('Failed to parse JSON response:', error);
-          throw new Error('Received invalid JSON response from the server');
-        }
-      } else {
-        // Handle plain text response
-        console.log('Received plain text response');
-        responseData = {
-          messages: [
-            { role: 'assistant', content: responseText }
-          ]
-        };
-      }
-
-      if (!response.ok) {
-        throw new Error(responseData.error || 'Failed to get response from server');
-      }
-
-      const responseMessages: Message[] = responseData.messages || [];
-      const lastMessage = responseMessages[responseMessages.length - 1];
-
-      // Append the assistant's response
-      if (lastMessage && lastMessage.content) {
-        await chat.append({
-          role: "assistant",
-          content: markdownToTxt(lastMessage.content),
-        });
-      }
+      // ... rest of your try block ...
 
     } catch (error: any) {
-      console.error('Error in sendMessage:', error);
       toast.error('Failed to send message', {
         description: error.message || 'An unknown error occurred',
       });
     } finally {
-      // Clear loading states
+      // Clear timeouts
+      if (loadingToastTimeout1) clearTimeout(loadingToastTimeout1);
+      if (loadingToastTimeout2) clearTimeout(loadingToastTimeout2);
       setIntermediateStepsLoading(false);
       setIsLoading(false);
     }
@@ -472,6 +445,17 @@ export function ChatWindow(props: {
   );
 
   async function handleUploadAndChat(file: File, insurance?: string) {
+    let loadingToastTimeout1: NodeJS.Timeout | null = null;
+    let loadingToastTimeout2: NodeJS.Timeout | null = null;
+    // Set up the loading toasts
+    loadingToastTimeout1 = setTimeout(() => {
+      toast.info('Processing your document');
+    }, 20000); // Show after 20 seconds
+
+    loadingToastTimeout2 = setTimeout(() => {
+      toast.info('Still processing your document');
+    }, 60000); // Show after 1 minute
+
     if (!file) {
       toast.error("No file selected");
       return;
@@ -491,20 +475,7 @@ export function ChatWindow(props: {
     }
 
     setUploading(true);
-    const toastId = toast.loading("Uploading file...");
-    const loadingToastTimeout1 = setTimeout(() => {
-      toast.info('Processing your document', {
-        description: 'Hang in there, we\'re extracting the content...',
-        duration: 5000,
-      });
-    }, 30000); // Show after 30 seconds
 
-    const loadingToastTimeout2 = setTimeout(() => {
-      toast.info('Still processing your document', {
-        description: 'This is taking longer than usual. Please wait...',
-        duration: 5000,
-      });
-    }, 60000); // Show after 1
 
     const formData = new FormData();
     formData.append("file", file);
@@ -516,7 +487,10 @@ export function ChatWindow(props: {
         body: formData,
       });
 
-      toast('Received response, processing...');
+      toast.info(
+        'Received response, processing...',
+
+      );
 
       const data = await uploadResponse.json();
       console.log('Parsed response data:', data);
@@ -537,7 +511,8 @@ export function ChatWindow(props: {
         throw new Error("Failed to generate query from document");
       }
 
-      toast.success("Document processed successfully!", { id: toastId });
+      toast("Document processed successfully!",
+      );
       setModalOpen(false);
 
       // Combine with form input if available
@@ -556,7 +531,8 @@ export function ChatWindow(props: {
         combinedInput += `\nAdditional user input: "${formInputString}"`;
       }
 
-      toast('Appending message to chat...');
+      toast.info('Appending message to chat...',
+      );
       console.log({ combinedInput });
 
       await chat.append({ role: "user", content: combinedInput });
@@ -568,15 +544,15 @@ export function ChatWindow(props: {
         name: error.name
       });
 
-      toast.error("Upload failed", {
-        description: error.message || "An unknown error occurred",
-        id: toastId
-      });
+      toast.error(
+        "Upload failed",
+      );
     } finally {
       // Clear all timeouts
       clearTimeout(loadingToastTimeout1);
       clearTimeout(loadingToastTimeout2);
-      toast('Upload process completed');
+      toast.info('Upload process completed',
+      );
       setUploading(false);
     }
   }
