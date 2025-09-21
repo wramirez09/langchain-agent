@@ -57,13 +57,8 @@ export function SignUpForm({ className, ...props }: React.ComponentPropsWithoutR
     <div className={cn('flex flex-col gap-6', className)} {...props}>
       <Card>
         <CardHeader>
-<<<<<<< Updated upstream
-          <CardTitle className="text-2xl">Sign up</CardTitle>
-          <CardDescription>Create a new account</CardDescription>
-=======
           <CardTitle className="text-2xl text-dark font-semibold">Sign up</CardTitle>
           <CardDescription className="text-dark font-semibold">Create a new account</CardDescription>
->>>>>>> Stashed changes
         </CardHeader>
         <CardContent>
           <form onSubmit={handleSignUp}>
@@ -104,11 +99,7 @@ export function SignUpForm({ className, ...props }: React.ComponentPropsWithoutR
                 />
               </div>
               {error && <p className="text-sm text-red-500">{error}</p>}
-<<<<<<< Updated upstream
-              <Button type="submit" className="w-full bg-blue-600 text-white hover:text-white hover:bg-blue-700" disabled={isLoading}>
-=======
               <Button type="submit" className="w-full bg-blue-600 text-white bg-gradient shadow-md hover:shadow-none transition duration-200 ease-in-out" disabled={isLoading}>
->>>>>>> Stashed changes
                 {isLoading ? 'Creating an account...' : 'Sign up'}
               </Button>
             </div>
