@@ -19,7 +19,7 @@ import {
   IconFileSearch,
   IconFileTypePdf,
   IconSend2,
-  IconSettings,
+  IconDots,
   IconUpload,
 } from "@tabler/icons-react";
 import FlyoutForm from "./ui/FlyoutForm";
@@ -162,7 +162,7 @@ export function ChatInput(props: {
         className={cn("w-full", props.className)}
       >
         <div className="border border-blue-200 bg-blue-50 rounded-lg flex flex-col max-w-[768px] w-full mx-auto">
-          <div className="flex flex-wrap items-center gap-2 px-4 py-3">
+          <div className="flex flex-wrap items-center gap-2 px-4 py-0 md:py-3">
             {props.children}
 
             <Button
@@ -200,18 +200,18 @@ export function ChatInput(props: {
               type="button"
               variant="ghost"
               size="icon"
-              className="md:hidden hover:bg-blue-100 bg-blue-50 text-[#1e7dbf] hover:text-[#1e7dbf] w-8 h-8"
+              className="md:hidden hover:bg-blue-100 bg-blue-50 text-[#1e7dbf] hover:text-[#1e7dbf] w-8 h-8 mt-1"
               onClick={() => props.setOpenMobileDrawer((prev) => !prev)}
             >
-              <IconSettings className="w-4 h-4" strokeWidth={1.5} />
+              <IconDots className="w-4 h-4" strokeWidth={1.5} color="red" />
             </Button>
           </div>
 
-          <div className="relative px-3 pb-2">
+          <div className="relative px-3 pb-1 md:pb-2">
             <hr className="border-t border-blue-100/80 mt-1 mb-2" />
           </div>
 
-          <div className="flex items-center px-4 py-3 bg-white/80 rounded-lg mx-3 mb-3 border border-blue-100">
+          <div className="flex items-center px-4 py-1 md:py-3 bg-white/80 rounded-lg mx-3 mb-3 border border-blue-100">
             <input
               name="chat"
               value={props.value}
@@ -258,7 +258,7 @@ export function ChatLayout(props: { content: ReactNode; form: ReactNode }) {
         contentClassName="py-8 px-2"
         content={props.content}
         footer={
-          <div className="sticky bottom-8 px-2">
+          <div className="sticky bottom-0 px-2">
             <ScrollToBottom className="absolute bottom-full left-1/2 -translate-x-1/2 mb-4 bg-white border border-blue-200 text-gray-900 hover:bg-blue-50 hover:text-blue-900" />
             {props.form}
           </div>
