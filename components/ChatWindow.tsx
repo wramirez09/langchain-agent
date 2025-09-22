@@ -19,13 +19,13 @@ import {
   IconFileSearch,
   IconFileTypePdf,
   IconSend2,
-  IconSettings,
+  IconDots,
   IconUpload,
 } from "@tabler/icons-react";
 import FlyoutForm from "./ui/FlyoutForm";
 import Link from "next/link";
 import MobileDrawer from "./ui/MobileDrawer";
-import { toast, Toaster } from "sonner";
+import { toast } from "sonner";
 import { useChat } from "ai/react";
 import { ArrowDown, LoaderCircle } from "lucide-react";
 import { ChatMessageBubble } from "./ChatMessageBubble";
@@ -40,11 +40,12 @@ function ChatMessages(props: {
   sourcesForMessages: Record<string, any>;
   aiEmoji?: any;
   className?: string;
+  isLoading?: boolean;
 }) {
   return (
     <div className="relative flex flex-col max-w-[768px] mx-auto pb-12 w-full bg-transparent">
       <div className="sticky bottom-0 left-0 right-0 h-12 pointer-events-none z-10" />
-      <Toaster position="top-right" richColors />
+      {/* <Toaster position="top-right" richColors /> */}
       {props.messages.map((m, i) => {
         if (m.role === "system") {
           return <IntermediateStep key={m.id} message={m} />;
@@ -162,7 +163,7 @@ export function ChatInput(props: {
         className={cn("w-full", props.className)}
       >
         <div className="border border-blue-200 bg-blue-50 rounded-lg flex flex-col max-w-[768px] w-full mx-auto">
-          <div className="flex flex-wrap items-center gap-2 px-4 py-3">
+          <div className="flex flex-wrap items-center gap-2 px-4 py-0 md:py-3">
             {props.children}
 
             <Button
@@ -200,18 +201,18 @@ export function ChatInput(props: {
               type="button"
               variant="ghost"
               size="icon"
-              className="md:hidden hover:bg-blue-100 bg-blue-50 text-[#1e7dbf] hover:text-[#1e7dbf] w-8 h-8"
+              className="md:hidden hover:bg-blue-100 bg-blue-50 text-[#1e7dbf] hover:text-[#1e7dbf] w-8 h-8 mt-1"
               onClick={() => props.setOpenMobileDrawer((prev) => !prev)}
             >
-              <IconSettings className="w-4 h-4" strokeWidth={1.5} />
+              <IconDots className="w-4 h-4" strokeWidth={1.5} color="red" />
             </Button>
           </div>
 
-          <div className="relative px-3 pb-2">
+          <div className="relative px-3 pb-1 md:pb-2">
             <hr className="border-t border-blue-100/80 mt-1 mb-2" />
           </div>
 
-          <div className="flex items-center px-4 py-3 bg-white/80 rounded-lg mx-3 mb-3 border border-blue-100">
+          <div className="flex items-center px-4 py-1 md:py-3 bg-white/80 rounded-lg mx-3 mb-3 border border-blue-100">
             <input
               name="chat"
               value={props.value}
@@ -250,17 +251,26 @@ export function ChatInput(props: {
   );
 }
 
-export function ChatLayout(props: { content: ReactNode; form: ReactNode }) {
+export function ChatLayout(props: {
+  content: ReactNode;
+  form: ReactNode;
+  className?: string;
+}) {
   return (
     <StickToBottom>
       <StickyToBottomContent
-        className="absolute inset-0"
-        contentClassName="py-8 px-2"
-        content={props.content}
+        className={cn("fixed inset-0 pb-[var(--keyboard-inset-bottom,0)]", props.className)}
+        contentClassName="pt-16 px-2 pb-24 md:pb-32 relative"
+        content={
+          <div className="h-full overflow-y-auto -mx-2 px-2">
+            {props.content}
+          </div>
+        }
         footer={
-          <div className="sticky bottom-8 px-2">
-            <ScrollToBottom className="absolute bottom-full left-1/2 -translate-x-1/2 mb-4 bg-white border border-blue-200 text-gray-900 hover:bg-blue-50 hover:text-blue-900" />
-            {props.form}
+          <div className="fixed bottom-0 left-0 right-0 bg-white/90 backdrop-blur-sm border-t border-blue-100 z-10">
+            <div className="max-w-3xl mx-auto px-2 py-2">
+              {props.form}
+            </div>
           </div>
         }
       />
@@ -365,13 +375,29 @@ export function ChatWindow(props: {
     },
   });
 
-  async function sendMessage(e: React.FormEvent<HTMLFormElement>) {
+  const sendMessage = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
+
+    if (chat.isLoading) return;
+
+    // Declare timeout variables at the function level
+    let loadingToastTimeout1: NodeJS.Timeout | null = null;
+    let loadingToastTimeout2: NodeJS.Timeout | null = null;
 
     // Reset loading states
     setIsLoading(true);
     setIntermediateStepsLoading(true);
 
+    // Set up the loading toasts
+    loadingToastTimeout1 = setTimeout(() => {
+      toast.info('Processing your request');
+    }, 20000); // Show after 20 seconds
+
+    loadingToastTimeout2 = setTimeout(() => {
+      toast.info('Still processing your request');
+    }, 60000); // Show after 1 minute
+
+    toast.info('Sending request to our AI agent');
     try {
       // Clear the input field
       const userMessage = chat.input;
@@ -383,69 +409,26 @@ export function ChatWindow(props: {
         content: userMessage,
       });
 
-      // Get the response from the API
-      console.log('Sending request to:', props.endpoint);
       const response = await fetch(props.endpoint, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
         },
         body: JSON.stringify({
-          messages: [...chat.messages, { role: "user", content: userMessage }],
+          messages: chat.messages,
         }),
       });
 
-      // Get the raw response text and content type
-      const contentType = response.headers.get('content-type') || '';
-      const responseText = await response.text();
-
-      console.log('Response status:', response.status, response.statusText);
-      console.log('Content-Type:', contentType);
-      console.log('Response text:', responseText.substring(0, 500));
-
-      let responseData;
-
-      // Handle both JSON and plain text responses
-      if (contentType.includes('application/json')) {
-        try {
-          responseData = JSON.parse(responseText);
-          console.log('Parsed JSON response:', responseData);
-        } catch (error) {
-          console.error('Failed to parse JSON response:', error);
-          throw new Error('Received invalid JSON response from the server');
-        }
-      } else {
-        // Handle plain text response
-        console.log('Received plain text response');
-        responseData = {
-          messages: [
-            { role: 'assistant', content: responseText }
-          ]
-        };
-      }
-
-      if (!response.ok) {
-        throw new Error(responseData.error || 'Failed to get response from server');
-      }
-
-      const responseMessages: Message[] = responseData.messages || [];
-      const lastMessage = responseMessages[responseMessages.length - 1];
-
-      // Append the assistant's response
-      if (lastMessage && lastMessage.content) {
-        await chat.append({
-          role: "assistant",
-          content: markdownToTxt(lastMessage.content),
-        });
-      }
+      // ... rest of your try block ...
 
     } catch (error: any) {
-      console.error('Error in sendMessage:', error);
       toast.error('Failed to send message', {
         description: error.message || 'An unknown error occurred',
       });
     } finally {
-      // Clear loading states
+      // Clear timeouts
+      if (loadingToastTimeout1) clearTimeout(loadingToastTimeout1);
+      if (loadingToastTimeout2) clearTimeout(loadingToastTimeout2);
       setIntermediateStepsLoading(false);
       setIsLoading(false);
     }
@@ -472,6 +455,17 @@ export function ChatWindow(props: {
   );
 
   async function handleUploadAndChat(file: File, insurance?: string) {
+    let loadingToastTimeout1: NodeJS.Timeout | null = null;
+    let loadingToastTimeout2: NodeJS.Timeout | null = null;
+    // Set up the loading toasts
+    loadingToastTimeout1 = setTimeout(() => {
+      toast.info('Processing your document');
+    }, 20000); // Show after 20 seconds
+
+    loadingToastTimeout2 = setTimeout(() => {
+      toast.info('Still processing your document');
+    }, 60000); // Show after 1 minute
+
     if (!file) {
       toast.error("No file selected");
       return;
@@ -491,20 +485,7 @@ export function ChatWindow(props: {
     }
 
     setUploading(true);
-    const toastId = toast.loading("Uploading file...");
-    const loadingToastTimeout1 = setTimeout(() => {
-      toast.info('Processing your document', {
-        description: 'Hang in there, we\'re extracting the content...',
-        duration: 5000,
-      });
-    }, 30000); // Show after 30 seconds
 
-    const loadingToastTimeout2 = setTimeout(() => {
-      toast.info('Still processing your document', {
-        description: 'This is taking longer than usual. Please wait...',
-        duration: 5000,
-      });
-    }, 60000); // Show after 1
 
     const formData = new FormData();
     formData.append("file", file);
@@ -516,7 +497,10 @@ export function ChatWindow(props: {
         body: formData,
       });
 
-      toast('Received response, processing...');
+      toast.info(
+        'Received response, processing...',
+
+      );
 
       const data = await uploadResponse.json();
       console.log('Parsed response data:', data);
@@ -537,7 +521,8 @@ export function ChatWindow(props: {
         throw new Error("Failed to generate query from document");
       }
 
-      toast.success("Document processed successfully!", { id: toastId });
+      toast("Document processed successfully!",
+      );
       setModalOpen(false);
 
       // Combine with form input if available
@@ -556,7 +541,8 @@ export function ChatWindow(props: {
         combinedInput += `\nAdditional user input: "${formInputString}"`;
       }
 
-      toast('Appending message to chat...');
+      toast.info('Appending message to chat...',
+      );
       console.log({ combinedInput });
 
       await chat.append({ role: "user", content: combinedInput });
@@ -568,37 +554,41 @@ export function ChatWindow(props: {
         name: error.name
       });
 
-      toast.error("Upload failed", {
-        description: error.message || "An unknown error occurred",
-        id: toastId
-      });
+      toast.error(
+        "Upload failed",
+      );
     } finally {
       // Clear all timeouts
       clearTimeout(loadingToastTimeout1);
       clearTimeout(loadingToastTimeout2);
-      toast('Upload process completed');
+      toast.info('Upload process completed',
+      );
       setUploading(false);
     }
   }
 
   return (
-    <div className="flex flex-col min-h-[100dvh] bg-gray-100 font-sans">
-      <div className="chat-bg flex-1 overflow-y-auto p-4 space-y-4">
-        <ChatLayout
-          content={
-            chat.messages.length === 0 ? (
-              <div>{props.emptyStateComponent}</div>
-            ) : (
-              <ChatMessages
-                aiEmoji={props.emoji}
-                messages={chat.messages}
-                emptyStateComponent={props.emptyStateComponent}
-                sourcesForMessages={sourcesForMessages}
-              />
-            )
-          }
-          form={
-            <>
+    <div className="flex flex-col min-h-screen bg-gray-50">
+      <ChatLayout
+        content={
+          chat.messages.length === 0 ? (
+            <div className="h-full flex items-center justify-center">
+              {props.emptyStateComponent}
+            </div>
+          ) : (
+            <ChatMessages
+              aiEmoji={props.emoji}
+              messages={chat.messages}
+              emptyStateComponent={props.emptyStateComponent}
+              sourcesForMessages={sourcesForMessages}
+              isLoading={chat.isLoading || intermediateStepsLoading}
+            />
+          )
+        }
+        form={
+          <div className="relative">
+            <div className="absolute inset-0 bg-gradient-to-t from-white to-transparent pointer-events-none" />
+            <div className="relative z-10">
               <ChatInput
                 value={chat.input}
                 onChange={chat.handleInputChange}
@@ -659,10 +649,10 @@ export function ChatWindow(props: {
                 onStateFormStateChange={handleFormStateChange}
                 chatOnChange={chat.handleInputChange}
               />
-            </>
-          }
-        />
-      </div>
+            </div>
+          </div>
+        }
+      />
     </div>
   );
 }
