@@ -40,6 +40,7 @@ function ChatMessages(props: {
   sourcesForMessages: Record<string, any>;
   aiEmoji?: any;
   className?: string;
+  isLoading?: boolean;
 }) {
   return (
     <div className="relative flex flex-col max-w-[768px] mx-auto pb-12 w-full bg-transparent">
@@ -250,17 +251,26 @@ export function ChatInput(props: {
   );
 }
 
-export function ChatLayout(props: { content: ReactNode; form: ReactNode }) {
+export function ChatLayout(props: {
+  content: ReactNode;
+  form: ReactNode;
+  className?: string;
+}) {
   return (
     <StickToBottom>
       <StickyToBottomContent
-        className="absolute inset-0"
-        contentClassName="py-8 px-2"
-        content={props.content}
+        className={cn("fixed inset-0 pb-[var(--keyboard-inset-bottom,0)]", props.className)}
+        contentClassName="pt-16 px-2 pb-24 md:pb-32 relative"
+        content={
+          <div className="h-full overflow-y-auto -mx-2 px-2">
+            {props.content}
+          </div>
+        }
         footer={
-          <div className="sticky bottom-0 px-2">
-            <ScrollToBottom className="absolute bottom-full left-1/2 -translate-x-1/2 mb-4 bg-white border border-blue-200 text-gray-900 hover:bg-blue-50 hover:text-blue-900" />
-            {props.form}
+          <div className="fixed bottom-0 left-0 right-0 bg-white/90 backdrop-blur-sm border-t border-blue-100 z-10">
+            <div className="max-w-3xl mx-auto px-2 py-2">
+              {props.form}
+            </div>
           </div>
         }
       />
@@ -558,23 +568,27 @@ export function ChatWindow(props: {
   }
 
   return (
-    <div className="flex flex-col min-h-[100dvh] bg-gray-100 font-sans">
-      <div className="chat-bg flex-1 overflow-y-auto p-4 space-y-4">
-        <ChatLayout
-          content={
-            chat.messages.length === 0 ? (
-              <div>{props.emptyStateComponent}</div>
-            ) : (
-              <ChatMessages
-                aiEmoji={props.emoji}
-                messages={chat.messages}
-                emptyStateComponent={props.emptyStateComponent}
-                sourcesForMessages={sourcesForMessages}
-              />
-            )
-          }
-          form={
-            <>
+    <div className="flex flex-col min-h-screen bg-gray-50">
+      <ChatLayout
+        content={
+          chat.messages.length === 0 ? (
+            <div className="h-full flex items-center justify-center">
+              {props.emptyStateComponent}
+            </div>
+          ) : (
+            <ChatMessages
+              aiEmoji={props.emoji}
+              messages={chat.messages}
+              emptyStateComponent={props.emptyStateComponent}
+              sourcesForMessages={sourcesForMessages}
+              isLoading={chat.isLoading || intermediateStepsLoading}
+            />
+          )
+        }
+        form={
+          <div className="relative">
+            <div className="absolute inset-0 bg-gradient-to-t from-white to-transparent pointer-events-none" />
+            <div className="relative z-10">
               <ChatInput
                 value={chat.input}
                 onChange={chat.handleInputChange}
@@ -635,10 +649,10 @@ export function ChatWindow(props: {
                 onStateFormStateChange={handleFormStateChange}
                 chatOnChange={chat.handleInputChange}
               />
-            </>
-          }
-        />
-      </div>
+            </div>
+          </div>
+        }
+      />
     </div>
   );
 }

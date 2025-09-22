@@ -197,3 +197,59 @@ body {
   stroke: white !important;
 
 }
+
+/* iOS Viewport and Keyboard Handling */
+@supports (-webkit-touch-callout: none) {
+
+  /* Prevent iOS from zooming on input focus */
+  input,
+  textarea,
+  [contenteditable] {
+    font-size: 16px !important;
+  }
+
+  /* Fix for iOS 15+ viewport units */
+  @supports (height: 100dvh) {
+    .h-screen {
+      height: 100dvh;
+    }
+
+    .min-h-screen {
+      min-height: 100dvh;
+    }
+  }
+}
+
+/* iOS Form Fixes */
+@supports (padding: max(0px)) {
+  .ios-keyboard-fix {
+    padding-bottom: max(env(safe-area-inset-bottom), 16px);
+  }
+}
+
+/* Prevent iOS from zooming on focus */
+@media screen and (-webkit-min-device-pixel-ratio: 0) {
+
+  input,
+  textarea,
+  [contenteditable] {
+    font-size: 16px !important;
+  }
+}
+
+/* Fix for iOS 15+ viewport units */
+@supports (height: 100dvh) {
+  .ios-height-fix {
+    height: 100dvh;
+  }
+}
+
+/* Fix for iOS input zoom */
+@media screen and (-webkit-min-device-pixel-ratio: 0) {
+
+  select:focus,
+  textarea:focus,
+  input:not([type="range"]):focus {
+    font-size: 16px !important;
+  }
+}
