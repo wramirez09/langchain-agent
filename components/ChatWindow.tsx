@@ -204,7 +204,7 @@ export function ChatInput(props: {
               className="md:hidden hover:bg-blue-100 bg-blue-50 text-[#1e7dbf] hover:text-[#1e7dbf] w-8 h-8 mt-1"
               onClick={() => props.setOpenMobileDrawer((prev) => !prev)}
             >
-              <IconDots className="w-4 h-4" strokeWidth={1.5} color="red" />
+              <IconDots className="w-4 h-4" strokeWidth={1.5} color="black" />
             </Button>
           </div>
 
