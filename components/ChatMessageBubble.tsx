@@ -63,7 +63,7 @@ export function ChatMessageBubble(props: {
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.2, ease: "easeOut" }}
       className={cn(
-        "group relative mb-3 flex w-full max-w-[calc(100%-1.5rem)] md:max-w-[85%]",
+        "group relative mb-3 flex w-full",
         isUser ? "ml-auto" : "mr-auto"
       )}
     >
@@ -131,11 +131,35 @@ export function ChatMessageBubble(props: {
           )}
         </div>
 
+        {!isUser && props.sources && props.sources.length > 0 && (
+          <div className="mt-2 text-xs text-gray-500">
+            <div className="font-medium mb-1">Sources:</div>
+            <div className="space-y-1">
+              {props.sources.map((source, index) => (
+                <div key={index} className="flex items-center">
+                  <svg className="w-3 h-3 mr-1.5 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
+                    <path d="M11 3a1 1 0 10-2 0v1H8a1 1 0 100 2h1v1a1 1 0 102 0V6h1a1 1 0 100-2h-1V3z" />
+                    <path d="M3 5a2 2 0 012-2h1a1 1 0 010 2H5v7h2v1H5a2 2 0 01-2-2V5zm12 0v10a2 2 0 01-2 2H7a2 2 0 01-2-2V5h10z" />
+                  </svg>
+                  <a
+                    href={source.url}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="text-blue-600 hover:underline truncate max-w-xs inline-block"
+                  >
+                    {source.title || source.url}
+                  </a>
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
       </div>
+
 
       {isUser && (
         <div className="ml-2 mt-1 flex-shrink-0">
-          <div className="h-8 w-8 rounded-full bg-[#358cee] flex items-center justify-center text-white font-medium text-sm">
+          <div className="h-8 w-8 rounded-full bg-[#358cee] hidden md:flex items-center justify-center text-white font-medium text-sm">
             {'U'}
           </div>
         </div>

@@ -16,11 +16,9 @@ export default async function RootLayout({
 }: {
   children: React.ReactNode;
 }) {
-
   return (
     <html lang="en" className={`${inter.variable} ${publicSans.variable} font-sans`}>
       <head>
-
         <title>
           MediAuth Pro | AI-Powered Prior Authorization & Policy Lookup for
           Healthcare
@@ -52,9 +50,7 @@ export default async function RootLayout({
         />
         <meta name="twitter:image" content="/images/og-image.png" />
       </head>
-      <body
-        style={{ height: "100dvh" }}
-      >
+      <body style={{ height: "100dvh" }}>
         <NuqsAdapter>
           <div className="bg-gradient grid grid-rows-[auto,1fr] overflow-y-scroll h-full">
             <TopBar />

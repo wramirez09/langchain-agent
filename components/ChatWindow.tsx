@@ -267,7 +267,7 @@ export function ChatLayout(props: {
           </div>
         }
         footer={
-          <div className="fixed bottom-0 left-0 right-0 backdrop-blur-sm z-10 bg-transparent">
+          <div className="fixed bottom-0 left-0 right-0 bg-fade z-10">
             <div className="max-w-3xl mx-auto px-2 py-2">
               {props.form}
             </div>

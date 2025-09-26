@@ -1,5 +1,3 @@
-
-
 import Image from "next/image";
 import logo from "@/public/images/logo-main.svg";
 import * as React from 'react';

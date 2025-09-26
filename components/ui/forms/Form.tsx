@@ -64,7 +64,7 @@ const FormInputs: React.FC<Props> = (props: Props) => {
       <div className="grid grid-cols-1 md:grid-cols-2 gap-x-6 gap-y-4">
         <div>
           <label className="block text-md font-medium text-gray-900 mb-1">
-            Insurance Provider
+            Guideline
           </label>
           <AutoCompleteSelect
             options={insuranceProvidersOptions}
