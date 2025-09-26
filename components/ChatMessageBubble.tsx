@@ -63,7 +63,7 @@ export function ChatMessageBubble(props: {
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.2, ease: "easeOut" }}
       className={cn(
-        "group relative mb-3 flex w-full max-w-[calc(100%-1.5rem)] md:max-w-[85%]",
+        "group relative mb-3 flex w-full",
         isUser ? "ml-auto" : "mr-auto"
       )}
     >
@@ -135,7 +135,7 @@ export function ChatMessageBubble(props: {
 
       {isUser && (
         <div className="ml-2 mt-1 flex-shrink-0">
-          <div className="h-8 w-8 rounded-full bg-[#358cee] flex items-center justify-center text-white font-medium text-sm">
+          <div className="h-8 w-8 rounded-full bg-[#358cee] hidden md:flex items-center justify-center text-white font-medium text-sm">
             {'U'}
           </div>
         </div>
