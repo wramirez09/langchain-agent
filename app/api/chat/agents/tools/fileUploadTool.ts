@@ -16,46 +16,71 @@ const FileUploadToolInputSchema = z.object({
     ),
 });
 
-/**
- * A helper function to call the Gemini API for text summarization.
- * @param content The text content to be summarized.
- * @param query The user's original query.
- * @returns A string containing the summary or an error message.
- */
+
 async function getSummaryFromDocs(
   content: string,
   query: string,
 ): Promise<string> {
-  const chatHistory = [];
-  chatHistory.push({
-    role: "user",
-    parts: [
-      {
-        text: `Summarize the following document content based on the user's query. The summary should be concise and directly address the query.
 
-        User's Query: ${query}
+  const chatHistory = [
+    {
+      role: "system",
+      content: `You are an expert healthcare documentation analyst. Your task is to analyze uploaded medical documents and extract the following key information in a structured format:
 
-        Document Content:
-        ${content}`,
-      },
-    ],
-  });
+1. Treatment/Service: The specific medical treatment or procedure mentioned
+2. CPT Code: Any CPT or HCPCS codes found
+3. Diagnosis: The patient's diagnosis or condition
+4. ICD-10 Code: Any ICD-10 diagnosis codes
+5. Medical History: Summary of relevant clinical history and findings
+6. Insurance: Mentioned insurance provider (if any)
+7. State: Patient's state of residence (if mentioned)
+
+Format your response as a clear, well-structured markdown document. If information is missing, note it as "Not specified".`
+    },
+    {
+      role: "user",
+      content: `Please analyze the following document and extract the relevant information as specified. 
+
+Document Content:
+${content}
+
+User's Query: ${query}
+
+Provide a detailed analysis including:
+- All relevant medical codes
+- Treatment details
+- Diagnosis information
+- Any prior authorization requirements
+- Supporting clinical evidence
+- Any other pertinent details
+
+Format your response in clear, well-structured markdown with appropriate headings.`
+    }
+  ];
 
   const payload = { contents: chatHistory };
-  const apiKey = process.env.GOOGLE_LM_API;
-  const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-preview-05-20:generateContent?key=${apiKey}`;
+  const apiKey = process.env.OPENAI_API_KEY; // Make sure this is set in your .env.local
+  const apiUrl = "https://api.openai.com/v1/chat/completions";
 
   const controller = new AbortController();
   const timeout = setTimeout(() => controller.abort(), 60000); // 60 second timeout for LLM
-  
+
   try {
     const response = await fetch(apiUrl, {
       method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(payload),
+      headers: {
+        "Content-Type": "application/json",
+        "Authorization": `Bearer ${apiKey}`
+      },
+      body: JSON.stringify({
+        model: "gpt-4-turbo-preview", // or "gpt-3.5-turbo" for a more cost-effective option
+        messages: chatHistory,
+        temperature: 0.7,
+        max_tokens: 1000
+      }),
       signal: controller.signal,
     });
-    
+
     clearTimeout(timeout);
 
     const result = await response.json();
@@ -133,7 +158,7 @@ export class FileUploadTool extends StructuredTool<
       const apiUrl = "/api/retrieval/ingest";
       const controller = new AbortController();
       const timeout = setTimeout(() => controller.abort(), 30000);
-      
+
       const response = await fetch(apiUrl, {
         method: "POST",
         body: formData.getBuffer(),
@@ -142,7 +167,7 @@ export class FileUploadTool extends StructuredTool<
         },
         signal: controller.signal,
       });
-      
+
       clearTimeout(timeout);
 
       // 5. Handle the API response.

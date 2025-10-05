@@ -56,15 +56,59 @@ export async function getStructuredPolicyDetails(
   content: string,
 ): Promise<ExtractedPolicyDetails | null> {
 
-  const prompt = `
-You are an expert in healthcare policy extraction. 
-Extract the following information from the policy text and return valid JSON.
 
-Policy Text:
-${content}
-
-${parser.getFormatInstructions()}
-`;
+  const prompt = `You are an expert healthcare policy analyst. Your task is to analyze the provided policy text and extract structured information according to the following schema:
+  
+  1. PRIOR AUTHORIZATION REQUIREMENTS:
+     - Determine if prior authorization is required (YES/NO/CONDITIONAL/UNKNOWN)
+     - Look for terms like "prior auth", "prior approval", "precertification", "preauthorization"
+     - Consider any conditions or exceptions mentioned
+  
+  2. MEDICAL NECESSITY CRITERIA:
+     - Extract all specific medical necessity requirements
+     - Include any clinical guidelines or criteria mentioned
+     - Note any patient-specific factors that affect coverage
+  
+  3. ICD-10 CODES:
+     - Extract all ICD-10 diagnosis codes (format: letter + digits, e.g., E11.65)
+     - For each code, provide:
+       - The exact code
+       - Description (if available in text)
+       - Context/section where the code appears
+  
+  4. CPT/HCPCS CODES:
+     - Extract all CPT (5 digits) and HCPCS (letter + 4 digits) codes
+     - For each code, provide:
+       - The exact code
+       - Description (if available in text)
+       - Context/section where the code appears
+  
+  5. REQUIRED DOCUMENTATION:
+     - List all documentation required for prior authorization
+     - Include any specific forms, clinical notes, or test results mentioned
+     - Note any special formatting or submission requirements
+  
+  6. LIMITATIONS & EXCLUSIONS:
+     - List any specific limitations on coverage
+     - Note any explicit exclusions
+     - Include any frequency or duration limits
+  
+  7. POLICY SUMMARY:
+     - Provide a concise 3-5 sentence summary of the policy
+     - Highlight the most important coverage criteria
+     - Note any special considerations or exceptions
+  
+  Policy Text to Analyze:
+  ${content}
+  
+  ${parser.getFormatInstructions()}
+  
+  IMPORTANT:
+  - Be thorough but concise in your extractions
+  - Only include information explicitly stated in the text
+  - Use "UNKNOWN" rather than making assumptions
+  - If a section doesn't apply, return an empty array or appropriate default
+  - Ensure all dates, codes, and requirements are accurately extracted`;
 
   try {
     const response = await llmSummarizer.invoke([{ role: "user", content: prompt }]);
@@ -75,6 +119,7 @@ ${parser.getFormatInstructions()}
     return null;
   }
 }
+
 
 // ----------------------
 // Tool Implementation
@@ -112,14 +157,14 @@ class PolicyContentExtractorTool extends StructuredTool<
       // Check if this is a CMS NCD URL and use the direct CMS page
       const ncdMatch = policyUrl.match(/ncdid=([^&]+)/);
       let fetchUrl = policyUrl;
-      
+
       // If it's a CMS NCD URL, use the direct CMS page instead of the API
       if (ncdMatch) {
         const ncdId = ncdMatch[1];
         fetchUrl = `https://www.cms.gov/medicare-coverage-database/view/ncd.aspx?ncdid=${ncdId}`;
         console.log(`Fetching NCD content from CMS page: ${fetchUrl}`);
       }
-      
+
       const response = await fetch(fetchUrl, { signal });
 
       if (!response.ok) {
@@ -150,7 +195,7 @@ class PolicyContentExtractorTool extends StructuredTool<
 
         // Extract the main content, removing scripts, styles, and other non-content elements
         $('script, style, nav, footer, header, iframe, noscript').remove();
-        
+
         // Get the text content
         extractedText = $('body').text()
           .replace(/\s+/g, ' ') // Replace multiple spaces with single space

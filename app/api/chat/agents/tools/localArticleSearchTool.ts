@@ -1,19 +1,7 @@
 import { z } from "zod";
 import { Tool } from "@langchain/core/tools";
 
-// Input schema for the Local Article search tool
-const LocalArticleSearchInputSchema = z.object({
-  query: z
-    .string()
-    .describe(
-      "The disease or treatment query to search for in Local Coverage Articles.",
-    ),
-  state: z
-    .object({ state_id: z.number(), description: z.string() })
-    .describe(
-      "The full name of the state (e.g., 'Illinois', 'California') as the description and stated_id as a number used to filter local coverage articles.",
-    ),
-});
+
 
 type StateIdentifier = { state_id: number; description: string };
 // Interface for state metadata (re-used)
@@ -83,14 +71,14 @@ class LocalCoverageArticleSearchTool extends Tool {
       // 2. Fetch Local Coverage Articles for the specific state and 'Final' status.
       const controller = new AbortController();
       const timeout = setTimeout(() => controller.abort(), 30000);
-      
+
       const response = await fetch(
         `${this.CMS_LOCAL_ARTICLES_API_URL}?state_id=${stateId}`,
         {
           signal: controller.signal,
         }
       );
-      
+
       clearTimeout(timeout);
 
       if (!response.ok) {
