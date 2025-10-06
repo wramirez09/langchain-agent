@@ -289,7 +289,7 @@ export function ChatWindow(props: {
 }) {
 
   const [intermediateStepsLoading, setIntermediateStepsLoading] = useState(false);
-  const [sheetOpen, setSheetOpen] = React.useState(false);
+  const [sheetOpen, setSheetOpen] = React.useState(true);
   const [openMobileDrawer, setOpenMobileDrawer] = React.useState<boolean>(false);
   const [modalOpen, setModalOpen] = React.useState(false);
   const [isLoading, setIsLoading] = useState(false);

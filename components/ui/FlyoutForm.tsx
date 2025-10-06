@@ -6,7 +6,7 @@ import {
   SheetClose,
   SheetContent,
   SheetDescription,
-  SheetFooter,
+
   SheetHeader,
   SheetTitle,
 } from "@/components/ui/sheet";
@@ -35,7 +35,7 @@ const FlyoutForm: React.FC<{
       },
       [submitAction],
     );
-    const [open, setOpen] = React.useState(false);
+
     return (
       <Sheet open={openSheet} onOpenChange={(open) => {
         return setOpenSheet(open)
