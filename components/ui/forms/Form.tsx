@@ -112,7 +112,7 @@ const FormInputs: React.FC<Props> = (props: Props) => {
         </label>
         <Textarea
           className="w-full bg-white border-blue-200 text-gray-900 focus-visible:ring-blue-300 focus-visible:border-blue-400 min-h-[100px] max-h-[200px] overflow-y-auto resize-y"
-          placeholder="Magnetic Resonance Imaging"
+          placeholder="knee pain or swelling for over 3 weeks"
           onChange={handleDiagnosisChange}
         />
       </div>
