@@ -31,7 +31,7 @@
     "@radix-ui/react-toast": "^1.2.15",
     "@react-pdf/renderer": "^4.3.0",
     "@supabase/ssr": "latest",
-    "@supabase/supabase-js": "latest",
+    "@supabase/supabase-js": "^2.76.1",
     "@tabler/icons": "^3.34.0",
     "@tabler/icons-react": "^3.34.1",
     "@tiptap/extension-link": "^2.14.0",

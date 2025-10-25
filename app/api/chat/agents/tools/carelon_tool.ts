@@ -2,25 +2,37 @@ import { z } from "zod";
 import { StructuredTool, ToolRunnableConfig } from "@langchain/core/tools";
 import { llmSummarizer } from "@/lib/llm";
 import { cleanRegex } from "./utils";
+import { createClient } from "@supabase/supabase-js";
+import { SupabaseVectorStore } from "@langchain/community/vectorstores/supabase";
+import { OpenAIEmbeddings } from "@langchain/openai";
+
+// Initialize Supabase client
+const supabaseUrl = process.env.SUPABASE_URL || '';
+const supabaseKey = process.env.SUPABASE_PRIVATE_KEY || ''; // Use service role for vector queries
+const supabase = createClient(supabaseUrl, supabaseKey, {
+  auth: {
+    persistSession: false,
+  },
+});
+
+// Initialize embeddings
+const embeddings = new OpenAIEmbeddings({
+  model: "text-embedding-3-small",
+  maxRetries: 3,
+  timeout: 60000,
+});
 
 // Define schema
 const CarelonSearchInputSchema = z.object({
   query: z
     .string()
-    .describe(
-      "The disease or treatment query to search for in Carelon guidelines.",
-    ),
+    .describe("The disease or treatment query to search for in Carelon guidelines."),
 });
-
 
 /**
  * Summarize documents using ChatGPT
  */
-async function getSummaryFromDocs(
-  content: string,
-  query: string,
-): Promise<string> {
-  // Truncate for safety — adjust per your model’s context window
+async function getSummaryFromDocs(content: string, query: string): Promise<string> {
   const safeContent = content.slice(0, 16000);
 
   const messages = [
@@ -46,17 +58,13 @@ ${safeContent}`,
 }
 
 // --- Tool Implementation ---
-export class CarelonSearchTool extends StructuredTool<
-  typeof CarelonSearchInputSchema
-> {
+export class CarelonSearchTool extends StructuredTool<typeof CarelonSearchInputSchema> {
   name = "carelon_guidelines_search";
   description =
-    "Queries Carelon Guidelines search API and returns a summarized policy using ChatGPT.";
+    "Queries Carelon Guidelines vector store in Supabase and returns a summarized policy using ChatGPT.";
   schema = CarelonSearchInputSchema;
 
-  async call<TConfig extends ToolRunnableConfig | undefined>(
-    input: any,
-  ): Promise<any> {
+  async call<TConfig extends ToolRunnableConfig | undefined>(input: any): Promise<any> {
     try {
       const parsedInput = this.schema.parse({ query: input.query });
       return await this._call(parsedInput);
@@ -69,52 +77,38 @@ export class CarelonSearchTool extends StructuredTool<
   protected async _call(
     input: z.infer<typeof CarelonSearchInputSchema>,
   ): Promise<string> {
-    const carlonApiQuery = encodeURI(
-      "https://ai-aug-carelon-hxdxaeczd9b4fdfc.canadacentral-01.azurewebsites.net/api/search?" +
-        `q=${input.query}`,
-    );
-
-    const controller = new AbortController();
-    const timeout = setTimeout(() => controller.abort(), 30000);
-    
     try {
-      const response = await fetch(carlonApiQuery, {
-        method: "GET",
-        headers: { "Content-Type": "application/json" },
-        cache: "no-store",
-        signal: controller.signal,
-      });
-      
-      clearTimeout(timeout);
+      // Direct full-text search on Supabase table
+      const { data, error } = await supabase
+        .from("carelon_pdfs")
+        .select("content, metadata")
+        .textSearch("content", input.query, {
+          type: "websearch",
+          config: "english",
+        })
+        .limit(5); // top 5 results
 
-      if (!response.ok) {
-        throw new Error(`HTTP error! status: ${response.status}`);
+      if (error) {
+        console.error("Supabase search error:", error);
+        throw new Error("Failed to search guidelines");
       }
 
-      const relevantData = await response.json();
-      const body: any[] = relevantData.value;
-
-      if (!body || body.length === 0) {
+      if (!data || data.length === 0) {
         return `No relevant guidelines found for the query: ${input.query}`;
       }
 
-      // ✅ Optimize content cleaning: one pass instead of multiple
-      const combinedContent = body
-        .map((c) =>
-          c.content
-            .replace(/\.{25}[\s\S]*?\.{25}/g, "")
-            .replace(/\\nSTATEMENT[\s\S]*?\.\{4\} 4/g, "")
-            .replace(cleanRegex, "")
-            .replace(/[\r\n]+/g, " "),
-        )
+      // Combine and clean retrieved content
+      const combinedContent = data
+        .map(doc => (doc.content || "").replace(cleanRegex, "").replace(/[\r\n]+/g, " "))
         .join(" ");
 
       const summary = await getSummaryFromDocs(combinedContent, input.query);
 
       return `Found Carelon Coverage Guideline(s) for '${input.query}'. Here is a summary of the most relevant information:\n\n${summary}`;
-    } catch (error: any) {
-      console.error("Error in CarelonSearchTool:", error);
-      return `An error occurred while searching Carelon guidelines: ${error.message}`;
+    } catch (err: any) {
+      console.error("Error in CarelonSearchTool:", err);
+      return `An error occurred while searching Carelon guidelines: ${err.message}`;
     }
   }
+
 }
