@@ -94,7 +94,7 @@ function StickyToBottomContent(props: {
   return (
     <div
       ref={context.scrollRef}
-      className={cn("bg-gradient grid grid-rows-[1fr,auto] bottom-fixed-element mb-3 md:mb-0", props.className)}
+      className={cn("bg-gradient-light grid grid-rows-[1fr,auto] bottom-fixed-element mb-3 md:mb-0", props.className)}
     >
       <div ref={context.contentRef} className={props.contentClassName}>
         {props.content}
@@ -587,7 +587,7 @@ export function ChatWindow(props: {
         }
         form={
           <div className="relative">
-            <div className="absolute inset-0 bg-gradient-to-t from-white to-transparent pointer-events-none rounded-lg" />
+            <div className="absolute inset-0 bg-gradient-light-to-t from-white to-transparent pointer-events-none rounded-lg" />
             <div className="relative z-10">
               <ChatInput
                 value={chat.input}

@@ -107,7 +107,7 @@ export default async function RootLayout({
       </head>
       <body style={{ height: "100dvh" }}>
         <NuqsAdapter>
-          <div className="bg-gradient grid grid-rows-[auto,1fr] overflow-y-scroll h-full">
+          <div className="bg-gradient grid grid-rows-[auto,1fr] h-full">
             <TopBar />
             <div
               className="bg-gradient mx-0 relative grid rounded-1xl shadow-lg"

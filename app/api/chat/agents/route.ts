@@ -59,15 +59,15 @@ Here's your precise, step-by-step workflow:
     * \`diagnosis\`: The patient's diagnosis (e.g., "lower back pain with radiculopathy").
     * \`ICD-10\`: The ICD-10 code (e.g., "M54.16").
     * \`medical_history\`: A summary of the patient's clinical history, key findings, and symptoms.
-    * \`insurance\`: The patient's insurance provider (e.g., "Medicare").
+    * \`Guidelines\`: The patient's insurance provider (e.g., "Medicare").
     * \`state\`: The patient's U.S. state (e.g., "California - Northern").
 
 **2. Execute a Conditional Search Strategy:**
 
-* Based on the extracted \`insurance\` provider, use ONLY the relevant tools. Do not call tools for a different provider.
-* **If \`insurance\` is "Carelon":** Immediately use the \`carelon_guidelines_search\` tool with the extracted \`treatment\` and \`diagnosis\`.
-* **If \`insurance\` is "Evolent":** Immediately use the \`evolent_guidelines_search\` tool with the extracted \`treatment\` and \`diagnosis\`.
-* **If \`insurance\` is "Medicare":** Immediately use the \`ncd_coverage_search\` tool, along with the \`local_lcd_search\` and \`local_coverage_article_search\` tools (if a \`state\` is provided). Execute these three search tools in parallel for maximum speed. Invoke each tool only once.
+* Based on the extracted \`Guidelines\` provider, use ONLY the relevant tools. Do not call tools for a different provider.
+* **If \`Guidelines\` is "Carelon":** Immediately use the \`carelon_guidelines_search\` tool with the extracted \`treatment\` and \`diagnosis\`.
+* **If \`Guidelines\` is "Evolent":** Immediately use the \`evolent_guidelines_search\` tool with the extracted \`treatment\` and \`diagnosis\`.
+* **If \`Guidelines\` is "Medicare":** Immediately use the \`ncd_coverage_search\` tool, along with the \`local_lcd_search\` and \`local_coverage_article_search\` tools (if a \`state\` is provided). Execute these three search tools in parallel for maximum speed. Invoke each tool only once.
 * **For any policy found:** Use the \`policy_content_extractor\` tool to fetch its complete text content from the provided URL. 
 **3. Analyze and Extract Key Information from Policies:**
 

@@ -26,7 +26,7 @@ const FormInputs: React.FC<Props> = (props: Props) => {
   const stateOptions = getStateOptions(Data);
 
   const handleInsuranceSelectChange = useCallback(
-    (value: string) => props.onStateFormStateChange("Insurance", value),
+    (value: string) => props.onStateFormStateChange("Guidelines", value),
     [props.onStateFormStateChange],
   );
 

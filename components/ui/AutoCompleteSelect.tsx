@@ -44,7 +44,7 @@ export function AutoCompleteSelect({
             className={cn(
               "w-full justify-between text-gray-900 bg-white text-md border-blue-200",
               "hover:bg-blue-50 hover:border-blue-300 h-10 px-3",
-              "focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 focus:outline-none"
+              "focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 focus:outline-none hover:text-gray-900",
             )}
           >
             <span className={cn("truncate", !selectedStatus && "text-gray-500")}>
