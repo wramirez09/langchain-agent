@@ -18,7 +18,7 @@ import { localCoverageArticleSearchTool } from "./tools/localArticleSearchTool";
 import { policyContentExtractorTool } from "./tools/policyContentExtractorTool";
 
 import { CarelonSearchTool } from "./tools/carelon_tool";
-import { EvolentSearchTool } from "./tools/evolent_tool";
+// import { EvolentSearchTool } from "./tools/evolent_tool";
 import { FileUploadTool } from "./tools/fileUploadTool"; // Import the new FileUploadTool
 
 const convertVercelMessageToLangChainMessage = (message: VercelChatMessage) => {
@@ -157,7 +157,7 @@ export async function POST(req: NextRequest) {
     const tools = [
       new SerpAPI(),
       new CarelonSearchTool(),
-      new EvolentSearchTool(),
+      // new EvolentSearchTool(),
       new NCDCoverageSearchTool(),
       localLcdSearchTool,
       localCoverageArticleSearchTool,
