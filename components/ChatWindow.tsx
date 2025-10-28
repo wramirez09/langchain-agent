@@ -267,11 +267,16 @@ export function ChatLayout(props: {
           </div>
         }
         footer={
-          <div className="fixed bottom-0 left-0 right-0  z-10">
-            <div className="max-w-3xl mx-auto px-2 py-2">
+          <>
+            <div className="sticky bottom-8 px-2">
+              <ScrollToBottom className="absolute bottom-full left-1/2 -translate-x-1/2 mb-4 bg-white border border-blue-200 text-gray-900 hover:bg-blue-50 hover:text-blue-900" />
               {props.form}
             </div>
-          </div>
+            <div className="fixed bottom-0 left-0 right-0  z-10">
+              <div className="max-w-3xl mx-auto px-2 py-2">
+                {props.form}
+              </div>
+            </div></>
         }
       />
     </StickToBottom>
