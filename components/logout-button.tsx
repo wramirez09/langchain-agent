@@ -9,6 +9,7 @@ export function LogoutButton() {
   const router = useRouter()
   const [isLoggedIn, setIsLoggedIn] = useState(false)
 
+
   useEffect(() => {
     const checkAuth = async () => {
       const supabase = createClient()

@@ -67,12 +67,22 @@ Here's your precise, step-by-step workflow:
 * Based on the extracted \`Guidelines\` provider, use ONLY the relevant tools. Do not call tools for a different provider.
 * **If \`Guidelines\` is "Carelon":** Immediately use the \`carelon_guidelines_search\` tool with the extracted \`treatment\` and \`diagnosis\`.
 * **If \`Guidelines\` is "Evolent":** Immediately use the \`evolent_guidelines_search\` tool with the extracted \`treatment\` and \`diagnosis\`.
-* **If \`Guidelines\` is "Medicare":** Immediately use the \`ncd_coverage_search\` tool, along with the \`local_lcd_search\` and \`local_coverage_article_search\` tools (if a \`state\` is provided). Execute these three search tools in parallel for maximum speed. Invoke each tool only once.
-* **For any policy found:** Use the \`policy_content_extractor\` tool to fetch its complete text content from the provided URL. 
+* **If \`Guidelines\` is "Medicare":**
+  1. **Search NCD First**:
+     - Use the \`ncd_coverage_search\` tool to search for National Coverage Determinations (NCDs) based on the extracted \`treatment\` and \`diagnosis\`.
+     - If relevant NCD policies are found, summarize and return the results immediately.
+  2. **Search LCD if State is Provided**:
+     - If no relevant NCD policies are found, check if a \`state\` is provided.
+     - If a \`state\` is provided, use the \`local_lcd_search\` tool to search for Local Coverage Determinations (LCDs) specific to the state.
+     - Summarize and return the results if relevant LCD policies are found.
+  3. **Prompt for State if Missing**:
+     - If no relevant NCD policies are found and no \`state\` is provided, prompt the user to supply a state to perform an LCD search.
+  4. **Search Local Coverage Articles**:
+     - If relevant NCD or LCD policies are found, use the \`local_coverage_article_search\` tool to retrieve any related articles for additional context.
+
 **3. Analyze and Extract Key Information from Policies:**
 
 * For each retrieved policy document, meticulously extract the following:
-List any Articles or Policies that are relevant to the user's request in the reponse
     * **Prior Authorization Requirement:** State "YES," "NO," or "CONDITIONAL."
     * **Medical Necessity Criteria:** Detail the specific criteria.
     * **Relevant Codes:** List associated ICD-10 and CPT/HCPCS codes.

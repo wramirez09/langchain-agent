@@ -1,13 +1,14 @@
 "use client";
 
-import React, { ChangeEvent, ChangeEventHandler, useCallback } from "react";
+import React, { ChangeEvent, ChangeEventHandler, useCallback, useEffect, useState } from "react";
 import { Data, StateData } from "../../../app/agents/metaData/states";
 import { ncdOptions } from "@/data/ncdOptions";
-
+import { createClient } from '@/utils/client'
 import AutoCompleteSelect from "../AutoCompleteSelect";
-import { insuranceProvidersOptions } from "../../../data/selectOptions";
+import { defaultInsuranceProvidersOptions, getInsuranceProvidersOptions, SelectOption } from "../../../data/selectOptions";
 import { Textarea } from "../textarea";
 import { Input } from "../input";
+
 
 
 type Props = {
@@ -23,7 +24,29 @@ const getStateOptions = (data: StateData[]) => {
 };
 
 const FormInputs: React.FC<Props> = (props: Props) => {
+  const [guidelinesoptins, setGuidelinesOptions] = useState<SelectOption[]>([])
+  const [userEmail, setUserEmail] = useState('')
   const stateOptions = getStateOptions(Data);
+  const [isLoggedIn, setIsLoggedIn] = useState(false)
+  useEffect(() => {
+    const checkAuth = async () => {
+      const supabase = createClient()
+      const { data: { session } } = await supabase.auth.getSession()
+      const { user } = session || {}
+      setIsLoggedIn(!!session)
+      setUserEmail(user?.email || '')
+      const options = getInsuranceProvidersOptions({ email: user?.email || '', isSignedIn: !!session });
+      setGuidelinesOptions(options)
+    }
+
+    checkAuth()
+
+    const { data: { subscription } } = createClient().auth.onAuthStateChange((_event, session) => {
+      setIsLoggedIn(!!session)
+    })
+
+    return () => subscription.unsubscribe()
+  }, [])
 
   const handleInsuranceSelectChange = useCallback(
     (value: string) => props.onStateFormStateChange("Guidelines", value),
@@ -67,8 +90,9 @@ const FormInputs: React.FC<Props> = (props: Props) => {
             Guideline
           </label>
           <AutoCompleteSelect
-            options={insuranceProvidersOptions}
+            options={guidelinesoptins}
             onChange={handleInsuranceSelectChange}
+            disabled
           />
         </div>
         <div>
