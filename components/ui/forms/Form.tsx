@@ -82,6 +82,7 @@ const FormInputs: React.FC<Props> = (props: Props) => {
     [props.onStateFormStateChange],
   );
 
+  console.log({ guidelinesoptins })
   return (
     <section className="w-full max-w-3xl mx-auto px-4 space-y-6">
       {/* Row 1 */}

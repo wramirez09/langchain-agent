@@ -1,4 +1,4 @@
-import { SignUpForm } from '@/components/sign-up-form';
+
 
 export default function Page() {
   return (
@@ -9,7 +9,20 @@ export default function Page() {
           <p className="text-dark">Enter your details to get started</p>
         </div>
         <div className="bg-white rounded-xl shadow-md p-8">
-          <SignUpForm />
+          {/* <SignUpForm /> */}
+          <script async
+            src="https://js.stripe.com/v3/buy-button.js">
+          </script>
+
+          <script async
+            src="https://js.stripe.com/v3/buy-button.js">
+          </script>
+
+          <stripe-buy-button
+            buy-button-id="buy_btn_1SO6nM18T9D12Q337i2vgqh1"
+            publishable-key="pk_test_51SNhn918T9D12Q33Y5C7vRshMxW2p3dbR9xvTfUAnuF37jaUGilnd8bFWuMLQcQq5enQxPDXLCbKOF7EQUEQgvq4007DqMXHtB"
+          >
+          </stripe-buy-button>
         </div>
       </div>
     </div>

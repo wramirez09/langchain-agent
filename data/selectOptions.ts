@@ -3,24 +3,24 @@ export interface SelectOption {
   label: string;
   disabled?: boolean;
   icon?: React.ReactNode;
-  isEnabled?: boolean,
+  isdisabled?: boolean,
 }
 
 export const insuranceProvidersOptions: SelectOption[] = [
   {
     value: "Medicare",
     label: "Medicare",
-    isEnabled: true,
+    isdisabled: false,
   },
   {
     value: "Carelon",
     label: "Carelon",
-    isEnabled: true,
+    isdisabled: true,
   },
   {
     value: "Evolent",
     label: "Evolent",
-    isEnabled: true,
+    isdisabled: true,
   },
 ];
 
@@ -28,17 +28,17 @@ export const defaultInsuranceProvidersOptions: SelectOption[] = [
   {
     value: "Medicare",
     label: "Medicare",
-    isEnabled: true,
+    isdisabled: false,
   },
   {
     value: "Carelon",
     label: "Carelon",
-    isEnabled: false,
+    isdisabled: true,
   },
   {
     value: "Evolent",
     label: "Evolent",
-    isEnabled: false,
+    isdisabled: true,
   },
 ];
 
@@ -53,7 +53,7 @@ export const getInsuranceProvidersOptions = (user: { email: string; isSignedIn: 
     if (user.isSignedIn && allowedEmails.includes(user.email)) {
       // Enable Carelon and Evolent for allowed users
       if (option.value === "Carelon" || option.value === "Evolent") {
-        return { ...option, isEnabled: true };
+        return { ...option, isdisabled: false };
       }
     }
     return option; // Keep other options unchanged
