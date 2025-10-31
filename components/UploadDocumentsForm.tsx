@@ -7,17 +7,40 @@ import { toast } from "sonner";
 import { LoaderCircle } from "lucide-react";
 import { cn } from "@/utils/cn";
 import AutoCompleteSelect from "./ui/AutoCompleteSelect";
-import { insuranceProvidersOptions } from "@/data/selectOptions";
-
+import { getInsuranceProvidersOptions, insuranceProvidersOptions, SelectOption } from "@/data/selectOptions";
+import { createClient } from '@/utils/client'
 const UploadDocumentsForm: React.FC<{
   onUpload: (file: any, insurance?: string) => Promise<any>;
   setModalOpen: React.Dispatch<React.SetStateAction<boolean>>;
   setIsLoading: React.Dispatch<React.SetStateAction<boolean>>;
   uploading: boolean;
 }> = ({ onUpload, setModalOpen, setIsLoading, uploading }) => {
+  const [guidelinesoptins, setGuidelinesOptions] = useState<SelectOption[]>([])
   const [document, setDocument] = useState<File | undefined>();
   const [selectedInsurance, setSelectedInsurance] = useState<string>("");
+  const [isLoggedIn, setIsLoggedIn] = useState(false)
+  const [userEmail, setUserEmail] = useState('')
 
+
+  React.useEffect(() => {
+    const checkAuth = async () => {
+      const supabase = createClient()
+      const { data: { session } } = await supabase.auth.getSession()
+      const { user } = session || {}
+      setIsLoggedIn(!!session)
+      setUserEmail(user?.email || '')
+      const options = getInsuranceProvidersOptions({ email: user?.email || '', isSignedIn: !!session });
+      setGuidelinesOptions(options)
+    }
+
+    checkAuth()
+
+    const { data: { subscription } } = createClient().auth.onAuthStateChange((_event, session) => {
+      setIsLoggedIn(!!session)
+    })
+
+    return () => subscription.unsubscribe()
+  }, [])
   const handleFileUpload = async (e: FormEvent) => {
     e.preventDefault();
 
@@ -59,10 +82,10 @@ const UploadDocumentsForm: React.FC<{
       <div className="space-y-6">
         <div>
           <label className="block text-sm font-medium text-gray-900 mb-2">
-            Insurance Provider
+            Guidelines
           </label>
           <AutoCompleteSelect
-            options={insuranceProvidersOptions}
+            options={guidelinesoptins}
             onChange={setSelectedInsurance}
 
           />
