@@ -1,27 +1,24 @@
-import { stripe } from "@/lib/stripe";
-import { supabaseAdmin } from "@/lib/supabaseAdmin";
+// /app/api/create-checkout-session/route.ts
+import { NextResponse } from "next/server";
+import Stripe from "stripe";
+import { createClient } from "@/utils/supabase/server";
+
+const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!);
 
 export async function POST(req: Request) {
-    const { userId, priceId } = await req.json();
+    const supabase = createClient();
+    const { user } = await supabase.auth.getUser();
+    if (!user) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
 
-    // Get user email from Supabase profiles
-    const { data: profile } = await supabaseAdmin
-        .from("profiles")
-        .select("email")
-        .eq("id", userId)
-        .single();
+    const { priceId } = await req.json();
 
-    if (!profile?.email) return new Response("User not found", { status: 404 });
-
-    // Create Stripe Checkout Session
     const session = await stripe.checkout.sessions.create({
         mode: "subscription",
-        payment_method_types: ["card"],
+        customer_email: user.email,
         line_items: [{ price: priceId, quantity: 1 }],
-        success_url: `${process.env.NEXT_PUBLIC_SITE_URL}/success?session_id={CHECKOUT_SESSION_ID}`,
-        cancel_url: `${process.env.NEXT_PUBLIC_SITE_URL}/cancel`,
-        customer_email: profile.email,
+        success_url: `${process.env.NEXT_PUBLIC_BASE_URL}/success?session_id={CHECKOUT_SESSION_ID}`,
+        cancel_url: `${process.env.NEXT_PUBLIC_BASE_URL}/cancel`,
     });
 
-    return Response.json({ url: session.url });
+    return NextResponse.json({ url: session.url });
 }
