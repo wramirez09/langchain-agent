@@ -94,7 +94,7 @@
     "shadcn-ui": "^0.9.5",
     "sonner": "^1.7.2",
     "strip": "^3.0.0",
-    "stripe": "^19.2.0",
+    "stripe": "latest",
     "tailwind-merge": "^2.6.0",
     "tailwindcss-animate": "^1.0.7",
     "toast": "^0.5.4",

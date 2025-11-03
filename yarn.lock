@@ -8267,7 +8267,7 @@ __metadata:
     shadcn-ui: ^0.9.5
     sonner: ^1.7.2
     strip: ^3.0.0
-    stripe: ^19.2.0
+    stripe: latest
     tailwind-merge: ^2.6.0
     tailwindcss: 3.3.3
     tailwindcss-animate: ^1.0.7
@@ -12160,7 +12160,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"stripe@npm:^19.2.0":
+"stripe@npm:latest":
   version: 19.2.0
   resolution: "stripe@npm:19.2.0"
   dependencies:
