@@ -8196,7 +8196,7 @@ __metadata:
     "@radix-ui/react-toast": ^1.2.15
     "@react-pdf/renderer": ^4.3.0
     "@stripe/react-stripe-js": ^5.3.0
-    "@stripe/stripe-js": ^8.2.0
+    "@stripe/stripe-js": ^8.3.0
     "@supabase/ssr": latest
     "@supabase/supabase-js": ^2.76.1
     "@tabler/icons": ^3.34.0
@@ -8275,7 +8275,7 @@ __metadata:
     typescript: 5.1.6
     use-stick-to-bottom: ^1.0.44
     vaul: ^1.1.2
-    zod: ^3.25.51
+    zod: ^4.1.12
     zod-to-json-schema: ^3.23.2
   languageName: unknown
   linkType: soft

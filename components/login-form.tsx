@@ -30,7 +30,7 @@ export function LoginForm({ className, ...props }: React.ComponentPropsWithoutRe
         password,
       });
       if (error) throw error;
-      router.push('/preAuth');
+      router.push('/protected/preAuth');
     } catch (error: unknown) {
       setError(error instanceof Error ? error.message : 'An error occurred');
       setIsLoading(false);
