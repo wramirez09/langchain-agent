@@ -47,6 +47,9 @@ export function SubscribeButton({ priceId, email, disabled }: SubscribeButtonPro
             onClick={handleSubscribe}
             disabled={disabled || isLoading}
             aria-busy={isLoading}
+            size={"lg"}
+            className="max-w-50"
+            variant={"secondary"}
         >
             {isLoading ? "Processing..." : "Subscribe"}
         </Button>

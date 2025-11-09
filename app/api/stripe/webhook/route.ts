@@ -40,19 +40,49 @@ export async function POST(req: Request) {
                     );
                 }
 
-                // Match user by email in Supabase
-                const { data: user, error: userError } = await supabase
-                    .from("profiles")
-                    .select("id")
-                    .eq("email", customerEmail)
-                    .single();
+                // First, check if user exists by email
+                const { data: { users }, error: listUsersError } = await supabase.auth.admin.listUsers();
 
-                if (userError || !user) {
-                    console.error("❌ No matching user found for checkout session");
-                    return NextResponse.json(
-                        { error: "User not found" },
-                        { status: 404 }
-                    );
+                // Find user by email from the list
+                const existingUser = users?.find(user => user.email === customerEmail);
+                let userId: string;
+
+                if (!existingUser) {
+                    // Create user in auth.users
+                    const { data: newUser, error: createUserError } = await supabase.auth.admin.createUser({
+                        email: customerEmail,
+                        email_confirm: true,
+                        password: Math.random().toString(36).slice(2), // Generate a random password
+                        user_metadata: {
+                            full_name: session.customer_details?.name || '',
+                            provider: 'stripe'
+                        }
+                    });
+
+                    if (createUserError || !newUser) {
+                        console.error("❌ Error creating user:", createUserError);
+                        throw new Error(createUserError?.message || "Failed to create user");
+                    }
+
+                    userId = newUser.user.id;
+
+                    // Create profile in public.profiles
+                    const { error: profileError } = await supabase
+                        .from("profiles")
+                        .insert({
+                            id: newUser.user.id,
+                            email: customerEmail,
+                            created_at: new Date().toISOString(),
+                            updated_at: new Date().toISOString()
+                        });
+
+                    if (profileError) {
+                        console.error("❌ Error creating profile:", profileError);
+                        throw new Error("Failed to create user profile");
+                    }
+
+                } else {
+                    userId = existingUser.id;
                 }
 
                 // Retrieve full subscription to get status and period end
@@ -72,7 +102,7 @@ export async function POST(req: Request) {
                     .from("subscriptions")
                     .upsert(
                         {
-                            user_id: user.id,
+                            user_id: userId,
                             stripe_customer_id: stripeCustomerId,
                             stripe_subscription_id: stripeSubscriptionId,
                             status: subscription.status,
@@ -89,7 +119,7 @@ export async function POST(req: Request) {
                     throw new Error("Failed to save subscription");
                 }
 
-                console.log(`✅ Created/updated subscription for user ${user.id}`);
+                console.log(`✅ Created/updated subscription for user ${userId}`);
                 break;
             }
 
