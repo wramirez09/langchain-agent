@@ -55,7 +55,7 @@ export async function POST(req: Request) {
             metadata: {
                 email, // Store email in metadata for webhook
             },
-            success_url: `http://${process.env.NEXT_PUBLIC_BASE_URL}/auth/setup-password?session_id={CHECKOUT_SESSION_ID}&email=${encodeURIComponent(email)}`,
+            success_url: `http://${process.env.NEXT_PUBLIC_BASE_URL}/auth/setup-password?session_id={CHECKOUT_SESSION_ID}&email=${encodeURIComponent(email)}&userId={USER_ID_PLACEHOLDER}`,
             cancel_url: `http://${process.env.NEXT_PUBLIC_BASE_URL}/sign-up?cancelled=true`,
         });
 

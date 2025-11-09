@@ -11,46 +11,63 @@ export default function SetupPasswordPage() {
     const params = useSearchParams();
     const router = useRouter();
     const email = params.get("email");
+    const [supabase] = useState(createClient());
 
     useEffect(() => {
-        if (!email) setError("Email missing. Please retry the signup process.");
-    }, [email]);
+        if (!email) {
+            setError("Missing email. Please retry signup.");
+            return;
+        }
+
+        // Check if user is already signed in
+        const checkSession = async () => {
+            const { data: { session } } = await supabase.auth.getSession();
+            if (!session) {
+                setError("Session expired. Please sign in again.");
+            }
+        };
+        checkSession();
+    }, [email, supabase]);
 
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
-        if (!email || !password) {
-            setError("Please enter a password.");
-            return;
-        }
+        if (!password) return;
 
         setLoading(true);
         setError(null);
 
         try {
-            // Call secure API route with credentials
-            const res = await fetch("/api/stripe/setup-password", {
-                method: "POST",
-                headers: {
-                    "Content-Type": "application/json"
-                },
-                credentials: 'include', // Important for sending cookies
-                body: JSON.stringify({ email, password }),
-            });
+            // Get the current user's session
+            const { data: { user }, error: userError } = await supabase.auth.getUser();
 
-            const data = await res.json();
-            if (!res.ok) throw new Error(data.error || "Setup failed");
+            if (userError || !user) {
+                throw new Error("User not authenticated. Please sign in again.");
+            }
 
-            // Sign in
-            const supabase = createClient();
-            const { error: signInError } = await supabase.auth.signInWithPassword({
-                email,
+            // Update password and mark email confirmed
+            const { error: updateError } = await supabase.auth.updateUser({
                 password,
+                email_confirm: true,
             });
-            if (signInError) throw signInError;
+            if (updateError) throw updateError;
 
-            router.push("/dashboard");
+            // Ensure profile exists
+            const { error: profileError } = await supabase
+                .from("profiles")
+                .upsert({
+                    id: user.id,
+                    email,
+                    updated_at: new Date().toISOString(),
+                });
+            if (profileError) throw profileError;
+
+            // Refresh the session to ensure all claims are up to date
+            await supabase.auth.refreshSession();
+
+            router.push("/auth/login");
         } catch (err: any) {
-            setError(err.message);
+            console.error(err);
+            setError(err?.message || "Failed to set up password. Please try again.");
         } finally {
             setLoading(false);
         }
@@ -58,20 +75,17 @@ export default function SetupPasswordPage() {
 
     return (
         <div className="flex min-h-screen items-center justify-center">
-            <form
-                onSubmit={handleSubmit}
-                className="space-y-4 w-full max-w-sm p-6 rounded-lg shadow bg-white"
-            >
-                <h2 className="text-xl font-semibold text-center text-gray-800">Set your password</h2>
+            <form onSubmit={handleSubmit} className="space-y-4 w-full max-w-sm p-6 rounded-lg shadow bg-white">
+                <h2 className="text-xl font-semibold text-center">Set your password</h2>
                 {error && <p className="text-red-600 text-center">{error}</p>}
 
                 <div>
-                    <label className="text-gray-800">Email</label>
+                    <label>Email</label>
                     <input type="email" value={email || ""} disabled className="w-full p-2 border rounded" />
                 </div>
 
                 <div>
-                    <label className="text-gray-800">Password</label>
+                    <label>Password</label>
                     <input
                         type="password"
                         value={password}
