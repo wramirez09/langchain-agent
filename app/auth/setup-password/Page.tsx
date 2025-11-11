@@ -71,22 +71,22 @@ export default function SetupPasswordPage() {
     return (
         <div className="flex min-h-screen items-center justify-center">
             <form onSubmit={handleSubmit} className="space-y-4 w-full max-w-sm p-6 rounded-lg shadow bg-white">
-                <h2 className="text-xl font-semibold text-center">Set your password</h2>
+                <h2 className="text-xl font-semibold text-center text-black">Set your password</h2>
                 {error && <p className="text-red-600 text-center">{error}</p>}
 
                 <div>
-                    <label>Email</label>
-                    <input type="email" value={email || ""} disabled className="w-full p-2 border rounded" />
+                    <label className="text-black">Email</label>
+                    <input type="email" value={email || ""} disabled className="w-full p-2 border rounded text-black placeholder:text-gray-900" />
                 </div>
 
                 <div>
-                    <label>Password</label>
+                    <label className="text-black">Password</label>
                     <input
                         type="password"
                         value={password}
                         onChange={(e) => setPassword(e.target.value)}
                         required
-                        className="w-full p-2 border rounded"
+                        className="w-full p-2 border rounded text-black placeholder:text-gray-900"
                     />
                 </div>
 
