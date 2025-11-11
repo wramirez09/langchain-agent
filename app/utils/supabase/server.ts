@@ -1,19 +1,23 @@
-// /utils/supabase/server.ts
-import { createClient as createSupabaseClient } from "@supabase/supabase-js";
+// lib/supabaseServer.ts
+import { createClient } from '@supabase/ssr';
+import { cookies } from 'next/headers';
 
-// Make sure these env variables exist in your .env.local
-const supabaseUrl = process.env.SUPABASE_URL!;
-const supabaseKey = process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_OR_ANON_KEY!; // server-only key
-
-/**
- * Create a Supabase client for server-side usage.
- * This client can perform admin operations (service role) safely.
- */
-export const createClient = () => {
-    return createSupabaseClient(supabaseUrl, supabaseKey, {
-        auth: {
-            // Edge runtime / server-side
-            persistSession: false,
-        },
-    });
-};
+export function createServerClient() {
+    return createClient(
+        process.env.NEXT_PUBLIC_SUPABASE_URL!,
+        process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
+        {
+            cookies: {
+                get(name: string) {
+                    return cookies().get(name)?.value;
+                },
+                set(name: string, value: string, options: any) {
+                    cookies().set(name, value, options);
+                },
+                remove(name: string, options: any) {
+                    cookies().set(name, '', { ...options, maxAge: 0 });
+                },
+            },
+        }
+    );
+}

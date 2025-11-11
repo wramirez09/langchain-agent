@@ -3250,7 +3250,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@supabase/ssr@npm:latest":
+"@supabase/ssr@npm:^0.7.0":
   version: 0.7.0
   resolution: "@supabase/ssr@npm:0.7.0"
   dependencies:
@@ -8197,7 +8197,7 @@ __metadata:
     "@react-pdf/renderer": ^4.3.0
     "@stripe/react-stripe-js": ^5.3.0
     "@stripe/stripe-js": ^8.3.0
-    "@supabase/ssr": latest
+    "@supabase/ssr": ^0.7.0
     "@supabase/supabase-js": ^2.76.1
     "@tabler/icons": ^3.34.0
     "@tabler/icons-react": ^3.34.1
@@ -8267,7 +8267,7 @@ __metadata:
     shadcn-ui: ^0.9.5
     sonner: ^1.7.2
     strip: ^3.0.0
-    stripe: latest
+    stripe: ^19.3.0
     tailwind-merge: ^2.6.0
     tailwindcss: 3.3.3
     tailwindcss-animate: ^1.0.7
@@ -12160,9 +12160,9 @@ __metadata:
   languageName: node
   linkType: hard
 
-"stripe@npm:latest":
-  version: 19.2.0
-  resolution: "stripe@npm:19.2.0"
+"stripe@npm:^19.3.0":
+  version: 19.3.0
+  resolution: "stripe@npm:19.3.0"
   dependencies:
     qs: ^6.11.0
   peerDependencies:
@@ -12170,7 +12170,7 @@ __metadata:
   peerDependenciesMeta:
     "@types/node":
       optional: true
-  checksum: c4e62f4de8951ea2733b94478acd683d4d71824e84746e85e1286d3f1ba96ed77350c2f4f4e15a77fa4d239a6c2801c9fe3917e265c8f13f542ea22525101e6b
+  checksum: f46682c1fbfde8cc5041124446234c9c02238671571afcba04564f6adc18792d36949d855020218350d81150623bd16551c6b6fa0e8db4149ccb57c27f152f64
   languageName: node
   linkType: hard
 

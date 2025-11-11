@@ -32,6 +32,10 @@ export default function SetupPasswordPage() {
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
         if (!password) return;
+        if (!email) {
+            setError("Missing email. Please retry signup.");
+            return;
+        }
 
         setLoading(true);
         setError(null);
@@ -44,25 +48,16 @@ export default function SetupPasswordPage() {
                 throw new Error("User not authenticated. Please sign in again.");
             }
 
-            // Update password and mark email confirmed
-            const { error: updateError } = await supabase.auth.updateUser({
-                password,
-                email_confirm: true,
+            // Delegate secure updates to server to also mark email confirmed
+            const resp = await fetch("/api/stripe/setup-password", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ email, password }),
             });
-            if (updateError) throw updateError;
-
-            // Ensure profile exists
-            const { error: profileError } = await supabase
-                .from("profiles")
-                .upsert({
-                    id: user.id,
-                    email,
-                    updated_at: new Date().toISOString(),
-                });
-            if (profileError) throw profileError;
-
-            // Refresh the session to ensure all claims are up to date
-            await supabase.auth.refreshSession();
+            if (!resp.ok) {
+                const { error: apiError } = await resp.json().catch(() => ({ error: "Setup failed" }));
+                throw new Error(apiError || "Failed to set up password");
+            }
 
             router.push("/auth/login");
         } catch (err: any) {
