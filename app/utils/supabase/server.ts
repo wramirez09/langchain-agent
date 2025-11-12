@@ -1,23 +1,27 @@
-// lib/supabaseServer.ts
-import { createClient } from '@supabase/ssr';
+// /lib/supabaseServer.ts
+import { createServerClient as createSupabaseServerClient } from '@supabase/ssr';
 import { cookies } from 'next/headers';
 
 export function createServerClient() {
-    return createClient(
+    const cookieStore = cookies();
+
+    return createSupabaseServerClient(
         process.env.NEXT_PUBLIC_SUPABASE_URL!,
-        process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
+        process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_OR_ANON_KEY!,
         {
             cookies: {
-                get(name: string) {
-                    return cookies().get(name)?.value;
+                getAll() {
+                    return cookieStore.getAll();
                 },
-                set(name: string, value: string, options: any) {
-                    cookies().set(name, value, options);
-                },
-                remove(name: string, options: any) {
-                    cookies().set(name, '', { ...options, maxAge: 0 });
+                setAll(cookiesToSet) {
+                    for (const { name, value, options } of cookiesToSet) {
+                        cookieStore.set(name, value, options);
+                    }
                 },
             },
         }
     );
 }
+
+// Backward-compatible alias
+export const createClient = createServerClient;

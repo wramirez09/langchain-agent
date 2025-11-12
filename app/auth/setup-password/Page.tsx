@@ -1,99 +1,99 @@
 "use client";
-import { useState, useEffect } from "react";
+
+import { useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
-import { createClient } from "@/utils/client";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import {
+    Card,
+    CardContent,
+    CardHeader,
+    CardTitle,
+    CardDescription,
+} from "@/components/ui/card";
 
 export default function SetupPasswordPage() {
+    const router = useRouter();
+    const params = useSearchParams();
+    const email = params.get("email");
+
     const [password, setPassword] = useState("");
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState<string | null>(null);
 
-    const params = useSearchParams();
-    const router = useRouter();
-    const email = params.get("email");
-    const [supabase] = useState(createClient());
-
-    useEffect(() => {
-        if (!email) {
-            setError("Missing email. Please retry signup.");
-            return;
-        }
-
-        // Check if user is already signed in
-        const checkSession = async () => {
-            const { data: { session } } = await supabase.auth.getSession();
-            if (!session) {
-                setError("Session expired. Please sign in again.");
-            }
-        };
-        checkSession();
-    }, [email, supabase]);
-
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
-        if (!password) return;
         if (!email) {
-            setError("Missing email. Please retry signup.");
+            setError("Email is missing from link — please retry the signup process.");
             return;
         }
 
-        setLoading(true);
-        setError(null);
-
         try {
-            // Get the current user's session
-            const { data: { user }, error: userError } = await supabase.auth.getUser();
+            setLoading(true);
+            setError(null);
 
-            if (userError || !user) {
-                throw new Error("User not authenticated. Please sign in again.");
-            }
-
-            // Delegate secure updates to server to also mark email confirmed
-            const resp = await fetch("/api/stripe/setup-password", {
+            const res = await fetch("/api/stripe/setup-password", {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
                 body: JSON.stringify({ email, password }),
             });
-            if (!resp.ok) {
-                const { error: apiError } = await resp.json().catch(() => ({ error: "Setup failed" }));
-                throw new Error(apiError || "Failed to set up password");
-            }
 
-            router.push("/auth/login");
+            const data = await res.json();
+            if (!res.ok) throw new Error(data.error || "Failed to set up password.");
+
+            // Redirect user after successful setup
+            router.push(data.redirect || "/dashboard");
         } catch (err: any) {
-            console.error(err);
-            setError(err?.message || "Failed to set up password. Please try again.");
+            console.error("Setup password error:", err);
+            setError(err.message);
         } finally {
             setLoading(false);
         }
     };
 
     return (
-        <div className="flex min-h-screen items-center justify-center">
-            <form onSubmit={handleSubmit} className="space-y-4 w-full max-w-sm p-6 rounded-lg shadow bg-white">
-                <h2 className="text-xl font-semibold text-center text-black">Set your password</h2>
-                {error && <p className="text-red-600 text-center">{error}</p>}
+        <div className="flex min-h-screen items-center justify-center bg-gray-50 p-4">
+            <Card className="w-full max-w-md">
+                <CardHeader>
+                    <CardTitle className="text-xl font-semibold text-center">
+                        Set Your Password
+                    </CardTitle>
+                    <CardDescription className="text-center">
+                        Complete your account setup to access your dashboard.
+                    </CardDescription>
+                </CardHeader>
+                <CardContent>
+                    <form onSubmit={handleSubmit} className="space-y-4">
+                        {error && (
+                            <p className="text-sm text-center text-red-600">{error}</p>
+                        )}
+                        <div>
+                            <Label>Email</Label>
+                            <Input type="email" value={email || ""} disabled />
+                        </div>
 
-                <div>
-                    <label className="text-black">Email</label>
-                    <input type="email" value={email || ""} disabled className="w-full p-2 border rounded text-black placeholder:text-gray-900" />
-                </div>
+                        <div>
+                            <Label>New Password</Label>
+                            <Input
+                                type="password"
+                                required
+                                value={password}
+                                onChange={(e) => setPassword(e.target.value)}
+                                placeholder="Create a secure password"
+                            />
+                        </div>
 
-                <div>
-                    <label className="text-black">Password</label>
-                    <input
-                        type="password"
-                        value={password}
-                        onChange={(e) => setPassword(e.target.value)}
-                        required
-                        className="w-full p-2 border rounded text-black placeholder:text-gray-900"
-                    />
-                </div>
-
-                <button type="submit" className="w-full p-2 bg-blue-600 text-white rounded" disabled={loading}>
-                    {loading ? "Saving..." : "Finish Setup"}
-                </button>
-            </form>
+                        <Button
+                            type="submit"
+                            disabled={loading}
+                            className="w-full mt-2"
+                        >
+                            {loading ? "Saving..." : "Finish Setup"}
+                        </Button>
+                    </form>
+                </CardContent>
+            </Card>
         </div>
     );
 }
