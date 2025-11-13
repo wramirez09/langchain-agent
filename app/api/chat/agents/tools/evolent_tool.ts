@@ -6,84 +6,59 @@ import { createClient } from "@supabase/supabase-js";
 import { SupabaseVectorStore } from "@langchain/community/vectorstores/supabase";
 import { OpenAIEmbeddings } from "@langchain/openai";
 
-// Initialize Supabase client
-const supabaseUrl = process.env.SUPABASE_URL || '';
-const supabaseKey = process.env.SUPABASE_PRIVATE_KEY || ''; // Use service role for vector queries
+// --- Supabase Client ---
+const supabaseUrl = process.env.SUPABASE_URL || "";
+const supabaseKey = process.env.SUPABASE_PRIVATE_KEY || "";
 const supabase = createClient(supabaseUrl, supabaseKey, {
-  auth: {
-    persistSession: false,
-  },
+  auth: { persistSession: false },
 });
 
-// Initialize embeddings
+// --- Embeddings ---
 const embeddings = new OpenAIEmbeddings({
   model: "text-embedding-3-large",
   maxRetries: 3,
   timeout: 60000,
+  dimensions: 3072, // Ensures full use of model capability
 });
 
-// Define schema for Carelon
-const CarelonSearchInputSchema = z.object({
-  query: z
-    .string()
-    .describe("The disease or treatment query to search for in Carelon guidelines."),
-});
-
-// Define schema for Evolent
+// --- Input Schema ---
 const EvolentSearchInputSchema = z.object({
   query: z
     .string()
-    .describe("The disease or treatment query to search for in Evolent guidelines."),
+    .describe("The disease, treatment, or prior auth query to search for in Evolent guidelines."),
 });
 
-/**
- * Summarize documents using ChatGPT
- */
+// --- Helper: Summarize retrieved docs ---
 async function getSummaryFromDocs(content: string, query: string): Promise<string> {
-  const safeContent = content.slice(0, 16000);
+  const safeContent = content.slice(0, 18000);
 
   const messages = [
     {
       role: "user" as const,
-      content: `You are an expert Medicare Prior Authorization Assistant for healthcare providers. 
-Your task is to analyze the following policy content and summarize it based on the user's query. 
-The summary should be concise, factual, and directly address the query.
+      content: `You are an expert medical policy summarizer. 
+Analyze the following Evolent coverage policy text and summarize relevant information strictly based on the user query. 
 
-**User's Query:** ${query}
+**Query:** ${query}
 
-**Policy Content:**
+**Policy Text:**
 ${safeContent}
 
-**Your Summary Should Include:**
-1. **Prior Authorization Requirement:** State "YES," "NO," or "CONDITIONAL."
-2. **Medical Necessity Criteria:** Detail the specific criteria outlined in the policy.
-3. **Relevant Codes:** List associated ICD-10 and CPT/HCPCS codes.
-4. **Required Documentation:** Enumerate all documentation needed for prior authorization.
-5. **Limitations and Exclusions:** Note any specific limitations or exclusions mentioned in the policy.
-
-If no relevant information is found in the policy, respond with: "No relevant information found in the provided policy content."
-
-Ensure your response is structured clearly and concisely, following the format below:
+Respond only in the following structured format:
 
 **Summary of Policy Content:**
 - **Prior Authorization Requirement:** [YES/NO/CONDITIONAL]
 - **Medical Necessity Criteria:**
   * [Criterion 1]
   * [Criterion 2]
-  * (etc.)
 - **Relevant Codes:**
-  * **ICD-10:** [List of ICD-10 codes]
-  * **CPT/HCPCS:** [List of CPT/HCPCS codes]
+  * **ICD-10:** [Codes]
+  * **CPT/HCPCS:** [Codes]
 - **Required Documentation:**
-  * [Documentation Item 1]
-  * [Documentation Item 2]
-  * (etc.)
+  * [Docs]
 - **Limitations/Exclusions:**
-  * [Limitation/Exclusion 1]
-  * [Limitation/Exclusion 2]
-  * (etc.)
+  * [Limitations]
 
-Respond only with the structured summary. Do not include any additional commentary.`,
+If no relevant data is found, respond: "No relevant information found."`,
     },
   ];
 
@@ -91,113 +66,60 @@ Respond only with the structured summary. Do not include any additional commenta
     const response = await llmSummarizer.invoke(messages);
     return response.content?.toString().trim() || "No summary generated.";
   } catch (err: any) {
-    console.error("Error during ChatGPT summarization:", err);
-    return `Failed to generate summary. Error: ${err.message}`;
+    console.error("Error summarizing policy:", err);
+    return `Failed to summarize policy. Error: ${err.message}`;
   }
 }
 
-// --- Carelon Tool Implementation ---
-export class CarelonSearchTool extends StructuredTool<typeof CarelonSearchInputSchema> {
-  name = "carelon_guidelines_search";
-  description =
-    "Queries Carelon Guidelines vector store in Supabase and returns a summarized policy using ChatGPT.";
-  schema = CarelonSearchInputSchema;
-
-  async call<TConfig extends ToolRunnableConfig | undefined>(input: any): Promise<any> {
-    try {
-      const parsedInput = this.schema.parse({ query: input.query });
-      return await this._call(parsedInput);
-    } catch (error: any) {
-      console.error("Error in CarelonSearchTool call method:", error);
-      return `Error: ${error.message}`;
-    }
-  }
-
-  protected async _call(
-    input: z.infer<typeof CarelonSearchInputSchema>,
-  ): Promise<string> {
-    try {
-      // Direct full-text search on Supabase table
-      const { data, error } = await supabase
-        .from("carelon_pdfs")
-        .select("content, metadata")
-        .textSearch("content", input.query, {
-          type: "websearch",
-          config: "english",
-        })
-        .limit(5); // top 5 results
-
-      if (error) {
-        console.error("Supabase search error:", error);
-        throw new Error("Failed to search guidelines");
-      }
-
-      if (!data || data.length === 0) {
-        return `No relevant guidelines found for the query: ${input.query}`;
-      }
-
-      // Combine and clean retrieved content
-      const combinedContent = data
-        .map(doc => (doc.content || "").replace(cleanRegex, "").replace(/[\r\n]+/g, " "))
-        .join(" ");
-
-      const summary = await getSummaryFromDocs(combinedContent, input.query);
-
-      return `Found Carelon Coverage Guideline(s) for '${input.query}'. Here is a summary of the most relevant information:\n\n${summary}`;
-    } catch (err: any) {
-      console.error("Error in CarelonSearchTool:", err);
-      return `An error occurred while searching Carelon guidelines: ${err.message}`;
-    }
-  }
-}
-
-// --- Evolent Tool Implementation ---
+// --- Main Tool ---
 export class EvolentSearchTool extends StructuredTool<typeof EvolentSearchInputSchema> {
   name = "evolent_guidelines_search";
   description =
-    "Queries Evolent Guidelines vector store in Supabase using embeddings and returns a summarized policy using ChatGPT.";
+    "Searches the Evolent Guidelines vector database using semantic embeddings and returns a summarized policy response.";
   schema = EvolentSearchInputSchema;
 
   async call<TConfig extends ToolRunnableConfig | undefined>(input: any): Promise<any> {
     try {
-      const parsedInput = this.schema.parse({ query: input.query });
-      return await this._call(parsedInput);
-    } catch (error: any) {
-      console.error("Error in EvolentSearchTool call method:", error);
-      return `Error: ${error.message}`;
+      const parsed = this.schema.parse(input);
+      return await this._call(parsed);
+    } catch (err: any) {
+      console.error("Input validation failed:", err);
+      return `Invalid input: ${err.message}`;
     }
   }
 
-  protected async _call(
-    input: z.infer<typeof EvolentSearchInputSchema>,
-  ): Promise<string> {
+  protected async _call(input: z.infer<typeof EvolentSearchInputSchema>): Promise<string> {
     try {
-      // Use SupabaseVectorStore for similarity search
+      // --- Create vector store ---
       const vectorStore = await SupabaseVectorStore.fromExistingIndex(embeddings, {
         client: supabase,
         tableName: "evolent_pdfs_prod",
         queryName: "match_documents",
       });
 
+      // --- Perform semantic search ---
+      const rawResults = await vectorStore.similaritySearchWithScore(input.query, 12);
 
-      // Perform similarity search
-      const results = await vectorStore.similaritySearch(input.query, 10); // Top 5 results
+      if (!rawResults || rawResults.length === 0)
+        return `No relevant guidelines found for "${input.query}".`;
 
-      if (!results || results.length === 0) {
-        return `No relevant guidelines found for the query: ${input.query}`;
-      }
+      // --- Filter by similarity threshold ---
+      const filtered = rawResults.filter(([_, score]) => score > 0.75);
+      const topDocs = filtered.length > 0 ? filtered : rawResults.slice(0, 5);
 
-      // Combine and clean retrieved content
-      const combinedContent = results
-        .map(doc => (doc.pageContent || "").replace(/[\r\n]+/g, " "))
-        .join(" ");
+      // --- Combine and clean content ---
+      const combinedContent = topDocs
+        .map(([doc]) => (doc.pageContent || "").replace(cleanRegex, "").replace(/\s+/g, " "))
+        .join(" ")
+        .slice(0, 18000);
 
+      // --- Summarize final results ---
       const summary = await getSummaryFromDocs(combinedContent, input.query);
 
-      return `Found Evolent Coverage Guideline(s) for '${input.query}'. Here is a summary of the most relevant information:\n\n${summary}`;
+      return `✅ **Evolent Policy Summary for:** "${input.query}"\n\n${summary}`;
     } catch (err: any) {
-      console.error("Error in EvolentSearchTool:", err);
-      return `An error occurred while searching Evolent guidelines: ${err.message}`;
+      console.error("EvolentSearchTool failed:", err);
+      return `An error occurred while querying Evolent policies: ${err.message}`;
     }
   }
 }
