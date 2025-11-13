@@ -35,32 +35,54 @@ async function getSummaryFromDocs(content: string, query: string): Promise<strin
   const messages = [
     {
       role: "user" as const,
-      content: `You are an expert medical policy summarizer. 
-Analyze the following Evolent coverage policy text and summarize relevant information strictly based on the user query. 
+      content: `You are an expert Medicare Prior Authorization Assistant for healthcare providers. 
+Your task is to thoroughly analyze the following policy content and extract **all** relevant and related information that matches the user’s query.
+Your goal is to produce a complete, factual, and well-structured summary — ensuring that no related data point is omitted, even if it appears in different sections or tables of the policy.
 
-**Query:** ${query}
+**User's Query:** ${query}
 
-**Policy Text:**
+**Policy Content:**
 ${safeContent}
 
-Respond only in the following structured format:
+**Your Summary Must Include:**
+1. **Prior Authorization Requirement:** Clearly state "YES," "NO," or "CONDITIONAL," and explain any conditions or exceptions that apply.
+2. **Medical Necessity Criteria:** List every specific requirement or clinical criterion bulleted in the policy, including thresholds, indications, and contraindications.
+3. **Relevant Codes:** Extract all associated ICD-10, CPT, and/or HCPCS codes mentioned anywhere in the document.
+4. **Required Documentation:** Identify every form, report, test result, or other documentation explicitly or implicitly required for prior authorization.
+5. **Limitations and Exclusions:** Include all policy limitations, frequency restrictions, age limits, site-of-service restrictions, or excluded indications.
+6. **Additional Related Data Points:** Capture any referenced notes, footnotes, tables, or cross-references (e.g., “see related policy,” “refer to guideline,” etc.) that provide context or conditions related to the above categories.
+
+If no relevant information is found, respond with: 
+> "No relevant information found in the provided policy content."
+
+**Output Format (use this exact structure):**
 
 **Summary of Policy Content:**
 - **Prior Authorization Requirement:** [YES/NO/CONDITIONAL]
-- **Medical Necessity Criteria:**
+- **Medical Necessity Criteria and or Guidelines:**
   * [Criterion 1]
   * [Criterion 2]
+  * (etc.)
 - **Relevant Codes:**
-  * **ICD-10:** [Codes]
-  * **CPT/HCPCS:** [Codes]
+  * **ICD-10:** [List of ICD-10 codes]
+  * **CPT/HCPCS:** [List of CPT/HCPCS codes]
 - **Required Documentation:**
-  * [Docs]
+  * [Documentation Item 1]
+  * [Documentation Item 2]
+  * (etc.)
 - **Limitations/Exclusions:**
-  * [Limitations]
+  * [Limitation/Exclusion 1]
+  * [Limitation/Exclusion 2]
+  * (etc.)
+- **Additional Related Data Points:**
+  * [Data Point 1]
+  * [Data Point 2]
+  * (etc.)
 
-If no relevant data is found, respond: "No relevant information found."`,
+Respond **only** with the structured summary. Do not include any commentary or explanations outside the specified format.`,
     },
   ];
+
 
   try {
     const response = await llmSummarizer.invoke(messages);
