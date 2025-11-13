@@ -175,9 +175,10 @@ export class EvolentSearchTool extends StructuredTool<typeof EvolentSearchInputS
       // Use SupabaseVectorStore for similarity search
       const vectorStore = await SupabaseVectorStore.fromExistingIndex(embeddings, {
         client: supabase,
-        tableName: "evolent_pdfs_prod", // Replace with your embeddings table name
-        queryName: "match_documents", // Replace with your query function name
+        tableName: "evolent_pdfs_prod",
+        queryName: "match_documents",
       });
+
 
       // Perform similarity search
       const results = await vectorStore.similaritySearch(input.query, 10); // Top 5 results
