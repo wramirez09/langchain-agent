@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 import { supabaseAdmin } from "@/lib/supabaseAdmin";
-import { createServerClient } from "app/utils/supabase/server";
+import { createClient } from "app/utils/supabase/server";
 
 export async function POST(req: Request) {
     try {
@@ -41,14 +41,14 @@ export async function POST(req: Request) {
         });
 
         // Sign user in and set auth cookie
-        const supabase = createServerClient();
+        const supabase = await createClient();
         const { error: signInError } = await supabase.auth.signInWithPassword({
             email,
             password,
         });
         if (signInError) throw signInError;
 
-        return NextResponse.json({ success: true, redirect: "/dashboard" });
+        return NextResponse.json({ success: true, redirect: "/protected/preAuth" });
     } catch (err: any) {
         console.error("Setup password API error:", err);
         return NextResponse.json(
