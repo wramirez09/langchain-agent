@@ -48,7 +48,7 @@ export async function POST(req: Request) {
         });
         if (signInError) throw signInError;
 
-        return NextResponse.json({ success: true, redirect: "/protected/preAuth" });
+        return NextResponse.json({ success: true, redirect: "/auth/login" });
     } catch (err: any) {
         console.error("Setup password API error:", err);
         return NextResponse.json(

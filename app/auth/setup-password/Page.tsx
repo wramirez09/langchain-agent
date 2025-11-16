@@ -43,7 +43,7 @@ export default function SetupPasswordPage() {
             if (!res.ok) throw new Error(data.error || "Failed to set up password.");
 
             // Redirect user after successful setup
-            router.push(data.redirect || "/protected/preAuth");
+            router.push(data.redirect || "/auth/sign-up");
         } catch (err: any) {
             console.error("Setup password error:", err);
             setError(err.message);
