@@ -53,7 +53,7 @@ Here's your precise, step-by-step workflow:
 **1. Analyze the User Request (Flexible Input):**
 
 * Your input may come from a direct form entry or be a structured message from a file upload.
-* **Intelligent Data Extraction:** Regardless of the format, meticulously extract the following key data points from the user's entire request:
+* **Intelligent Data Extraction:** Regardless of the format, meticulously extract the following key data points from the user's entire query:
     * \`treatment\`: The specific medical treatment or service (e.g., "MRI lumbar spine").
     * \`CPT\`: The CPT code associated with the treatment (e.g., "72158").
     * \`diagnosis\`: The patient's diagnosis (e.g., "lower back pain with radiculopathy").
@@ -62,22 +62,24 @@ Here's your precise, step-by-step workflow:
     * \`Guidelines\`: The patient's insurance provider (e.g., "Medicare").
     * \`state\`: The patient's U.S. state (e.g., "California - Northern").
 
+
+pass only the treatment and diagnosis to the tool along with state if provided
 **2. Execute a Conditional Search Strategy:**
 
 * Based on the extracted \`Guidelines\` provider, use ONLY the relevant tools. Do not call tools for a different provider.
 * **If \`Guidelines\` is "Carelon":** Immediately use the \`carelon_guidelines_search\` tool with the extracted \`treatment\` and \`diagnosis\`.
 * **If \`Guidelines\` is "Evolent":** Immediately use the \`evolent_guidelines_search\` tool with the extracted \`treatment\` and \`diagnosis\`.
 * **If \`Guidelines\` is "Medicare":** Immediately use the \`ncd_coverage_search\` tool, along with the \`local_lcd_search\` and \`local_coverage_article_search\` tools (if a \`state\` is provided). Execute these three search tools in parallel for maximum speed. Invoke each tool only once.
-* **For any policy found:** Use the \`policy_content_extractor\` tool to fetch its complete text content from the provided URL. 
+* **For any policies, guidelines, or articles found:** Use the \`policy_content_extractor\` tool to fetch its complete text content from the provided URL. 
 **3. Analyze and Extract Key Information from policies, guidelines, and or related documents:**
 
 * For each retrieved policy document, guidelines, and or related documents, meticulously extract the following:
-List any Articles or Policies that are relevant to the user's request in the reponse
     * **Prior Authorization Requirement:** State "YES," "NO," or "CONDITIONAL."
     * **Medical Necessity Criteria:** Detail the specific criteria, bulletpoints, subsections, and subcriteria.
     * **Relevant Codes:** List associated ICD-10 and CPT/HCPCS codes.
     * **Required Documentation:** Enumerate all documentation needed.
     * **Limitations and Exclusions:** Note any specific limitations or exclusions.
+    * **Sources Used:** List the sources used to generate the response.
 
 **4. Present Comprehensive Findings:**
 
@@ -93,10 +95,6 @@ List any Articles or Policies that are relevant to the user's request in the rep
   - [Key Clinical Finding 1]
   - [Key Clinical Finding 2]
   - (etc.)
-
-## [Payer Name] Guideline: [Policy Title]
-Status: [Status], Effective Date: [Date], Doc ID: [ID], Last Review Date: [Date].
-[Policy Summary from the extracted content]
 
 **Medical Necessity Criteria:**
 * [Criterion 1]
@@ -117,10 +115,10 @@ Status: [Status], Effective Date: [Date], Doc ID: [ID], Last Review Date: [Date]
 * [Limitation/Exclusion 2]
 * (etc.)
 
-**Policy URL:** [full_url](full_url)
-
 ## Summary Report
-**Summary report (Approve or Denied due to):** [Your AI-driven determination, e.g., "Approved as guideline met for medical necessity due to knee pain from trauma to knee, joint swelling and inability to extend knee." Explain how the patient's extracted history and findings meet or fail to meet the policy criteria.]
+**Summary report (Approve or Denied due to):** [Your AI-driven determination, e.g., "Approved as guideline met for medical necessity due to knee pain from trauma to knee, joint swelling and inability to extend knee." Explain how the patient's extracted history and findings meet or fail to meet the guidelines criteria.]
+
+return as markdown
 \`\`\`
 `;
 
@@ -145,12 +143,12 @@ export async function POST(req: NextRequest) {
     );
 
     // Check cache for non-streaming requests
-    if (returnIntermediateSteps) {
-      const cachedResult = cache.get(cacheKey);
-      if (cachedResult) {
-        return NextResponse.json(cachedResult, { status: 200 });
-      }
-    }
+    // if (returnIntermediateSteps) {
+    //   const cachedResult = cache.get(cacheKey);
+    //   if (cachedResult) {
+    //     return NextResponse.json(cachedResult, { status: 200 });
+    //   }
+    // }
 
     const tools = [
       new SerpAPI(),

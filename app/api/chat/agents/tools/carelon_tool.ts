@@ -3,7 +3,6 @@ import { StructuredTool, ToolRunnableConfig } from "@langchain/core/tools";
 import { llmSummarizer } from "@/lib/llm";
 import { cleanRegex } from "./utils";
 import { createClient } from "@supabase/supabase-js";
-import { SupabaseVectorStore } from "@langchain/community/vectorstores/supabase";
 import { OpenAIEmbeddings } from "@langchain/openai";
 
 // Initialize Supabase client
