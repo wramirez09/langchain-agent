@@ -5,7 +5,7 @@ export type StateData = {
   description: string;
 };
 
-export const Data: StateData[] = [
+export const data: StateData[] = [
   {
     state_id: 2,
     description: "Alabama",
@@ -263,7 +263,7 @@ export const Data: StateData[] = [
 export function getStateIdByDescription(
   description: string,
 ): number | undefined {
-  const state = Data.find(
+  const state = data.find(
     (item) => item.description.toLowerCase() === description.toLowerCase(),
   );
   return state?.state_id;
