@@ -163,13 +163,11 @@ ${summary}`;
 
       if (terms.length === 0) {
         return `I couldn't find any Carelon guideline content matching "${query}".
-
-Please provide more detail, such as:
-- The specific test/procedure
-- The body region (e.g., brain, spine, abdomen, cardiac, etc.)
-- Or a CPT/HCPCS or ICD-10 code
-
-I'll try again with that information.`;
+          Please provide more detail, such as:
+          - The specific test/procedure
+          - The body region (e.g., brain, spine, abdomen, cardiac, etc.)
+          - Or a CPT/HCPCS or ICD-10 code
+          I'll try again with that information.`;
       }
 
       const orClause = terms
