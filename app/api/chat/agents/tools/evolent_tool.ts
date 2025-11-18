@@ -59,13 +59,16 @@ function buildFuzzyTerms(query: string): string[] {
     "for", "with", "without", "and", "or", "the", "this", "that", "of", "in", "on", "to", "a", "an"
   ]);
 
-  const tokens = base
+  // Sanitize the base query by removing special characters that break Supabase syntax
+  const sanitizedBase = base.replace(/[()\[\]{}",']/g, "").replace(/\s+/g, " ").trim();
+
+  const tokens = sanitizedBase
     .split(/\s+/)
     .map(t => t.replace(/[^a-z0-9\-]/gi, ""))
     .filter(t => t.length > 3 && !stopwords.has(t));
 
   const terms = new Set<string>();
-  if (base.length > 3) terms.add(base);
+  if (sanitizedBase.length > 3) terms.add(sanitizedBase);
   tokens.forEach(t => terms.add(t));
 
   return Array.from(terms);
@@ -117,17 +120,17 @@ export class EvolentSearchTool extends StructuredTool<typeof EvolentSearchInputS
         const summary = await summarizeEvolentContent(combinedContent, query);
 
         const sourceList = ftsResults
-          .map(d => `- **${d.metadata?.source || "Unknown source"}** (ID: ${d.id})`)
+          .map(d => `- **${d.metadata?.source || "Unknown source"}**`)
           .join("\n");
 
         return `### Evolent Coverage Summary for: "${query}"
 
-**Documents used:**
-${sourceList}
+      **Documents used:**
+      ${sourceList}
 
----
+      ---
 
-${summary}`;
+      ${summary}`;
       }
 
       // ----------------------------------------------------------

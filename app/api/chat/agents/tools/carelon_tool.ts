@@ -71,13 +71,16 @@ function buildFuzzyTerms(query: string): string[] {
     "an",
   ]);
 
-  const tokens = base
+  // Sanitize the base query by removing special characters that break Supabase syntax
+  const sanitizedBase = base.replace(/[()\[\]{}",']/g, "").replace(/\s+/g, " ").trim();
+
+  const tokens = sanitizedBase
     .split(/\s+/)
     .map(t => t.replace(/[^a-z0-9\-]/gi, ""))
     .filter(t => t.length > 3 && !stopwords.has(t));
 
   const terms = new Set<string>();
-  if (base.length > 3) terms.add(base);
+  if (sanitizedBase.length > 3) terms.add(sanitizedBase);
   tokens.forEach(t => terms.add(t));
 
   return Array.from(terms);
