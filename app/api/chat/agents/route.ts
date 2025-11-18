@@ -10,7 +10,6 @@ import {
   HumanMessage,
   SystemMessage,
 } from "@langchain/core/messages";
-import { cache, generateCacheKey, TTL } from "@/lib/cache";
 
 import { NCDCoverageSearchTool } from "./tools/NCDCoverageSearchTool";
 import { localLcdSearchTool } from "./tools/localLcdSearchTool";
@@ -135,20 +134,6 @@ export async function POST(req: NextRequest) {
       )
       .map(convertVercelMessageToLangChainMessage);
 
-    // Generate cache key based on messages content
-    const cacheKey = generateCacheKey(
-      'chat-agents',
-      JSON.stringify(messages.slice(-2)), // Cache based on last 2 messages
-      returnIntermediateSteps ? 'with-steps' : 'no-steps'
-    );
-
-    // Check cache for non-streaming requests
-    // if (returnIntermediateSteps) {
-    //   const cachedResult = cache.get(cacheKey);
-    //   if (cachedResult) {
-    //     return NextResponse.json(cachedResult, { status: 200 });
-    //   }
-    // }
 
     const tools = [
       new SerpAPI(),
@@ -196,8 +181,6 @@ export async function POST(req: NextRequest) {
         messages: result.messages.map(convertLangChainMessageToVercelMessage),
       };
 
-      // Cache the result for future requests
-      cache.set(cacheKey, response, TTL.MEDIUM);
 
       return NextResponse.json(response, { status: 200 });
     }
