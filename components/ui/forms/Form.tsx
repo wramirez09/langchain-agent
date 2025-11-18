@@ -3,11 +3,11 @@
 import React, { ChangeEvent, ChangeEventHandler, useCallback, useEffect, useState } from "react";
 import { Data, StateData } from "../../../app/agents/metaData/states";
 import { ncdOptions } from "@/data/ncdOptions";
-import { createClient } from '@/utils/client'
 import AutoCompleteSelect from "../AutoCompleteSelect";
 import { getInsuranceProvidersOptions, SelectOption } from "../../../data/selectOptions";
 import { Textarea } from "../textarea";
 import { Input } from "../input";
+import { createClient } from '@/utils/client'
 
 
 
@@ -27,8 +27,8 @@ const FormInputs: React.FC<Props> = (props: Props) => {
   const [guidelinesoptins, setGuidelinesOptions] = useState<SelectOption[]>([])
   const [userEmail, setUserEmail] = useState('')
   const stateOptions = getStateOptions(Data);
-  const [isLoggedIn, setIsLoggedIn] = useState(false)
-  useEffect(() => {
+  const [isLoggedIn, setIsLoggedIn] = React.useState(false)
+  React.useEffect(() => {
     const checkAuth = async () => {
       const supabase = createClient()
       const { data: { session } } = await supabase.auth.getSession()

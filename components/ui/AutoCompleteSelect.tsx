@@ -170,7 +170,7 @@ export function StatusList({
             <CommandItem
               key={option.value}
               value={option.value}
-              disabled={!option.isEnabled}
+              disabled={option.isEnabled === false}
               onSelect={() => {
                 setSelectedStatus?.(option);
                 onChange(option.value);
