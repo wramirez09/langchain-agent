@@ -5,7 +5,7 @@ import { Data, StateData } from "../../../app/agents/metaData/states";
 import { ncdOptions } from "@/data/ncdOptions";
 
 import AutoCompleteSelect from "../AutoCompleteSelect";
-import { defaultInsuranceProvidersOptions, getInsuranceProvidersOptions, SelectOption } from "../../../data/selectOptions";
+import { getInsuranceProvidersOptions, SelectOption } from "../../../data/selectOptions";
 import { Textarea } from "../textarea";
 import { Input } from "../input";
 import { createClient } from '@/utils/client'
