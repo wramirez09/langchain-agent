@@ -5,7 +5,7 @@ import { llmAgent } from "@/lib/llm";
 import { PromptTemplate } from "@langchain/core/prompts";
 import { HttpResponseOutputParser } from "langchain/output_parsers";
 
-export const runtime = "edge";
+// export const runtime = "edge";
 
 const formatMessage = (message: VercelChatMessage) => {
   return `${message.role}: ${message.content}`;
