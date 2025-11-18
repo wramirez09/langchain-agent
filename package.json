@@ -12,7 +12,7 @@
     "test": ""
   },
   "engines": {
-    "node": ">=18"
+    "node": ">=20"
   },
   "dependencies": {
     "@ijsto/react-slideout": "^1.4.0",
@@ -56,6 +56,7 @@
     "clsx": "^2.1.1",
     "cmdk": "^1.1.1",
     "dayjs": "^1.11.13",
+    "dotenv": "^17.2.3",
     "embla-carousel": "^8.5.2",
     "embla-carousel-react": "^8.5.2",
     "eslint-config-prettier": "^10.1.8",

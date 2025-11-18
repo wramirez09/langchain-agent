@@ -1,3 +1,5 @@
+'use client'
+
 export type StateData = {
   state_id: number;
   description: string;
