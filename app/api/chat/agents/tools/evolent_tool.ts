@@ -1,93 +1,44 @@
 import { z } from "zod";
 import { StructuredTool, ToolRunnableConfig } from "@langchain/core/tools";
+import { createClient } from "@supabase/supabase-js";
 import { llmSummarizer } from "@/lib/llm";
 import { cleanRegex } from "./utils";
-import { createClient } from "@supabase/supabase-js";
-import { SupabaseVectorStore } from "@langchain/community/vectorstores/supabase";
-import { OpenAIEmbeddings } from "@langchain/openai";
 
-// --- Supabase Client (server-side; service role only) ---
+// --- Supabase client (service role) ---
 const supabaseUrl = process.env.SUPABASE_URL || "";
 const supabaseKey = process.env.SUPABASE_SERVICE_ROLE_KEY || "";
-
-if (!supabaseUrl || !supabaseKey) {
-  console.warn("⚠️ Missing SUPABASE_URL or SUPABASE_SERVICE_ROLE_KEY in environment.");
-}
 
 const supabase = createClient(supabaseUrl, supabaseKey, {
   auth: { persistSession: false },
 });
 
-// --- Embeddings ---
-const embeddings = new OpenAIEmbeddings({
-  model: "text-embedding-3-large",
-  // dimensions: 3072, // optional; model is fixed-dim anyway
-});
-
-// --- Input Schema ---
+// --- Input schema ---
 const EvolentSearchInputSchema = z.object({
   query: z
     .string()
-    .describe("The disease, treatment, or prior auth query to search for in Evolent guidelines."),
+    .min(3, "Query must be at least 3 characters long.")
+    .describe("The user’s query for searching Evolent guidelines."),
 });
 
-// --- Helper: Structured Summary Extraction ---
-async function getSummaryFromDocs(content: string, query: string): Promise<string> {
-  const safeContent = content.slice(0, 18000);
+// --- Summarization helper ---
+async function summarizeEvolentContent(content: string, query: string): Promise<string> {
+  const safeContent = content.slice(0, 16000);
 
   const messages = [
     {
       role: "user" as const,
-      content: `You are an expert Medicare Prior Authorization Assistant for healthcare providers. 
-Your task is to thoroughly analyze the following policy content and extract **all** relevant and related information that matches the user’s query.
-Your goal is to produce a complete, factual, and well-structured summary — ensuring that no related data point is omitted, even if it appears in different sections or tables of the policy.
+      content: `You are a coverage guideline assistant working with Evolent policies.
 
-**User's Query:** ${query}
+Summarize the following content based ONLY on the user's query.
+Be factual, concise, and do not add information that is not explicitly supported by the text.
 
-**Policy Content:**
+User's Query:
+${query}
+
+Policy Content:
 ${safeContent}
 
-**Your Summary Must Include:**
-1. **Prior Authorization Requirement:** Clearly state "YES," "NO," or "CONDITIONAL," and explain any conditions or exceptions that apply.
-2. **Medical Necessity Criteria:** List every specific requirement or clinical criterion bulleted in the policy, including thresholds, indications, and contraindications.
-3. **Relevant Codes:** Extract all associated ICD-10, CPT, and/or HCPCS codes mentioned anywhere in the document.
-4. **Required Documentation:** Identify every form, report, test result, or other documentation explicitly or implicitly required for prior authorization.
-5. **Limitations and Exclusions:** Include all policy limitations, frequency restrictions, age limits, site-of-service restrictions, or excluded indications.
-6. **Additional Related Data Points:** Capture any referenced notes, footnotes, tables, or cross-references (e.g., “see related policy,” “refer to guideline,” etc.) that provide context or conditions related to the above categories.
-7. **Related Policies:** List the names/IDs of any related or referenced policies (e.g., “See related policy: Abdominal Imaging Guidelines”), if present.
-
-If no relevant information is found, respond with: 
-> "No relevant information found in the provided policy content."
-
-**Output Format (use this exact structure):**
-
-**Summary of Policy Content:**
-- **Prior Authorization Requirement:** [YES/NO/CONDITIONAL]
-- **Medical Necessity Criteria and or Guidelines:**
-  * [Criterion 1]
-  * [Criterion 2]
-  * (etc.)
-- **Relevant Codes:**
-  * **ICD-10:** [List of ICD-10 codes]
-  * **CPT/HCPCS:** [List of CPT/HCPCS codes]
-- **Required Documentation:**
-  * [Documentation Item 1]
-  * [Documentation Item 2]
-  * (etc.)
-- **Limitations/Exclusions:**
-  * [Limitation/Exclusion 1]
-  * [Limitation/Exclusion 2]
-  * (etc.)
-- **Additional Related Data Points:**
-  * [Data Point 1]
-  * [Data Point 2]
-  * (etc.)
-- **Related Policies:**
-  * [Policy Name or ID 1]
-  * [Policy Name or ID 2]
-  * (etc.)
-
-Respond **only** with the structured summary in markdown using this exact format.`,
+Return ONLY the summary (no intro, no commentary).`,
     },
   ];
 
@@ -95,158 +46,145 @@ Respond **only** with the structured summary in markdown using this exact format
     const response = await llmSummarizer.invoke(messages);
     return response.content?.toString().trim() || "No summary generated.";
   } catch (err: any) {
-    console.error("Error summarizing policy:", err);
-    return `Failed to summarize policy. Error: ${err.message}`;
+    console.error("[EvolentSearchTool] Summarization error:", err);
+    return "Failed to summarize Evolent guidelines.";
   }
 }
 
-// --- Main Tool ---
+// --- Build fuzzy terms ---
+function buildFuzzyTerms(query: string): string[] {
+  const base = query.toLowerCase().trim();
+
+  const stopwords = new Set([
+    "for", "with", "without", "and", "or", "the", "this", "that", "of", "in", "on", "to", "a", "an"
+  ]);
+
+  const tokens = base
+    .split(/\s+/)
+    .map(t => t.replace(/[^a-z0-9\-]/gi, ""))
+    .filter(t => t.length > 3 && !stopwords.has(t));
+
+  const terms = new Set<string>();
+  if (base.length > 3) terms.add(base);
+  tokens.forEach(t => terms.add(t));
+
+  return Array.from(terms);
+}
+
+// --- Main Tool (1:1 match with Carelon tool style) ---
 export class EvolentSearchTool extends StructuredTool<typeof EvolentSearchInputSchema> {
   name = "evolent_guidelines_search";
-  description =
-    "Searches the Evolent Guidelines vector database using weighted hybrid (semantic + keyword) search and returns a structured prior-auth summary plus related policies.";
+  description = "Search Evolent guidelines using full-text and fuzzy matching.";
   schema = EvolentSearchInputSchema;
 
-  async call<TConfig extends ToolRunnableConfig | undefined>(input: any): Promise<any> {
+  async call<TConfig extends ToolRunnableConfig | undefined>(input: any) {
     try {
       const parsed = this.schema.parse(input);
       return await this._call(parsed);
     } catch (err: any) {
-      console.error("Input validation failed:", err);
+      console.error("[EvolentSearchTool] Input validation failed:", err);
       return `Invalid input: ${err.message}`;
     }
   }
 
-  protected async _call(input: z.infer<typeof EvolentSearchInputSchema>): Promise<string> {
-    const query = input.query;
-    console.log("EvolentSearchTool query:", query);
+  protected async _call(input: z.infer<typeof EvolentSearchInputSchema>) {
+    const query = input.query.trim();
+    console.log("[EvolentSearchTool] Query:", query);
 
     try {
-      // --- Create vector store ---
-      const vectorStore = await SupabaseVectorStore.fromExistingIndex(embeddings, {
-        client: supabase,
-        tableName: "evolent_pdfs_prod",
-        queryName: "match_documents",
-      });
-
-      console.log("VectorStore created");
-
-      // --- Simple connectivity smoke test ---
-      const { data: tableTest, error: tableError } = await supabase
+      // ----------------------------------------------------------
+      // 1) FULL-TEXT SEARCH
+      // ----------------------------------------------------------
+      console.log("[EvolentSearchTool] Running full-text search...");
+      const { data: ftsResults, error: ftsError } = await supabase
         .from("evolent_pdfs_prod")
-        .select("id")
-        .limit(1);
+        .select("id, content, metadata")
+        .textSearch("content", query, {
+          type: "websearch",
+          config: "english",
+        })
+        .limit(5);
 
-      console.log("Table smoke test:", { tableTest, tableError });
+      if (ftsError) console.error("[EvolentSearchTool] FTS error:", ftsError);
 
-      // ----------------------------------------------------------
-      // 🩺 1) DETECT IF QUERY IS CODE-HEAVY (CPT / ICD / HCPCS)
-      // ----------------------------------------------------------
-      const hasCPT = /\b\d{4,5}\b/.test(query); // rough heuristic
-      const hasICD10 = /[A-TV-Z]\d{2}(\.\d+)?/.test(query);
-      const hasHCPCS = /^[A-Z]\d{4}$/i.test(query);
+      if (ftsResults && ftsResults.length > 0) {
+        console.log("[EvolentSearchTool] FTS matches:", ftsResults.map(r => r.id));
 
-      const keywordHeavy = hasCPT || hasICD10 || hasHCPCS;
+        const combinedContent = ftsResults
+          .map(d => (d.content || "").replace(cleanRegex, "").replace(/\s+/g, " "))
+          .join(" ");
 
-      const vectorWeight = keywordHeavy ? 0.4 : 0.7;
-      const keywordWeight = keywordHeavy ? 0.6 : 0.3;
+        const summary = await summarizeEvolentContent(combinedContent, query);
 
-      console.log("Weights:", { vectorWeight, keywordWeight, keywordHeavy });
+        const sourceList = ftsResults
+          .map(d => `- **${d.metadata?.source || "Unknown source"}** (ID: ${d.id})`)
+          .join("\n");
 
-      // ----------------------------------------------------------
-      // 🔍 2) SEMANTIC VECTOR SEARCH
-      // ----------------------------------------------------------
-      const vectorResults = await vectorStore.similaritySearchWithScore(query, 12);
-      const vectorDocs = vectorResults.map(([doc, distance]) => ({
-        id: doc.id as string | undefined,
-        text: doc.pageContent,
-        source: "vector" as const,
-        vectorScore: 1 - distance,
-        keywordScore: 0,
-      }));
+        return `### Evolent Coverage Summary for: "${query}"
 
-      console.log("Vector results count:", vectorDocs.length);
+**Documents used:**
+${sourceList}
 
-      // ----------------------------------------------------------
-      // 🔍 3) FULL-TEXT KEYWORD SEARCH
-      // ----------------------------------------------------------
-      const { data: keywordRows, error: keywordErr } = await supabase
-        .from("evolent_pdfs_prod")
-        .select("id, content")
-        .textSearch("content", query, { type: "websearch" })
-        .limit(12);
+---
 
-      if (keywordErr) {
-        console.error("Keyword search error:", keywordErr);
-      }
-
-      const keywordDocs =
-        keywordRows?.map((row) => ({
-          id: row.id as string | undefined,
-          text: row.content,
-          source: "keyword" as const,
-          vectorScore: 0,
-          keywordScore: 0.85, // baseline relevance for keyword hits
-        })) ?? [];
-
-      console.log("Keyword results count:", keywordDocs.length);
-
-      // ----------------------------------------------------------
-      // 🔀 4) MERGE, DEDUPE, WEIGHTED SCORE
-      // ----------------------------------------------------------
-      const merged = [...vectorDocs, ...keywordDocs];
-
-      const dedupeMap = new Map<string, (typeof merged)[number]>();
-
-      merged.forEach((doc) => {
-        const key = doc.id ?? `${doc.source}-${doc.text?.slice(0, 50)}`;
-        const existing = dedupeMap.get(key);
-        if (!existing) {
-          dedupeMap.set(key, doc);
-        } else {
-          // merge scores if same doc appears from both sources
-          existing.vectorScore = Math.max(existing.vectorScore, doc.vectorScore);
-          existing.keywordScore = Math.max(existing.keywordScore, doc.keywordScore);
-        }
-      });
-
-      const deduped = Array.from(dedupeMap.values());
-
-      const ranked = deduped
-        .map((doc) => ({
-          ...doc,
-          finalScore: doc.vectorScore * vectorWeight + doc.keywordScore * keywordWeight,
-        }))
-        .sort((a, b) => b.finalScore - a.finalScore)
-        .slice(0, 5);
-
-      console.log("Ranked docs:", ranked.length);
-
-      if (ranked.length === 0) {
-        return `No relevant guidelines found for "${query}".`;
+${summary}`;
       }
 
       // ----------------------------------------------------------
-      // 📄 5) COMBINE CONTENT FOR LLM SUMMARY
+      // 2) FUZZY FALLBACK (ILIKE)
       // ----------------------------------------------------------
-      const combinedContent = ranked
-        .map((d) =>
-          (d.text || "")
-            .replace(cleanRegex, "")
-            .replace(/\s+/g, " ")
-        )
-        .join(" ")
-        .slice(0, 18000);
+      console.log("[EvolentSearchTool] No FTS matches → Running fuzzy fallback...");
+      const terms = buildFuzzyTerms(query);
+      console.log("[EvolentSearchTool] Fuzzy terms:", terms);
 
-      // ----------------------------------------------------------
-      // 🧠 6) STRUCTURED SUMMARY + RELATED POLICIES (LLM)
-      // ----------------------------------------------------------
-      const summary = await getSummaryFromDocs(combinedContent, query);
+      if (terms.length === 0) {
+        return `I could not find any Evolent policies matching "${query}".  
+Please include more context such as the procedure name or codes.`;
+      }
 
-      return `🔍 **Evolent Hybrid Policy Summary for:** "${query}"\n\n${summary}`;
+      const orClause = terms.map(t => `content.ilike.%${t}%`).join(",");
+
+      const { data: fuzzyResults, error: fuzzyError } = await supabase
+        .from("evolent_pdfs_prod")
+        .select("id, content, metadata")
+        .or(orClause)
+        .limit(8);
+
+      if (fuzzyError) console.error("[EvolentSearchTool] Fuzzy error:", fuzzyError);
+
+      if (!fuzzyResults || fuzzyResults.length === 0) {
+        return `No Evolent guidelines found related to **"${query}"**.
+
+Please include details such as:
+- Procedure/test name  
+- Body region  
+- CPT/HCPCS/ICD-10 codes  
+`;
+      }
+
+      const previews = fuzzyResults.slice(0, 5).map(d => {
+        const text = (d.content || "").replace(/\s+/g, " ");
+        const snippet = text.slice(0, 220);
+
+        return `- **${d.metadata?.source || "Unknown source"}** (ID: ${d.id})  
+  _Excerpt:_ “…${snippet}…”`;
+      });
+
+      return `### No exact Evolent match for: **"${query}"**
+
+Here are related documents:
+
+${previews.join("\n\n")}
+
+---
+
+To refine results, please include:
+- Procedure/test name  
+- Body region  
+- Or CPT/HCPCS/ICD-10 codes`;
     } catch (err: any) {
-      console.error("EvolentSearchTool failed:", err);
-      return `An error occurred while querying Evolent policies: ${err.message}`;
+      console.error("[EvolentSearchTool] Unexpected error:", err);
+      return `An error occurred while searching Evolent guidelines: ${err.message}`;
     }
   }
 }
