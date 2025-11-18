@@ -5,9 +5,10 @@ import { Data, StateData } from "../../../app/agents/metaData/states";
 import { ncdOptions } from "@/data/ncdOptions";
 
 import AutoCompleteSelect from "../AutoCompleteSelect";
-import { insuranceProvidersOptions } from "../../../data/selectOptions";
+import { defaultInsuranceProvidersOptions, getInsuranceProvidersOptions, SelectOption } from "../../../data/selectOptions";
 import { Textarea } from "../textarea";
 import { Input } from "../input";
+import { createClient } from '@/utils/client'
 
 
 type Props = {
@@ -24,6 +25,28 @@ const getStateOptions = (data: StateData[]) => {
 
 const FormInputs: React.FC<Props> = (props: Props) => {
   const stateOptions = getStateOptions(Data);
+  const [guidelinesoptins, setGuidelinesOptions] = React.useState<SelectOption[]>([])
+  const [userEmail, setUserEmail] = React.useState('')
+  const [isLoggedIn, setIsLoggedIn] = React.useState(false)
+  React.useEffect(() => {
+    const checkAuth = async () => {
+      const supabase = createClient()
+      const { data: { session } } = await supabase.auth.getSession()
+      const { user } = session || {}
+      setIsLoggedIn(!!session)
+      setUserEmail(user?.email || '')
+      const options = getInsuranceProvidersOptions({ email: user?.email || '', isSignedIn: !!session });
+      setGuidelinesOptions(options)
+    }
+
+    checkAuth()
+
+    const { data: { subscription } } = createClient().auth.onAuthStateChange((_event, session) => {
+      setIsLoggedIn(!!session)
+    })
+
+    return () => subscription.unsubscribe()
+  }, [])
 
   const handleInsuranceSelectChange = useCallback(
     (value: string) => props.onStateFormStateChange("Guidelines", value),
@@ -67,7 +90,7 @@ const FormInputs: React.FC<Props> = (props: Props) => {
             Guideline
           </label>
           <AutoCompleteSelect
-            options={insuranceProvidersOptions}
+            options={guidelinesoptins}
             onChange={handleInsuranceSelectChange}
           />
         </div>
