@@ -1,7 +1,7 @@
 import { createClient } from "@supabase/supabase-js";
 import { z } from "zod";
 import { StructuredTool } from "@langchain/core/tools";
-import { Data } from "../../../../agents/metaData/states";
+
 
 // Define the input schema for the tool using Zod
 const SupabaseRetrievalInputSchema = z.object({

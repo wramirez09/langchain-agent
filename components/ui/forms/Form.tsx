@@ -1,7 +1,7 @@
 "use client";
 
 import React, { ChangeEvent, ChangeEventHandler, useCallback, useEffect, useState } from "react";
-import { Data, StateData } from "../../../app/agents/metaData/states";
+import { data, StateData } from "../../../app/agents/metaData/states";
 import { ncdOptions } from "@/data/ncdOptions";
 import AutoCompleteSelect from "../AutoCompleteSelect";
 import { getInsuranceProvidersOptions, SelectOption } from "../../../data/selectOptions";
@@ -26,7 +26,7 @@ const getStateOptions = (data: StateData[]) => {
 const FormInputs: React.FC<Props> = (props: Props) => {
   const [guidelinesoptins, setGuidelinesOptions] = useState<SelectOption[]>([])
   const [userEmail, setUserEmail] = useState('')
-  const stateOptions = getStateOptions(Data);
+  const stateOptions = getStateOptions(data);
   const [isLoggedIn, setIsLoggedIn] = React.useState(false)
   React.useEffect(() => {
     const checkAuth = async () => {
