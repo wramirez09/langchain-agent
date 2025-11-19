@@ -62,7 +62,7 @@ export function LogoutButton() {
   if (!isLoggedIn) return null
 
   return (
-    <div className='flex align-center space-between'>
+    <div className='flex items-center space-between gap-5'>
       <div className='flex-col'>
         <p className='text-black'>
           {profile?.full_name || ""}
