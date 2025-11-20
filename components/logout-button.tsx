@@ -5,6 +5,7 @@ import { Button } from '@/components/ui/button'
 import { useRouter } from 'next/navigation'
 import { useEffect, useState } from 'react'
 import { User } from '@supabase/supabase-js'
+import ManageBillingButton from './ui/ManageBillingButton'
 
 export function LogoutButton() {
   const router = useRouter()
@@ -64,7 +65,7 @@ export function LogoutButton() {
   return (
     <div className='flex items-center space-between gap-5'>
       <div className='flex-col'>
-        <p className='text-black'>
+        <p className='text-black text-bold uppercase'>
           {profile?.full_name || ""}
         </p>
         <p className='text-black text-xs'>
@@ -72,14 +73,17 @@ export function LogoutButton() {
         </p>
 
       </div>
-      <div>|</div>
+      <div className='border-black text-black'>|</div>
+      <ManageBillingButton />
+      <div className='border-black text-black'>|</div>
       <Button
         onClick={logout}
-        variant="outline"
-        className="h-9 bg-gradient border-none shadow-md hover:shadow-none transition duration-200 ease-in-out text-white z-50"
+        variant="link"
+        className="border-none hover:shadow-none transition duration-200 ease-in-out text-white z-50 text-red-600"
       >
         Logout
       </Button>
+
     </div>
   )
 }

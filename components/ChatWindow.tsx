@@ -262,7 +262,7 @@ export function ChatLayout(props: {
         className={cn("fixed inset-0 pb-[var(--keyboard-inset-bottom,0)]", props.className)}
         contentClassName="pt-16 px-2 pb-24 md:pb-32 relative"
         content={
-          <div className="h-full overflow-y-auto -mx-2 px-2">
+          props.content && <div className="h-full overflow-y-auto -mx-2 px-2">
             {props.content}
           </div>
         }
@@ -574,9 +574,7 @@ export function ChatWindow(props: {
       <ChatLayout
         content={
           chat.messages.length === 0 ? (
-            <div className="h-full flex items-center justify-center">
-              {props.emptyStateComponent}
-            </div>
+            <></>
           ) : (
             <ChatMessages
               aiEmoji={props.emoji}

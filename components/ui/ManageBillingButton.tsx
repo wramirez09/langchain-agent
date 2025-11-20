@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { Button } from "./button";
 
 export default function ManageBillingButton() {
     const [loading, setLoading] = useState(false);
@@ -26,12 +27,13 @@ export default function ManageBillingButton() {
     };
 
     return (
-        <button
+        <Button
             onClick={handlePortal}
-            className="px-4 py-2 bg-blue-600 text-white rounded"
             disabled={loading}
+            variant="link"
+            className="text-gray-700 hover:text-blue-900 text-sm"
         >
             {loading ? "Loading..." : "Manage Billing"}
-        </button>
+        </Button>
     );
 }

@@ -114,7 +114,7 @@ export default async function RootLayout({
               style={{ overflowY: "hidden" }}
             >
               <NavbarMinimal />
-              <div className="bg-gradient absolute inset-0 overflow-hidden flex flex-col justify-end md:justify-center align-items-center">
+              <div className="absolute inset-0 overflow-hidden flex flex-col justify-start md:justify-start align-items-center w-full">
                 {children}
               </div>
             </div>
