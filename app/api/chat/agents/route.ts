@@ -18,6 +18,8 @@ import { policyContentExtractorTool } from "./tools/policyContentExtractorTool";
 import { CarelonSearchTool } from "./tools/carelon_tool";
 import { EvolentSearchTool } from "./tools/evolent_tool";
 import { FileUploadTool } from "./tools/fileUploadTool"; // Import the new FileUploadTool
+import { createClient } from "@/utils/client";
+import { reportUsageToStripe } from "@/lib/usage";
 
 const convertVercelMessageToLangChainMessage = (message: VercelChatMessage) => {
   if (message.role === "user") return new HumanMessage(message.content);
@@ -115,7 +117,6 @@ export async function POST(req: NextRequest) {
   try {
     // 1️⃣ Get authenticated user
     const { data: { user } } = await supabase.auth.getUser();
-    console.log({ data: { user } });
     if (!user) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     const userId = user.id;
 
@@ -172,7 +173,7 @@ export async function POST(req: NextRequest) {
       };
 
 
-      return NextResponse.json(response, { status: 200 });
+      return NextResponse.json(responseData, { status: 200 });
     }
 
     // 8️⃣ Centralized usage reporting (1 usage unit per API call)
@@ -181,7 +182,7 @@ export async function POST(req: NextRequest) {
         userId,
         usageType: "ai_request",
         quantity: 1,
-        metadata: { messages: messages.map(m => m.content) },
+        metadata: { messages: messages.map((m: any) => m.content) },
       });
     } catch (err) {
       console.error("Failed to report usage:", err);

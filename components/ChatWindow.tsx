@@ -493,7 +493,7 @@ export function ChatWindow(props: {
     formData.append("file", file);
 
     try {
-      console.log('Sending file to API...');
+      toast.info('Sending file to API...');
       const uploadResponse = await fetch('/api/retrieval/ingest', {
         method: 'POST',
         body: formData,
@@ -505,7 +505,7 @@ export function ChatWindow(props: {
       );
 
       const data = await uploadResponse.json();
-      console.log('Parsed response data:', data);
+      toast.info('Parsed response data:', data);
 
       if (!uploadResponse.ok) {
         const errorMsg = data?.error || 'Failed to process file';
