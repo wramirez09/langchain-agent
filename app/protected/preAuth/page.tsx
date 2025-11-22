@@ -17,7 +17,7 @@ export default async function Home() {
 
     return (
         <ChatWindow
-            endpoint="api/chat/agents"
+            endpoint="/api/chat/agents"
             placeholder=""
             showIngestForm
             showIntermediateStepsToggle

@@ -4,12 +4,11 @@ import { Button } from "@/components/ui/button";
 import { useState } from "react";
 
 interface SubscribeButtonProps {
-    priceId: string;
     email: string;
     disabled: boolean;
 }
 
-export function SubscribeButton({ priceId, email, disabled }: SubscribeButtonProps) {
+export function SubscribeButton({ email, disabled }: SubscribeButtonProps) {
     const [isLoading, setIsLoading] = useState(false);
 
     const handleSubscribe = async () => {
@@ -20,7 +19,11 @@ export function SubscribeButton({ priceId, email, disabled }: SubscribeButtonPro
             const res = await fetch("/api/stripe/create-checkout-session", {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({ priceId, email }),
+                body: JSON.stringify({
+                    flatPriceId: process.env.NEXT_PUBLIC_STRIPE_FLAT_PRICE_ID,
+                    meteredPriceId: process.env.NEXT_PUBLIC_STRIPE_METERED_PRICE_ID,
+                    email,
+                }),
             });
 
             if (!res.ok) {

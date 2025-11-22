@@ -1,45 +1,39 @@
 import { NextResponse } from "next/server";
-import Stripe from "stripe";
-import { createClient } from "app/utils/supabase/server";
+import { createClient } from "@/utils/server";
+import { reportUsageToStripe } from "@/lib/usage";
 
-const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!, { apiVersion: "2025-10-29.clover" });
-
-export async function reportUsageToStripe(subscriptionItemId: string, quantity = 1) {
-    // Type assertion fixes TS error
-    const usageRecord = await (stripe.subscriptionItems as any).createUsageRecord(
-        subscriptionItemId,
-        {
-            quantity,
-            timestamp: Math.floor(Date.now() / 1000),
-            action: "increment",
-        }
-    );
-
-    return usageRecord;
-}
 export async function POST(req: Request) {
-    const supabase = createClient();
-    const { user } = await supabase.auth.getUser();
-    const { subscription_item_id, usage_type, quantity = 1, metadata = {} } = await req.json();
-
-    if (!user || !subscription_item_id) return NextResponse.json({ error: "Unauthorized or missing subscription_item_id" }, { status: 400 });
-
     try {
-        const usageRecord = await reportUsageToStripe(subscription_item_id, quantity);
+        const supabase = createClient();
+        const { data: { user } } = await supabase.auth.getUser();
 
-        await supabase.from("usage_logs").insert({
-            user_id: user.id,
-            subscription_item_id,
-            usage_type,
-            quantity,
-            stripe_reported: true,
-            stripe_usage_id: usageRecord.id,
-            metadata,
-        });
+      if (!user) {
+          return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+      }
 
-        return NextResponse.json({ success: true, usageRecord });
-    } catch (err: any) {
-        console.error("Stripe usage error:", err);
-        return NextResponse.json({ error: err.message }, { status: 500 });
-    }
+      const { usage_type, quantity = 1, metadata = {} } = await req.json();
+      if (!usage_type) {
+          return NextResponse.json({ error: "Missing usage_type" }, { status: 400 });
+      }
+
+      const usageRecord = await reportUsageToStripe({
+          userId: user.id,
+          usageType: usage_type,
+          quantity,
+        metadata,
+    });
+
+      if (!usageRecord) {
+          return NextResponse.json(
+              { error: "No active subscription found" },
+              { status: 404 }
+          );
+      }
+
+      return NextResponse.json({ success: true, usageRecord });
+
+  } catch (err: any) {
+      console.error("Usage Reporting Error:", err);
+      return NextResponse.json({ error: err.message }, { status: 500 });
+  }
 }
