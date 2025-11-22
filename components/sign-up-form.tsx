@@ -81,7 +81,9 @@ export function SignUpForm({ className, ...props }: React.ComponentPropsWithoutR
                 {error && <p className="text-sm text-red-500">{error}</p>}
 
 
-                <SubscribeButton priceId={process.env.NEXT_PUBLIC_STRIPE_DEFAULT_PRICE_ID!} email={email} disabled={!email || isLoading}
+                <SubscribeButton
+                  email={email}
+                  disabled={!email || isLoading}
                 />
 
 

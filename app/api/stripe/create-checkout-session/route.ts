@@ -3,65 +3,50 @@ import { z } from "zod";
 import { stripe } from "@/lib/stripe";
 
 const CheckoutSessionSchema = z.object({
-    flatPriceId: z.string().min(1, "Flat price ID is required"),
-    meteredPriceId: z.string().min(1, "Metered price ID is required"),
-    email: z.string().email("Invalid email address"),
+    email: z.string().email(),
 });
 
 export async function POST(req: Request) {
     try {
-      const body = await req.json();
-      const validation = CheckoutSessionSchema.safeParse(body);
+        const body = await req.json();
+        const validation = CheckoutSessionSchema.safeParse(body);
 
-      if (!validation.success) {
-          const errorMessage = Object.values(validation.error.format())
-              .flatMap((e) => {
-                  if (Array.isArray(e)) {
-                      return e;
-                  }
-                  return e?._errors || [];
-              })
-              .filter(Boolean)
-              .join(", ");
-
-        return NextResponse.json({ error: errorMessage }, { status: 400 });
-    }
-
-      const { flatPriceId, meteredPriceId, email } = validation.data;
-
-      const [flatPrice, meteredPrice] = await Promise.all([
-          stripe.prices.retrieve(flatPriceId),
-          stripe.prices.retrieve(meteredPriceId),
-      ]);
-
-      if (!flatPrice.active || !meteredPrice.active) {
+        if (!validation.success) {
           return NextResponse.json(
-          { error: "One or more prices are inactive" },
+              { error: "Invalid email" },
           { status: 400 }
       );
     }
 
+        const { email } = validation.data;
+
       const session = await stripe.checkout.sessions.create({
           mode: "subscription",
           payment_method_types: ["card"],
+          customer_email: email,
+
+          // 👇 REQUIRED for subscription checkout
         line_items: [
-            { price: flatPriceId, quantity: 1 },
-            { price: meteredPriceId, quantity: 1 },
+            {
+                price: process.env.STRIPE_SUBSCRIPTION_PRICE_ID!, // $40/mo
+                quantity: 1,
+            },
+            {
+                price: process.env.STRIPE_METERED_PRICE_ID!, // $0.10 per unit
+
+            },
         ],
-        customer_email: email,
-        metadata: { email },
+
         success_url: `http://${process.env.NEXT_PUBLIC_BASE_URL}/auth/setup-password?session_id={CHECKOUT_SESSION_ID}&email=${encodeURIComponent(email)}`,
         cancel_url: `http://${process.env.NEXT_PUBLIC_BASE_URL}/sign-up?cancelled=true`,
     });
 
-      if (!session.url) {
-          throw new Error("Failed to create checkout session");
-      }
-
-      return NextResponse.json({ url: session.url, sessionId: session.id });
-  } catch (err: unknown) {
-      console.error("Checkout session error:", err);
-      const errorMessage = err instanceof Error ? err.message : "Internal server error";
-      return NextResponse.json({ error: errorMessage }, { status: 500 });
+        return NextResponse.json({ url: session.url });
+    } catch (error: any) {
+        console.error("Checkout session error:", error);
+        return NextResponse.json(
+            { error: error.message },
+            { status: 500 }
+        );
   }
 }
