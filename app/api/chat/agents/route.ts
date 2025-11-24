@@ -150,9 +150,8 @@ export async function POST(req: NextRequest) {
 
     void reportUsageToStripe({
       userId,
-      usageType: "ai_request",
+      usageType: "openai_usage", // match your Meter event_name
       quantity: 1,
-      metadata: { messages: messages.map((m: any) => m.content) },
     }).catch((err) => {
       console.error("Usage report failed (non-fatal):", err);
     });

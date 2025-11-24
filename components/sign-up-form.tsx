@@ -20,6 +20,7 @@ import { SubscribeButton } from './ui/SubscribeButton';
 
 export function SignUpForm({ className, ...props }: React.ComponentPropsWithoutRef<'div'>) {
   const [email, setEmail] = useState('')
+  const [name, setName] = useState('')
   const [password, setPassword] = useState('')
   const [repeatPassword, setRepeatPassword] = useState('')
   const [error, setError] = useState<string | null>(null)
@@ -40,9 +41,13 @@ export function SignUpForm({ className, ...props }: React.ComponentPropsWithoutR
 
     try {
       const { error } = await supabase.auth.signUp({
+
         email,
         password,
         options: {
+          data: {
+            name,
+          },
           emailRedirectTo: `${window.location.origin}/protected`,
         },
       })
@@ -67,6 +72,17 @@ export function SignUpForm({ className, ...props }: React.ComponentPropsWithoutR
             <form onSubmit={handleSignUp}>
               <div className="flex flex-col gap-6">
                 <div className="grid gap-2">
+                  <Label htmlFor="name">Name</Label>
+                  <Input
+                    id="name"
+                    type="name"
+                    placeholder="Michael Jordan"
+                    required
+                    value={name}
+                    onChange={(e) => setName(e.target.value)}
+                  />
+                </div>
+                <div className="grid gap-2">
                   <Label htmlFor="email">Email</Label>
                   <Input
                     id="email"
@@ -82,6 +98,7 @@ export function SignUpForm({ className, ...props }: React.ComponentPropsWithoutR
 
 
                 <SubscribeButton
+                  name={name}
                   email={email}
                   disabled={!email || isLoading}
                 />

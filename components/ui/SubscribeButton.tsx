@@ -5,10 +5,11 @@ import { useState } from "react";
 
 interface SubscribeButtonProps {
     email: string;
+    name: string;
     disabled: boolean;
 }
 
-export function SubscribeButton({ email, disabled }: SubscribeButtonProps) {
+export function SubscribeButton({ email, disabled, name }: SubscribeButtonProps) {
     const [isLoading, setIsLoading] = useState(false);
 
     const handleSubscribe = async () => {
@@ -23,6 +24,7 @@ export function SubscribeButton({ email, disabled }: SubscribeButtonProps) {
                     flatPriceId: process.env.NEXT_PUBLIC_STRIPE_FLAT_PRICE_ID,
                     meteredPriceId: process.env.NEXT_PUBLIC_STRIPE_METERED_PRICE_ID,
                     email,
+                    name,
                 }),
             });
 

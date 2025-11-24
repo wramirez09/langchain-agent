@@ -68,13 +68,13 @@ export async function POST(req: NextRequest) {
     // Report usage after generating the stream
     try {
       const supabase = createClient();
-      const { data: { user } } = await supabase.auth.getUser();
+      const { data: { user } } = await (await supabase).auth.getUser();
       if (user) {
         await reportUsageToStripe({
           userId: user.id,
-          usageType: "ai_request",
+          usageType: "openai_usage",
           quantity: 1,
-          metadata: { messages: messages.map((m: any) => m.content) },
+
         });
       }
     } catch (err) {
