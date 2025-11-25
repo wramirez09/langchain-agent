@@ -2,7 +2,6 @@ import { NextResponse } from "next/server";
 import { createSupabaseClient } from "@/utils/server";
 import { reportUsageToStripeServer } from "@/lib/reportToStripeServer";
 
-
 export async function POST(req: Request) {
     const supabase = await createSupabaseClient();
     const { data: { user } } = await supabase.auth.getUser();
