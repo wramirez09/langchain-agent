@@ -1,12 +1,17 @@
 // lib/usage.ts
 import { supabaseAdmin } from "@/lib/supabaseAdmin";
 import { stripe } from "@/lib/stripe";
+import Stripe from "stripe";
 
-export async function reportUsageToStripe({
+export async function reportUsage({
     userId,
     quantity = 1,
     usageType,
-}) {
+}: {
+    userId: string;
+    quantity?: number;
+    usageType: string;
+}): Promise<Stripe.Billing.MeterEvent | null> {
     const { data: subscription } = await supabaseAdmin
         .from("subscriptions")
         .select("stripe_customer_id, stripe_subscription_id, metered_item_id")

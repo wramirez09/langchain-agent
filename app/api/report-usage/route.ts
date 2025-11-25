@@ -1,10 +1,10 @@
 import { NextResponse } from "next/server";
 import { createClient } from "@/utils/server";
-import { reportUsageToStripe } from "@/lib/usage";
+import { reportUsage } from "@/lib/usage";
 
 export async function POST(req: Request) {
     try {
-        const supabase = createClient();
+        const supabase = await createClient();
         const { data: { user } } = await supabase.auth.getUser();
 
       if (!user) {
@@ -16,11 +16,10 @@ export async function POST(req: Request) {
           return NextResponse.json({ error: "Missing usage_type" }, { status: 400 });
       }
 
-      const usageRecord = await reportUsageToStripe({
+        const usageRecord = await reportUsage({
           userId: user.id,
           usageType: usage_type,
-          quantity,
-        metadata,
+            quantity,
     });
 
       if (!usageRecord) {

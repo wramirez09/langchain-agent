@@ -76,7 +76,7 @@ export async function POST(req: Request) {
     const arrayBuffer = await file.arrayBuffer();
     const buffer = Buffer.from(arrayBuffer);
 
-    const blob = new Blob([buffer], { type: file.type });
+    const blob = new Blob([buffer as BlobPart], { type: file.type });
     const loader = new PDFLoader(blob);
 
     const docs = await loader.load().catch(error => {

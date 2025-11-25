@@ -5,7 +5,7 @@ import { llmAgent } from "@/lib/llm";
 import { PromptTemplate } from "@langchain/core/prompts";
 import { HttpResponseOutputParser } from "langchain/output_parsers";
 import { createClient } from "@/utils/server";
-import { reportUsageToStripe } from "@/lib/usage";
+import { reportUsage } from "@/lib/usage";
 
 // export const runtime = "edge";
 
@@ -70,7 +70,7 @@ export async function POST(req: NextRequest) {
       const supabase = createClient();
       const { data: { user } } = await (await supabase).auth.getUser();
       if (user) {
-        await reportUsageToStripe({
+        await reportUsage({
           userId: user.id,
           usageType: "openai_usage",
           quantity: 1,

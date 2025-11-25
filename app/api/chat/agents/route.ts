@@ -19,7 +19,7 @@ import { CarelonSearchTool } from "./tools/carelon_tool";
 import { EvolentSearchTool } from "./tools/evolent_tool";
 import { FileUploadTool } from "./tools/fileUploadTool"; // Import the new FileUploadTool
 import { createClient } from "@/utils/server";
-import { reportUsageToStripe } from "@/lib/usage";
+import { reportUsage } from "@/lib/usage";
 
 const convertVercelMessageToLangChainMessage = (message: VercelChatMessage) => {
   if (message.role === "user") return new HumanMessage(message.content);
@@ -148,7 +148,7 @@ export async function POST(req: NextRequest) {
       messageModifier: new SystemMessage(AGENT_SYSTEM_TEMPLATE),
     });
 
-    void reportUsageToStripe({
+    void reportUsage({
       userId,
       usageType: "openai_usage", // match your Meter event_name
       quantity: 1,

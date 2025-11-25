@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { Suspense, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -13,7 +13,7 @@ import {
     CardDescription,
 } from "@/components/ui/card";
 
-export default function SetupPasswordPage() {
+function SetupPasswordPageCore() {
     const router = useRouter();
     const params = useSearchParams();
     const email = params.get("email");
@@ -87,7 +87,7 @@ export default function SetupPasswordPage() {
                         <Button
                             type="submit"
                             disabled={loading}
-                            className="w-full mt-2"
+                            className="w-full mt-2 bg-blue-600 hover:bg-blue-700"
                         >
                             {loading ? "Saving..." : "Finish Setup"}
                         </Button>
@@ -96,4 +96,8 @@ export default function SetupPasswordPage() {
             </Card>
         </div>
     );
+}
+
+export default function SetupPasswordPage() {
+    return <Suspense fallback={<div>Loading...</div>}><SetupPasswordPageCore /></Suspense>;
 }
