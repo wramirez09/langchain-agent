@@ -1,12 +1,12 @@
 import { NextResponse } from "next/server";
 
 import { stripe } from "@/lib/stripe";
-import { createClient } from "@/app/utils/server";
+import { createSupabaseClient } from "@/utils/server";
 
 export async function POST() {
     try {
         // 1. Get authenticated user via SSR client
-        const supabase = await createClient();
+        const supabase = await createSupabaseClient();
         const {
             data: { user },
             error: authError,
