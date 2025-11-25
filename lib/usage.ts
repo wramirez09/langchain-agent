@@ -1,11 +1,42 @@
 // lib/usage.ts
 import { supabaseAdmin } from "@/lib/supabaseAdmin";
 import { stripe } from "@/lib/stripe";
+import Stripe from "stripe";
+
+async function logUsageToSupabase({
+    userId,
+    quantity = 1,
+    usageType,
+    meterEvent,
+}: {
+    userId: string;
+    quantity?: number;
+    usageType: string;
+    meterEvent: Stripe.Billing.MeterEvent;
+}) {
+    try {
+        // log to usage_logs
+        await supabaseAdmin.from("usage_logs").insert({
+            user_id: userId,
+            usage_type: usageType,
+            quantity,
+            stripe_reported: true,
+            stripe_usage_id: meterEvent.identifier,
+        });
+        console.log("✅ Meter event sent to supabase:", meterEvent.identifier, usageType);
+    } catch (err) {
+        console.error("❌ Meter event failed:", err);
+    }
+}
 
 export async function reportUsageToStripe({
     userId,
     quantity = 1,
     usageType,
+}: {
+    userId: string;
+    quantity?: number;
+    usageType: string;
 }) {
     const { data: subscription } = await supabaseAdmin
         .from("subscriptions")
@@ -28,7 +59,7 @@ export async function reportUsageToStripe({
 
     try {
         const meterEvent = await stripe.billing.meterEvents.create({
-            event_name: "openai_usage", // your usage type
+            event_name: process.env.STRIPE_EVENT_NAME ?? "openai_usage"!,
             payload: {
                 stripe_customer_id,        // REQUIRED
                 subscription_id: stripe_subscription_id,
@@ -37,21 +68,25 @@ export async function reportUsageToStripe({
             },
         });
 
-        console.log("✅ Meter event sent:", meterEvent.identifier);
+        if (meterEvent) console.log("event sent to stripe", { meterEvent })
 
-        // optionally log to usage_logs
-        await supabaseAdmin.from("usage_logs").insert({
-            user_id: userId,
-        usage_type: usageType,
-        quantity,
-        stripe_reported: true,
-            stripe_usage_id: meterEvent.identifier,
-    });
+
+        logUsageToSupabase({
+            userId,
+            quantity,
+            usageType,
+            meterEvent,
+        });
 
         return meterEvent;
     } catch (err) {
         console.error("❌ Meter event failed:", err);
         return null;
     }
+
+
+
 }
+
+
 

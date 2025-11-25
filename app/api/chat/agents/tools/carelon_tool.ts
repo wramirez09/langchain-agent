@@ -3,6 +3,9 @@ import { StructuredTool, ToolRunnableConfig } from "@langchain/core/tools";
 import { createClient } from "@supabase/supabase-js";
 import { llmSummarizer } from "@/lib/llm";
 import { cleanRegex } from "./utils";
+import { createSupabaseClient } from "@/utils/server";
+import { reportUsageToStripe } from "@/lib/usage";
+
 
 // --- Supabase Client (server only) ---
 const supabaseUrl = process.env.SUPABASE_URL || "";
@@ -22,20 +25,16 @@ const CarelonSearchInputSchema = z.object({
 // --- Helper: LLM summarization of matched docs ---
 async function summarizeCarelonContent(content: string, query: string): Promise<string> {
   const safeContent = content.slice(0, 16000);
-
   const messages = [
     {
       role: "user" as const,
       content: `You are a coverage guideline assistant working with Carelon (AIM) policies.
-
-Summarize the following Carelon guideline content based ONLY on the user's query.
-Be factual, concise, and do not add information that is not explicitly supported by the text.
-
-User's Query:
-${query}
-
-Policy Content:
-${safeContent}
+      Summarize the following Carelon guideline content based ONLY on the user's query.
+      Be factual, concise, and do not add information that is not explicitly supported by the text.
+      User's Query:
+      ${query}
+      Policy Content:
+      ${safeContent}
 
 Return ONLY the final summary, without any preamble or commentary.`,
     },
@@ -43,6 +42,17 @@ Return ONLY the final summary, without any preamble or commentary.`,
 
   try {
     const response = await llmSummarizer.invoke(messages);
+    const supabase = await createSupabaseClient();
+    const { data: { user } } = await supabase.auth.getUser();
+    const userId = user?.id;
+    console.log("[CarelonSearchTool] User ID:", userId);
+    void reportUsageToStripe({
+      userId: userId!,
+      usageType: "carelon_search",
+      quantity: 1,
+    }).catch((err) => {
+      console.error("Usage report failed (non-fatal):", err);
+    });
     return response.content?.toString().trim() || "No summary generated.";
   } catch (err: any) {
     console.error("[CarelonSearchTool] Error during summarization:", err);

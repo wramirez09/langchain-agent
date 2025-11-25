@@ -4,11 +4,11 @@ import { ChatWindow } from "@/components/ChatWindow";
 import { redirect } from 'next/navigation'
 import logo from "@/public/images/logo-main.svg";
 import Image from "next/image";
-import { createClient } from '@/utils/server'
+import { createSupabaseClient } from '@/utils/server'
 
 
 export default async function Home() {
-    const supabase = await createClient()
+    const supabase = await createSupabaseClient()
 
     const { data, error } = await supabase.auth.getClaims();
     if (error || !data?.claims) {

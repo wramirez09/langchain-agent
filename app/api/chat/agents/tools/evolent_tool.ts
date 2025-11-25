@@ -3,6 +3,8 @@ import { StructuredTool, ToolRunnableConfig } from "@langchain/core/tools";
 import { createClient } from "@supabase/supabase-js";
 import { llmSummarizer } from "@/lib/llm";
 import { cleanRegex } from "./utils";
+import { createSupabaseClient } from "@/utils/server";
+import { reportUsageToStripe } from "@/lib/usage";
 
 // --- Supabase client (service role) ---
 const supabaseUrl = process.env.SUPABASE_URL || "";
@@ -29,22 +31,33 @@ async function summarizeEvolentContent(content: string, query: string): Promise<
       role: "user" as const,
       content: `You are a coverage guideline assistant working with Evolent policies.
 
-Summarize the following content based ONLY on the user's query.
-Be factual, concise, and do not add information that is not explicitly supported by the text.
+      Summarize the following content based ONLY on the user's query.
+      Be factual, concise, and do not add information that is not explicitly supported by the text.
 
-User's Query:
-${query}
+      User's Query:
+      ${query}
 
-Policy Content:
-${safeContent}
+      Policy Content:
+      ${safeContent}
 
-Return ONLY the summary (no intro, no commentary).`,
+      Return ONLY the summary (no intro, no commentary).`,
     },
   ];
 
 
   try {
     const response = await llmSummarizer.invoke(messages);
+    const supabase = await createSupabaseClient();
+    const { data: { user } } = await supabase.auth.getUser();
+    const userId = user?.id;
+    console.log("[EvolentSearchTool] User ID:", userId);
+    void reportUsageToStripe({
+      userId: userId!,
+      usageType: "evolent_search",
+      quantity: 1,
+    }).catch((err) => {
+      console.error("Usage report failed (non-fatal):", err);
+    });
     return response.content?.toString().trim() || "No summary generated.";
   } catch (err: any) {
     console.error("[EvolentSearchTool] Summarization error:", err);

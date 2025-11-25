@@ -4,6 +4,8 @@ import { StructuredTool } from "@langchain/core/tools";
 import * as cheerio from "cheerio";
 import { llmSummarizer } from "@/lib/llm";
 import { StructuredOutputParser } from "langchain/output_parsers";
+import { createSupabaseClient } from "@/utils/server";
+import { reportUsageToStripe } from "@/lib/usage";
 
 // ----------------------
 // Types & Schemas
@@ -41,7 +43,7 @@ const policyExtractionSchema = z.object({
   summary: z.string(),
 });
 
-const parser = StructuredOutputParser.fromZodSchema(policyExtractionSchema);
+const parser = StructuredOutputParser.fromZodSchema(policyExtractionSchema as any);
 
 // Tool input schema: only needs a URL
 const toolInputSchema = z.object({
@@ -113,7 +115,19 @@ export async function getStructuredPolicyDetails(
   try {
     const response = await llmSummarizer.invoke([{ role: "user", content: prompt }]);
     const rawText = response.content?.toString() ?? "";
-    return await parser.parse(rawText);
+    console.log("[PolicyContentExtractorTool] Raw Text:", rawText);
+    const supabase = await createSupabaseClient();
+    const { data: { user } } = await supabase.auth.getUser();
+    const userId = user?.id;
+    console.log("[PolicyContentExtractorTool] User ID:", userId);
+    void reportUsageToStripe({
+      userId: userId!,
+      usageType: "policy_content_extractor",
+      quantity: 1,
+    }).catch((err) => {
+      console.error("Usage report failed (non-fatal):", err);
+    });
+    return await parser.parse(rawText) as ExtractedPolicyDetails;
   } catch (error) {
     console.error("Error extracting policy details:", error);
     return null;

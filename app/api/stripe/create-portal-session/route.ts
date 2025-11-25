@@ -1,4 +1,5 @@
 import { stripe } from "@/lib/stripe";
+import { NextResponse } from "next/server";
 
 export async function POST(req: Request) {
     const { customerId } = await req.json();
@@ -8,5 +9,6 @@ export async function POST(req: Request) {
         return_url: process.env.NEXT_PUBLIC_SITE_URL,
     });
 
-    return Response.json({ url: session.url });
+    // return Response.json({ url: session.url });
+    return NextResponse.json({ url: session.url });
 }

@@ -18,7 +18,7 @@ import { policyContentExtractorTool } from "./tools/policyContentExtractorTool";
 import { CarelonSearchTool } from "./tools/carelon_tool";
 import { EvolentSearchTool } from "./tools/evolent_tool";
 import { FileUploadTool } from "./tools/fileUploadTool"; // Import the new FileUploadTool
-import { createClient } from "@/utils/server";
+import { createSupabaseClient } from "@/utils/server";
 import { reportUsageToStripe } from "@/lib/usage";
 
 const convertVercelMessageToLangChainMessage = (message: VercelChatMessage) => {
@@ -112,14 +112,11 @@ return as markdown
 `;
 
 export async function POST(req: NextRequest) {
-  const supabase = await createClient();
+
 
   try {
     // 1️⃣ Get authenticated user
-    const { data: { user } } = await supabase.auth.getUser();
 
-    if (!user) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-    const userId = user.id;
 
     // 2️⃣ Parse request body
     const body = await req.json();
@@ -147,14 +144,20 @@ export async function POST(req: NextRequest) {
       tools,
       messageModifier: new SystemMessage(AGENT_SYSTEM_TEMPLATE),
     });
-
+    // usage reporting
+    const supabase = await createSupabaseClient();
+    const { data: { user } } = await supabase.auth.getUser();
+    if (!user) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    const userId = user.id;
     void reportUsageToStripe({
       userId,
-      usageType: "openai_usage", // match your Meter event_name
+      usageType: "orchestrator_usage",
       quantity: 1,
     }).catch((err) => {
       console.error("Usage report failed (non-fatal):", err);
     });
+    // end usage reporting
+
 
     let responseData: any;
 

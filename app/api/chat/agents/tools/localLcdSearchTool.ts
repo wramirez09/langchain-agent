@@ -2,6 +2,8 @@
 import { z } from "zod";
 import { StructuredTool, Tool } from "@langchain/core/tools";
 import { llmSummarizer } from "@/lib/llm";
+import { createSupabaseClient } from "@/utils/server";
+import { reportUsageToStripe } from "@/lib/usage";
 
 // Input schema for the LCD search tool
 const LocalLcdSearchInputSchema = z.object({
@@ -70,6 +72,19 @@ class LocalLcdSearchTool extends StructuredTool<
       ];
 
       const summary = await llmSummarizer.invoke(messages);
+      const supabase = await createSupabaseClient();
+      const { data: { user } } = await supabase.auth.getUser();
+      const userId = user?.id;
+      console.log("[LocalLcdSearchTool] User ID:", userId);
+      void reportUsageToStripe({
+        userId: userId!,
+        usageType: "local_lcd_search",
+        quantity: 1,
+      }).catch((err) => {
+        console.error("Usage report failed (non-fatal):", err);
+      });
+      console.log("[LocalLcdSearchTool] Summary:", summary.content);
+
       return summary.content as string;
     } catch (error: any) {
       console.error("Error fetching and summarizing LCD:", error);

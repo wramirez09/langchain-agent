@@ -6,6 +6,8 @@ import { promises as fs } from "fs";
 import path from "path";
 import FormData from "form-data";
 import fetch from "cross-fetch";
+import { createSupabaseClient } from "@/utils/server";
+import { reportUsageToStripe } from "@/lib/usage";
 
 // The schema for the tool's input.
 const FileUploadToolInputSchema = z.object({
@@ -26,39 +28,37 @@ async function getSummaryFromDocs(
     {
       role: "system",
       content: `You are an expert healthcare documentation analyst. Your task is to analyze uploaded medical documents and extract the following key information in a structured format:
+      1. Treatment/Service: The specific medical treatment or procedure mentioned
+      2. CPT Code: Any CPT or HCPCS codes found
+      3. Diagnosis: The patient's diagnosis or condition
+      4. ICD-10 Code: Any ICD-10 diagnosis codes
+      5. Medical History: Summary of relevant clinical history and findings
+      6. Insurance: Mentioned insurance provider (if any)
+      7. State: Patient's state of residence (if mentioned)
 
-1. Treatment/Service: The specific medical treatment or procedure mentioned
-2. CPT Code: Any CPT or HCPCS codes found
-3. Diagnosis: The patient's diagnosis or condition
-4. ICD-10 Code: Any ICD-10 diagnosis codes
-5. Medical History: Summary of relevant clinical history and findings
-6. Insurance: Mentioned insurance provider (if any)
-7. State: Patient's state of residence (if mentioned)
-
-Format your response as a clear, well-structured markdown document. If information is missing, note it as "Not specified".`
+      Format your response as a clear, well-structured markdown document. If information is missing, note it as "Not specified".`
     },
     {
       role: "user",
       content: `Please analyze the following document and extract the relevant information as specified. 
+      Document Content:
+      ${content}
 
-Document Content:
-${content}
+      User's Query: ${query}
 
-User's Query: ${query}
+      Provide a detailed analysis including:
+      - All relevant medical codes
+      - Treatment details
+      - Diagnosis information
+      - Any prior authorization requirements
+      - Supporting clinical evidence
+      - Any other pertinent details
 
-Provide a detailed analysis including:
-- All relevant medical codes
-- Treatment details
-- Diagnosis information
-- Any prior authorization requirements
-- Supporting clinical evidence
-- Any other pertinent details
-
-Format your response in clear, well-structured markdown with appropriate headings.`
+      Format your response in clear, well-structured markdown with appropriate headings.`
     }
   ];
 
-  const payload = { contents: chatHistory };
+
   const apiKey = process.env.OPENAI_API_KEY; // Make sure this is set in your .env.local
   const apiUrl = "https://api.openai.com/v1/chat/completions";
 
@@ -91,12 +91,24 @@ Format your response in clear, well-structured markdown with appropriate heading
       result.candidates[0].content.parts &&
       result.candidates[0].content.parts.length > 0
     ) {
+
+      const supabase = await createSupabaseClient();
+      const { data: { user } } = await supabase.auth.getUser();
+      const userId = user?.id;
+      console.log("[FileUploadTool] User ID:", userId);
+      void reportUsageToStripe({
+        userId: userId!,
+        usageType: "file_upload_tool",
+        quantity: 1,
+      }).catch((err) => {
+        console.error("Usage report failed (non-fatal):", err);
+      });
       return result.candidates[0].content.parts[0].text;
     }
-    console.error("Gemini API response structure is unexpected.");
+    console.error("openAI response structure is unexpected.");
     return "Failed to generate a summary.";
   } catch (error) {
-    console.error("Error calling Gemini API for summarization:", error);
+    console.error("Error calling openAI for summarization:", error);
     return `An error occurred during summarization: ${(error as Error).message}`;
   }
 }
@@ -161,7 +173,7 @@ export class FileUploadTool extends StructuredTool<
 
       const response = await fetch(apiUrl, {
         method: "POST",
-        body: formData.getBuffer(),
+        body: formData.getBuffer() as any,
         headers: {
           ...formData.getHeaders(),
         },

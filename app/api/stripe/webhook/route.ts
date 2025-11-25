@@ -88,13 +88,14 @@ export async function POST(req: Request) {
                 licensedItemId = item.id;
             }
         }
-
-        const currentPeriodStart = subs.current_period_start
-            ? new Date(subs.current_period_start * 1000).toISOString()
+          const currentPeriodStart = subs.billing_cycle_anchor
+              ? new Date(subs.billing_cycle_anchor * 1000).toISOString()
             : null;
 
-        const currentPeriodEnd = subs.current_period_end
-            ? new Date(subs.current_period_end * 1000).toISOString()
+
+          subs.next_pending_invoice_item_invoice;
+          const currentPeriodEnd = subs.next_pending_invoice_item_invoice
+              ? new Date(subs.next_pending_invoice_item_invoice * 1000).toISOString()
             : null;
 
         /* ------------------------------------------------------------
@@ -110,7 +111,7 @@ export async function POST(req: Request) {
                 subscription_item_id: licensedItemId,
                 metered_item_id: meteredItemId,
                 status: subs.status,
-                current_period_start: currentPeriodStart,
+                    billing_cycle_anchor_config: currentPeriodStart,
                 current_period_end: currentPeriodEnd,
                 updated_at: new Date().toISOString(),
             },
@@ -148,23 +149,25 @@ export async function POST(req: Request) {
             else licensedItemId = item.id;
         }
 
-        const currentPeriodStart = subs.current_period_start
-            ? new Date(subs.current_period_start * 1000).toISOString()
+          const currentPeriodStart = subs.billing_cycle_anchor
+              ? new Date(subs.billing_cycle_anchor * 1000).toISOString()
             : null;
 
-        const currentPeriodEnd = subs.current_period_end
-            ? new Date(subs.current_period_end * 1000).toISOString()
+
+          subs.next_pending_invoice_item_invoice;
+          const currentPeriodEnd = subs.next_pending_invoice_item_invoice
+              ? new Date(subs.next_pending_invoice_item_invoice * 1000).toISOString()
             : null;
 
         await supabaseAdmin
             .from("subscriptions")
             .update({
                 status: subs.status,
-            subscription_item_id: licensedItemId,
-            metered_item_id: meteredItemId,
-            current_period_start: currentPeriodStart,
-            current_period_end: currentPeriodEnd,
-            updated_at: new Date().toISOString(),
+                subscription_item_id: licensedItemId,
+                metered_item_id: meteredItemId,
+                current_period_start: currentPeriodStart,
+                current_period_end: currentPeriodEnd,
+                updated_at: new Date().toISOString(),
         })
           .eq("stripe_subscription_id", subs.id);
 
