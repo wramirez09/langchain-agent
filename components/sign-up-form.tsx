@@ -15,9 +15,12 @@ import { Label } from '@/components/ui/label'
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
 import { useState } from 'react'
+import { Container } from 'lucide-react';
+import { SubscribeButton } from './ui/SubscribeButton';
 
 export function SignUpForm({ className, ...props }: React.ComponentPropsWithoutRef<'div'>) {
   const [email, setEmail] = useState('')
+  const [name, setName] = useState('')
   const [password, setPassword] = useState('')
   const [repeatPassword, setRepeatPassword] = useState('')
   const [error, setError] = useState<string | null>(null)
@@ -38,9 +41,13 @@ export function SignUpForm({ className, ...props }: React.ComponentPropsWithoutR
 
     try {
       const { error } = await supabase.auth.signUp({
+
         email,
         password,
         options: {
+          data: {
+            name,
+          },
           emailRedirectTo: `${window.location.origin}/protected`,
         },
       })
@@ -54,64 +61,60 @@ export function SignUpForm({ className, ...props }: React.ComponentPropsWithoutR
   }
 
   return (
-    <div className={cn('flex flex-col gap-6', className)} {...props}>
-      <Card>
-        <CardHeader>
-          <CardTitle className="text-2xl text-dark font-semibold">Sign up</CardTitle>
-          <CardDescription className="text-dark font-semibold">Create a new account</CardDescription>
-        </CardHeader>
-        <CardContent>
-          <form onSubmit={handleSignUp}>
-            <div className="flex flex-col gap-6">
-              <div className="grid gap-2">
-                <Label htmlFor="email">Email</Label>
-                <Input
-                  id="email"
-                  type="email"
-                  placeholder="m@example.com"
-                  required
-                  value={email}
-                  onChange={(e) => setEmail(e.target.value)}
-                />
-              </div>
-              <div className="grid gap-2">
-                <div className="flex items-center">
-                  <Label htmlFor="password">Password</Label>
+    <div className='min-h-screen flex items-center justify-center'>
+      <div className={cn('flex flex-col gap-6 w-full max-w-lg', className)} {...props}>
+        <Card>
+          <CardHeader>
+            <CardTitle className="text-2xl text-dark font-semibold">Sign up</CardTitle>
+            <CardDescription className="text-dark font-semibold">Create a new account</CardDescription>
+          </CardHeader>
+          <CardContent>
+            <form onSubmit={handleSignUp}>
+              <div className="flex flex-col gap-6">
+                <div className="grid gap-2">
+                  <Label htmlFor="name">Name</Label>
+                  <Input
+                    id="name"
+                    type="name"
+                    placeholder="Michael Jordan"
+                    required
+                    value={name}
+                    onChange={(e) => setName(e.target.value)}
+                  />
                 </div>
-                <Input
-                  id="password"
-                  type="password"
-                  required
-                  value={password}
-                  onChange={(e) => setPassword(e.target.value)}
-                />
-              </div>
-              <div className="grid gap-2">
-                <div className="flex items-center">
-                  <Label htmlFor="repeat-password">Repeat Password</Label>
+                <div className="grid gap-2">
+                  <Label htmlFor="email">Email</Label>
+                  <Input
+                    id="email"
+                    type="email"
+                    placeholder="m@example.com"
+                    required
+                    value={email}
+                    onChange={(e) => setEmail(e.target.value)}
+                  />
                 </div>
-                <Input
-                  id="repeat-password"
-                  type="password"
-                  required
-                  value={repeatPassword}
-                  onChange={(e) => setRepeatPassword(e.target.value)}
+
+                {error && <p className="text-sm text-red-500">{error}</p>}
+
+
+                <SubscribeButton
+                  name={name}
+                  email={email}
+                  disabled={!email || isLoading}
                 />
+
+
               </div>
-              {error && <p className="text-sm text-red-500">{error}</p>}
-              <Button type="submit" className="w-full bg-blue-600 text-white bg-gradient shadow-md hover:shadow-none transition duration-200 ease-in-out" disabled={isLoading}>
-                {isLoading ? 'Creating an account...' : 'Sign up'}
-              </Button>
-            </div>
-            <div className="mt-4 text-center text-sm font-semi-bold">
-              Already have an account?{' '}
-              <Link href="/auth/login" className="underline underline-offset-4">
-                Login
-              </Link>
-            </div>
-          </form>
-        </CardContent>
-      </Card>
+              <div className="mt-4 text-center text-sm font-semi-bold">
+                Already have an account?{' '}
+                <Link href="/auth/login" className="underline underline-offset-4">
+                  Login
+                </Link>
+              </div>
+            </form>
+          </CardContent>
+        </Card>
+      </div>
     </div>
   )
 }

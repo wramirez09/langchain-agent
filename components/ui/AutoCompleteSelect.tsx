@@ -24,13 +24,11 @@ import { useMediaQuery } from "@/utils/use-media-query";
 export function AutoCompleteSelect({
   options,
   onChange,
-  disabled = false,
 }: {
   options: SelectOption[];
   onChange: (value: string) => void;
-  disabled?: boolean;
 }) {
-  const [open, setOpen] = React.useState(false);
+  const [open, setOpen] = React.useState(true);
   const isDesktop = useMediaQuery("(min-width: 768px)");
   const [selectedStatus, setSelectedStatus] =
     React.useState<SelectOption | null>(null);
@@ -101,7 +99,6 @@ export function AutoCompleteSelect({
               setSelectedStatus={setSelectedStatus}
               options={options}
               onChange={onChange}
-              disabled={disabled}
             />
           </div>
         </div>
@@ -116,14 +113,12 @@ export function StatusList({
   options = [],
   onChange,
   showSearch = true,
-  disabled = false,
 }: {
   setOpen: (open: boolean) => void;
   setSelectedStatus?: (status: SelectOption | null) => void;
   options: SelectOption[];
   onChange: (value: string) => void;
   showSearch?: boolean;
-  disabled?: boolean;
 }) {
   return (
     <Command
@@ -170,7 +165,7 @@ export function StatusList({
             <CommandItem
               key={option.value}
               value={option.value}
-              disabled={option.isEnabled === false}
+              // disabled={option?.isEnabled === false}
               onSelect={() => {
                 setSelectedStatus?.(option);
                 onChange(option.value);

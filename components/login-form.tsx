@@ -30,7 +30,7 @@ export function LoginForm({ className, ...props }: React.ComponentPropsWithoutRe
         password,
       });
       if (error) throw error;
-      router.push('/preAuth');
+      router.push('/protected/preAuth');
     } catch (error: unknown) {
       setError(error instanceof Error ? error.message : 'An error occurred');
       setIsLoading(false);
@@ -42,6 +42,7 @@ export function LoginForm({ className, ...props }: React.ComponentPropsWithoutRe
       <LoadingOverlay isLoading={isLoading} />
       <form onSubmit={handleLogin}>
         <div className="space-y-4">
+
           <div className="space-y-2">
             <Label htmlFor="email" className="text-sm font-medium">
               Email

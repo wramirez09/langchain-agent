@@ -10,14 +10,14 @@ import { createClient } from '@/utils/server'
 export default async function Home() {
     const supabase = await createClient()
 
-    const { data, error } = await supabase.auth.getClaims()
+    const { data, error } = await supabase.auth.getClaims();
     if (error || !data?.claims) {
         redirect('/auth/login')
     }
 
     return (
         <ChatWindow
-            endpoint="api/chat/agents"
+            endpoint="/api/chat/agents"
             placeholder=""
             showIngestForm
             showIntermediateStepsToggle

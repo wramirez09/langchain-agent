@@ -41,7 +41,7 @@ const policyExtractionSchema = z.object({
   summary: z.string(),
 });
 
-const parser = StructuredOutputParser.fromZodSchema(policyExtractionSchema);
+const parser = StructuredOutputParser.fromZodSchema(policyExtractionSchema as any);
 
 // Tool input schema: only needs a URL
 const toolInputSchema = z.object({
@@ -113,7 +113,7 @@ export async function getStructuredPolicyDetails(
   try {
     const response = await llmSummarizer.invoke([{ role: "user", content: prompt }]);
     const rawText = response.content?.toString() ?? "";
-    return await parser.parse(rawText);
+    return await parser.parse(rawText) as ExtractedPolicyDetails;
   } catch (error) {
     console.error("Error extracting policy details:", error);
     return null;

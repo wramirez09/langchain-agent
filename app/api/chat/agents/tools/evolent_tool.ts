@@ -42,6 +42,7 @@ Return ONLY the summary (no intro, no commentary).`,
     },
   ];
 
+
   try {
     const response = await llmSummarizer.invoke(messages);
     return response.content?.toString().trim() || "No summary generated.";

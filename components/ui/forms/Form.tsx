@@ -11,6 +11,7 @@ import { createClient } from '@/utils/client'
 
 
 
+
 type Props = {
   onStateFormStateChange: (key: string, value: string) => void;
   chatOnChange: ChangeEventHandler<HTMLTextAreaElement>;
@@ -92,7 +93,6 @@ const FormInputs: React.FC<Props> = (props: Props) => {
           <AutoCompleteSelect
             options={guidelinesoptins}
             onChange={handleInsuranceSelectChange}
-
           />
         </div>
         <div>

@@ -4,6 +4,8 @@ import { Message as VercelChatMessage, StreamingTextResponse } from "ai";
 import { llmAgent } from "@/lib/llm";
 import { PromptTemplate } from "@langchain/core/prompts";
 import { HttpResponseOutputParser } from "langchain/output_parsers";
+import { createClient } from "@/utils/server";
+import { reportUsage } from "@/lib/usage";
 
 // export const runtime = "edge";
 
@@ -62,6 +64,22 @@ export async function POST(req: NextRequest) {
       chat_history: formattedPreviousMessages.join("\n"),
       input: currentMessageContent,
     });
+
+    // Report usage after generating the stream
+    try {
+      const supabase = createClient();
+      const { data: { user } } = await (await supabase).auth.getUser();
+      if (user) {
+        await reportUsage({
+          userId: user.id,
+          usageType: "openai_usage",
+          quantity: 1,
+
+        });
+      }
+    } catch (err) {
+      console.error("Failed to report usage from /api/chat:", err);
+    }
 
     return new StreamingTextResponse(stream);
   } catch (e: any) {
