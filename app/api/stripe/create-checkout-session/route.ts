@@ -33,8 +33,8 @@ export async function POST(req: Request) {
             { price: process.env.STRIPE_METERED_PRICE_ID! },
         ],
 
-        success_url: `http://${process.env.NEXT_PUBLIC_BASE_URL}/auth/setup-password?session_id={CHECKOUT_SESSION_ID}&email=${encodeURIComponent(email)}`,
-        cancel_url: `http://${process.env.NEXT_PUBLIC_BASE_URL}/sign-up?cancelled=true`,
+            success_url: `http://${process.env.NODE_ENV === 'development' ? 'preauthproduction-git-dev-center-point-digital.vercel.app' : process.env.NEXT_PUBLIC_BASE_URL}/auth/setup-password?session_id={CHECKOUT_SESSION_ID}&email=${encodeURIComponent(email)}`,
+            cancel_url: `http://${process.env.NODE_ENV === 'development' ? 'preauthproduction-git-dev-center-point-digital.vercel.app' : process.env.NEXT_PUBLIC_BASE_URL}/sign-up?cancelled=true`,
     });
 
         return NextResponse.json({ url: session?.url });
