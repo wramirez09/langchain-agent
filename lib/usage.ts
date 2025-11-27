@@ -1,6 +1,6 @@
 // lib/usage.ts
 import { supabaseAdmin } from "@/lib/supabaseAdmin";
-import { stripe } from "@/lib/stripe";
+import stripe from "@/lib/stripe";
 import Stripe from "stripe";
 
 export async function reportUsage({
@@ -11,7 +11,7 @@ export async function reportUsage({
     userId: string;
     quantity?: number;
     usageType: string;
-}): Promise<Stripe.Billing.MeterEvent | null> {
+    }): Promise<Stripe.Billing.MeterEvent | null | undefined> {
     const { data: subscription } = await supabaseAdmin
         .from("subscriptions")
         .select("stripe_customer_id, stripe_subscription_id, metered_item_id")
@@ -31,6 +31,7 @@ export async function reportUsage({
         return null;
     }
 
+    if (stripe)
     try {
         const meterEvent = await stripe.billing.meterEvents.create({
             event_name: "openai_usage", // your usage type

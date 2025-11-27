@@ -1,8 +1,8 @@
-import { stripe } from "@/lib/stripe";
+import stripe from "@/lib/stripe";
 
 export async function reportUsageToStripeServer(subscriptionItemId: string, quantity = 1) {
     // Type assertion fixes TS error
-    const usageRecord = await (stripe.subscriptionItems as any).createUsageRecord(
+    const usageRecord = await (stripe?.subscriptionItems as any).createUsageRecord(
         subscriptionItemId,
         {
             quantity,

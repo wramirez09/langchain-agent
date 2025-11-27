@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 
-import { stripe } from "@/lib/stripe";
+import stripe from "@/lib/stripe";
 import { createClient } from "@/app/utils/server";
 
 export async function POST() {
@@ -33,14 +33,14 @@ export async function POST() {
         const customerId = profile.stripe_customer_id;
 
         // 3. Create Stripe Billing Portal Session
-        const portalSession = await stripe.billingPortal.sessions.create({
+        const portalSession = await stripe?.billingPortal.sessions.create({
             customer: customerId,
             return_url:
                 process.env.STRIP_BILLING_RETURN_URL ||
                 process.env.NEXT_PUBLIC_SITE_URL
         });
 
-        return NextResponse.json({ url: portalSession.url });
+        return NextResponse.json({ url: portalSession?.url });
     } catch (error) {
         console.error("Stripe Portal Error:", error);
         return NextResponse.json(
