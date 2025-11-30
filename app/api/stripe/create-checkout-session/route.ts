@@ -10,6 +10,7 @@ const CheckoutSessionSchema = z.object({
 const getsuccessUrl = (email: string) => {
 
     if (process.env.NEXT_PUBLIC_BASE_URL) {
+        console.log("getsuccessUrl", process.env.NODE_ENV);
         if (process.env.NODE_ENV === "development") {
             return `http://${process.env.NEXT_PUBLIC_BASE_URL}/auth/setup-password?session_id={CHECKOUT_SESSION_ID}&email=${encodeURIComponent(email)}`;
         } else if (process.env.NODE_ENV === "production") {
@@ -23,6 +24,7 @@ const getsuccessUrl = (email: string) => {
 };
 
 const getCancelUrl = (email: string) => {
+    console.log("getCancelUrl", process.env.NODE_ENV);
     if (process.env.NEXT_PUBLIC_BASE_URL) {
         if (process.env.NODE_ENV === "development") {
             return `http://${process.env.NEXT_PUBLIC_BASE_URL}/sign-up?cancelled=true`;
