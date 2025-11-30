@@ -1,52 +1,15 @@
 import { NextResponse } from "next/server";
 import { z } from "zod";
-import stripe from "@/lib/stripe";
+import { getStripe } from "@/lib/stripe";
 
 const CheckoutSessionSchema = z.object({
     email: z.string().email(),
     name: z.string().min(1), // NEW
 });
 
-const getsuccessUrl = (email: string) => {
-
-        switch (process.env.NODE_ENV as string) {
-            case "development":
-                return `http://${process.env.NEXT_PUBLIC_BASE_URL}/auth/setup-password?session_id={CHECKOUT_SESSION_ID}&email=${encodeURIComponent(email)}`;
-
-            case "review":
-                return `https://${process.env.NEXT_PUBLIC_BASE_URL_PREVIEW}/auth/setup-password?session_id={CHECKOUT_SESSION_ID}&email=${encodeURIComponent(email)}`;
-
-            case "production":
-                return `https://${process.env.NEXT_PUBLIC_BASE_URL_PROD}/auth/setup-password?session_id={CHECKOUT_SESSION_ID}&email=${encodeURIComponent(email)}`;
-
-            default:
-                return `http://${process.env.NEXT_PUBLIC_BASE_URL}/auth/setup-password?session_id={CHECKOUT_SESSION_ID}&email=${encodeURIComponent(email)}`;
-
-        }
-
-    }
-
-const getCancelUrl = () => {
-
-    switch (process.env.NODE_ENV as string) {
-        case "development":
-            return `http://${process.env.NEXT_PUBLIC_BASE_URL}/sign-up?cancelled=true`;
-
-        case "preview":
-            return `https://${process.env.NEXT_PUBLIC_BASE_URL_PREVIEW}/sign-up?cancelled=true`;
-
-        case "production":
-            return `https://${process.env.NEXT_PUBLIC_BASE_URL_PROD}/sign-up?cancelled=true`;
-
-        default:
-            return `https://${process.env.NEXT_PUBLIC_BASE_URL_PREVIEW}/sign-up?cancelled=true`;
-
-    }
-
-};
 
 export async function POST(req: Request) {
-    console.log("req", req);
+    const stripe = getStripe();
     try {
         const body = await req.json();
         const validation = CheckoutSessionSchema.safeParse(body);
@@ -56,19 +19,14 @@ export async function POST(req: Request) {
         }
 
         const { email, name } = validation.data;
-        console.log('Environment:', {
-            nodeEnv: process.env.NODE_ENV,
-            successUrl: getsuccessUrl(email),
-            stripeKey: process.env.STRIPE_SECRET_KEY ? 'Set' : 'Missing',
-            key: process.env.STRIPE_SECRET_KEY,
-        });
+
         // Reuse existing customer if any, otherwise create one with name
         const existing = await stripe?.customers.list({ email, limit: 1 });
         const customer =
             existing?.data[0] ?? (await stripe?.customers.create({ email, name }));
 
 
-        const session = await stripe?.checkout.sessions.create({
+        const session: any = await stripe?.checkout.sessions.create({
             mode: "subscription",
             payment_method_types: ["card"],
             customer: customer?.id, // ensures name is known to Checkout
@@ -78,10 +36,10 @@ export async function POST(req: Request) {
                 { price: process.env.STRIPE_METERED_PRICE_ID },
             ],
 
-            success_url: getsuccessUrl(email),
-            cancel_url: getCancelUrl(),
+            success_url: `https://${process.env.NEXT_PUBLIC_BASE_URL_PROD}/auth/setup-password?session_id={CHECKOUT_SESSION_ID}&email=${encodeURIComponent(email)}`,
+            cancel_url: `https://${process.env.NEXT_PUBLIC_BASE_URL_PROD}/sign-up?cancelled=true`,
         });
-        console.log('Created session:', session?.id);
+
 
         if (!session?.url) {
             throw new Error('Failed to create checkout session: No URL returned from Stripe');
