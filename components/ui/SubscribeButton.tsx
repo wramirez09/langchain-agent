@@ -28,6 +28,8 @@ export function SubscribeButton({ email, disabled, name }: SubscribeButtonProps)
                 }),
             });
 
+            console.log("res", res);
+
             if (!res.ok) {
                 throw new Error(`HTTP error! status: ${res.status}`);
             }
