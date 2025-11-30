@@ -111,7 +111,7 @@ export async function getStructuredPolicyDetails(
   - Ensure all dates, codes, and requirements are accurately extracted`;
 
   try {
-    const response = await llmSummarizer.invoke([{ role: "user", content: prompt }]);
+    const response = await llmSummarizer("policy-content-extractor-summerizer").invoke([{ role: "user", content: prompt }]);
     const rawText = response.content?.toString() ?? "";
     return await parser.parse(rawText) as ExtractedPolicyDetails;
   } catch (error) {

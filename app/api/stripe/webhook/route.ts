@@ -8,7 +8,7 @@ const endpointSecret = process.env.STRIPE_WEBHOOK_SECRET!;
 console.log("endpointSecret", endpointSecret)
 
 export async function POST(req: Request) {
-    console.log("webhook", { req })
+
     const body = await req.text();
     const sig = req.headers.get("stripe-signature");
 
@@ -80,12 +80,12 @@ export async function POST(req: Request) {
                 for (const item of subs?.items?.data) {
                     const usageType = item?.price?.recurring?.usage_type;
 
-                if (usageType === "metered") {
-                    meteredItemId = item.id;
-                } else {
-                    licensedItemId = item.id;
+                    if (usageType === "metered") {
+                        meteredItemId = item.id;
+                    } else {
+                        licensedItemId = item.id;
+                    }
                 }
-            }
 
             const currentPeriodStart = (subs as any).current_period_start
                 ? new Date((subs as any).current_period_start * 1000).toISOString()

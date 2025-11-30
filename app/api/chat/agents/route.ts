@@ -143,14 +143,14 @@ export async function POST(req: NextRequest) {
 
     // 5️⃣ Create LangGraph agent
     const agent = createReactAgent({
-      llm: llmAgent,
+      llm: llmAgent("orchestrator"),
       tools,
       messageModifier: new SystemMessage(AGENT_SYSTEM_TEMPLATE),
     });
 
     void reportUsage({
       userId,
-      usageType: process.env.STRIPE_METER_EVENT_NAME!, // match your Meter event_name
+      usageType: "orchestrator", // match your Meter event_name
       quantity: 1,
     }).catch((err) => {
       console.error("Usage report failed (non-fatal):", err);

@@ -7,6 +7,34 @@ const CheckoutSessionSchema = z.object({
     name: z.string().min(1), // NEW
 });
 
+const getsuccessUrl = (email: string) => {
+
+    if (process.env.NEXT_PUBLIC_BASE_URL) {
+        if (process.env.NODE_ENV === "development") {
+            return `http://${process.env.NEXT_PUBLIC_BASE_URL}/auth/setup-password?session_id={CHECKOUT_SESSION_ID}&email=${encodeURIComponent(email)}`;
+        } else if (process.env.NODE_ENV === "production") {
+            return `https://${process.env.NEXT_PUBLIC_BASE_URL_PROD}/auth/setup-password?session_id={CHECKOUT_SESSION_ID}&email=${encodeURIComponent(email)}`;
+        }
+        else {
+            return `https://localhost:3000/auth/setup-password?session_id={CHECKOUT_SESSION_ID}&email=${encodeURIComponent(email)}`;
+        }
+    }
+
+};
+
+const getCancelUrl = (email: string) => {
+    if (process.env.NEXT_PUBLIC_BASE_URL) {
+        if (process.env.NODE_ENV === "development") {
+            return `http://${process.env.NEXT_PUBLIC_BASE_URL}/sign-up?cancelled=true`;
+        } else if (process.env.NODE_ENV === "production") {
+            return `https://${process.env.NEXT_PUBLIC_BASE_URL_PROD}/sign-up?cancelled=true`;
+        }
+        else {
+            return `https://localhost:3000/sign-up?cancelled=true`;
+        }
+    }
+};
+
 export async function POST(req: Request) {
     try {
         const body = await req.json();
@@ -23,6 +51,7 @@ export async function POST(req: Request) {
         const customer =
             existing?.data[0] ?? (await stripe?.customers.create({ email, name }));
 
+
         const session = await stripe?.checkout.sessions.create({
             mode: "subscription",
             payment_method_types: ["card"],
@@ -33,8 +62,8 @@ export async function POST(req: Request) {
                 { price: process.env.STRIPE_METERED_PRICE_ID },
             ],
 
-            success_url: `http://${process.env.NEXT_PUBLIC_BASE_URL}/auth/setup-password?session_id={CHECKOUT_SESSION_ID}&email=${encodeURIComponent(email)}`,
-            cancel_url: `http://${process.env.NEXT_PUBLIC_BASE_URL}/sign-up?cancelled=true`,
+            success_url: getsuccessUrl(email),
+            cancel_url: getCancelUrl(email),
         });
 
         return NextResponse.json({ url: session?.url });

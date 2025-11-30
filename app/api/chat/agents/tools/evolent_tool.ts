@@ -44,7 +44,7 @@ Return ONLY the summary (no intro, no commentary).`,
 
 
   try {
-    const response = await llmSummarizer.invoke(messages);
+    const response = await llmSummarizer("carelon").invoke(messages);
     return response.content?.toString().trim() || "No summary generated.";
   } catch (err: any) {
     console.error("[EvolentSearchTool] Summarization error:", err);

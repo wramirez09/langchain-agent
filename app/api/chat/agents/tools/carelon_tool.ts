@@ -1,7 +1,6 @@
 import { z } from "zod";
 import { StructuredTool, ToolRunnableConfig } from "@langchain/core/tools";
 import { createClient } from "@supabase/supabase-js";
-import { llmSummarizer } from "@/lib/llm";
 import { cleanRegex } from "./utils";
 
 // --- Supabase Client (server only) ---
@@ -18,37 +17,6 @@ const CarelonSearchInputSchema = z.object({
     .min(3, "Query must be at least 3 characters long.")
     .describe("The disease, test, or treatment query to search for in Carelon guidelines."),
 });
-
-// --- Helper: LLM summarization of matched docs ---
-async function summarizeCarelonContent(content: string, query: string): Promise<string> {
-  const safeContent = content.slice(0, 16000);
-
-  const messages = [
-    {
-      role: "user" as const,
-      content: `You are a coverage guideline assistant working with Carelon (AIM) policies.
-
-Summarize the following Carelon guideline content based ONLY on the user's query.
-Be factual, concise, and do not add information that is not explicitly supported by the text.
-
-User's Query:
-${query}
-
-Policy Content:
-${safeContent}
-
-Return ONLY the final summary, without any preamble or commentary.`,
-    },
-  ];
-
-  try {
-    const response = await llmSummarizer.invoke(messages);
-    return response.content?.toString().trim() || "No summary generated.";
-  } catch (err: any) {
-    console.error("[CarelonSearchTool] Error during summarization:", err);
-    return "Failed to generate summary from Carelon guidelines.";
-  }
-}
 
 // --- Utility: build fuzzy terms from query ---
 function buildFuzzyTerms(query: string): string[] {
@@ -134,12 +102,6 @@ export class CarelonSearchTool extends StructuredTool<typeof CarelonSearchInputS
         // Log docs used
         console.log("[CarelonSearchTool] Using FTS docs:", ftsResults.map(d => d.id));
 
-        const combinedContent = ftsResults
-          .map(d => (d.content || "").replace(cleanRegex, "").replace(/\s+/g, " "))
-          .join(" ");
-
-        const summary = await summarizeCarelonContent(combinedContent, query);
-
         const sourceLines = ftsResults
           .map(
             d =>
@@ -149,12 +111,10 @@ export class CarelonSearchTool extends StructuredTool<typeof CarelonSearchInputS
 
         return `### Carelon Coverage Summary for: "${query}"
 
-**Policies used (Carelon docs):**
-${sourceLines}
-
----
-
-${summary}`;
+        **Policies used (Carelon docs):**
+        ${sourceLines}
+        ---
+        `;
       }
 
       // ----------------------------------------------------
@@ -195,10 +155,10 @@ ${summary}`;
       if (!fuzzyResults || fuzzyResults.length === 0) {
         return `I couldn't find any Carelon guidelines related to **"${query}"**.
 
-To help locate the correct policy, please provide:
-- The exact procedure/test name
-- The body area (e.g., brain, spine, abdomen, pelvis, cardiac, etc.)
-- Or a CPT/HCPCS or ICD-10 code.`;
+        To help locate the correct policy, please provide:
+        - The exact procedure/test name
+        - The body area (e.g., brain, spine, abdomen, pelvis, cardiac, etc.)
+        - Or a CPT/HCPCS or ICD-10 code.`;
       }
 
       // Build short previews from fuzzy matches (no summarization yet)
@@ -236,25 +196,25 @@ To help locate the correct policy, please provide:
 
       return `### I couldn't find a clear Carelon policy exactly matching: **"${query}"**
 
-However, these Carelon documents contain related terms:
+      However, these Carelon documents contain related terms:
 
 ${previews
           .map(
             p =>
               `- **${p.source}** (ID: ${p.id})  
-  _Excerpt:_ “…${p.excerpt}”`
+            _Excerpt:_ “…${p.excerpt}”`
           )
           .join("\n\n")}
 
----
+          ---
 
-To narrow this down and pull the correct guideline, please tell me **a bit more** about what you're looking for, such as:
+          To narrow this down and pull the correct guideline, please tell me **a bit more** about what you're looking for, such as:
 
-- The specific test/procedure name  
-- The body region or clinical context  
-- Or a CPT/HCPCS / ICD-10 code
+          - The specific test/procedure name  
+          - The body region or clinical context  
+          - Or a CPT/HCPCS / ICD-10 code
 
-With that information, I can search the Carelon policies again and provide a focused coverage summary.`;
+          With that information, I can search the Carelon policies again and provide a focused coverage summary.`;
     } catch (err: any) {
       console.error("[CarelonSearchTool] Unhandled error:", err);
       return `An error occurred while searching Carelon guidelines: ${err.message}`;

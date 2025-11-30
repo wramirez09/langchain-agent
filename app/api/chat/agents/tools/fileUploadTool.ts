@@ -73,7 +73,7 @@ Format your response in clear, well-structured markdown with appropriate heading
         "Authorization": `Bearer ${apiKey}`
       },
       body: JSON.stringify({
-        model: "gpt-4-turbo-preview", // or "gpt-3.5-turbo" for a more cost-effective option
+        model: "gpt-4o", // or "gpt-3.5-turbo" for a more cost-effective option
         messages: chatHistory,
         temperature: 0.7,
         max_tokens: 1000
@@ -161,7 +161,7 @@ export class FileUploadTool extends StructuredTool<
 
       const response = await fetch(apiUrl, {
         method: "POST",
-        body: formData.getBuffer(),
+        body: formData.getBuffer() as any,
         headers: {
           ...formData.getHeaders(),
         },

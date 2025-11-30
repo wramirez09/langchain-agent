@@ -69,7 +69,7 @@ class LocalLcdSearchTool extends StructuredTool<
         } // Limiting length to avoid token limits
       ];
 
-      const summary = await llmSummarizer.invoke(messages);
+      const summary = await llmSummarizer("local-lcd-search-summerizer").invoke(messages);
       return summary.content as string;
     } catch (error: any) {
       console.error("Error fetching and summarizing LCD:", error);

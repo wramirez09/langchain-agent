@@ -58,7 +58,7 @@ export async function POST(req: NextRequest) {
      * import { RunnableSequence } from "@langchain/core/runnables";
      * const chain = RunnableSequence.from([prompt, model, outputParser]);
      */
-    const chain = prompt.pipe(llmAgent).pipe(outputParser);
+    const chain = prompt.pipe(llmAgent()).pipe(outputParser);
 
     const stream = await chain.stream({
       chat_history: formattedPreviousMessages.join("\n"),
@@ -72,7 +72,7 @@ export async function POST(req: NextRequest) {
       if (user) {
         await reportUsage({
           userId: user.id,
-          usageType: process.env.STRIPE_METER_EVENT_NAME!,
+          usageType: "chat",
           quantity: 1,
 
         });

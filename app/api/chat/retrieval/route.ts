@@ -75,7 +75,7 @@ export async function POST(req: NextRequest) {
     const previousMessages = messages.slice(0, -1);
     const currentMessageContent = messages[messages.length - 1].content;
 
-    const model = llmAgent;
+    const model = llmAgent("retrieval");
 
     const client = createClient(
       process.env.SUPABASE_URL!,

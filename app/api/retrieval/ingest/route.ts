@@ -130,7 +130,7 @@ Document Content to Analyze:
 ${splitDocs.slice(0, 5).map(doc => doc.pageContent).join("\n\n---\n\n")}`;
 
     // Invoke the agent with the prompt
-    const result = await llmAgent.invoke([
+    const result = await llmAgent("ingest").invoke([
       new HumanMessage({ content: queryPrompt }),
     ]);
 
