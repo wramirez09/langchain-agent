@@ -29,9 +29,9 @@ const getsuccessUrl = (email: string) => {
 
     }
 
-};
 
-const getCancelUrl = (email: string) => {
+
+const getCancelUrl = () => {
 
     switch (process.env.NODE_ENV as string) {
         case "development":
@@ -77,7 +77,7 @@ export async function POST(req: Request) {
             ],
 
             success_url: getsuccessUrl(email),
-            cancel_url: getCancelUrl(email),
+            cancel_url: getCancelUrl(),
         });
 
         return NextResponse.json({ url: session?.url });
