@@ -11,30 +11,46 @@ const getsuccessUrl = (email: string) => {
 
     if (process.env.NEXT_PUBLIC_BASE_URL) {
         console.log("getsuccessUrl", process.env.NODE_ENV);
-        if (process.env.NODE_ENV === "development" || (process.env.NODE_ENV as unknown as string) === "preview") {
-            return `http://${process.env.NEXT_PUBLIC_BASE_URL}/auth/setup-password?session_id={CHECKOUT_SESSION_ID}&email=${encodeURIComponent(email)}`;
-        } else if (process.env.NODE_ENV === "production") {
-            return `https://${process.env.NEXT_PUBLIC_BASE_URL_PROD}/auth/setup-password?session_id={CHECKOUT_SESSION_ID}&email=${encodeURIComponent(email)}`;
+
+        switch (process.env.NODE_ENV as string) {
+            case "development":
+                return `http://${process.env.NEXT_PUBLIC_BASE_URL}/auth/setup-password?session_id={CHECKOUT_SESSION_ID}&email=${encodeURIComponent(email)}`;
+
+                break;
+            case "preview":
+                return `https://${process.env.NEXT_PUBLIC_BASE_URL_PREVIEW}/auth/setup-password?session_id={CHECKOUT_SESSION_ID}&email=${encodeURIComponent(email)}`;
+
+                break;
+            case "production":
+                return `https://${process.env.NEXT_PUBLIC_BASE_URL_PROD}/auth/setup-password?session_id={CHECKOUT_SESSION_ID}&email=${encodeURIComponent(email)}`;
+
+                break;
+            default:
+                return `http://${process.env.NEXT_PUBLIC_BASE_URL}/auth/setup-password?session_id={CHECKOUT_SESSION_ID}&email=${encodeURIComponent(email)}`;
+                break;
         }
-        else {
-            return `https://localhost:3000/auth/setup-password?session_id={CHECKOUT_SESSION_ID}&email=${encodeURIComponent(email)}`;
-        }
+
     }
 
 };
 
 const getCancelUrl = (email: string) => {
     console.log("getCancelUrl", process.env.NODE_ENV);
-    if (process.env.NEXT_PUBLIC_BASE_URL) {
-        if (process.env.NODE_ENV === "development" || (process.env.NODE_ENV as unknown as string) === "preview") {
+
+    switch (process.env.NODE_ENV as string) {
+        case "development":
             return `http://${process.env.NEXT_PUBLIC_BASE_URL}/sign-up?cancelled=true`;
-        } else if (process.env.NODE_ENV === "production") {
+            break;
+        case "preview":
+            return `https://${process.env.NEXT_PUBLIC_BASE_URL_PREVIEW}/sign-up?cancelled=true`;
+            break;
+        case "production":
             return `https://${process.env.NEXT_PUBLIC_BASE_URL_PROD}/sign-up?cancelled=true`;
-        }
-        else {
-            return `https://localhost:3000/sign-up?cancelled=true`;
-        }
+            break;
+        default:
+            break;
     }
+
 };
 
 export async function POST(req: Request) {
