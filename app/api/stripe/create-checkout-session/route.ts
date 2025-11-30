@@ -58,8 +58,9 @@ export async function POST(req: Request) {
         const { email, name } = validation.data;
         console.log('Environment:', {
             nodeEnv: process.env.NODE_ENV,
-            baseUrl: process.env.NEXT_PUBLIC_BASE_URL,
-            stripeKey: process.env.STRIPE_SECRET_KEY ? 'Set' : 'Missing'
+            successUrl: getsuccessUrl(email),
+            stripeKey: process.env.STRIPE_SECRET_KEY ? 'Set' : 'Missing',
+            key: process.env.STRIPE_SECRET_KEY,
         });
         // Reuse existing customer if any, otherwise create one with name
         const existing = await stripe?.customers.list({ email, limit: 1 });
