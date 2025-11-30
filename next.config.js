@@ -6,13 +6,7 @@ const withBundleAnalyzer = require("@next/bundle-analyzer")({
 const nextConfig = {
   compress: true,
   poweredByHeader: false,
-  env: {
-    // This makes the environment variables available in the browser
-    NEXT_PUBLIC_BASE_URL: process.env.NEXT_PUBLIC_BASE_URL,
-    NEXT_PUBLIC_BASE_URL_PREVIEW: process.env.NEXT_PUBLIC_BASE_URL_PREVIEW,
-    NEXT_PUBLIC_BASE_URL_PROD: process.env.NEXT_PUBLIC_BASE_URL_PROD,
-    STRIPE_SECRET_KEY: process.env.STRIPE_SECRET_KEY,
-  },
+
   
   transpilePackages: ["@react-pdf/renderer"],
   
