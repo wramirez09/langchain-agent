@@ -1,13 +1,25 @@
 import Stripe from 'stripe';
 
-const stripe = (() => {
-    if (!process.env.STRIPE_SECRET_KEY) {
-        console.error('STRIPE_SECRET_KEY is missing');
-        return null;
-    }
-    return new Stripe(process.env.STRIPE_SECRET_KEY, {
-        apiVersion: '2025-10-29.clover', // Always pin to a specific API version
-    });
-})();
+// Singleton instance
+let stripeInstance: Stripe | null = null;
 
-export default stripe;
+export function getStripe(): Stripe {
+    if (!stripeInstance) {
+        const secretKey = process.env.STRIPE_SECRET_KEY;
+
+        if (!secretKey) {
+            const error = 'STRIPE_SECRET_KEY is not set in environment variables';
+            console.error(error);
+            throw new Error(error);
+    }
+
+        stripeInstance = new Stripe(secretKey, {
+            apiVersion: '2025-10-29.clover', // Use the latest stable version
+    });
+    }
+
+    return stripeInstance;
+}
+
+// For backward compatibility
+export default getStripe();

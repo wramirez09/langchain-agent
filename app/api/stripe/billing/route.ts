@@ -1,9 +1,10 @@
 import { NextResponse } from "next/server";
 
-import stripe from "@/lib/stripe";
+import { getStripe } from "@/lib/stripe";
 import { createClient } from "@/app/utils/server";
 
 export async function POST() {
+    const stripe = getStripe()
     try {
         // 1. Get authenticated user via SSR client
         const supabase = await createClient();

@@ -2,10 +2,10 @@
 import { NextResponse } from "next/server";
 import Stripe from "stripe";
 import { supabaseAdmin } from "@/lib/supabaseAdmin";
-import stripe from "@/lib/stripe";
+import { getStripe } from "@/lib/stripe";
 
 const endpointSecret = process.env.STRIPE_WEBHOOK_SECRET!;
-console.log("endpointSecret", endpointSecret)
+const stripe = getStripe()
 
 export async function POST(req: Request) {
 
