@@ -72,7 +72,7 @@ export async function POST(req: NextRequest) {
       if (user) {
         await reportUsage({
           userId: user.id,
-          usageType: "openai_usage",
+          usageType: process.env.STRIPE_METER_EVENT_NAME!,
           quantity: 1,
 
         });

@@ -150,7 +150,7 @@ export async function POST(req: NextRequest) {
 
     void reportUsage({
       userId,
-      usageType: "openai_usage", // match your Meter event_name
+      usageType: process.env.STRIPE_METER_EVENT_NAME!, // match your Meter event_name
       quantity: 1,
     }).catch((err) => {
       console.error("Usage report failed (non-fatal):", err);

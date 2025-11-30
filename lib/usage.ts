@@ -34,7 +34,7 @@ export async function reportUsage({
     if (stripe)
     try {
         const meterEvent = await stripe.billing.meterEvents.create({
-            event_name: "openai_usage", // your usage type
+            event_name: process.env.STRIPE_METER_EVENT_NAME!, // your usage type
             payload: {
                 stripe_customer_id,        // REQUIRED
                 subscription_id: stripe_subscription_id,

@@ -5,8 +5,10 @@ import { supabaseAdmin } from "@/lib/supabaseAdmin";
 import stripe from "@/lib/stripe";
 
 const endpointSecret = process.env.STRIPE_WEBHOOK_SECRET!;
+console.log("endpointSecret", endpointSecret)
 
 export async function POST(req: Request) {
+    console.log("webhook", { req })
     const body = await req.text();
     const sig = req.headers.get("stripe-signature");
 
@@ -54,7 +56,7 @@ export async function POST(req: Request) {
                 if (error) throw error;
 
                 userId = data.user.id;
-
+                console.log("Created user:", userId);
                 // create profile
                 await supabaseAdmin.from("profiles").insert({
                     id: userId,
