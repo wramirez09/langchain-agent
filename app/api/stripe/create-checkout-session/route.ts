@@ -26,8 +26,6 @@ const getsuccessUrl = (email: string) => {
 
     }
 
-
-
 const getCancelUrl = () => {
 
     switch (process.env.NODE_ENV as string) {
@@ -48,6 +46,7 @@ const getCancelUrl = () => {
 };
 
 export async function POST(req: Request) {
+    console.log("req", req);
     try {
         const body = await req.json();
         const validation = CheckoutSessionSchema.safeParse(body);
@@ -57,7 +56,11 @@ export async function POST(req: Request) {
         }
 
         const { email, name } = validation.data;
-
+        console.log('Environment:', {
+            nodeEnv: process.env.NODE_ENV,
+            baseUrl: process.env.NEXT_PUBLIC_BASE_URL,
+            stripeKey: process.env.STRIPE_SECRET_KEY ? 'Set' : 'Missing'
+        });
         // Reuse existing customer if any, otherwise create one with name
         const existing = await stripe?.customers.list({ email, limit: 1 });
         const customer =
@@ -77,6 +80,11 @@ export async function POST(req: Request) {
             success_url: getsuccessUrl(email),
             cancel_url: getCancelUrl(),
         });
+        console.log('Created session:', session?.id);
+
+        if (!session?.url) {
+            throw new Error('Failed to create checkout session: No URL returned from Stripe');
+        }
 
         return NextResponse.json({ url: session?.url });
     } catch (error: any) {

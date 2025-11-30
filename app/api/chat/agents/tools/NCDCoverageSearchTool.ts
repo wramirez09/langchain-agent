@@ -16,7 +16,7 @@ export class NCDCoverageSearchTool extends Tool {
   protected async _call(input: string): Promise<string> {
     const CMS_NCD_API_URL =
       "https://api.coverage.cms.gov/v1/reports/national-coverage-ncd/";
-    const CMS_NCD_BASE_HTML_URL = "https://api.coverage.cms.gov/v1/data/";
+    const CMS_NCD_BASE_HTML_URL = "https://www.cms.gov/medicare-coverage-database/view/ncd.aspx";
 
     if (!input) {
       return "Input is missing. Please provide a query.";
@@ -119,7 +119,7 @@ export class NCDCoverageSearchTool extends Tool {
         // Format URL for policy content extractor
         const fullHtmlUrl = url || 
           (documentId && documentVersion 
-            ? `https://www.cms.gov/medicare/coverage/determinationprocess/ncd?ncdid=${documentId}&ncdver=${documentVersion}`
+          ? `${CMS_NCD_BASE_HTML_URL}/ncd?ncdid=${documentId}&ncdver=${documentVersion}`
             : "");
 
         // Format output for both display and machine parsing
