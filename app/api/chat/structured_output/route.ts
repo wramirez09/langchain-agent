@@ -56,7 +56,7 @@ export async function POST(req: NextRequest) {
      *
      * Under the hood, uses tool calling by default.
      */
-    const functionCallingModel = llmSummarizer.withStructuredOutput(schema, {
+    const functionCallingModel = llmSummarizer().withStructuredOutput(schema, {
       name: "output_formatter",
     });
 
