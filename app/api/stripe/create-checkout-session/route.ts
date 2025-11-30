@@ -13,18 +13,15 @@ const getsuccessUrl = (email: string) => {
             case "development":
                 return `http://${process.env.NEXT_PUBLIC_BASE_URL}/auth/setup-password?session_id={CHECKOUT_SESSION_ID}&email=${encodeURIComponent(email)}`;
 
-                break;
-            case "preview":
+            case "review":
                 return `https://${process.env.NEXT_PUBLIC_BASE_URL_PREVIEW}/auth/setup-password?session_id={CHECKOUT_SESSION_ID}&email=${encodeURIComponent(email)}`;
 
-                break;
             case "production":
                 return `https://${process.env.NEXT_PUBLIC_BASE_URL_PROD}/auth/setup-password?session_id={CHECKOUT_SESSION_ID}&email=${encodeURIComponent(email)}`;
 
-                break;
             default:
                 return `http://${process.env.NEXT_PUBLIC_BASE_URL}/auth/setup-password?session_id={CHECKOUT_SESSION_ID}&email=${encodeURIComponent(email)}`;
-                break;
+
         }
 
     }
@@ -36,15 +33,16 @@ const getCancelUrl = () => {
     switch (process.env.NODE_ENV as string) {
         case "development":
             return `http://${process.env.NEXT_PUBLIC_BASE_URL}/sign-up?cancelled=true`;
-            break;
+
         case "preview":
             return `https://${process.env.NEXT_PUBLIC_BASE_URL_PREVIEW}/sign-up?cancelled=true`;
-            break;
+
         case "production":
             return `https://${process.env.NEXT_PUBLIC_BASE_URL_PROD}/sign-up?cancelled=true`;
-            break;
+
         default:
-            break;
+            return `https://${process.env.NEXT_PUBLIC_BASE_URL_PREVIEW}/sign-up?cancelled=true`;
+
     }
 
 };

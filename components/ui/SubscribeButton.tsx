@@ -28,8 +28,6 @@ export function SubscribeButton({ email, disabled, name }: SubscribeButtonProps)
                 }),
             });
 
-            debugger;
-
             console.log("res", res);
 
             if (!res.ok) {
