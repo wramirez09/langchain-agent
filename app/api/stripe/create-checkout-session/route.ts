@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 import { z } from "zod";
-import { getStripe } from "@/lib/stripe";
+import Stripe from "stripe";
 
 const CheckoutSessionSchema = z.object({
     email: z.string().email(),
@@ -9,8 +9,10 @@ const CheckoutSessionSchema = z.object({
 
 
 export async function POST(req: Request) {
-    const stripe = getStripe()
-    console.log("stripe", getStripe());
+    const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!, {
+        apiVersion: "2025-10-29.clover",
+    });
+    console.log("stripe", stripe);
     try {
         const body = await req.json();
         const validation = CheckoutSessionSchema.safeParse(body);

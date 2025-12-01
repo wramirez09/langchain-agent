@@ -5,5 +5,6 @@ export async function GET() {
         stripeKeyDefined: !!process.env.STRIPE_SECRET_KEY,
         vercelEnv: process.env.VERCEL_ENV,
         stripeKeys: Object.keys(process.env).filter((k) => k.startsWith("STRIPE")),
+        nextKeys: Object.keys(process.env).filter((k) => k.startsWith("NEXT")),
     });
 }
