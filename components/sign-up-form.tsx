@@ -72,7 +72,7 @@ export function SignUpForm({ className, ...props }: React.ComponentPropsWithoutR
             <form onSubmit={handleSignUp}>
               <div className="flex flex-col gap-6">
                 <div className="grid gap-2">
-                  <Label htmlFor="name">Name</Label>
+                  <Label htmlFor="name">Displayed User Name</Label>
                   <Input
                     id="name"
                     type="name"
