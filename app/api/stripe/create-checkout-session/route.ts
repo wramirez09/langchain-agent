@@ -41,6 +41,10 @@ export async function POST(req: Request) {
             cancel_url: `https://${process.env.NEXT_PUBLIC_BASE_URL_PROD}/sign-up?cancelled=true`,
         });
 
+        console.log("url", `https://${process.env.NEXT_PUBLIC_BASE_URL_PROD}/auth/setup-password?session_id={CHECKOUT_SESSION_ID}&email=${encodeURIComponent(email)}`);
+
+        console.log("session", session);
+
 
         if (!session?.url) {
             throw new Error('Failed to create checkout session: No URL returned from Stripe');
