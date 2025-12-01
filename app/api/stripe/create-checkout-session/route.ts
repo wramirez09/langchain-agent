@@ -22,12 +22,12 @@ export async function POST(req: Request) {
         const { email, name } = validation.data;
 
         // Reuse existing customer if any, otherwise create one with name
-        const existing = await getStripe()?.customers.list({ email, limit: 1 });
+        const existing = await stripe?.customers.list({ email, limit: 1 });
         const customer =
-            existing?.data[0] ?? (await getStripe()?.customers.create({ email, name }));
+            existing?.data[0] ?? (await stripe?.customers.create({ email, name }));
 
 
-        const session: any = await getStripe()?.checkout.sessions.create({
+        const session: any = await stripe?.checkout.sessions.create({
             mode: "subscription",
             payment_method_types: ["card"],
             customer: customer?.id, // ensures name is known to Checkout
