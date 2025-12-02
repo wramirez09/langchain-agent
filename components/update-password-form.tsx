@@ -54,7 +54,7 @@ function UpdatePasswordFormCore() {
   };
 
   return (
-    <div className="flex min-h-screen items-center justify-center bg-gray-50 p-4">
+    <div className="flex  items-center justify-center bg-gray-50 p-4">
       <Card className="w-full max-w-md">
         <CardHeader>
           <CardTitle className="text-xl font-semibold text-center">
@@ -86,7 +86,7 @@ function UpdatePasswordFormCore() {
               />
             </div>
 
-            <Button type="submit" disabled={loading} className="w-full mt-2">
+            <Button type="submit" disabled={loading} className="w-full mt-2 bg-blue-600 text-white">
               {loading ? "Saving..." : "Finish Setup"}
             </Button>
           </form>
