@@ -1,72 +1,97 @@
-'use client'
-import { cn } from '@/utils/cn'
-import { createClient } from '@/utils/client'
-import { Button } from '@/components/ui/button'
+"use client";
+
+import { useSearchParams, useRouter } from "next/navigation";
+import { useState } from "react";
+import { Button } from "@/components/ui/button";
 import {
   Card,
   CardContent,
   CardDescription,
   CardHeader,
   CardTitle,
-} from '@/components/ui/card'
-import { Input } from '@/components/ui/input'
-import { Label } from '@/components/ui/label'
-import { useRouter } from 'next/navigation'
-import { useState } from 'react'
+} from "@/components/ui/card";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
 
-export function UpdatePasswordForm({ className, ...props }: React.ComponentPropsWithoutRef<'div'>) {
-  const [password, setPassword] = useState('')
-  const [error, setError] = useState<string | null>(null)
-  const [isLoading, setIsLoading] = useState(false)
-  const router = useRouter()
+export function UpdatePasswordForm() {
+  const params = useSearchParams();
+  const router = useRouter();
+  const email = params.get("email");
 
-  const handleForgotPassword = async (e: React.FormEvent) => {
-    e.preventDefault()
-    const supabase = createClient()
-    setIsLoading(true)
-    setError(null)
+  const [password, setPassword] = useState("");
+  const [error, setError] = useState<string | null>(null);
+  const [loading, setLoading] = useState(false);
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+
+    if (!email) {
+      setError("Email is missing from link — please retry the signup process.");
+      return;
+    }
 
     try {
-      const { error } = await supabase.auth.updateUser({ password })
-      if (error) throw error
-      // Update this route to redirect to an authenticated route. The user already has an active session.
-      router.push('/protected')
-    } catch (error: unknown) {
-      setError(error instanceof Error ? error.message : 'An error occurred')
+      setLoading(true);
+      setError(null);
+
+      const res = await fetch("/api/stripe/setup-password", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ email, password }),
+      });
+
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error || "Failed to set up password.");
+
+      // API already signed user in; just follow redirect
+      router.push(data.redirect || "/protected");
+    } catch (err: any) {
+      console.error("Setup password error:", err);
+      setError(err.message);
     } finally {
-      setIsLoading(false)
+      setLoading(false);
     }
-  }
+  };
 
   return (
-    <div className={cn('flex flex-col gap-6', className)} {...props}>
-      <Card>
+    <div className="flex min-h-screen items-center justify-center bg-gray-50 p-4">
+      <Card className="w-full max-w-md">
         <CardHeader>
-          <CardTitle className="text-2xl">Reset Your Password</CardTitle>
-          <CardDescription>Please enter your new password below.</CardDescription>
+          <CardTitle className="text-xl font-semibold text-center">
+            Set Your Password
+          </CardTitle>
+          <CardDescription className="text-center">
+            Complete your account setup to access your dashboard.
+          </CardDescription>
         </CardHeader>
         <CardContent>
-          <form onSubmit={handleForgotPassword}>
-            <div className="flex flex-col gap-6">
-              <div className="grid gap-2">
-                <Label htmlFor="password">New password</Label>
-                <Input
-                  id="password"
-                  type="password"
-                  placeholder="New password"
-                  required
-                  value={password}
-                  onChange={(e) => setPassword(e.target.value)}
-                />
-              </div>
-              {error && <p className="text-sm text-red-500">{error}</p>}
-              <Button type="submit" className="w-full" disabled={isLoading}>
-                {isLoading ? 'Saving...' : 'Save new password'}
-              </Button>
+          <form onSubmit={handleSubmit} className="space-y-4">
+            {error && (
+              <p className="text-sm text-center text-red-600">{error}</p>
+            )}
+
+            <div>
+              <Label>Email</Label>
+              <Input type="email" value={email || ""} disabled />
             </div>
+
+            <div>
+              <Label>New Password</Label>
+              <Input
+                type="password"
+                required
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                placeholder="Create a secure password"
+              />
+            </div>
+
+            <Button type="submit" disabled={loading} className="w-full mt-2">
+              {loading ? "Saving..." : "Finish Setup"}
+            </Button>
           </form>
         </CardContent>
       </Card>
     </div>
-  )
+  );
 }
