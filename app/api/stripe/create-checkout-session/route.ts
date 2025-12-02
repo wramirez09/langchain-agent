@@ -39,11 +39,11 @@ export async function POST(req: Request) {
                 { price: process.env.STRIPE_METERED_PRICE_ID },
             ],
 
-            success_url: `https://${process.env.NEXT_PUBLIC_BASE_URL_PROD}/auth/setup-password?session_id={CHECKOUT_SESSION_ID}&email=${encodeURIComponent(email)}`,
-            cancel_url: `https://${process.env.NEXT_PUBLIC_BASE_URL_PROD}/sign-up?cancelled=true`,
+            success_url: `https://${process.env.NEXT_PUBLIC_BASE_URL_PREVIEW}/auth/setup-password?session_id={CHECKOUT_SESSION_ID}&email=${encodeURIComponent(email)}`,
+            cancel_url: `https://${process.env.NEXT_PUBLIC_BASE_URL_PREVIEW}/sign-up?cancelled=true`,
         });
 
-        console.log("url", `https://${process.env.NEXT_PUBLIC_BASE_URL_PROD}/auth/setup-password?session_id={CHECKOUT_SESSION_ID}&email=${encodeURIComponent(email)}`);
+        console.log("url", `https://${process.env.NEXT_PUBLIC_BASE_URL_PREVIEW}/auth/setup-password?session_id={CHECKOUT_SESSION_ID}&email=${encodeURIComponent(email)}`);
 
         console.log("session", session);
 
