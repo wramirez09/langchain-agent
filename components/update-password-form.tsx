@@ -1,7 +1,7 @@
 "use client";
 
 import { useSearchParams, useRouter } from "next/navigation";
-import { useState } from "react";
+import { Suspense, useState } from "react";
 import { Button } from "@/components/ui/button";
 import {
   Card,
@@ -13,7 +13,7 @@ import {
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 
-export function UpdatePasswordForm() {
+function UpdatePasswordFormCore() {
   const params = useSearchParams();
   const router = useRouter();
   const email = params.get("email");
@@ -94,4 +94,8 @@ export function UpdatePasswordForm() {
       </Card>
     </div>
   );
+}
+
+export function UpdatePasswordForm() {
+  return <Suspense><UpdatePasswordFormCore /></Suspense>
 }
