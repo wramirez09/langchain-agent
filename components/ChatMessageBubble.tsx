@@ -93,7 +93,7 @@ export function ChatMessageBubble(props: {
             ) : (
               <ReactMarkdown
                 components={MarkdownComponents}
-                className="whitespace-pre-wrap break-words"
+
               >
                 {displayContent}
               </ReactMarkdown>

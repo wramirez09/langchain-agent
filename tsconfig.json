@@ -28,7 +28,8 @@
       "@/*": [
         "./*"
       ]
-    }
+    },
+    "jsxImportSource": "react"
   },
   "include": [
     "next-env.d.ts",
