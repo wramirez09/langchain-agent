@@ -4,7 +4,7 @@ import { type Message } from "ai";
 import { useBodyPointerEvents } from "@/utils/use-body-pointer-events";
 
 import { cn } from "@/utils/cn";
-import React, { FormEvent, ReactNode, useCallback, useState } from "react";
+import React, { FormEvent, ReactNode, useCallback, useState, type JSX } from "react";
 import { StickToBottom, useStickToBottomContext } from "use-stick-to-bottom";
 import UploadDocumentsForm from "./UploadDocumentsForm";
 import {
