@@ -1,4 +1,4 @@
-'use client'
+"use client";
 
 import { createClient } from '@/utils/client'
 import { Button } from '@/components/ui/button'
@@ -7,83 +7,126 @@ import { useEffect, useState } from 'react'
 import { User } from '@supabase/supabase-js'
 import ManageBillingButton from './ui/ManageBillingButton'
 
-export function LogoutButton() {
-  const router = useRouter()
-  const [isLoggedIn, setIsLoggedIn] = useState(false)
-  const [user, setUser] = useState<User | null>(null)
-  const [profile, setProfile] = useState<any | null>(null)
+type Subscription = {
+  status: string;
+} | null;
 
-  useEffect(() => {
-    const checkAuth = async () => {
-      const supabase = createClient()
-      const { data: { session } } = await supabase.auth.getSession()
-      setIsLoggedIn(!!session)
+async function getSubscriptionStatus(
+  userId: string
+): Promise<Subscription> {
+  try {
+    const supabase = createClient();
+    const { data: subscription, error } = await supabase
+      .from('subscriptions')
+      .select('status')
+      .eq('user_id', userId)
+      .single();
+
+    if (error) {
+      console.error('Error fetching subscription:', error);
+      return null;
     }
 
-    checkAuth()
+    return subscription;
+  } catch (error) {
+    console.error('Error in getSubscriptionStatus:', error);
+    return null;
+  }
+}
 
-    const supabase = createClient()
+export function LogoutButton() {
+  const router = useRouter();
+  const [isLoggedIn, setIsLoggedIn] = useState(false);
+  const [user, setUser] = useState<User | null>(null);
+  const [profile, setProfile] = useState<any | null>(null);
+  const [subscription, setSubscription] = useState<Subscription>(null);
+
+  // Handle auth state changes
+  useEffect(() => {
+    const supabase = createClient();
+
+    const checkAuth = async () => {
+      const { data: { session } } = await supabase.auth.getSession();
+      const user = session?.user ?? null;
+      setIsLoggedIn(!!user);
+      setUser(user);
+    };
+
+    checkAuth();
+
     const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
-      setIsLoggedIn(!!session)
-    })
+      const user = session?.user ?? null;
+      const isLoggedIn = !!user;
+      setIsLoggedIn(isLoggedIn);
+      setUser(user);
 
-    return () => subscription.unsubscribe()
-  }, [])
+      if (!isLoggedIn) {
+        setProfile(null);
+        setSubscription(null);
+      }
+    });
+
+    return () => {
+      subscription?.unsubscribe();
+    };
+  }, []);
+
+  // Load profile and subscription when user changes
+  useEffect(() => {
+    if (!user?.id) return;
+
+    const loadData = async () => {
+      const supabase = createClient();
+
+      // Load profile
+      const { data: profileData, error: profileError } = await supabase
+        .from('profiles')
+        .select('*')
+        .eq('id', user.id)
+        .single();
+
+      if (!profileError && profileData) {
+        setProfile(profileData);
+      }
+
+      // Load subscription
+      const subscriptionData = await getSubscriptionStatus(user.id);
+      setSubscription(subscriptionData);
+    };
+
+    loadData();
+  }, [user?.id]);
 
   const logout = async () => {
-    const supabase = createClient()
-    await supabase.auth.signOut()
-    router.push('/auth/login')
-  }
+    const supabase = createClient();
+    await supabase.auth.signOut();
+    router.push('/auth/login');
+  };
 
-  // Get auth user and then fetch their profile
-  useEffect(() => {
-    if (!isLoggedIn) return
-
-    const load = async () => {
-      const supabase = createClient()
-
-      const { data: { user } } = await supabase.auth.getUser()
-      setUser(user ?? null)
-
-      if (user?.id) {
-        const { data, error } = await supabase
-          .from('profiles')
-          .select('*')
-          .eq('id', user.id)
-          .single()
-
-        if (!error) setProfile(data)
-      }
-    }
-
-    load()
-  }, [isLoggedIn])
-
-  if (!isLoggedIn) return null
+  if (!isLoggedIn) return null;
 
   return (
     <div className='flex items-center space-between gap-5'>
       <div className='flex-col'>
         <p className='text-black text-bold uppercase'>
-          {profile?.full_name || ""}
+          {profile?.full_name || profile?.email || ''}
         </p>
-        <p className='text-black text-xs'>
-          {profile?.email || ""}
-        </p>
-
       </div>
-      <div className='border-black text-black'>|</div>
-      <ManageBillingButton />
-      <div className='border-black text-black'>|</div>
+
+      {subscription?.status === 'active' && (
+        <>
+          <div className='border-black text-black'>|</div>
+          <ManageBillingButton />
+          <div className='border-black text-black'>|</div>
+        </>
+      )}
       <Button
         onClick={logout}
-        variant="link"
-        className="border-none hover:shadow-none transition duration-200 ease-in-out text-white z-50 text-red-600"
+
+        className="text-white bg-gradient"
       >
         Logout
       </Button>
-
     </div>
-  )
+  );
 }

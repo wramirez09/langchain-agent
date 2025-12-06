@@ -7,6 +7,7 @@ import { getStripe } from "@/lib/stripe";
 
 
 export async function POST(req: Request) {
+    console.log("POST /api/stripe/webhook");
     const stripe = getStripe()
     const endpointSecret = process.env.STRIPE_WEBHOOK_SECRET!;
 
