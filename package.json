@@ -80,7 +80,7 @@
     "path": "^0.12.7",
     "pdf-parse": "^1.1.1",
     "pdfjs-dist": "^5.3.31",
-    "playwright": "^1.52.0",
+    "playwright": "^1.55.1",
     "progress": "^2.0.3",
     "puppeteer": "^24.10.0",
     "react": "latest",
