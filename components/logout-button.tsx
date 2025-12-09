@@ -6,6 +6,7 @@ import { useRouter } from 'next/navigation'
 import { useEffect, useState } from 'react'
 import { User } from '@supabase/supabase-js'
 import ManageBillingButton from './ui/ManageBillingButton'
+import { IconChalkboard } from '@tabler/icons-react';
 
 type Subscription = {
   status: string;
@@ -108,7 +109,7 @@ export function LogoutButton() {
   return (
     <div className='flex items-center space-between gap-5'>
       <div className='flex-col'>
-        <p className='text-black text-semi-bold sentence-case text-sm'>
+        <p className='text-black font-bold sentence-case text-sm'>
           {profile?.full_name || profile?.email || ''}
         </p>
       </div>
@@ -124,8 +125,9 @@ export function LogoutButton() {
         onClick={logout}
         size="sm"
 
-        className="text-white bg-red-600 hover:bg-red-700 focus:ring-4 focus:ring-red-300 font-medium rounded-lg px-4 py-2"
+        className="text-white red-gradiet"
       >
+
         Logout
       </Button>
     </div>

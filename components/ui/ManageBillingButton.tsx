@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { Button } from "./button";
+import { IconChalkboard } from "@tabler/icons-react";
 
 export default function ManageBillingButton() {
     const [loading, setLoading] = useState(false);
@@ -33,7 +34,8 @@ export default function ManageBillingButton() {
             variant="default"
             size={"sm"}
             className="text-[#1e7dbf] hover:bg-[#e1f0fb] font-medium rounded-lg px-4 py-2"
-        >
+
+        >   <IconChalkboard width={16} />
             {loading ? "Loading..." : "Manage Billing"}
         </Button>
     );
