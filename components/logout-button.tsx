@@ -108,22 +108,23 @@ export function LogoutButton() {
   return (
     <div className='flex items-center space-between gap-5'>
       <div className='flex-col'>
-        <p className='text-black text-bold uppercase'>
+        <p className='text-black text-semi-bold sentence-case text-sm'>
           {profile?.full_name || profile?.email || ''}
         </p>
       </div>
 
       {subscription?.status === 'active' && (
         <>
-          <div className='border-black text-black'>|</div>
+          <div className='text-gray-300'>|</div>
           <ManageBillingButton />
-          <div className='border-black text-black'>|</div>
+          <div className='text-gray-300'>|</div>
         </>
       )}
       <Button
         onClick={logout}
+        size="sm"
 
-        className="text-white bg-gradient"
+        className="text-white bg-red-600 hover:bg-red-700 focus:ring-4 focus:ring-red-300 font-medium rounded-lg px-4 py-2"
       >
         Logout
       </Button>

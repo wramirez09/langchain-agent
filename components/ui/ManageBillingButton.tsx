@@ -30,8 +30,9 @@ export default function ManageBillingButton() {
         <Button
             onClick={handlePortal}
             disabled={loading}
-            variant="link"
-            className="text-gray-700 hover:text-blue-900 text-sm"
+            variant="default"
+            size={"sm"}
+            className="text-[#1e7dbf] hover:bg-[#e1f0fb] font-medium rounded-lg px-4 py-2"
         >
             {loading ? "Loading..." : "Manage Billing"}
         </Button>
