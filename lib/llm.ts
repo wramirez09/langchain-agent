@@ -1,7 +1,7 @@
 import { ChatOpenAI } from "@langchain/openai";
 import { reportUsage } from "./usage";
-import { supabaseAdmin } from "./supabaseAdmin";
 
+import { createClient } from "@/utils/server";
 // Counter to track the number of calls
 let openAICallCount = 0;
 let totalTokensUsed = 0;
@@ -22,18 +22,24 @@ export const llmAgent = (usageType?: string) => new ChatOpenAI({
       handleLLMEnd: async (output) => {
         const tokensUsed = (output as any)?.usage?.total_tokens || 0;
         totalTokensUsed += tokensUsed;
-        console.log(`OpenAI gpt-5 model call completed. Tokens used: ${tokensUsed}. Total tokens used so far: ${totalTokensUsed}`);
+        console.log(`OpenAI gpt-5 model call completed. Tokens used: ${tokensUsed}. Total tokens used so far: ${totalTokensUsed} and total llm calls ${openAICallCount}`);
 
         // Report usage to Stripe
         try {
           // Get the user ID from the context or session
           // This assumes you have a way to get the current user
-          const { data: { user } } = await supabaseAdmin.auth.getUser();
+          const supabase = await createClient();
+          const { data: { user } } = await supabase.auth.getUser();
+          if (!user) {
+            console.log(`llmAgent - No user found`);
+            return
+          };
           if (user) {
+            console.log(`llmAgent - Reporting usage for user ${user.id} with ${openAICallCount} calls`);
             await reportUsage({
               userId: user.id,
-              usageType: usageType || 'lm_usage',
-              quantity: 1, // Or calculate based on tokens if needed
+              usageType: 'orchestrator',
+              quantity: openAICallCount, // Or calculate based on tokens if needed
             });
           }
         } catch (error) {
@@ -60,16 +66,22 @@ export const llmSummarizer = (usageType?: string) => new ChatOpenAI({
       handleLLMEnd: async (output) => {
         const tokensUsed = (output as any)?.usage?.total_tokens || 0;
         totalTokensUsed += tokensUsed;
-        console.log(`OpenAI gpt-4o model call completed. Tokens used: ${tokensUsed}. Total tokens used so far: ${totalTokensUsed}`);
+        console.log(`OpenAI gpt-4o model call completed. Tokens used: ${tokensUsed}. Total tokens used so far: ${totalTokensUsed} & total llm call ${openAICallCount}`);
 
         // Report usage to Stripe
         try {
-          const { data: { user } } = await supabaseAdmin.auth.getUser();
+          const supabase = await createClient();
+          const { data: { user } } = await supabase.auth.getUser();
+          if (!user) {
+            console.log("no user found")
+            return
+          }
           if (user) {
+            console.log(`llmSummarizer - Reporting usage for user ${user.id} with ${openAICallCount} calls`);
             await reportUsage({
               userId: user.id,
-              usageType: usageType ?? 'lm_summary_usage', // Different event type for summarization
-              quantity: 1, // Or calculate based on tokens if needed
+              usageType: 'summerizer', // Different event type for summarization
+              quantity: openAICallCount, // Or calculate based on tokens if needed
             });
           }
         } catch (error) {
