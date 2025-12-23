@@ -17,7 +17,7 @@
   "dependencies": {
     "@ijsto/react-slideout": "^1.4.0",
     "@langchain/community": "^0.3.49",
-    "@langchain/core": "^0.3.66",
+    "@langchain/core": "^0.3.80",
     "@langchain/langgraph": "^0.2.57",
     "@langchain/langgraph-sdk": "^0.0.60",
     "@langchain/openai": "^0.5.11",
