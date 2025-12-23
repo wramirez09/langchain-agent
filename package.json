@@ -69,7 +69,7 @@
     "fs": "^0.0.1-security",
     "gpt-tokenizer": "^3.0.1",
     "install": "^0.13.0",
-    "langchain": "^0.3.27",
+    "langchain": "^0.3.37",
     "lodash": "^4.17.21",
     "lucide-react": "^0.473.0",
     "markdown-to-txt": "^2.0.1",
