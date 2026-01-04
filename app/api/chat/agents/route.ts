@@ -18,8 +18,19 @@ import { policyContentExtractorTool } from "./tools/policyContentExtractorTool";
 import { CarelonSearchTool } from "./tools/carelon_tool";
 import { EvolentSearchTool } from "./tools/evolent_tool";
 import { FileUploadTool } from "./tools/fileUploadTool"; // Import the new FileUploadTool
-import { createClient } from "@/utils/server";
 import { reportUsage } from "@/lib/usage";
+import { getUserFromRequest } from "@/lib/auth/getUserFromRequest";
+
+const corsHeaders = {
+  "Access-Control-Allow-Origin": "*", // tighten later
+  "Access-Control-Allow-Headers": "authorization, content-type",
+};
+
+/* -------------------- OPTIONS (preflight) -------------------- */
+export async function OPTIONS() {
+  return new Response(null, { headers: corsHeaders });
+}
+
 
 const convertVercelMessageToLangChainMessage = (message: VercelChatMessage) => {
   if (message.role === "user") return new HumanMessage(message.content);
@@ -112,24 +123,26 @@ return as markdown
 `;
 
 export async function POST(req: NextRequest) {
-  const supabase = await createClient();
-
   try {
-    // 1️⃣ Get authenticated user
-    const { data: { user } } = await supabase.auth.getUser();
-
-    if (!user) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    console.log("req", req)
+    /* ---------- AUTH GUARD (FIRST) ---------- */
+    const user = await getUserFromRequest(req);
+    console.log("user", user)
     const userId = user.id;
+    console.log("userId", userId)
 
-    // 2️⃣ Parse request body
+    /* ---------- Parse request ---------- */
     const body = await req.json();
-    const returnIntermediateSteps = false; // as in your original code
+    const returnIntermediateSteps = false;
+
     const messages = (body.messages ?? [])
-      .filter((message: VercelChatMessage) => message.role === "user" || message.role === "assistant")
+      .filter(
+        (message: VercelChatMessage) =>
+          message.role === "user" || message.role === "assistant"
+      )
       .map(convertVercelMessageToLangChainMessage);
 
-
-    // 4️⃣ Initialize tools
+    /* ---------- Tools ---------- */
     const tools = [
       new SerpAPI(),
       new CarelonSearchTool(),
@@ -141,53 +154,74 @@ export async function POST(req: NextRequest) {
       new FileUploadTool(),
     ];
 
-    // 5️⃣ Create LangGraph agent
+    /* ---------- Agent ---------- */
     const agent = createReactAgent({
       llm: llmAgent("orchestrator"),
       tools,
       messageModifier: new SystemMessage(AGENT_SYSTEM_TEMPLATE),
     });
 
+    /* ---------- Usage logging (non-blocking) ---------- */
     void reportUsage({
       userId,
-      usageType: "orchestrator", // match your Meter event_name
+      usageType: "orchestrator",
       quantity: 1,
     }).catch((err) => {
       console.error("Usage report failed (non-fatal):", err);
     });
 
-    let responseData: any;
-
+    /* ---------- Streaming (TEXT ONLY) ---------- */
     if (!returnIntermediateSteps) {
-      // 6️⃣ Streaming response
+      const encoder = new TextEncoder();
       const eventStream = agent.streamEvents({ messages }, { version: "v2" });
-      const textEncoder = new TextEncoder();
-      const transformStream = new ReadableStream({
+
+      const readable = new ReadableStream({
         async start(controller) {
-          for await (const { event, data } of eventStream) {
-            if (event === "on_chat_model_stream" && !!data.chunk.content) {
-              controller.enqueue(textEncoder.encode(data.chunk.content));
+          try {
+            for await (const { event, data } of eventStream) {
+              // ✅ STRICT FILTER — stream ONLY plain text
+              if (
+                event === "on_chat_model_stream" &&
+                typeof data?.chunk?.content === "string" &&
+                data.chunk.content.length > 0
+              ) {
+                controller.enqueue(
+                  encoder.encode(data.chunk.content)
+                );
+              }
             }
+          } catch (err) {
+            console.error("Stream error:", err);
+            controller.error(err);
+          } finally {
+            controller.close();
           }
-          controller.close();
         },
       });
 
-      responseData = new StreamingTextResponse(transformStream);
-    } else {
-      // 7️⃣ Non-streaming response
-      const result = await agent.invoke({ messages });
-      responseData = {
-        messages: result.messages.map(convertLangChainMessageToVercelMessage),
-      };
-
-
-      return NextResponse.json(responseData, { status: 200 });
+      return new StreamingTextResponse(readable, {
+        headers: {
+          ...corsHeaders,
+          "Content-Type": "text/plain; charset=utf-8",
+        },
+      });
     }
 
+    /* ---------- Non-streaming ---------- */
+    const result = await agent.invoke({ messages });
 
-    return responseData;
+    return NextResponse.json(
+      {
+        messages: result.messages.map(
+          convertLangChainMessageToVercelMessage
+        ),
+      },
+      { status: 200, headers: corsHeaders }
+    );
   } catch (e: any) {
-    return NextResponse.json({ error: e.message }, { status: e.status ?? 500 });
+    return NextResponse.json(
+      { error: e.message || "Unauthorized" },
+      { status: e.status ?? 401, headers: corsHeaders }
+    );
   }
 }
