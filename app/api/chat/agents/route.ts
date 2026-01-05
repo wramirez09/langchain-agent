@@ -33,9 +33,10 @@ export async function OPTIONS() {
 
 
 const convertVercelMessageToLangChainMessage = (message: VercelChatMessage) => {
-  if (message.role === "user") return new HumanMessage(message.content);
-  else if (message.role === "assistant") return new AIMessage(message.content);
-  else return new ChatMessage(message.content, message.role);
+  const content = message.content ? String(message.content) : "";
+  if (message.role === "user") return new HumanMessage(content);
+  else if (message.role === "assistant") return new AIMessage(content);
+  else return new ChatMessage(content, message.role);
 };
 
 const convertLangChainMessageToVercelMessage = (message: BaseMessage) => {
@@ -133,6 +134,7 @@ export async function POST(req: NextRequest) {
 
     /* ---------- Parse request ---------- */
     const body = await req.json();
+    console.log("Parsed request body:", JSON.stringify(body, null, 2));
     const returnIntermediateSteps = false;
 
     const messages = (body.messages ?? [])
@@ -221,8 +223,8 @@ export async function POST(req: NextRequest) {
   } catch (e: any) {
     console.error("Route error:", e);
     return NextResponse.json(
-      { error: e.message || "Unauthorized" },
-      { status: e.status ?? 401, headers: corsHeaders }
+      { error: e.message || "Internal Server Error" },
+      { status: e.status ?? 500, headers: corsHeaders }
     );
   }
 }
