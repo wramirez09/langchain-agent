@@ -18,7 +18,7 @@ export async function getUserFromRequest(req: NextRequest) {
     const authHeader = req.headers.get("authorization");
 
     if (authHeader?.startsWith("Bearer ")) {
-        const accessToken = authHeader.replace("Bearer ", "");
+        const accessToken = authHeader.split(" ")[1];
 
         const supabase = createServerClient(
             process.env.NEXT_PUBLIC_SUPABASE_URL!,
@@ -34,7 +34,10 @@ export async function getUserFromRequest(req: NextRequest) {
         );
 
         const { data, error } = await supabase.auth.getUser();
-        if (error || !data.user) throw new Error("Invalid token");
+        if (error || !data.user) {
+            console.error("Supabase getUser error:", error);
+            throw new Error(`Invalid token: ${error?.message}`);
+        }
 
         return data.user;
     }

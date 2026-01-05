@@ -219,6 +219,7 @@ export async function POST(req: NextRequest) {
       { status: 200, headers: corsHeaders }
     );
   } catch (e: any) {
+    console.error("Route error:", e);
     return NextResponse.json(
       { error: e.message || "Unauthorized" },
       { status: e.status ?? 401, headers: corsHeaders }
