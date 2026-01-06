@@ -28,7 +28,7 @@ export async function POST(req: Request) {
         const customer =
             existing?.data[0] ?? (await stripe?.customers.create({ email, name }));
 
-        const base = process.env.NODE_ENV === "development" ? "localhost:3000" : process.env.NEXT_PUBLIC_BASE_URL_PREVIEW
+        const base = process.env.NODE_ENV === "development" ? "http://localhost:3000" : `https://${process.env.NEXT_PUBLIC_BASE_URL_PREVIEW}`
 
         const session: any = await stripe?.checkout.sessions.create({
             mode: "subscription",
@@ -40,8 +40,8 @@ export async function POST(req: Request) {
                 { price: process.env.STRIPE_METERED_PRICE_ID },
             ],
 
-            success_url: `https://${base}/auth/update-password?session_id={CHECKOUT_SESSION_ID}&email=${encodeURIComponent(email)}`,
-            cancel_url: `https://${base}/sign-up?cancelled=true`,
+            success_url: `${base}/auth/update-password?session_id={CHECKOUT_SESSION_ID}&email=${encodeURIComponent(email)}`,
+            cancel_url: `${base}/sign-up?cancelled=true`,
         });
 
         if (!session?.url) {
