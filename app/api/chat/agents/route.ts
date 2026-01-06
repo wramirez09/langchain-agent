@@ -19,7 +19,7 @@ import { CarelonSearchTool } from "./tools/carelon_tool";
 import { EvolentSearchTool } from "./tools/evolent_tool";
 import { FileUploadTool } from "./tools/fileUploadTool"; // Import the new FileUploadTool
 import { reportUsage } from "@/lib/usage";
-import { getUserFromRequest } from "@/lib/auth/getUserFromRequest";
+import { getUserFromRequest } from "../../../../lib/auth/getUserFromRequest";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*", // tighten later
