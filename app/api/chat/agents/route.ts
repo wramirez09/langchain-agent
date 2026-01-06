@@ -32,11 +32,21 @@ export async function OPTIONS() {
 }
 
 
-const convertVercelMessageToLangChainMessage = (message: VercelChatMessage) => {
-  const content = message.content ? String(message.content) : "";
-  if (message.role === "user") return new HumanMessage(content);
-  else if (message.role === "assistant") return new AIMessage(content);
-  else return new ChatMessage(content, message.role);
+const convertVercelMessageToLangChainMessage = (message: VercelChatMessage | any) => { // Use any to support newer SDK parts structure if types are outdated
+  let content = message.content;
+
+  if ((!content || content === "") && Array.isArray(message.parts)) {
+    content = message.parts
+      .filter((p: any) => p.type === "text")
+      .map((p: any) => p.text)
+      .join("\n");
+  }
+
+  const strContent = content ? String(content) : "";
+
+  if (message.role === "user") return new HumanMessage(strContent);
+  else if (message.role === "assistant") return new AIMessage(strContent);
+  else return new ChatMessage(strContent, message.role);
 };
 
 const convertLangChainMessageToVercelMessage = (message: BaseMessage) => {
@@ -211,6 +221,7 @@ export async function POST(req: NextRequest) {
 
     /* ---------- Non-streaming ---------- */
     const result = await agent.invoke({ messages });
+    console.log("result", result)
 
     return NextResponse.json(
       {
