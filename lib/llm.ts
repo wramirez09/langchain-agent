@@ -31,7 +31,7 @@ export const llmAgent = (usageType?: string) => new ChatOpenAI({
           const supabase = await createClient();
           const { data: { user } } = await supabase.auth.getUser();
           if (!user) {
-            console.log(`llmAgent - No user found`);
+            console.log(`llmAgent - No user found to report usage`);
             return
           };
           if (user) {

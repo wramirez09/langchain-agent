@@ -182,8 +182,14 @@ export async function POST(req: NextRequest) {
       console.error("Usage report failed (non-fatal):", err);
     });
 
-    /* ---------- Streaming (TEXT ONLY) ---------- */
-    if (!returnIntermediateSteps) {
+    /* ---------- Mobile Detection ---------- */
+    const userAgent = req.headers.get("user-agent") || "";
+    const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(
+      userAgent
+    );
+
+    /* ---------- Streaming (TEXT ONLY) - WEB ONLY ---------- */
+    if (!returnIntermediateSteps && !isMobile) {
       const encoder = new TextEncoder();
       const eventStream = agent.streamEvents({ messages }, { version: "v2" });
 
@@ -197,9 +203,7 @@ export async function POST(req: NextRequest) {
                 typeof data?.chunk?.content === "string" &&
                 data.chunk.content.length > 0
               ) {
-                controller.enqueue(
-                  encoder.encode(data.chunk.content)
-                );
+                controller.enqueue(encoder.encode(data.chunk.content));
               }
             }
           } catch (err) {
@@ -212,6 +216,23 @@ export async function POST(req: NextRequest) {
       });
 
       return new StreamingTextResponse(readable, {
+        headers: {
+          ...corsHeaders,
+          "Content-Type": "text/plain; charset=utf-8",
+        },
+      });
+    }
+
+    /* ---------- Mobile Fallback (Non-Streaming TEXT) ---------- */
+    if (!returnIntermediateSteps && isMobile) {
+      const result = await agent.invoke({ messages });
+      const lastMessage = result.messages[result.messages.length - 1];
+      const content =
+        typeof lastMessage.content === "string"
+          ? lastMessage.content
+          : JSON.stringify(lastMessage.content);
+
+      return new Response(content, {
         headers: {
           ...corsHeaders,
           "Content-Type": "text/plain; charset=utf-8",
