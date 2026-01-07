@@ -139,6 +139,7 @@ export async function POST(req: NextRequest) {
 
     /* ---------- REQUEST ---------- */
     const body = await req.json();
+    const clientType = req.headers.get("x-client") ?? "web";
 
     const messages = (body.messages ?? [])
       .filter(
@@ -166,16 +167,44 @@ export async function POST(req: NextRequest) {
       messageModifier: new SystemMessage(AGENT_SYSTEM_TEMPLATE),
     });
 
-    /* ---------- USAGE (NON-BLOCKING) ---------- */
+    /* ---------- USAGE LOGGING ---------- */
     void reportUsage({
       userId,
       usageType: "orchestrator",
       quantity: 1,
     }).catch(() => { });
 
-    /* ---------- STREAMING (ALL CLIENTS) ---------- */
+    /* ======================================================
+       MOBILE — NON-STREAMING (RN SAFE)
+       ====================================================== */
+    if (clientType === "mobile") {
+      const result = await agent.invoke({ messages });
+      const last = result.messages[result.messages.length - 1];
+
+      return NextResponse.json(
+        {
+          messages: [
+            {
+              role: "assistant",
+              content:
+                typeof last.content === "string"
+                  ? last.content
+                  : JSON.stringify(last.content),
+            },
+          ],
+        },
+        { headers: corsHeaders }
+      );
+    }
+
+    /* ======================================================
+       WEB — STREAMING (BACKWARDS COMPATIBLE)
+       ====================================================== */
     const encoder = new TextEncoder();
-    const eventStream = agent.streamEvents({ messages }, { version: "v2" });
+    const eventStream = agent.streamEvents(
+      { messages },
+      { version: "v2" }
+    );
 
     const readable = new ReadableStream({
       async start(controller) {
@@ -192,7 +221,6 @@ export async function POST(req: NextRequest) {
             }
           }
         } catch (err) {
-          console.error("Streaming error:", err);
           controller.error(err);
         } finally {
           controller.close();
@@ -207,10 +235,10 @@ export async function POST(req: NextRequest) {
       },
     });
   } catch (e: any) {
-    console.error("Route error:", e);
     return NextResponse.json(
       { error: e.message || "Internal Server Error" },
       { status: e.status ?? 500, headers: corsHeaders }
     );
   }
 }
+
