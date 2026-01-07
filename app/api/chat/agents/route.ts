@@ -138,9 +138,9 @@ export async function POST(req: NextRequest) {
     console.log("req", req)
     /* ---------- AUTH GUARD (FIRST) ---------- */
     const user = await getUserFromRequest(req);
-    console.log("user", user)
+
     const userId = user.id;
-    console.log("userId", userId)
+
 
     /* ---------- Parse request ---------- */
     const body = await req.json();
@@ -203,6 +203,7 @@ export async function POST(req: NextRequest) {
                 typeof data?.chunk?.content === "string" &&
                 data.chunk.content.length > 0
               ) {
+                console.log("Streaming response chunk:", data.chunk.content);
                 controller.enqueue(encoder.encode(data.chunk.content));
               }
             }
@@ -226,6 +227,7 @@ export async function POST(req: NextRequest) {
     /* ---------- Mobile Fallback (Non-Streaming TEXT) ---------- */
     if (!returnIntermediateSteps && isMobile) {
       const result = await agent.invoke({ messages });
+      console.log("Mobile response:", result)
       const lastMessage = result.messages[result.messages.length - 1];
       const content =
         typeof lastMessage.content === "string"

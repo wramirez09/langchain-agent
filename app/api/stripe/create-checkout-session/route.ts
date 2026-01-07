@@ -28,7 +28,7 @@ export async function POST(req: Request) {
         const customer =
             existing?.data[0] ?? (await stripe?.customers.create({ email, name }));
 
-        const base = process.env.NODE_ENV === "development" ? "http://localhost:3000" : `https://${process.env.NEXT_PUBLIC_BASE_URL_PREVIEW}`
+        const base = process.env.NODE_ENV === "development" ? "http://localhost:3000" : `https://${process.env.NEXT_PUBLIC_BASE_URL_PROD}`
 
         const session: any = await stripe?.checkout.sessions.create({
             mode: "subscription",
