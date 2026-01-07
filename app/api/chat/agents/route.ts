@@ -17,22 +17,25 @@ import { localCoverageArticleSearchTool } from "./tools/localArticleSearchTool";
 import { policyContentExtractorTool } from "./tools/policyContentExtractorTool";
 import { CarelonSearchTool } from "./tools/carelon_tool";
 import { EvolentSearchTool } from "./tools/evolent_tool";
-import { FileUploadTool } from "./tools/fileUploadTool"; // Import the new FileUploadTool
+import { FileUploadTool } from "./tools/fileUploadTool";
 import { reportUsage } from "@/lib/usage";
 import { getUserFromRequest } from "../../../../lib/auth/getUserFromRequest";
 
+/* -------------------- CORS -------------------- */
 const corsHeaders = {
-  "Access-Control-Allow-Origin": "*", // tighten later
+  "Access-Control-Allow-Origin": "*",
   "Access-Control-Allow-Headers": "authorization, content-type",
 };
 
-/* -------------------- OPTIONS (preflight) -------------------- */
+/* -------------------- OPTIONS -------------------- */
 export async function OPTIONS() {
   return new Response(null, { headers: corsHeaders });
 }
 
-
-const convertVercelMessageToLangChainMessage = (message: VercelChatMessage | any) => { // Use any to support newer SDK parts structure if types are outdated
+/* -------------------- MESSAGE CONVERSION -------------------- */
+const convertVercelMessageToLangChainMessage = (
+  message: VercelChatMessage | any
+) => {
   let content = message.content;
 
   if ((!content || content === "") && Array.isArray(message.parts)) {
@@ -42,20 +45,14 @@ const convertVercelMessageToLangChainMessage = (message: VercelChatMessage | any
       .join("\n");
   }
 
-  const strContent = content ? String(content) : "";
+  const text = content ? String(content) : "";
 
-  if (message.role === "user") return new HumanMessage(strContent);
-  else if (message.role === "assistant") return new AIMessage(strContent);
-  else return new ChatMessage(strContent, message.role);
+  if (message.role === "user") return new HumanMessage(text);
+  if (message.role === "assistant") return new AIMessage(text);
+  return new ChatMessage(text, message.role);
 };
 
-const convertLangChainMessageToVercelMessage = (message: BaseMessage) => {
-  if (message._getType() === "human") return { content: message.content, role: "user" };
-  else if (message._getType() === "ai")
-    return { content: message.content, role: "assistant", tool_calls: (message as AIMessage).tool_calls };
-  else return { content: message.content, role: message._getType() };
-};
-
+/* -------------------- SYSTEM PROMPT -------------------- */
 const AGENT_SYSTEM_TEMPLATE = `You are an expert Medicare, Evolent, and Carelon Prior Authorization Assistant for healthcare providers.
 Your primary goal is to help providers understand the requirements for obtaining pre-approval for treatments and services, streamlining their research.
 
@@ -133,28 +130,24 @@ return as markdown
 \`\`\`
 `;
 
+/* -------------------- POST -------------------- */
 export async function POST(req: NextRequest) {
   try {
-    console.log("req", req)
-    /* ---------- AUTH GUARD (FIRST) ---------- */
+    /* ---------- AUTH ---------- */
     const user = await getUserFromRequest(req);
-
     const userId = user.id;
 
-
-    /* ---------- Parse request ---------- */
+    /* ---------- REQUEST ---------- */
     const body = await req.json();
-    console.log("Parsed request body:", JSON.stringify(body, null, 2));
-    const returnIntermediateSteps = false;
 
     const messages = (body.messages ?? [])
       .filter(
-        (message: VercelChatMessage) =>
-          message.role === "user" || message.role === "assistant"
+        (m: VercelChatMessage) =>
+          m.role === "user" || m.role === "assistant"
       )
       .map(convertVercelMessageToLangChainMessage);
 
-    /* ---------- Tools ---------- */
+    /* ---------- TOOLS ---------- */
     const tools = [
       new SerpAPI(),
       new CarelonSearchTool(),
@@ -166,94 +159,53 @@ export async function POST(req: NextRequest) {
       new FileUploadTool(),
     ];
 
-    /* ---------- Agent ---------- */
+    /* ---------- AGENT ---------- */
     const agent = createReactAgent({
       llm: llmAgent("orchestrator"),
       tools,
       messageModifier: new SystemMessage(AGENT_SYSTEM_TEMPLATE),
     });
 
-    /* ---------- Usage logging (non-blocking) ---------- */
+    /* ---------- USAGE (NON-BLOCKING) ---------- */
     void reportUsage({
       userId,
       usageType: "orchestrator",
       quantity: 1,
-    }).catch((err) => {
-      console.error("Usage report failed (non-fatal):", err);
+    }).catch(() => { });
+
+    /* ---------- STREAMING (ALL CLIENTS) ---------- */
+    const encoder = new TextEncoder();
+    const eventStream = agent.streamEvents({ messages }, { version: "v2" });
+
+    const readable = new ReadableStream({
+      async start(controller) {
+        try {
+          for await (const { event, data } of eventStream) {
+            if (
+              event === "on_chat_model_stream" &&
+              typeof data?.chunk?.content === "string" &&
+              data.chunk.content.length > 0
+            ) {
+              controller.enqueue(
+                encoder.encode(data.chunk.content)
+              );
+            }
+          }
+        } catch (err) {
+          console.error("Streaming error:", err);
+          controller.error(err);
+        } finally {
+          controller.close();
+        }
+      },
     });
 
-    /* ---------- Mobile Detection ---------- */
-    const userAgent = req.headers.get("user-agent") || "";
-    const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(
-      userAgent
-    );
-
-    /* ---------- Streaming (TEXT ONLY) - WEB ONLY ---------- */
-    if (!returnIntermediateSteps && !isMobile) {
-      const encoder = new TextEncoder();
-      const eventStream = agent.streamEvents({ messages }, { version: "v2" });
-
-      const readable = new ReadableStream({
-        async start(controller) {
-          try {
-            for await (const { event, data } of eventStream) {
-              // ✅ STRICT FILTER — stream ONLY plain text
-              if (
-                event === "on_chat_model_stream" &&
-                typeof data?.chunk?.content === "string" &&
-                data.chunk.content.length > 0
-              ) {
-                console.log("Streaming response chunk:", data.chunk.content);
-                controller.enqueue(encoder.encode(data.chunk.content));
-              }
-            }
-          } catch (err) {
-            console.error("Stream error:", err);
-            controller.error(err);
-          } finally {
-            controller.close();
-          }
-        },
-      });
-
-      return new StreamingTextResponse(readable, {
-        headers: {
-          ...corsHeaders,
-          "Content-Type": "text/plain; charset=utf-8",
-        },
-      });
-    }
-
-    /* ---------- Mobile Fallback (Non-Streaming TEXT) ---------- */
-    if (!returnIntermediateSteps && isMobile) {
-      const result = await agent.invoke({ messages });
-      console.log("Mobile response:", result)
-      const lastMessage = result.messages[result.messages.length - 1];
-      const content =
-        typeof lastMessage.content === "string"
-          ? lastMessage.content
-          : JSON.stringify(lastMessage.content);
-
-      return new Response(content, {
-        headers: {
-          ...corsHeaders,
-          "Content-Type": "text/plain; charset=utf-8",
-        },
-      });
-    }
-
-    /* ---------- Non-streaming ---------- */
-    const result = await agent.invoke({ messages });
-    console.log("result", result)
-
-    return NextResponse.json(
-      {
-        messages: result.messages.map(
-          convertLangChainMessageToVercelMessage
-        ),
+    return new StreamingTextResponse(readable, {
+      headers: {
+        ...corsHeaders,
+        "Content-Type": "text/plain; charset=utf-8",
       },
-      { status: 200, headers: corsHeaders }
-    );
+    });
   } catch (e: any) {
     console.error("Route error:", e);
     return NextResponse.json(
