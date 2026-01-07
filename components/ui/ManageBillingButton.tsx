@@ -33,7 +33,7 @@ export default function ManageBillingButton() {
             disabled={loading}
             variant="default"
             size={"sm"}
-            className="text-[#1e7dbf] hover:bg-[#e1f0fb] font-medium rounded-lg px-4 py-2"
+            className="text-[#1e7dbf] hover:bg-[#e1f0fb] font-medium rounded-lg px-4 py-2 text-white"
 
         >   <IconChalkboard width={16} />
             {loading ? "Loading..." : "Manage Billing"}
