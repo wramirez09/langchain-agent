@@ -43,8 +43,8 @@ export const defaultInsuranceProvidersOptions: SelectOption[] = [
 ];
 
 const allowedEmails = [
-  "miteshp@notedoctor.ai", // Example admin email
-  "wramirez1980@gmail.com", // Example premium user email
+  "miteshp@notedoctor.ai",
+  "wramirez1980@gmail.com",
 
 ];
 export const getInsuranceProvidersOptions = (user: { email: string; isSignedIn: boolean }): SelectOption[] => {

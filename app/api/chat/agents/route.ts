@@ -175,22 +175,46 @@ export async function POST(req: NextRequest) {
     }).catch(() => { });
 
     /* ======================================================
-       MOBILE — NON-STREAMING (RN SAFE)
-       ====================================================== */
+     MOBILE — NON-STREAMING (RN SAFE)
+     ====================================================== */
     if (clientType === "mobile") {
       const result = await agent.invoke({ messages });
-      const last = result.messages[result.messages.length - 1];
+      console.log({ result });
+
+      // Get last user + last assistant messages
+      const lastUser = [...result.messages]
+        .reverse()
+        .find((m) => m._getType?.() === "human");
+
+      const lastAssistant = [...result.messages]
+        .reverse()
+        .find((m) => m._getType?.() === "ai");
 
       return NextResponse.json(
         {
           messages: [
-            {
-              role: "assistant",
-              content:
-                typeof last.content === "string"
-                  ? last.content
-                  : JSON.stringify(last.content),
-            },
+            ...(lastUser
+              ? [
+                {
+                  role: "user",
+                  content:
+                    typeof lastUser.content === "string"
+                      ? lastUser.content
+                      : JSON.stringify(lastUser.content),
+                },
+              ]
+              : []),
+            ...(lastAssistant
+              ? [
+                {
+                  role: "assistant",
+                  content:
+                    typeof lastAssistant.content === "string"
+                      ? lastAssistant.content
+                      : JSON.stringify(lastAssistant.content),
+                },
+              ]
+              : []),
           ],
         },
         { headers: corsHeaders }
