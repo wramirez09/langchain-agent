@@ -5,7 +5,6 @@ import { llmAgent } from "@/lib/llm";
 import { SerpAPI } from "@langchain/community/tools/serpapi";
 import {
   AIMessage,
-  BaseMessage,
   ChatMessage,
   HumanMessage,
   SystemMessage,
@@ -34,7 +33,7 @@ export async function OPTIONS() {
 
 /* -------------------- MESSAGE CONVERSION -------------------- */
 const convertVercelMessageToLangChainMessage = (
-  message: VercelChatMessage | any
+  message: VercelChatMessage | any,
 ) => {
   let content = message.content;
 
@@ -126,7 +125,19 @@ pass only the treatment and diagnosis to the tool along with state if provided
 ## Summary Report
 **Summary report (Approve or Denied due to):** [Your AI-driven determination, e.g., "Approved as guideline met for medical necessity due to knee pain from trauma to knee, joint swelling and inability to extend knee." Explain how the patient's extracted history and findings meet or fail to meet the guidelines criteria.]
 
-return as markdown
+Please format your response in clean, readable Markdown with the following style rules:
+
+• Use clear, bold section headers to separate major sections  
+• Use real Markdown bullet points for all lists  
+• Group related bullet points under meaningful sub-headers  
+• Add a blank line between sections and between logical bullet groups  
+• Use bold text for field labels and important terms  
+• Use italics sparingly for examples or clarifications
+• Do not nest bullet points deeper than 1 levels  
+• convert top level bullets to headers — ensure proper vertical spacing  
+• Use tables only if data is naturally tabular (codes, comparisons, summaries)
+
+The goal is a professional, scannable layout similar to a clinical intake checklist or prior-auth form.
 \`\`\`
 `;
 
@@ -143,8 +154,7 @@ export async function POST(req: NextRequest) {
 
     const messages = (body.messages ?? [])
       .filter(
-        (m: VercelChatMessage) =>
-          m.role === "user" || m.role === "assistant"
+        (m: VercelChatMessage) => m.role === "user" || m.role === "assistant",
       )
       .map(convertVercelMessageToLangChainMessage);
 
@@ -172,7 +182,7 @@ export async function POST(req: NextRequest) {
       userId,
       usageType: "orchestrator",
       quantity: 1,
-    }).catch(() => { });
+    }).catch(() => {});
 
     /* ======================================================
      MOBILE — NON-STREAMING (RN SAFE)
@@ -195,29 +205,29 @@ export async function POST(req: NextRequest) {
           messages: [
             ...(lastUser
               ? [
-                {
-                  role: "user",
-                  content:
-                    typeof lastUser.content === "string"
-                      ? lastUser.content
-                      : JSON.stringify(lastUser.content),
-                },
-              ]
+                  {
+                    role: "user",
+                    content:
+                      typeof lastUser.content === "string"
+                        ? lastUser.content
+                        : JSON.stringify(lastUser.content),
+                  },
+                ]
               : []),
             ...(lastAssistant
               ? [
-                {
-                  role: "assistant",
-                  content:
-                    typeof lastAssistant.content === "string"
-                      ? lastAssistant.content
-                      : JSON.stringify(lastAssistant.content),
-                },
-              ]
+                  {
+                    role: "assistant",
+                    content:
+                      typeof lastAssistant.content === "string"
+                        ? lastAssistant.content
+                        : JSON.stringify(lastAssistant.content),
+                  },
+                ]
               : []),
           ],
         },
-        { headers: corsHeaders }
+        { headers: corsHeaders },
       );
     }
 
@@ -225,10 +235,7 @@ export async function POST(req: NextRequest) {
        WEB — STREAMING (BACKWARDS COMPATIBLE)
        ====================================================== */
     const encoder = new TextEncoder();
-    const eventStream = agent.streamEvents(
-      { messages },
-      { version: "v2" }
-    );
+    const eventStream = agent.streamEvents({ messages }, { version: "v2" });
 
     const readable = new ReadableStream({
       async start(controller) {
@@ -239,9 +246,7 @@ export async function POST(req: NextRequest) {
               typeof data?.chunk?.content === "string" &&
               data.chunk.content.length > 0
             ) {
-              controller.enqueue(
-                encoder.encode(data.chunk.content)
-              );
+              controller.enqueue(encoder.encode(data.chunk.content));
             }
           }
         } catch (err) {
@@ -261,8 +266,7 @@ export async function POST(req: NextRequest) {
   } catch (e: any) {
     return NextResponse.json(
       { error: e.message || "Internal Server Error" },
-      { status: e.status ?? 500, headers: corsHeaders }
+      { status: e.status ?? 500, headers: corsHeaders },
     );
   }
 }
-

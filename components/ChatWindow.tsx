@@ -32,7 +32,6 @@ import { ChatMessageBubble } from "./ChatMessageBubble";
 import { IntermediateStep } from "./IntermediateStep";
 import { Button } from "./ui/button";
 
-import { markdownToTxt } from 'markdown-to-txt';
 
 function ChatMessages(props: {
   messages: Message[];
