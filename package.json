@@ -70,7 +70,7 @@
     "gpt-tokenizer": "^3.0.1",
     "install": "^0.13.0",
     "langchain": "^0.3.27",
-    "lodash": "^4.17.21",
+    "lodash": "^4.17.23",
     "lucide-react": "^0.473.0",
     "markdown-to-txt": "^2.0.1",
     "multiparty": "^4.2.3",
