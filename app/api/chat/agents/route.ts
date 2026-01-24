@@ -133,7 +133,7 @@ Please format your response in clean, readable Markdown with the following style
 • Add a blank line between sections and between logical bullet groups  
 • Use bold text for field labels and important terms  
 • Use italics sparingly for examples or clarifications
-• Do not nest bullet points deeper than 1 levels  
+• Do not nest bullet points  
 • convert top level bullets to headers — ensure proper vertical spacing  
 • Use tables only if data is naturally tabular (codes, comparisons, summaries)
 
