@@ -90,7 +90,7 @@ export function ChatMessageBubble(props: {
           className={cn(
             "rounded-2xl px-4 py-2.5 shadow-sm transition-all duration-200",
             isUser
-              ? "bg-[#358cee] text-white rounded-tr-none hover:bg-[#1a6da8]"
+              ? "bg-gray-100 text-white rounded-tr-none hover:bg-gray-200"
               : "bg-white border border-blue-100 rounded-tl-none text-gray-900 hover:bg-blue-50",
           )}
         >
