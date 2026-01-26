@@ -90,7 +90,6 @@
     "react-markdown": "^10.1.0",
     "react-pro-sidebar": "^1.1.0",
     "react-stick-to-bottom": "^1.0.0",
-    "react-syntax-highlighter": "^16.1.0",
     "recharts": "2",
     "remark-gfm": "^4.0.1",
     "shadcn-ui": "^0.9.5",
