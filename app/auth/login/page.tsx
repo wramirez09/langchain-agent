@@ -1,6 +1,18 @@
-import { LoginForm } from '@/components/login-form';
+"use client";
+import { useSearchParams } from "next/navigation";
+import { LoginForm } from "@/components/login-form";
 
 export default function Page() {
+  const searchParams = useSearchParams();
+
+  const isMobile = searchParams.get("mobile") === "true";
+  const redirect = searchParams.get("redirect");
+
+  if (isMobile && redirect === "login") {
+    window.location.href = "notedoctoraiapp://login?billing=success";
+    return null; // Prevent rendering the rest of the component
+  }
+
   return (
     <div className="min-h-screen flex items-center justify-center bg-gradient-light p-6">
       <div className="w-full max-w-md">
