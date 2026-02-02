@@ -107,6 +107,7 @@
   "devDependencies": {
     "@next/bundle-analyzer": "16.0.7",
     "autoprefixer": "10.4.14",
+    "baseline-browser-mapping": "^2.9.19",
     "eslint": "latest",
     "eslint-config-next": "16.0.7",
     "eslint-plugin-next": "latest",
