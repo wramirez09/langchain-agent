@@ -1,15 +1,21 @@
 "use client";
 import { useSearchParams } from "next/navigation";
 import { LoginForm } from "@/components/login-form";
+import { Suspense, useEffect } from "react";
 
-export default function Page() {
+function LoginContent() {
   const searchParams = useSearchParams();
 
   const isMobile = searchParams.get("mobile") === "true";
   const redirect = searchParams.get("redirect");
 
+  useEffect(() => {
+    if (isMobile && redirect === "login") {
+      window.location.href = "notedoctoraiapp://login?billing=success";
+    }
+  }, [isMobile, redirect]);
+
   if (isMobile && redirect === "login") {
-    window.location.href = "notedoctoraiapp://login?billing=success";
     return null; // Prevent rendering the rest of the component
   }
 
@@ -25,5 +31,15 @@ export default function Page() {
         </div>
       </div>
     </div>
+  );
+}
+
+export default function Page() {
+  return (
+    <Suspense fallback={<div className="min-h-screen flex items-center justify-center bg-gradient-light p-6">
+      <div className="text-center">Loading...</div>
+    </div>}>
+      <LoginContent />
+    </Suspense>
   );
 }
