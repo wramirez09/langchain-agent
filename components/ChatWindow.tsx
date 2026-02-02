@@ -41,6 +41,7 @@ function ChatMessages(props: {
   className?: string;
   isLoading?: boolean;
 }) {
+  
   return (
     <div className="relative flex flex-col max-w-[768px] mx-auto pb-12 w-full bg-transparent">
       <div className="sticky bottom-0 left-0 right-0 h-12 pointer-events-none z-10" />
@@ -290,7 +291,7 @@ export function ChatWindow(props: {
 }) {
 
   const [intermediateStepsLoading, setIntermediateStepsLoading] = useState(false);
-  const [sheetOpen, setSheetOpen] = React.useState(true);
+  const [sheetOpen, setSheetOpen] = React.useState(false);
   const [openMobileDrawer, setOpenMobileDrawer] = React.useState<boolean>(false);
   const [modalOpen, setModalOpen] = React.useState(false);
   const [isLoading, setIsLoading] = useState(false);
