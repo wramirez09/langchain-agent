@@ -1,6 +1,6 @@
 "use client";
 
-import React, { ChangeEvent, ChangeEventHandler, useCallback, useEffect, useState } from "react";
+import * as React from "react";
 import { data, StateData } from "../../../app/agents/metaData/states";
 import { ncdOptions } from "@/data/ncdOptions";
 import AutoCompleteSelect from "../AutoCompleteSelect";
@@ -14,7 +14,7 @@ import { createClient } from '@/utils/client'
 
 type Props = {
   onStateFormStateChange: (key: string, value: string) => void;
-  chatOnChange: ChangeEventHandler<HTMLTextAreaElement>;
+  chatOnChange: React.ChangeEventHandler<HTMLTextAreaElement>;
 };
 
 const getStateOptions = (data: StateData[]) => {
@@ -25,8 +25,8 @@ const getStateOptions = (data: StateData[]) => {
 };
 
 const FormInputs: React.FC<Props> = (props: Props) => {
-  const [guidelinesoptins, setGuidelinesOptions] = useState<SelectOption[]>([])
-  const [userEmail, setUserEmail] = useState('')
+  const [guidelinesoptins, setGuidelinesOptions] = React.useState<SelectOption[]>([])
+  const [userEmail, setUserEmail] = React.useState('')
   const stateOptions = getStateOptions(data);
   const [isLoggedIn, setIsLoggedIn] = React.useState(false)
   React.useEffect(() => {
@@ -42,42 +42,42 @@ const FormInputs: React.FC<Props> = (props: Props) => {
 
     checkAuth()
 
-    const { data: { subscription } } = createClient().auth.onAuthStateChange((_event, session) => {
+    const { data: { subscription } } = createClient().auth.onAuthStateChange((_event: any, session: any) => {
       setIsLoggedIn(!!session)
     })
 
     return () => subscription.unsubscribe()
   }, [])
 
-  const handleInsuranceSelectChange = useCallback(
+  const handleInsuranceSelectChange = React.useCallback(
     (value: string) => props.onStateFormStateChange("Guidelines", value),
     [props.onStateFormStateChange],
   );
 
-  const handleStateSelectChange = useCallback(
+  const handleStateSelectChange = React.useCallback(
     (value: string) => props.onStateFormStateChange("State", value),
     [props.onStateFormStateChange],
   );
 
-  const HandleTreatmentSelectChange = useCallback(
+  const HandleTreatmentSelectChange = React.useCallback(
     (value: string) => props.onStateFormStateChange("Treatment", value),
     [props.onStateFormStateChange],
   );
 
-  const handleCptChange = useCallback(
-    (e: ChangeEvent<any>) =>
+  const handleCptChange = React.useCallback(
+    (e: React.ChangeEvent<any>) =>
       props.onStateFormStateChange("CPT code(s)", e.target.value),
     [props.onStateFormStateChange],
   );
 
-  const handleDiagnosisChange = useCallback(
-    (e: ChangeEvent<any>) =>
+  const handleDiagnosisChange = React.useCallback(
+    (e: React.ChangeEvent<any>) =>
       props.onStateFormStateChange("Diagnosis", e.target.value),
     [props.onStateFormStateChange],
   );
 
-  const handleHistoryChange = useCallback(
-    (e: ChangeEvent<any>) =>
+  const handleHistoryChange = React.useCallback(
+    (e: React.ChangeEvent<any>) =>
       props.onStateFormStateChange("History", e.target.value),
     [props.onStateFormStateChange],
   );
