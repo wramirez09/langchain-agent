@@ -1,6 +1,6 @@
 "use client";
 
-import React, { Suspense, useEffect, useState, useMemo } from "react";
+import React, { Suspense, useEffect, useState, useMemo, useCallback, useRef } from "react";
 import PdfDoc from "@/components/PdfDoc";
 import { Message } from "ai/react";
 import { useSearchParams } from "next/navigation";
@@ -20,6 +20,7 @@ const SuspendedPDFInner = () => {
   const params = useSearchParams();
   const stringData = params.get("data");
   const [isDownloading, setIsDownloading] = useState(false);
+  const downloadAttemptedRef = useRef(false);
 
   // Memoize messages to prevent useEffect re-running
   const messages = useMemo(() => {
@@ -53,45 +54,64 @@ const SuspendedPDFInner = () => {
   }, [stringData]);
 
   // Auto-download for mobile devices
-  useEffect(() => {
-    const downloadPDF = async () => {
-      if (isMobileDevice() && messages.length > 0 && !isDownloading) {
-        setIsDownloading(true);
-        try {
-          // Generate PDF
-          const pdfBuffer = await renderToBuffer(
-            <PdfDocument name="User" role="Viewer" messages={messages} logoBase64={logoBase64} />
-          );
+  const downloadPDF = useCallback(async () => {
+    if (isMobileDevice() && messages.length > 0 && !isDownloading && !downloadAttemptedRef.current) {
+      setIsDownloading(true);
+      downloadAttemptedRef.current = true;
+      try {
+        // Generate PDF
+        const pdfBuffer = await renderToBuffer(
+          <PdfDocument name="User" role="Viewer" messages={messages} logoBase64={logoBase64} />
+        );
 
-          // Create blob and download
-          const uint8Array = new Uint8Array(pdfBuffer);
-          const blob = new Blob([uint8Array], { type: 'application/pdf' });
-          const url = URL.createObjectURL(blob);
-          const link = document.createElement('a');
-          link.href = url;
-          link.download = `medauth-chat-${Date.now()}.pdf`;
-          document.body.appendChild(link);
-          link.click();
-          document.body.removeChild(link);
-          URL.revokeObjectURL(url);
+        // Create blob and download
+        const uint8Array = new Uint8Array(pdfBuffer);
+        const blob = new Blob([uint8Array], { type: 'application/pdf' });
+        const url = URL.createObjectURL(blob);
+        const link = document.createElement('a');
+        link.href = url;
+        link.download = `medauth-chat-${Date.now()}.pdf`;
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+        URL.revokeObjectURL(url);
 
-          // Optional: Redirect or close window after download
-          setTimeout(() => {
-            window.close();
-          }, 1000);
-        } catch (error) {
-          console.error('Error generating PDF:', error);
-        } finally {
-          setIsDownloading(false);
-        }
+        // Optional: Redirect or close window after download
+        setTimeout(() => {
+          window.close();
+        }, 1000);
+      } catch (error) {
+        console.error('Error generating PDF:', error);
+      } finally {
+        setIsDownloading(false);
       }
-    };
-
-    downloadPDF();
+    }
   }, [messages, isDownloading]);
+
+  useEffect(() => {
+    downloadPDF();
+  }, [downloadPDF]);
 
   // Show loading state for mobile while downloading
   if (isMobileDevice()) {
+    if (downloadAttemptedRef.current && !isDownloading) {
+      return (
+        <div className="min-h-screen flex items-center justify-center bg-gray-50">
+          <div className="text-center">
+            <div className="text-green-600 text-6xl mb-4">✓</div>
+            <h2 className="text-xl font-semibold text-gray-900 mb-2">PDF Downloaded</h2>
+            <p className="text-gray-600 mb-4">Your PDF has been downloaded successfully.</p>
+            <button 
+              onClick={() => window.close()}
+              className="bg-blue-600 text-white px-4 py-2 rounded-md hover:bg-blue-700"
+            >
+              Close Window
+            </button>
+          </div>
+        </div>
+      );
+    }
+    
     return (
       <div className="min-h-screen flex items-center justify-center bg-gray-50">
         <div className="text-center">
