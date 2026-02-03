@@ -1,6 +1,6 @@
 "use client";
 
-import React, { Suspense, useEffect, useState, useMemo, useCallback, useRef } from "react";
+import React, { Suspense, useEffect, useState, useMemo, useCallback } from "react";
 import dynamic from "next/dynamic";
 import { Message } from "ai/react";
 import { useSearchParams } from "next/navigation";
@@ -26,7 +26,8 @@ const SuspendedPDFInner = () => {
   const params = useSearchParams();
   const stringData = params.get("data");
   const [isDownloading, setIsDownloading] = useState(false);
-  const downloadAttemptedRef = useRef(false);
+  const [pdfGenerated, setPdfGenerated] = useState(false);
+  const [pdfUrl, setPdfUrl] = useState<string | null>(null);
 
   // Memoize messages to prevent useEffect re-running
   const messages = useMemo(() => {
@@ -59,60 +60,69 @@ const SuspendedPDFInner = () => {
     }
   }, [stringData]);
 
-  // Auto-download for mobile devices
-  const downloadPDF = useCallback(async () => {
-    if (isMobileDevice() && messages.length > 0 && !isDownloading && !downloadAttemptedRef.current) {
+  // Auto-generate PDF for mobile devices
+  const generatePDF = useCallback(async () => {
+    if (isMobileDevice() && messages.length > 0 && !isDownloading && !pdfGenerated) {
       setIsDownloading(true);
-      downloadAttemptedRef.current = true;
       try {
         // Generate PDF
         const pdfBuffer = await renderToBuffer(
           <PdfDocument name="User" role="Viewer" messages={messages} logoBase64={logoBase64} />
         );
 
-        // Create blob and download
+        // Create blob and URL
         const uint8Array = new Uint8Array(pdfBuffer);
         const blob = new Blob([uint8Array], { type: 'application/pdf' });
         const url = URL.createObjectURL(blob);
-        const link = document.createElement('a');
-        link.href = url;
-        link.download = `medauth-chat-${Date.now()}.pdf`;
-        document.body.appendChild(link);
-        link.click();
-        document.body.removeChild(link);
-        URL.revokeObjectURL(url);
-
-        // Optional: Redirect or close window after download
-        setTimeout(() => {
-          window.close();
-        }, 1000);
+        
+        // Set the URL for download
+        setPdfUrl(url);
+        setPdfGenerated(true);
       } catch (error) {
         console.error('Error generating PDF:', error);
       } finally {
         setIsDownloading(false);
       }
     }
-  }, [messages, isDownloading]);
+  }, [messages, isDownloading, pdfGenerated]);
 
   useEffect(() => {
-    downloadPDF();
-  }, [downloadPDF]);
+    generatePDF();
+  }, [generatePDF]);
+
+  // Cleanup URL when component unmounts
+  useEffect(() => {
+    return () => {
+      if (pdfUrl) {
+        URL.revokeObjectURL(pdfUrl);
+      }
+    };
+  }, [pdfUrl]);
 
   // Show loading state for mobile while downloading
   if (isMobileDevice()) {
-    if (downloadAttemptedRef.current && !isDownloading) {
+    if (pdfGenerated && !isDownloading && pdfUrl) {
       return (
         <div className="min-h-screen flex items-center justify-center bg-gray-50">
           <div className="text-center">
             <div className="text-green-600 text-6xl mb-4">✓</div>
-            <h2 className="text-xl font-semibold text-gray-900 mb-2">PDF Downloaded</h2>
-            <p className="text-gray-600 mb-4">Your PDF has been downloaded successfully.</p>
-            <button 
-              onClick={() => window.close()}
-              className="bg-blue-600 text-white px-4 py-2 rounded-md hover:bg-blue-700"
-            >
-              Close Window
-            </button>
+            <h2 className="text-xl font-semibold text-gray-900 mb-2">PDF Ready</h2>
+            <p className="text-gray-600 mb-6">Your PDF has been generated and is ready to download.</p>
+            <div className="space-y-3">
+              <a 
+                href={pdfUrl}
+                download={`medauth-chat-${Date.now()}.pdf`}
+                className="inline-block bg-blue-600 text-white px-6 py-3 rounded-md hover:bg-blue-700 font-medium"
+              >
+                📄 Download PDF
+              </a>
+              <button 
+                onClick={() => window.close()}
+                className="block mx-auto text-gray-600 hover:text-gray-800 text-sm"
+              >
+                Close Window
+              </button>
+            </div>
           </div>
         </div>
       );
@@ -123,7 +133,7 @@ const SuspendedPDFInner = () => {
         <div className="text-center">
           <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto mb-4"></div>
           <h2 className="text-xl font-semibold text-gray-900 mb-2">Generating PDF...</h2>
-          <p className="text-gray-600">Your PDF is being prepared and will download automatically.</p>
+          <p className="text-gray-600">Your PDF is being prepared.</p>
         </div>
       </div>
     );
