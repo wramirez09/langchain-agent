@@ -1817,23 +1817,23 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@langchain/core@npm:^0.3.66":
-  version: 0.3.66
-  resolution: "@langchain/core@npm:0.3.66"
+"@langchain/core@npm:^0.3.80":
+  version: 0.3.80
+  resolution: "@langchain/core@npm:0.3.80"
   dependencies:
     "@cfworker/json-schema": ^4.0.2
     ansi-styles: ^5.0.0
     camelcase: 6
     decamelize: 1.2.0
     js-tiktoken: ^1.0.12
-    langsmith: ^0.3.46
+    langsmith: ^0.3.67
     mustache: ^4.2.0
     p-queue: ^6.6.2
     p-retry: 4
     uuid: ^10.0.0
     zod: ^3.25.32
     zod-to-json-schema: ^3.22.3
-  checksum: af802bfe0f7c2eaf3dfd8ab6f55c0fba454adb429f3a2fc835cce9c918ed2930c8e1bbfc956e0ae2873925a2ae2d71ecce333ae4dba1bb56e8c5d9c981f4c019
+  checksum: b11dbcfff1f63b2db55d655867440cd69bd6bd4f21c7b0167e5eae2dcea37195a8243db93e024c8e3cddac5ac11e8771cf38b032788210eb28204e955424ea61
   languageName: node
   linkType: hard
 
@@ -8302,7 +8302,7 @@ __metadata:
   dependencies:
     "@ijsto/react-slideout": ^1.4.0
     "@langchain/community": ^0.3.49
-    "@langchain/core": ^0.3.66
+    "@langchain/core": ^0.3.80
     "@langchain/langgraph": ^0.2.57
     "@langchain/langgraph-sdk": ^0.0.60
     "@langchain/openai": ^0.5.11
@@ -8494,15 +8494,14 @@ __metadata:
   languageName: node
   linkType: hard
 
-"langsmith@npm:^0.3.46":
-  version: 0.3.50
-  resolution: "langsmith@npm:0.3.50"
+"langsmith@npm:^0.3.67":
+  version: 0.3.87
+  resolution: "langsmith@npm:0.3.87"
   dependencies:
     "@types/uuid": ^10.0.0
     chalk: ^4.1.2
     console-table-printer: ^2.12.1
     p-queue: ^6.6.2
-    p-retry: 4
     semver: ^7.6.3
     uuid: ^10.0.0
   peerDependencies:
@@ -8519,7 +8518,7 @@ __metadata:
       optional: true
     openai:
       optional: true
-  checksum: 8bb0151c1cc9e51399924c87ea406bb36e30bc9836cb59a0c97197952b58c17ce6420203b82a94ba4f1d3c580c593eae12ef9f769255d6a2ae279bc022ee91b0
+  checksum: 30b9b076199c4201ab475440e9887da58884d4c10e0cbcee554c7cffe0c42d9169224452904400d8e6c441d715217c479865fca484d4624c30160f4df6e4b6c8
   languageName: node
   linkType: hard
 
