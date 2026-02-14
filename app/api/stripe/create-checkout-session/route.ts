@@ -62,7 +62,7 @@ export async function POST(req: Request) {
          * Success & cancel URLs (ORIGINAL PATH)
          * ------------------------------------------------------------ */
         const successUrl = isMobileClient
-            ? `${baseUrl}/auth/update-password?mobile=true&redirect=login&session_id={CHECKOUT_SESSION_ID}&email=${encodeURIComponent(
+            ? `${baseUrl}/auth/UpdatePassword?mobile=true&redirect=login&session_id={CHECKOUT_SESSION_ID}&email=${encodeURIComponent(
                 email
             )}`
             : `${baseUrl}/auth/update-password?session_id={CHECKOUT_SESSION_ID}&email=${encodeURIComponent(

@@ -138,13 +138,18 @@ export function ChatInput(props: {
         case "form":
           props.setSheetOpen(true);
           break;
+        case "export":
+          // Open PDF export in new window for mobile
+          const pdfUrl = `/pdf?data=${encodeURIComponent(JSON.stringify(props.messages))}&client=mobile`;
+          window.open(pdfUrl, '_blank');
+          break;
         default:
           break;
       }
       props.setOpenMobileDrawer(false);
       useBodyPointerEvents(false);
     }
-  }, [props.setModalOpen, props.setSheetOpen, props.setOpenMobileDrawer]);
+  }, [props.setModalOpen, props.setSheetOpen, props.setOpenMobileDrawer, props.messages]);
 
   return (
     <div className="max-w-[768px] w-full mx-auto">

@@ -26,9 +26,9 @@ const getStateOptions = (data: StateData[]) => {
 
 const FormInputs: React.FC<Props> = (props: Props) => {
   const [guidelinesoptins, setGuidelinesOptions] = React.useState<SelectOption[]>([])
-  const [userEmail, setUserEmail] = React.useState('')
+  const [, setUserEmail] = React.useState('')
   const stateOptions = getStateOptions(data);
-  const [isLoggedIn, setIsLoggedIn] = React.useState(false)
+  const [, setIsLoggedIn] = React.useState(false)
   React.useEffect(() => {
     const checkAuth = async () => {
       const supabase = createClient()
@@ -51,35 +51,35 @@ const FormInputs: React.FC<Props> = (props: Props) => {
 
   const handleInsuranceSelectChange = React.useCallback(
     (value: string) => props.onStateFormStateChange("Guidelines", value),
-    [props.onStateFormStateChange],
+    [props],
   );
 
   const handleStateSelectChange = React.useCallback(
     (value: string) => props.onStateFormStateChange("State", value),
-    [props.onStateFormStateChange],
+    [props],
   );
 
   const HandleTreatmentSelectChange = React.useCallback(
     (value: string) => props.onStateFormStateChange("Treatment", value),
-    [props.onStateFormStateChange],
+    [props],
   );
 
   const handleCptChange = React.useCallback(
     (e: React.ChangeEvent<any>) =>
       props.onStateFormStateChange("CPT code(s)", e.target.value),
-    [props.onStateFormStateChange],
+    [props],
   );
 
   const handleDiagnosisChange = React.useCallback(
     (e: React.ChangeEvent<any>) =>
       props.onStateFormStateChange("Diagnosis", e.target.value),
-    [props.onStateFormStateChange],
+    [props],
   );
 
   const handleHistoryChange = React.useCallback(
     (e: React.ChangeEvent<any>) =>
       props.onStateFormStateChange("History", e.target.value),
-    [props.onStateFormStateChange],
+    [props],
   );
 
   return (
@@ -88,7 +88,7 @@ const FormInputs: React.FC<Props> = (props: Props) => {
       <div className="grid grid-cols-1 md:grid-cols-2 gap-x-6 gap-y-4">
         <div>
           <label className="block text-md font-medium text-gray-900 mb-1">
-            Guideline
+            Guidelines
           </label>
           <AutoCompleteSelect
             options={guidelinesoptins}
@@ -110,7 +110,7 @@ const FormInputs: React.FC<Props> = (props: Props) => {
       <div className="grid grid-cols-1 md:grid-cols-2 gap-x-6 gap-y-4">
         <div>
           <label className="block text-md font-medium text-gray-900 mb-1">
-            Treatment
+            Pre-Auth Request
           </label>
           <AutoCompleteSelect
             options={ncdOptions}
