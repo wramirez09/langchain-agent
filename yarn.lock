@@ -8038,7 +8038,7 @@ __metadata:
     install: ^0.13.0
     langchain: ^0.3.27
     lodash: ^4.17.21
-    lucide-react: ^0.473.0
+    lucide-react: ^0.564.0
     markdown-to-txt: ^2.0.1
     multiparty: ^4.2.3
     next: 16.0.7
@@ -8073,6 +8073,7 @@ __metadata:
     typescript: 5.1.6
     use-stick-to-bottom: ^1.0.44
     vaul: ^1.1.2
+    yarn: ^1.22.22
     zod: latest
     zod-to-json-schema: ^3.23.2
   languageName: unknown
@@ -8360,12 +8361,12 @@ __metadata:
   languageName: node
   linkType: hard
 
-"lucide-react@npm:^0.473.0":
-  version: 0.473.0
-  resolution: "lucide-react@npm:0.473.0"
+"lucide-react@npm:^0.564.0":
+  version: 0.564.0
+  resolution: "lucide-react@npm:0.564.0"
   peerDependencies:
     react: ^16.5.1 || ^17.0.0 || ^18.0.0 || ^19.0.0
-  checksum: f1af352c6056f14c6567271a5f37c3a67e910cf226f465a40d55c0d160e96daa102f5398b68d1168292a66ccc7a4a085a4d668dcbc755ea4d53c2f6ea39d3868
+  checksum: 236eee78cd470fafa7a5db299a43f977ec17b1f223a396ca2a32cf2b3ac65996f3844e7ed20e73b1c7a0418e2fb8076a2f8e8a158dcf6fc8f9cab0177569ec5e
   languageName: node
   linkType: hard
 
@@ -12988,6 +12989,16 @@ __metadata:
     y18n: ^5.0.5
     yargs-parser: ^21.1.1
   checksum: 73b572e863aa4a8cbef323dd911d79d193b772defd5a51aab0aca2d446655216f5002c42c5306033968193bdbf892a7a4c110b0d77954a7fdf563e653967b56a
+  languageName: node
+  linkType: hard
+
+"yarn@npm:^1.22.22":
+  version: 1.22.22
+  resolution: "yarn@npm:1.22.22"
+  bin:
+    yarn: bin/yarn.js
+    yarnpkg: bin/yarn.js
+  checksum: 59aeef5ccfd3347287f939448e6d3594f0a42f74025b9bdc2a277641c1d4070c07a38b6e7c35e695f77410b0269a5a43c78535786564f86f39c9f781e6efa311
   languageName: node
   linkType: hard
 

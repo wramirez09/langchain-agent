@@ -101,6 +101,10 @@ export function LogoutButton() {
   const logout = async () => {
     const supabase = createClient();
     await supabase.auth.signOut();
+    
+    // Reset welcome header state on logout
+    localStorage.removeItem('medauth-welcome-seen');
+    
     router.push('/auth/login');
   };
 

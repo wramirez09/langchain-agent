@@ -4,7 +4,7 @@ import { type Message } from "ai";
 import { useBodyPointerEvents } from "@/utils/use-body-pointer-events";
 
 import { cn } from "@/utils/cn";
-import React, { FormEvent, ReactNode, useCallback, useState, type JSX } from "react";
+import React, { FormEvent, ReactNode, useCallback, useState, useEffect, type JSX } from "react";
 import { StickToBottom, useStickToBottomContext } from "use-stick-to-bottom";
 import UploadDocumentsForm from "./UploadDocumentsForm";
 import {
@@ -16,21 +16,21 @@ import {
   DialogTrigger,
 } from "./ui/dialog";
 import {
-  IconFileSearch,
-  IconFileTypePdf,
+  
   IconSend2,
   IconDots,
-  IconUpload,
+  
 } from "@tabler/icons-react";
 import FlyoutForm from "./ui/FlyoutForm";
 import Link from "next/link";
 import MobileDrawer from "./ui/MobileDrawer";
 import { toast } from "sonner";
 import { useChat } from "ai/react";
-import { ArrowDown, LoaderCircle } from "lucide-react";
+import { ArrowDown, Download, Form, LoaderCircle, Upload } from "lucide-react";
 import { ChatMessageBubble } from "./ChatMessageBubble";
 import { IntermediateStep } from "./IntermediateStep";
 import { Button } from "./ui/button";
+import { WelcomeHeader } from "./WelcomeHeader";
 
 
 function ChatMessages(props: {
@@ -149,7 +149,7 @@ export function ChatInput(props: {
       props.setOpenMobileDrawer(false);
       useBodyPointerEvents(false);
     }
-  }, [props.setModalOpen, props.setSheetOpen, props.setOpenMobileDrawer, props.messages]);
+  }, [props]);
 
   return (
     <div className="max-w-[768px] w-full mx-auto">
@@ -178,7 +178,7 @@ export function ChatInput(props: {
               className="hidden sm:flex items-center hover:bg-blue-100 bg-white/50 border border-blue-100 text-[#1e7dbf] hover:text-[#1e7dbf] px-3 h-8"
               onClick={() => props.setSheetOpen((open) => !open)}
             >
-              <IconFileSearch className="w-4 h-4 text-[#238dd2] mr-1" strokeWidth={1.5} />
+              <Form size={16} color="#0ce0e7ff" />
               <span>Pre-Authorization</span>
             </Button>
 
@@ -197,7 +197,7 @@ export function ChatInput(props: {
                 }}
                 className="flex items-center hidden sm:flex items-center hover:bg-blue-100 bg-white/50 border border-blue-100 text-[#1e7dbf] hover:text-[#1e7dbf] px-3 h-8 rounded-md"
               >
-                <IconFileTypePdf className="w-4 h-4 text-[#238dd2] mr-2" strokeWidth={1.5} />
+                  <Download size={16} color="#e70c0cff" /> 
                 <span className="text-xs font-medium">File Export</span>
               </Link>
             </Button>
@@ -299,8 +299,22 @@ export function ChatWindow(props: {
   const [sheetOpen, setSheetOpen] = React.useState(false);
   const [openMobileDrawer, setOpenMobileDrawer] = React.useState<boolean>(false);
   const [modalOpen, setModalOpen] = React.useState(false);
-  const [isLoading, setIsLoading] = useState(false);
+  const [setIsLoading] = useState<boolean>(false);
   const [uploading, setUploading] = useState(false);
+  const [showWelcome, setShowWelcome] = useState(true);
+
+  // Check if welcome has been seen in this session
+  useEffect(() => {
+    const welcomeSeen = localStorage.getItem('medauth-welcome-seen');
+    if (welcomeSeen === 'true') {
+      setShowWelcome(false);
+    }
+  }, []);
+
+  const handleWelcomeFadeOut = useCallback(() => {
+    setShowWelcome(false);
+    localStorage.setItem('medauth-welcome-seen', 'true');
+  }, []);
 
   useBodyPointerEvents(sheetOpen || openMobileDrawer || modalOpen);
 
@@ -387,6 +401,11 @@ export function ChatWindow(props: {
 
     if (chat.isLoading) return;
 
+    // Hide welcome header when first message is sent
+    if (showWelcome) {
+      handleWelcomeFadeOut();
+    }
+
     // Declare timeout variables at the function level
     let loadingToastTimeout1: NodeJS.Timeout | null = null;
     let loadingToastTimeout2: NodeJS.Timeout | null = null;
@@ -458,12 +477,18 @@ export function ChatWindow(props: {
       setFormContent((prev) => prev.set(key, value));
       setInput();
     },
-    [chat, setFormContent, setInput],
+    [setFormContent, setInput],
   );
 
   async function handleUploadAndChat(file: File, insurance?: string) {
     let loadingToastTimeout1: NodeJS.Timeout | null = null;
     let loadingToastTimeout2: NodeJS.Timeout | null = null;
+    
+    // Hide welcome header when document is uploaded
+    if (showWelcome) {
+      handleWelcomeFadeOut();
+    }
+    
     // Set up the loading toasts
     loadingToastTimeout1 = setTimeout(() => {
       toast.info('Processing your document');
@@ -579,7 +604,14 @@ export function ChatWindow(props: {
       <ChatLayout
         content={
           chat.messages.length === 0 ? (
-            <></>
+            showWelcome ? (
+              <WelcomeHeader 
+                isVisible={showWelcome} 
+                onFadeOut={handleWelcomeFadeOut} 
+              />
+            ) : (
+              <></>
+            )
           ) : (
             <ChatMessages
               aiEmoji={props.emoji}
@@ -626,7 +658,7 @@ export function ChatWindow(props: {
                         className="hidden sm:flex items-center hover:bg-blue-100 bg-white/50 border border-blue-100 text-[#1e7dbf] hover:text-[#1e7dbf] px-3 h-8"
                         disabled={chat.messages.length !== 0}
                       >
-                        <IconUpload className="w-4 h-4 text-[#238dd2] mr-1" strokeWidth={1.5} />
+                        <Upload size={16} color="#161df9ff"/>
                         <span>Upload File</span>
                       </Button>
                     </DialogTrigger>

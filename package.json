@@ -72,7 +72,7 @@
     "install": "^0.13.0",
     "langchain": "^0.3.27",
     "lodash": "^4.17.21",
-    "lucide-react": "^0.473.0",
+    "lucide-react": "^0.564.0",
     "markdown-to-txt": "^2.0.1",
     "multiparty": "^4.2.3",
     "next": "16.0.7",
@@ -101,6 +101,7 @@
     "toast": "^0.5.4",
     "use-stick-to-bottom": "^1.0.44",
     "vaul": "^1.1.2",
+    "yarn": "^1.22.22",
     "zod": "latest",
     "zod-to-json-schema": "^3.23.2"
   },

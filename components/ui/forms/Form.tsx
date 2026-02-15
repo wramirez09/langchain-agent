@@ -8,6 +8,7 @@ import { getInsuranceProvidersOptions, SelectOption } from "../../../data/select
 import { Textarea } from "../textarea";
 import { Input } from "../input";
 import { createClient } from '@/utils/client'
+import { Activity, ClipboardList, FileBarChart, FileText, MapPin, Stethoscope } from "lucide-react";
 
 
 
@@ -87,7 +88,8 @@ const FormInputs: React.FC<Props> = (props: Props) => {
       {/* Row 1 */}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-x-6 gap-y-4">
         <div>
-          <label className="block text-md font-medium text-gray-900 mb-1">
+          <label className="flex items-center gap-2 text-md font-medium text-gray-900 mb-1">
+            <FileText size={16} color="#2563EB" />
             Guidelines
           </label>
           <AutoCompleteSelect
@@ -96,7 +98,8 @@ const FormInputs: React.FC<Props> = (props: Props) => {
           />
         </div>
         <div>
-          <label className="block text-md font-medium text-gray-900 mb-1">
+          <label className="flex items-center gap-2 text-md font-medium text-gray-900 mb-1">
+            <MapPin size={16} color="#059669" />
             State
           </label>
           <AutoCompleteSelect
@@ -109,7 +112,8 @@ const FormInputs: React.FC<Props> = (props: Props) => {
       {/* Row 2 */}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-x-6 gap-y-4">
         <div>
-          <label className="block text-md font-medium text-gray-900 mb-1">
+          <label className="flex items-center gap-2 text-md font-medium text-gray-900 mb-1">
+            <Stethoscope size={16} color="#7C3AED" />
             Pre-Auth Request
           </label>
           <AutoCompleteSelect
@@ -118,7 +122,8 @@ const FormInputs: React.FC<Props> = (props: Props) => {
           />
         </div>
         <div>
-          <label className="block text-md font-medium text-gray-900 mb-1">
+          <label className="flex items-center gap-2 text-md font-medium text-gray-900 mb-1">
+            <FileBarChart size={16} color="#4F46E5" />
             CPT Code(s)
           </label>
           <Input
@@ -131,7 +136,8 @@ const FormInputs: React.FC<Props> = (props: Props) => {
 
       {/* Diagnosis */}
       <div>
-        <label className="block text-md font-semi-bold text-black mb-1">
+        <label className="flex items-center gap-2 text-md font-semi-bold text-black mb-1">
+          <Activity size={16} color="#F97316" />
           Diagnosis
         </label>
         <Textarea
@@ -143,7 +149,8 @@ const FormInputs: React.FC<Props> = (props: Props) => {
 
       {/* History */}
       <div>
-        <label className="block text-md font-semi-bold text-black mb-1">
+        <label className="flex items-center gap-2 text-md font-semi-bold text-black mb-1">
+          <ClipboardList size={16} color="#F43F5E" />
           Patient(s) Medical History
         </label>
         <Textarea
@@ -156,11 +163,11 @@ const FormInputs: React.FC<Props> = (props: Props) => {
       {/* Chat Context */}
       <div>
         <label className="block text-md font-semi-bold text-black mb-1">
-          Additional Chat Prompt Context (optional)
+          Relevant medical history 
         </label>
         <Textarea
           className="w-full bg-white border-blue-200 text-gray-900 focus-visible:ring-blue-300 focus-visible:border-blue-400 min-h-[100px] max-h-[200px] overflow-y-auto resize-y"
-          placeholder="Get CPT codes"
+          placeholder="previous knee pain, swelling, etc."
           onChange={props.chatOnChange}
         />
       </div>
