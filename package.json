@@ -89,6 +89,7 @@
     "react-dropzone": "^14.3.8",
     "react-markdown": "^10.1.0",
     "react-pro-sidebar": "^1.1.0",
+    "react-select": "^5.10.2",
     "react-stick-to-bottom": "^1.0.0",
     "recharts": "2",
     "remark-gfm": "^4.0.1",

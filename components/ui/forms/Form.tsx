@@ -4,6 +4,7 @@ import * as React from "react";
 import { data, StateData } from "../../../app/agents/metaData/states";
 import { ncdOptions } from "@/data/ncdOptions";
 import AutoCompleteSelect from "../AutoCompleteSelect";
+import CreatableSelect from 'react-select/creatable';
 import { getInsuranceProvidersOptions, SelectOption } from "../../../data/selectOptions";
 import { Textarea } from "../textarea";
 import { Input } from "../input";
@@ -61,7 +62,7 @@ const FormInputs: React.FC<Props> = (props: Props) => {
   );
 
   const HandleTreatmentSelectChange = React.useCallback(
-    (value: string) => props.onStateFormStateChange("Treatment", value),
+    (value: any) => props.onStateFormStateChange("Treatment", value.value),
     [props],
   );
 
@@ -105,6 +106,7 @@ const FormInputs: React.FC<Props> = (props: Props) => {
           <AutoCompleteSelect
             options={stateOptions}
             onChange={handleStateSelectChange}
+           
           />
         </div>
       </div>
@@ -116,10 +118,11 @@ const FormInputs: React.FC<Props> = (props: Props) => {
             <Stethoscope size={16} color="#7C3AED" />
             Pre-Auth Request
           </label>
-          <AutoCompleteSelect
-            options={ncdOptions}
-            onChange={HandleTreatmentSelectChange}
-          />
+         
+          <CreatableSelect isClearable options={ncdOptions} onChange={(value)=>HandleTreatmentSelectChange(value)} className=""/>
+          <p className="text-xs text-gray-500 mt-1">
+            *Can&apos;t find what you&apos;re looking for? Type to create a new option
+          </p>
         </div>
         <div>
           <label className="flex items-center gap-2 text-md font-medium text-gray-900 mb-1">
@@ -163,7 +166,7 @@ const FormInputs: React.FC<Props> = (props: Props) => {
       {/* Chat Context */}
       <div>
         <label className="block text-md font-semi-bold text-black mb-1">
-          Relevant medical history 
+          Relevant Medical History 
         </label>
         <Textarea
           className="w-full bg-white border-blue-200 text-gray-900 focus-visible:ring-blue-300 focus-visible:border-blue-400 min-h-[100px] max-h-[200px] overflow-y-auto resize-y"

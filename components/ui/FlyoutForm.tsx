@@ -43,10 +43,10 @@ const FlyoutForm: React.FC<{
         <SheetContent className="w-full max-w-2xl bg-white border-blue-200 shadow-lg p-0">
           <div className="flex flex-col h-full">
             <SheetHeader className="px-6 pt-6 pb-4 border-b border-blue-100 bg-blue-50">
-              <SheetTitle className="text-xl text-gray-900">
+              <SheetTitle className="text-lg text-gray-900">
                 Prior Authorization Request
               </SheetTitle>
-              <SheetDescription className="text-gray-700">
+              <SheetDescription className="text-sm text-gray-700">
                 Please provide the necessary patient and clinical information to
                 begin the prior authorization process.
               </SheetDescription>
