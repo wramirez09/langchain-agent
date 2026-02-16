@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useEffect } from "react";
+import React, { useEffect } from "react";
 import { cn } from "@/utils/cn";
 
 interface WelcomeHeaderProps {
@@ -9,17 +9,12 @@ interface WelcomeHeaderProps {
 }
 
 export function WelcomeHeader({ isVisible, onFadeOut }: WelcomeHeaderProps) {
-  const [isFading, setIsFading] = useState(false);
-
   useEffect(() => {
     if (!isVisible) {
-      setIsFading(true);
       const timer = setTimeout(() => {
         onFadeOut();
       }, 500); // Match the CSS transition duration
       return () => clearTimeout(timer);
-    } else {
-      setIsFading(false);
     }
   }, [isVisible, onFadeOut]);
 
@@ -29,7 +24,7 @@ export function WelcomeHeader({ isVisible, onFadeOut }: WelcomeHeaderProps) {
     <div
       className={cn(
         "flex items-center justify-center min-h-full text-center px-6 py-12 transition-opacity duration-500 ease-in-out",
-        isFading ? "opacity-0" : "opacity-100"
+        !isVisible ? "opacity-0" : "opacity-100"
       )}
     >
       <div className="max-w-3xl mx-auto space-y-6">
@@ -53,7 +48,7 @@ export function WelcomeHeader({ isVisible, onFadeOut }: WelcomeHeaderProps) {
             <span>Trusted by Healthcare Professionals</span>
           </div>
         </div>
-        <div className="pt-6 border-t border-gray-200">
+        <div className="pt-6 border-t border-gray-400">
           <p className="text-sm text-gray-500 italic">
             Start by asking a question, uploading a document or fill out the form to begin your analysis
           </p>

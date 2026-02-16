@@ -126,13 +126,7 @@ body {
 }
 
 .bg-gradient-light {
-  background: #ECE9E6;
-  /* fallback for old browsers */
-  background: -webkit-linear-gradient(to right, #FFFFFF, #ECE9E6);
-  /* Chrome 10-25, Safari 5.1-6 */
-  background: linear-gradient(to right, #FFFFFF, #ECE9E6);
-  /* W3C, IE 10+/ Edge, Firefox 16+, Chrome 26+, Opera 12+, Safari 7+ */
-
+    background-image: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
 }
 
 .text-dark {
@@ -251,6 +245,28 @@ body {
   textarea:focus,
   input:not([type="range"]):focus {
     font-size: 16px !important;
+  }
+}
+
+/* Mobile select fixes */
+@media (max-width: 767px) {
+  /* Prevent accidental activation on mobile */
+  .mobile-select-touch {
+    touch-action: manipulation;
+    -webkit-tap-highlight-color: transparent;
+    user-select: none;
+    -webkit-user-select: none;
+  }
+  
+  /* Prevent zoom on focus for mobile selects */
+  .react-select__control,
+  .react-select__input {
+    font-size: 16px !important;
+  }
+  
+  /* Prevent touch events from propagating */
+  .react-select__menu {
+    touch-action: none;
   }
 }
 

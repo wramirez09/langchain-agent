@@ -4,7 +4,7 @@ import { type Message } from "ai";
 import { useBodyPointerEvents } from "@/utils/use-body-pointer-events";
 
 import { cn } from "@/utils/cn";
-import React, { FormEvent, ReactNode, useCallback, useState, useEffect, type JSX } from "react";
+import React, { FormEvent, ReactNode, useCallback, useState, useEffect, useRef, type JSX } from "react";
 import { StickToBottom, useStickToBottomContext } from "use-stick-to-bottom";
 import UploadDocumentsForm from "./UploadDocumentsForm";
 import {
@@ -26,7 +26,7 @@ import Link from "next/link";
 import MobileDrawer from "./ui/MobileDrawer";
 import { toast } from "sonner";
 import { useChat } from "ai/react";
-import { ArrowDown, Download, Form, LoaderCircle, Upload } from "lucide-react";
+import { ArrowDown, Download, Form, LoaderCircle, Upload, Trash2 } from "lucide-react";
 import { ChatMessageBubble } from "./ChatMessageBubble";
 import { IntermediateStep } from "./IntermediateStep";
 import { Button } from "./ui/button";
@@ -123,11 +123,13 @@ export function ChatInput(props: {
   setOpenMobileDrawer: React.Dispatch<React.SetStateAction<boolean>>;
   modalOpen: boolean;
   setModalOpen: React.Dispatch<React.SetStateAction<boolean>>;
+  clearChat?: () => void;
 }) {
 
-
-
   const disabled = props.loading && props.onStop == null;
+
+  // Manage body pointer events based on mobile drawer state
+  useBodyPointerEvents(props.openMobileDrawer);
 
   const handleMobileDrawerOptionSelection = useCallback((option: string) => {
     if (option) {
@@ -143,11 +145,13 @@ export function ChatInput(props: {
           const pdfUrl = `/pdf?data=${encodeURIComponent(JSON.stringify(props.messages))}&client=mobile`;
           window.open(pdfUrl, '_blank');
           break;
+        case "clear":
+          props.clearChat?.();
+          break;
         default:
           break;
       }
       props.setOpenMobileDrawer(false);
-      useBodyPointerEvents(false);
     }
   }, [props]);
 
@@ -179,8 +183,10 @@ export function ChatInput(props: {
               onClick={() => props.setSheetOpen((open) => !open)}
             >
               <Form size={16} color="#0ce0e7ff" />
-              <span>Pre-Authorization</span>
+              <span>Pre-Auth Form</span>
             </Button>
+
+        
 
             <Button
               asChild
@@ -210,6 +216,16 @@ export function ChatInput(props: {
               onClick={() => props.setOpenMobileDrawer((prev) => !prev)}
             >
               <IconDots className="w-4 h-4" strokeWidth={1.5} color="black" />
+            </Button>
+                <Button
+              type="button"
+              variant="ghost"
+              size="sm"
+              className="hidden sm:flex items-center hover:bg-blue-100 bg-white/50 border border-blue-100 text-[#1e7dbf] hover:text-[#1e7dbf] px-3 h-8"
+              onClick={props.clearChat}
+            >
+              <Trash2 size={16} color="#dc2626" />
+              <span>Clear Chat</span>
             </Button>
           </div>
 
@@ -302,6 +318,11 @@ export function ChatWindow(props: {
   const [isLoading, setIsLoading] = useState<boolean>(false);
   const [uploading, setUploading] = useState(false);
   const [showWelcome, setShowWelcome] = useState(true);
+
+  // Refs for managing request cancellation
+  const abortControllerRef = useRef<AbortController | null>(null);
+  const loadingToastTimeout1Ref = useRef<NodeJS.Timeout | null>(null);
+  const loadingToastTimeout2Ref = useRef<NodeJS.Timeout | null>(null);
 
   // Check if welcome has been seen in this session
   useEffect(() => {
@@ -406,20 +427,20 @@ export function ChatWindow(props: {
       handleWelcomeFadeOut();
     }
 
-    // Declare timeout variables at the function level
-    let loadingToastTimeout1: NodeJS.Timeout | null = null;
-    let loadingToastTimeout2: NodeJS.Timeout | null = null;
+    // Create new AbortController for this request
+    const abortController = new AbortController();
+    abortControllerRef.current = abortController;
 
     // Reset loading states
     setIsLoading(true);
     setIntermediateStepsLoading(true);
 
-    // Set up the loading toasts
-    loadingToastTimeout1 = setTimeout(() => {
+    // Set up the loading toasts using refs
+    loadingToastTimeout1Ref.current = setTimeout(() => {
       toast.info('Processing your request');
     }, 20000); // Show after 20 seconds
 
-    loadingToastTimeout2 = setTimeout(() => {
+    loadingToastTimeout2Ref.current = setTimeout(() => {
       toast.info('Still processing your request');
     }, 60000); // Show after 1 minute
 
@@ -443,18 +464,29 @@ export function ChatWindow(props: {
         body: JSON.stringify({
           messages: chat.messages,
         }),
+        signal: abortController.signal,
       });
 
       // ... rest of your try block ...
 
     } catch (error: any) {
-      toast.error('Failed to send message', {
-        description: error.message || 'An unknown error occurred',
-      });
+      // Don't show error if request was aborted
+      if (error.name !== 'AbortError') {
+        toast.error('Failed to send message', {
+          description: error.message || 'An unknown error occurred',
+        });
+      }
     } finally {
-      // Clear timeouts
-      if (loadingToastTimeout1) clearTimeout(loadingToastTimeout1);
-      if (loadingToastTimeout2) clearTimeout(loadingToastTimeout2);
+      // Clear timeouts and refs
+      if (loadingToastTimeout1Ref.current) {
+        clearTimeout(loadingToastTimeout1Ref.current);
+        loadingToastTimeout1Ref.current = null;
+      }
+      if (loadingToastTimeout2Ref.current) {
+        clearTimeout(loadingToastTimeout2Ref.current);
+        loadingToastTimeout2Ref.current = null;
+      }
+      abortControllerRef.current = null;
       setIntermediateStepsLoading(false);
       setIsLoading(false);
     }
@@ -479,6 +511,78 @@ export function ChatWindow(props: {
     },
     [setFormContent, setInput],
   );
+
+  const clearChat = useCallback(() => {
+    // Cancel any ongoing LLM requests
+    if (chat.isLoading) {
+      // Stop the useChat hook
+      chat.stop();
+      
+      // Abort any fetch requests
+      if (abortControllerRef.current) {
+        abortControllerRef.current.abort();
+        abortControllerRef.current = null;
+      }
+      
+      // Clear loading timeouts
+      if (loadingToastTimeout1Ref.current) {
+        clearTimeout(loadingToastTimeout1Ref.current);
+        loadingToastTimeout1Ref.current = null;
+      }
+      if (loadingToastTimeout2Ref.current) {
+        clearTimeout(loadingToastTimeout2Ref.current);
+        loadingToastTimeout2Ref.current = null;
+      }
+      
+      // Reset loading states
+      setIsLoading(false);
+      setIntermediateStepsLoading(false);
+      
+      toast.info('LLM request cancelled');
+    }
+    
+    // Clear chat messages
+    chat.setMessages([]);
+    
+    // Clear related state
+    setSourcesForMessages({});
+    setFormContent(new Map());
+    chat.setInput("");
+    
+    // Reset welcome state
+    setShowWelcome(true);
+    localStorage.removeItem('medauth-welcome-seen');
+    
+    // Show success notification
+    toast.success('Chat cleared successfully');
+  }, [chat]);
+
+  const handleStop = useCallback(() => {
+    // Stop the useChat hook
+    chat.stop();
+    
+    // Abort any fetch requests
+    if (abortControllerRef.current) {
+      abortControllerRef.current.abort();
+      abortControllerRef.current = null;
+    }
+    
+    // Clear loading timeouts
+    if (loadingToastTimeout1Ref.current) {
+      clearTimeout(loadingToastTimeout1Ref.current);
+      loadingToastTimeout1Ref.current = null;
+    }
+    if (loadingToastTimeout2Ref.current) {
+      clearTimeout(loadingToastTimeout2Ref.current);
+      loadingToastTimeout2Ref.current = null;
+    }
+    
+    // Reset loading states
+    setIsLoading(false);
+    setIntermediateStepsLoading(false);
+    
+    toast.info('Request stopped');
+  }, [chat]);
 
   async function handleUploadAndChat(file: File, insurance?: string) {
     let loadingToastTimeout1: NodeJS.Timeout | null = null;
@@ -630,6 +734,7 @@ export function ChatWindow(props: {
                 value={chat.input}
                 onChange={chat.handleInputChange}
                 onSubmit={sendMessage}
+                onStop={handleStop}
                 loading={chat.isLoading || intermediateStepsLoading}
                 placeholder={
                   props.placeholder ?? "What's it like to be a pirate?"
@@ -642,7 +747,7 @@ export function ChatWindow(props: {
                 setOpenMobileDrawer={setOpenMobileDrawer}
                 modalOpen={modalOpen}
                 setModalOpen={setModalOpen}
-
+                clearChat={clearChat}
               >
 
                 {props.showIngestForm && (

@@ -2,7 +2,7 @@ import { Button } from "./button";
 import { Drawer, DrawerContent, DrawerDescription, DrawerHeader, DrawerTitle, DrawerTrigger } from "@/components/ui/drawer";
 import * as React from "react";
 import { SelectOption } from "@/data/selectOptions";
-import { IconFileSearch, IconFileTypePdf, IconUpload } from "@tabler/icons-react";
+import { IconFileSearch, IconFileTypePdf, IconUpload, IconTrash } from "@tabler/icons-react";
 import { StatusList } from "./AutoCompleteSelect";
 import { type Message } from "ai";
 
@@ -16,7 +16,8 @@ const MobileDrawer: React.FC<{
   const options: SelectOption[] = [
     { label: "PreAuth Form", value: "form", icon: <IconFileSearch stroke={1.5} /> },
     { label: "File Upload", value: "upload", disabled: messages.length > 0, icon: <IconUpload stroke={1.5} /> },
-    { label: "PDF Export", value: "export", icon: <IconFileTypePdf stroke={1.5} /> }
+    { label: "PDF Export", value: "export", icon: <IconFileTypePdf stroke={1.5} /> },
+    { label: "Clear Chat", value: "clear", icon: <IconTrash stroke={1.5} /> }
   ];
 
   return (

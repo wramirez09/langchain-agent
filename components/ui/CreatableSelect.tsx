@@ -4,6 +4,7 @@ import * as React from "react";
 import CreatableSelect from "react-select/creatable";
 import { SelectOption } from "@/data/selectOptions";
 import { StylesConfig } from "react-select";
+import { useMediaQuery } from "@/utils/use-media-query";
 
 interface CreatableSelectComponentProps {
   options: SelectOption[];
@@ -23,6 +24,8 @@ const CreatableSelectComponent: React.FC<CreatableSelectComponentProps> = ({
   placeholder = "Select an option",
   isDisabled = false,
 }) => {
+  const isDesktop = useMediaQuery("(min-width: 768px)");
+  
   // Convert SelectOption to react-select format
   const selectOptions: OptionType[] = options.map(option => ({
     value: option.value,
@@ -126,10 +129,14 @@ const CreatableSelectComponent: React.FC<CreatableSelectComponentProps> = ({
         styles={customStyles}
         placeholder={placeholder}
         onChange={handleChange}
-        className="w-full"
+        className={`w-full ${!isDesktop ? 'mobile-select-touch' : ''}`}
         classNamePrefix="react-select"
         menuPortalTarget={document.body}
         menuShouldBlockScroll={true}
+        isSearchable={isDesktop}
+        openMenuOnFocus={isDesktop}
+        openMenuOnClick={true}
+        tabSelectsValue={false}
       />
     </div>
   );
