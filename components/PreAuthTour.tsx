@@ -8,7 +8,7 @@ const preAuthSteps = [
     id: 'welcome-step',
     selector: '#welcome-header-title',
     content: 'Welcome to NoteDoctor.ai! Let us guide you through the platform features that will help you streamline your prior authorization process.',
-    position: 'bottom' as const
+    position: 'left' as const
   },
 
 
@@ -17,7 +17,7 @@ const preAuthSteps = [
     id: 'pre-auth-step',
     selector: '#pre-auth-button',
     content: 'Click this button to open Pre-Authorization form. Fill out patient and procedure details to start a prior authorization request.',
-    position: 'bottom' as const, 
+    position: 'top' as const, 
     actionAfter: () => {
       const element = document.querySelector('#pre-auth-button');
       if (element) (element as HTMLElement).click();
@@ -31,15 +31,15 @@ const preAuthSteps = [
     mutationObservables:["#inner-form-flyout-content"],
     resizeObservables:["#inner-form-flyout-content"],
     content: "This is the Pre-Authorization form. Fill out patient and procedure details to start a prior authorization request.",
-    position: "left" as const,
-    updateDelay: 1000
+    position: "center" as const,
+    
   },
   {
     id: 'upload-file-step',
     selector: '#upload-file-button',
     highlightedSelectors: ['#upload-file-button'],
     content: 'Upload PDF documents here for analysis. Our AI will extract relevant information and generate queries automatically.',
-    position: 'left' as const,
+    position: 'top' as const,
     actionAfter: () => {
       const element = document.querySelector('#upload-file-button');
       if (element) (element as HTMLElement).click();
@@ -51,13 +51,13 @@ const preAuthSteps = [
     highlightedSelectors: ['#upload-file-form'],
     mutationObservables: ["#upload-file-form"],
     content: 'This is the document upload form. Choose PDF files to analyze their contents.',
-    position: 'center' as const
+    position: 'left' as const
   },
   {
     id: 'file-export-step',
     selector: '#file-export-button',
     content: 'Export your entire conversation as a PDF document for record-keeping or sharing with colleagues.',
-    position: 'bottom' as const
+    position: 'left' as const
   },
 
   {
@@ -72,18 +72,14 @@ const preAuthSteps = [
     content: 'Click here or press Enter to send your message to our AI assistant for processing.',
     position: 'left' as const
   },
+
   {
     id: 'getting-started-step',
     selector: 'body',
     content: 'You\'re all set! Start by asking a question, uploading a document, or filling out pre-authorization form. Our AI is here to help!',
-    position: 'center' as const
+    position: "center" as const
   },
-    {
-    id: 'logout-step',
-    selector: '#logout-button',
-    content: 'Use this button to securely log out of your account when you\'re done.',
-    position: 'bottom' as const
-  },
+    
 ];
 
 interface PreAuthTourProps {
@@ -170,10 +166,12 @@ export function PreAuthTour({ children }: PreAuthTourProps) {
           ...base,
           borderRadius: '8px',
           boxShadow: '0 10px 25px rgba(0, 0, 0, 0.2)',
+          transition: 'all 0.3s ease-in-out', // Smooth transition
         }),
         maskArea: (base) => ({
           ...base,
           rx: 4,
+          transition: 'all 0.3s ease-in-out', // Smooth highlight transition
         }),
       }}
     >
