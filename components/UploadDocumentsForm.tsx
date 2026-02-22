@@ -78,7 +78,7 @@ const UploadDocumentsForm: React.FC<{
   };
 
   return (
-    <form className="relative flex flex-col gap-6 w-full">
+    <form className="relative flex flex-col gap-6 w-full" id="upload-file-form">
       <div className="space-y-6">
         <div>
           <label className="block text-sm font-medium text-gray-900 mb-2">

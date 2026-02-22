@@ -15,12 +15,14 @@ import { ChangeEventHandler } from "react";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { useBodyPointerEvents } from "@/utils/use-body-pointer-events";
 const FlyoutForm: React.FC<{
+  id?: string;
   openSheet: boolean;
   setOpenSheet: React.Dispatch<React.SetStateAction<boolean>>;
   submitAction: (e: React.FormEvent<HTMLFormElement>) => void;
   onStateFormStateChange: (key: string, value: string) => void;
   chatOnChange: (e: React.ChangeEvent<HTMLInputElement>) => void;
 }> = ({
+  id,
   openSheet,
   setOpenSheet,
   submitAction,
@@ -33,15 +35,15 @@ const FlyoutForm: React.FC<{
         submitAction(e);
         setOpenSheet(false);
       },
-      [submitAction],
+      [setOpenSheet, submitAction],
     );
 
     return (
       <Sheet open={openSheet} onOpenChange={(open) => {
         return setOpenSheet(open)
-      }}>
-        <SheetContent className="w-full max-w-2xl bg-white border-blue-200 shadow-lg p-0">
-          <div className="flex flex-col h-full">
+      }} >
+        <SheetContent className="w-full max-w-2xl bg-white border-blue-200 shadow-lg p-0" >
+          <div className="flex flex-col h-full" id="inner-form-flyout">
             <SheetHeader className="px-6 pt-6 pb-4 border-b border-blue-100 bg-blue-50">
               <SheetTitle className="text-lg text-gray-900">
                 Prior Authorization Request
@@ -52,7 +54,7 @@ const FlyoutForm: React.FC<{
               </SheetDescription>
             </SheetHeader>
 
-            <ScrollArea className="flex-1 px-6 py-4">
+            <ScrollArea className="flex-1 px-6 py-4" id={id || "flyout-form"}>
               <FormInputs
                 onStateFormStateChange={onStateFormStateChange}
                 chatOnChange={

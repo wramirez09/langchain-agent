@@ -172,6 +172,7 @@ export function ChatInput(props: {
             {props.children}
 
             <Button
+              id="pre-auth-button"
               type="button"
               variant="ghost"
               size="sm"
@@ -183,6 +184,7 @@ export function ChatInput(props: {
             </Button>
 
             <Button
+              id="file-export-button"
               asChild
               type="button"
               variant="ghost"
@@ -203,6 +205,7 @@ export function ChatInput(props: {
             </Button>
 
             <Button
+              id="mobile-menu-button"
               type="button"
               variant="ghost"
               size="icon"
@@ -219,6 +222,7 @@ export function ChatInput(props: {
 
           <div className="flex items-center px-4 py-1 md:py-3 bg-white/80 rounded-lg mx-3 mb-3 border border-blue-100">
             <input
+              id="chat-input-field"
               name="chat"
               value={props.value}
               placeholder={props.placeholder}
@@ -227,6 +231,7 @@ export function ChatInput(props: {
             />
 
             <Button
+              id="send-button"
               type="submit"
               className="bg-white hover:bg-blue-50 ml-2 h-13 w-13 flex-shrink-0 rounded-lg border border-blue-100 shadow-sm"
               disabled={disabled}
@@ -652,6 +657,7 @@ export function ChatWindow(props: {
                   >
                     <DialogTrigger asChild>
                       <Button
+                        id="upload-file-button"
                         type="button"
                         variant="ghost"
                         size="sm"
@@ -662,7 +668,7 @@ export function ChatWindow(props: {
                         <span>Upload File</span>
                       </Button>
                     </DialogTrigger>
-                    <DialogContent className="bg-white border-blue-200">
+                    <DialogContent id="upload-file-form" className="bg-white border-blue-200">
                       <DialogHeader>
                         <DialogTitle className="text-gray-900">Add a document to start the analysis</DialogTitle>
                         <DialogDescription className="text-gray-700">
@@ -680,6 +686,7 @@ export function ChatWindow(props: {
                 )}
               </ChatInput>
               <FlyoutForm
+                id="main-form"
                 openSheet={sheetOpen}
                 setOpenSheet={setSheetOpen}
                 submitAction={sendMessage}

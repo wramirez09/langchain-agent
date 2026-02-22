@@ -6,7 +6,7 @@ import { useRouter } from 'next/navigation'
 import { useEffect, useState } from 'react'
 import { User } from '@supabase/supabase-js'
 import ManageBillingButton from './ui/ManageBillingButton'
-import { IconChalkboard } from '@tabler/icons-react';
+
 
 type Subscription = {
   status: string;
@@ -126,6 +126,7 @@ export function LogoutButton() {
         </>
       )}
       <Button
+        id="logout-button"
         onClick={logout}
         size="sm"
 

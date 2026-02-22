@@ -27,13 +27,14 @@ export function WelcomeHeader({ isVisible, onFadeOut }: WelcomeHeaderProps) {
 
   return (
     <div
+      id="welcome-header"
       className={cn(
         "flex items-center justify-center min-h-full text-center px-6 py-12 transition-opacity duration-500 ease-in-out",
         isFading ? "opacity-0" : "opacity-100"
       )}
     >
       <div className="max-w-3xl mx-auto space-y-6">
-        <h1 className="text-3xl md:text-4xl font-bold text-gray-900 leading-tight">
+        <h1 className="text-3xl md:text-4xl font-bold text-gray-900 leading-tight" id="welcome-header-title">
           Welcome to <span className="text-blue-500">NoteDoctor.Ai</span>
         </h1>
         <p className="text-lg md:text-xl text-gray-600 leading-relaxed max-w-xl mx-auto">

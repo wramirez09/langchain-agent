@@ -85,7 +85,7 @@ const FormInputs: React.FC<Props> = (props: Props) => {
   );
 
   return (
-    <section className="w-full max-w-3xl mx-auto px-4 space-y-6">
+    <section className="w-full max-w-3xl mx-auto px-4 space-y-6" id="main-form">
       {/* Row 1 */}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-x-6 gap-y-4">
         <div>
