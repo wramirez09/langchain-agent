@@ -11,12 +11,7 @@ const preAuthSteps = [
     position: 'bottom' as const
   },
 
-  // {
-  //   id: 'logout-step',
-  //   selector: '#logout-button',
-  //   content: 'Use this button to securely log out of your account when you\'re done.',
-  //   position: 'bottom' as const
-  // },
+
   
   {
     id: 'pre-auth-step',
@@ -26,24 +21,25 @@ const preAuthSteps = [
     actionAfter: () => {
       const element = document.querySelector('#pre-auth-button');
       if (element) (element as HTMLElement).click();
-      
     }
-    
   },
   
   {
     id: "form-open",
-    selector: "#main-form",
-    highlightedSelectors: ['#main-form'],
+    selector: "#inner-form-flyout-content",
+    highlightedSelectors: ['#inner-form-flyout-content'],
+    mutationObservables:["#inner-form-flyout-content"],
+    resizeObservables:["#inner-form-flyout-content"],
     content: "This is the Pre-Authorization form. Fill out patient and procedure details to start a prior authorization request.",
-    position: "center" as const
+    position: "left" as const,
+    updateDelay: 1000
   },
   {
     id: 'upload-file-step',
     selector: '#upload-file-button',
     highlightedSelectors: ['#upload-file-button'],
     content: 'Upload PDF documents here for analysis. Our AI will extract relevant information and generate queries automatically.',
-    position: 'bottom' as const,
+    position: 'left' as const,
     actionAfter: () => {
       const element = document.querySelector('#upload-file-button');
       if (element) (element as HTMLElement).click();
@@ -53,6 +49,7 @@ const preAuthSteps = [
     id: 'upload-file-step-modal',
     selector: '#upload-file-form',
     highlightedSelectors: ['#upload-file-form'],
+    mutationObservables: ["#upload-file-form"],
     content: 'This is the document upload form. Choose PDF files to analyze their contents.',
     position: 'center' as const
   },
@@ -80,7 +77,13 @@ const preAuthSteps = [
     selector: 'body',
     content: 'You\'re all set! Start by asking a question, uploading a document, or filling out pre-authorization form. Our AI is here to help!',
     position: 'center' as const
-  }
+  },
+    {
+    id: 'logout-step',
+    selector: '#logout-button',
+    content: 'Use this button to securely log out of your account when you\'re done.',
+    position: 'bottom' as const
+  },
 ];
 
 interface PreAuthTourProps {

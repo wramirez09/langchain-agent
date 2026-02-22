@@ -58,6 +58,7 @@ const SheetContent = React.forwardRef<
   <SheetPortal>
     <SheetOverlay />
     <SheetPrimitive.Content
+      id="inner-form-flyout-content"
       ref={ref}
       className={cn(sheetVariants({ side }), className)}
       {...props}
