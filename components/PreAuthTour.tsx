@@ -161,6 +161,7 @@ export function PreAuthTour({ children }: PreAuthTourProps) {
   return (
     <TourProvider 
       steps={preAuthSteps}
+      prevButton={() => null}
       styles={{
         popover: (base) => ({
           ...base,
