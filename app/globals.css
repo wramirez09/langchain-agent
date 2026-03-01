@@ -101,6 +101,16 @@
     -ms-overflow-style: none;
     scrollbar-width: none;
   }
+
+  /* Reduce size of level 1 headers */
+  h1 {
+    @apply text-2xl font-bold leading-tight;
+  }
+
+  /* Also adjust prose h1 if using typography plugin */
+  .prose h1 {
+    @apply text-2xl font-bold leading-tight;
+  }
 }
 
 

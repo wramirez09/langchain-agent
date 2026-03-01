@@ -31,6 +31,7 @@ import { ChatMessageBubble } from "./ChatMessageBubble";
 import { IntermediateStep } from "./IntermediateStep";
 import { Button } from "./ui/button";
 import { WelcomeHeader } from "./WelcomeHeader";
+import { ErrorNotificationManager, useErrorNotifications, type ClientErrorNotification } from "./ErrorNotification";
 
 
 function ChatMessages(props: {
@@ -352,6 +353,9 @@ export function ChatWindow(props: {
     new Map(),
   );
 
+  // Error notification system
+  const { errors, addError, dismissError, retryError } = useErrorNotifications();
+
   const chat = useChat({
     api: props.endpoint,
     streamMode: 'text',
@@ -364,6 +368,57 @@ export function ChatWindow(props: {
       console.error('Chat error:', error);
       setIntermediateStepsLoading(false);
       setIsLoading(false);
+      
+      // Try to parse error as our enhanced error format
+      try {
+        let errorData;
+        if (typeof error === 'string') {
+          errorData = JSON.parse(error);
+        } else if (error instanceof Error) {
+          errorData = error;
+        } else {
+          errorData = error;
+        }
+
+        // Check if it's our enhanced error format
+        if (errorData && typeof errorData === 'object' && 'error' in errorData) {
+          const enhancedError = errorData as {
+            error: string;
+            technicalError?: string;
+            retryAttempts?: number;
+            canRetry?: boolean;
+          };
+          
+          addError({
+            severity: enhancedError.retryAttempts && enhancedError.retryAttempts >= 3 ? 'error' : 'warning',
+            userMessage: enhancedError.error,
+            technicalMessage: enhancedError.technicalError,
+            retryAttempts: enhancedError.retryAttempts,
+            operation: 'Chat completion',
+            canRetry: enhancedError.canRetry ?? false
+          });
+        } else {
+          // Fallback for regular errors
+          addError({
+            severity: 'error',
+            userMessage: 'An error occurred while processing your message',
+            technicalMessage: error instanceof Error ? error.message : String(error),
+            operation: 'Chat completion',
+            canRetry: true
+          });
+        }
+      } catch (parseError) {
+        // Ultimate fallback
+        addError({
+          severity: 'error',
+          userMessage: 'An error occurred while processing your message',
+          technicalMessage: String(error),
+          operation: 'Chat completion',
+          canRetry: true
+        });
+      }
+
+      // Also show toast for backward compatibility
       toast.error('An error occurred while processing your message');
     },
     onResponse(response) {
@@ -710,6 +765,11 @@ export function ChatWindow(props: {
 
   return (
     <div className="flex flex-col min-h-screen bg-gray-50">
+      <ErrorNotificationManager
+        errors={errors}
+        onRetry={retryError}
+        onDismiss={dismissError}
+      />
       <ChatLayout
         content={
           chat.messages.length === 0 ? (

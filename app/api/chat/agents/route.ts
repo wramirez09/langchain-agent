@@ -19,6 +19,8 @@ import { EvolentSearchTool } from "./tools/evolent_tool";
 import { FileUploadTool } from "./tools/fileUploadTool";
 import { reportUsage } from "@/lib/usage";
 import { getUserFromRequest } from "../../../../lib/auth/getUserFromRequest";
+import { withRetry, RETRY_CONFIGS } from "@/lib/retry";
+import { errorTracker, trackRetryError, createClientErrorNotification } from "@/lib/error-tracking";
 
 /* -------------------- CORS -------------------- */
 const corsHeaders = {
@@ -150,10 +152,12 @@ The goal is a professional, scannable layout similar to a clinical intake checkl
 
 /* -------------------- POST -------------------- */
 export async function POST(req: NextRequest) {
+  let userId: string | undefined;
+  
   try {
     /* ---------- AUTH ---------- */
     const user = await getUserFromRequest(req);
-    const userId = user.id;
+    userId = user.id;
 
     /* ---------- REQUEST ---------- */
     const body = await req.json();
@@ -195,7 +199,43 @@ export async function POST(req: NextRequest) {
      MOBILE — NON-STREAMING (RN SAFE)
      ====================================================== */
     if (clientType === "mobile") {
-      const result = await agent.invoke({ messages });
+      const agentResult = await withRetry(
+        async () => {
+          const result = await agent.invoke({ messages });
+          return result;
+        },
+        {
+          ...RETRY_CONFIGS.LLM_API,
+          context: "Agent execution (mobile)",
+          onRetry: (attempt, error) => {
+            console.warn(`⚠️ [Agents API] Mobile retry ${attempt} for user ${userId}:`, error.message);
+          }
+        }
+      );
+
+      if (!agentResult.success || !agentResult.data) {
+        const errorInfo = trackRetryError(
+          agentResult.error || new Error("Failed to execute agent"),
+          "Agent execution (mobile)",
+          agentResult.attempts,
+          userId,
+          "agents-mobile-execution"
+        );
+        
+        const clientNotification = createClientErrorNotification(errorInfo);
+        
+        return NextResponse.json(
+          { 
+            error: clientNotification.userMessage,
+            technicalError: clientNotification.technicalMessage,
+            retryAttempts: clientNotification.retryAttempts,
+            canRetry: clientNotification.canRetry
+          },
+          { status: 500, headers: corsHeaders }
+        );
+      }
+
+      const result = agentResult.data;
       console.log({ result });
 
       // Get last user + last assistant messages
@@ -242,27 +282,65 @@ export async function POST(req: NextRequest) {
        WEB — STREAMING (BACKWARDS COMPATIBLE)
        ====================================================== */
     const encoder = new TextEncoder();
-    const eventStream = agent.streamEvents({ messages }, { version: "v2" });
-
-    const readable = new ReadableStream({
-      async start(controller) {
-        try {
-          for await (const { event, data } of eventStream) {
-            if (
-              event === "on_chat_model_stream" &&
-              typeof data?.chunk?.content === "string" &&
-              data.chunk.content.length > 0
-            ) {
-              controller.enqueue(encoder.encode(data.chunk.content));
+    
+    const streamResult = await withRetry(
+      async () => {
+        const eventStream = agent.streamEvents({ messages }, { version: "v2" });
+        
+        const readable = new ReadableStream({
+          async start(controller) {
+            try {
+              for await (const { event, data } of eventStream) {
+                if (
+                  event === "on_chat_model_stream" &&
+                  typeof data?.chunk?.content === "string" &&
+                  data.chunk.content.length > 0
+                ) {
+                  controller.enqueue(encoder.encode(data.chunk.content));
+                }
+              }
+            } catch (err) {
+              controller.error(err);
+            } finally {
+              controller.close();
             }
-          }
-        } catch (err) {
-          controller.error(err);
-        } finally {
-          controller.close();
-        }
+          },
+        });
+        
+        return readable;
       },
-    });
+      {
+        ...RETRY_CONFIGS.LLM_API,
+        context: "Agent streaming (web)",
+        onRetry: (attempt, error) => {
+          console.warn(`⚠️ [Agents API] Web streaming retry ${attempt} for user ${userId}:`, error.message);
+        }
+      }
+    );
+
+    if (!streamResult.success || !streamResult.data) {
+      const errorInfo = trackRetryError(
+        streamResult.error || new Error("Failed to create agent stream"),
+        "Agent streaming (web)",
+        streamResult.attempts,
+        userId,
+        "agents-web-streaming"
+      );
+      
+      const clientNotification = createClientErrorNotification(errorInfo);
+      
+      return NextResponse.json(
+        { 
+          error: clientNotification.userMessage,
+          technicalError: clientNotification.technicalMessage,
+          retryAttempts: clientNotification.retryAttempts,
+          canRetry: clientNotification.canRetry
+        },
+        { status: 500, headers: corsHeaders }
+      );
+    }
+
+    const readable = streamResult.data;
 
     return new StreamingTextResponse(readable, {
       headers: {
@@ -270,10 +348,27 @@ export async function POST(req: NextRequest) {
         "Content-Type": "text/plain; charset=utf-8",
       },
     });
-  } catch (e: any) {
+  } catch (e: unknown) {
+    const error = e as Error;
+    const errorInfo = errorTracker.trackError(
+      error,
+      "Agents API request",
+      undefined,
+      userId,
+      undefined,
+      "agents-api-request"
+    );
+    
+    const clientNotification = createClientErrorNotification(errorInfo);
+    
     return NextResponse.json(
-      { error: e.message || "Internal Server Error" },
-      { status: e.status ?? 500, headers: corsHeaders },
+      { 
+        error: clientNotification.userMessage,
+        technicalError: clientNotification.technicalMessage,
+        retryAttempts: clientNotification.retryAttempts,
+        canRetry: clientNotification.canRetry
+      },
+      { status: (error as any).status ?? 500, headers: corsHeaders }
     );
   }
 }

@@ -6,6 +6,8 @@ import { PromptTemplate } from "@langchain/core/prompts";
 import { HttpResponseOutputParser } from "langchain/output_parsers";
 import { createClient } from "@/utils/server";
 import { reportUsage } from "@/lib/usage";
+import { withRetry, RETRY_CONFIGS } from "@/lib/retry";
+import { errorTracker, trackRetryError, createClientErrorNotification } from "@/lib/error-tracking";
 
 // export const runtime = "edge";
 
@@ -28,7 +30,18 @@ AI:`;
  * https://js.langchain.com/docs/guides/expression_language/cookbook#prompttemplate--llm--outputparser
  */
 export async function POST(req: NextRequest) {
+  let userId: string | undefined;
+  
   try {
+    // Get user ID for error tracking
+    try {
+      const supabase = await createClient();
+      const { data: { user } } = await supabase.auth.getUser();
+      userId = user?.id;
+    } catch (authError) {
+      console.warn("Could not get user for error tracking:", authError);
+    }
+
     const body = await req.json();
     const messages = body.messages ?? [];
     const formattedPreviousMessages = messages.slice(0, -1).map(formatMessage);
@@ -60,21 +73,58 @@ export async function POST(req: NextRequest) {
      */
     const chain = prompt.pipe(llmAgent()).pipe(outputParser);
 
-    const stream = await chain.stream({
-      chat_history: formattedPreviousMessages.join("\n"),
-      input: currentMessageContent,
-    });
+    // Wrap the chain execution with retry logic
+    const streamResult = await withRetry(
+      async () => {
+        const stream = await chain.stream({
+          chat_history: formattedPreviousMessages.join("\n"),
+          input: currentMessageContent,
+        });
+        return stream;
+      },
+      {
+        ...RETRY_CONFIGS.LLM_API,
+        context: "Chat completion",
+        onRetry: (attempt, error) => {
+          console.warn(`⚠️ [Chat API] Retry ${attempt} for user ${userId}:`, error.message);
+        }
+      }
+    );
+
+    if (!streamResult.success || !streamResult.data) {
+      const errorInfo = trackRetryError(
+        streamResult.error || new Error("Failed to create chat stream"),
+        "Chat completion",
+        streamResult.attempts,
+        userId,
+        "chat-completion"
+      );
+      
+      // Create client notification
+      const clientNotification = createClientErrorNotification(errorInfo);
+      
+      return NextResponse.json(
+        { 
+          error: clientNotification.userMessage,
+          technicalError: clientNotification.technicalMessage,
+          retryAttempts: clientNotification.retryAttempts,
+          canRetry: clientNotification.canRetry
+        }, 
+        { status: 500 }
+      );
+    }
+
+    const stream = streamResult.data;
 
     // Report usage after generating the stream
     try {
-      const supabase = createClient();
-      const { data: { user } } = await (await supabase).auth.getUser();
+      const supabase = await createClient();
+      const { data: { user } } = await supabase.auth.getUser();
       if (user) {
         await reportUsage({
           userId: user.id,
           usageType: "chat",
           quantity: 1,
-
         });
       }
     } catch (err) {
@@ -82,7 +132,28 @@ export async function POST(req: NextRequest) {
     }
 
     return new StreamingTextResponse(stream);
-  } catch (e: any) {
-    return NextResponse.json({ error: e.message }, { status: e.status ?? 500 });
+  } catch (e: unknown) {
+    const error = e as Error;
+    const errorInfo = errorTracker.trackError(
+      error,
+      "Chat API request",
+      undefined,
+      userId,
+      undefined,
+      "chat-api-request"
+    );
+    
+    // Create client notification
+    const clientNotification = createClientErrorNotification(errorInfo);
+    
+    return NextResponse.json(
+      { 
+        error: clientNotification.userMessage,
+        technicalError: clientNotification.technicalMessage,
+        retryAttempts: clientNotification.retryAttempts,
+        canRetry: clientNotification.canRetry
+      }, 
+      { status: (error as any).status ?? 500 }
+    );
   }
 }

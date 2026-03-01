@@ -2,6 +2,8 @@ import { z } from "zod";
 import { StructuredTool, ToolRunnableConfig } from "@langchain/core/tools";
 import { createClient } from "@supabase/supabase-js";
 import { cleanRegex } from "./utils";
+import { withRetry, RETRY_CONFIGS } from "@/lib/retry";
+import { errorTracker, trackRetryError, createClientErrorNotification } from "@/lib/error-tracking";
 
 // --- Supabase Client (server only) ---
 const supabaseUrl = process.env.SUPABASE_URL || "";
@@ -80,41 +82,64 @@ export class CarelonSearchTool extends StructuredTool<typeof CarelonSearchInputS
       // 1) FULL-TEXT SEARCH (websearch)
       // ----------------------------------------------------
       console.log("[CarelonSearchTool] Running full-text search (websearch)...");
-      const { data: ftsResults, error: ftsError } = await supabase
-        .from("carelon_pdfs")
-        .select("id, content, metadata")
-        .textSearch("content", query, {
-          type: "websearch",
-          config: "english",
-        })
-        .limit(5);
+      
+      const ftsResult = await withRetry(
+        async () => {
+          const { data, error } = await supabase
+            .from("carelon_pdfs")
+            .select("id, content, metadata")
+            .textSearch("content", query, {
+              type: "websearch",
+              config: "english",
+            })
+            .limit(5);
+          
+          if (error) throw error;
+          return data;
+        },
+        {
+          ...RETRY_CONFIGS.DATABASE,
+          context: "Carelon full-text search",
+          onRetry: (attempt, error) => {
+            console.warn(`⚠️ [CarelonSearchTool] FTS retry ${attempt}:`, error.message);
+          }
+        }
+      );
 
-      if (ftsError) {
-        console.error("[CarelonSearchTool] Full-text search error:", ftsError);
+      if (!ftsResult.success || !ftsResult.data) {
+        const errorInfo = trackRetryError(
+          ftsResult.error || new Error("Failed to perform full-text search"),
+          "Carelon full-text search",
+          ftsResult.attempts,
+          undefined,
+          "carelon-fts-search"
+        );
+        console.error("[CarelonSearchTool] Full-text search error:", errorInfo);
       } else {
+        const ftsResults = ftsResult.data;
         console.log(
           "[CarelonSearchTool] Full-text results:",
           (ftsResults || []).map(d => ({ id: d.id, source: d.metadata?.source }))
         );
-      }
 
-      if (ftsResults && ftsResults.length > 0) {
-        // Log docs used
-        console.log("[CarelonSearchTool] Using FTS docs:", ftsResults.map(d => d.id));
+        if (ftsResults && ftsResults.length > 0) {
+          // Log docs used
+          console.log("[CarelonSearchTool] Using FTS docs:", ftsResults.map(d => d.id));
 
-        const sourceLines = ftsResults
-          .map(
-            d =>
-              `- **${d.metadata?.source || "Unknown source"}** (ID: ${d.id})`
-          )
-          .join("\n");
+          const sourceLines = ftsResults
+            .map(
+              d =>
+                `- **${d.metadata?.source || "Unknown source"}** (ID: ${d.id})`
+            )
+            .join("\n");
 
-        return `### Carelon Coverage Summary for: "${query}"
+          return `### Carelon Coverage Summary for: "${query}"
 
-        **Policies used (Carelon docs):**
-        ${sourceLines}
-        ---
-        `;
+          **Policies used (Carelon docs):**
+          ${sourceLines}
+          ---
+          `;
+        }
       }
 
       // ----------------------------------------------------
@@ -137,20 +162,39 @@ export class CarelonSearchTool extends StructuredTool<typeof CarelonSearchInputS
         .map(t => `content.ilike.%${t.replace(/%/g, "")}%`)
         .join(",");
 
-      const { data: fuzzyResults, error: fuzzyError } = await supabase
-        .from("carelon_pdfs")
-        .select("id, content, metadata")
-        .or(orClause)
-        .limit(8);
+      const fuzzyResult = await withRetry(
+        async () => {
+          const { data, error } = await supabase
+            .from("carelon_pdfs")
+            .select("id, content, metadata")
+            .or(orClause)
+            .limit(8);
+          
+          if (error) throw error;
+          return data;
+        },
+        {
+          ...RETRY_CONFIGS.DATABASE,
+          context: "Carelon fuzzy search",
+          onRetry: (attempt, error) => {
+            console.warn(`⚠️ [CarelonSearchTool] Fuzzy search retry ${attempt}:`, error.message);
+          }
+        }
+      );
 
-      if (fuzzyError) {
-        console.error("[CarelonSearchTool] Fuzzy search error:", fuzzyError);
-      } else {
-        console.log(
-          "[CarelonSearchTool] Fuzzy results:",
-          (fuzzyResults || []).map(d => ({ id: d.id, source: d.metadata?.source }))
+      if (!fuzzyResult.success || !fuzzyResult.data) {
+        const errorInfo = trackRetryError(
+          fuzzyResult.error || new Error("Failed to perform fuzzy search"),
+          "Carelon fuzzy search",
+          fuzzyResult.attempts,
+          undefined,
+          "carelon-fuzzy-search"
         );
+        console.error("[CarelonSearchTool] Fuzzy search error:", errorInfo);
+        return `I couldn't find any Carelon guidelines related to **"${query}"** after multiple attempts. Please try again later.`;
       }
+
+      const fuzzyResults = fuzzyResult.data;
 
       if (!fuzzyResults || fuzzyResults.length === 0) {
         return `I couldn't find any Carelon guidelines related to **"${query}"**.
