@@ -28,10 +28,18 @@ export function AutoCompleteSelect({
   options: SelectOption[];
   onChange: (value: string) => void;
 }) {
-  const [open, setOpen] = React.useState(true);
+  const [open, setOpen] = React.useState(false);
   const isDesktop = useMediaQuery("(min-width: 768px)");
   const [selectedStatus, setSelectedStatus] =
     React.useState<SelectOption | null>(null);
+
+  // Mobile-specific touch handling to prevent accidental activation
+  const handleMobileTouch = (e: React.TouchEvent) => {
+    if (!isDesktop) {
+      e.preventDefault();
+      setOpen(!open);
+    }
+  };
 
 
 
@@ -45,6 +53,7 @@ export function AutoCompleteSelect({
               "w-full justify-between text-gray-900 bg-white text-md border-blue-200",
               "hover:bg-blue-50 hover:border-blue-300 h-10 px-3",
               "focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 focus:outline-none hover:text-gray-900",
+              !isDesktop && "mobile-select-touch"
             )}
           >
             <span className={cn("truncate", !selectedStatus && "text-gray-500")}>
@@ -83,7 +92,14 @@ export function AutoCompleteSelect({
   return (
     <Drawer open={open} onOpenChange={setOpen}>
       <DrawerTrigger asChild>
-        <Button variant="outline" className="w-full md:w-[150px] justify-start text-gray-900 bg-blue-50 border-blue-200 hover:bg-blue-100">
+        <Button 
+          variant="outline" 
+          className={cn(
+            "w-full md:w-[150px] justify-start text-gray-900 bg-blue-50 border-blue-200 hover:bg-blue-100",
+            !isDesktop && "mobile-select-touch"
+          )}
+          onTouchStart={handleMobileTouch}
+        >
           {selectedStatus ? <>{selectedStatus.label}</> : <>+ Set status</>}
         </Button>
       </DrawerTrigger>

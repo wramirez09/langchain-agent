@@ -130,7 +130,7 @@ pass only the treatment and diagnosis to the tool along with state if provided
 ## Summary Report
 **Summary report (Approve or Denied due to):** [Your AI-driven determination, e.g., "Approved as guideline met for medical necessity due to knee pain from trauma to knee, joint swelling and inability to extend knee." Explain how the patient's extracted history and findings meet or fail to meet the guidelines criteria.]
 
-**IMPORTANT COMMERCIAL GUIDELINES REMINDER:** If this is a Commercial guidelines response, ensure NO source information, tool names, URLs, or specific document references are mentioned anywhere in your response. Use only generic terminology.
+**IMPORTANT COMMERCIAL GUIDELINES REMINDER:** If this is a Commercial guidelines response, ensure NO source information, tool names, URLs, or specific document references are mentioned anywhere in your response. Use only generic terminology should state readily information for commercial plans.
 
 Please format your response in clean, readable Markdown with the following style rules:
 
