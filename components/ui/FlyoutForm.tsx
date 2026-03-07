@@ -77,7 +77,7 @@ const FlyoutForm: React.FC<{
                 <Button
                   type="submit"
                   variant={"default"}
-                  className="flex-1 bg-gradient text-white shadow-md hover:shadot-none"
+                  className="flex-1 bg-gradient-to-b from-blue-500 to-blue-600 text-white shadow-md hover:shadot-none"
                   onClick={handleSubmit}
                 >
                   Submit

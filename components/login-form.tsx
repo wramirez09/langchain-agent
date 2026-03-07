@@ -85,7 +85,7 @@ export function LoginForm({ className, ...props }: React.ComponentPropsWithoutRe
           )}
           <Button
             type="submit"
-            className="w-full bg-gradient text-white"
+            className="w-full bg-gradient-to-b from-blue-500 to-blue-600 text-white"
             disabled={isLoading}
           >
             {isLoading ? (
@@ -94,7 +94,7 @@ export function LoginForm({ className, ...props }: React.ComponentPropsWithoutRe
                 Signing in...
               </>
             ) : (
-              'Sign in'
+              'Sign In'
             )}
           </Button>
         </div>
