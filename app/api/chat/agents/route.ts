@@ -82,51 +82,96 @@ pass only the treatment and diagnosis to the tool along with state if provided
 # Prior Authorization Summary for [Treatment]
 
 ## Request Overview
-**TEST:** [Treatment]
-**CPT:** [CPT Code]
-**ICD:** [ICD Code]: [Diagnosis]
-**Short history:** [Medical history summary]
-  - [Key Clinical Finding 1]
-  - [Key Clinical Finding 2]
-  - (etc.)
+TEST: [Treatment]
+CPT: [CPT Code, or "Not provided"]
+ICD: [ICD Code — Diagnosis, or "Not provided — Diagnosis not provided"]
+Short history: [Medical history summary, or "Not provided"]
+- Key clinical findings: [Finding 1, or "Not provided"]
 
-**Medical Necessity Criteria:**
-* [Criterion 1]
-* [Criterion 2]
-* (etc.)
+---
 
-**Relevant Codes:**
-* **ICD-10:** [List of ICD-10 codes]
-* **CPT/HCPCS:** [List of CPT/HCPCS codes]
+## Medical Necessity Criteria
 
-**Required Documentation:**
-* [Documentation Item 1]
-* [Documentation Item 2]
-* (etc.)
+### National Coverage (NCD [NCD Number] – [NCD Title])
+- [National criterion 1]
+- [National criterion 2]
+- (Add all relevant national criteria extracted from the NCD document)
 
-**Limitations/Exclusions:**
-* [Limitation/Exclusion 1]
-* [Limitation/Exclusion 2]
-* (etc.)
+### Local Coverage ([MAC Name] – [State])
+
+#### [Anatomical Area or Condition] (LCD [LCD Display ID])
+- [Local criterion 1]
+- [Local criterion 2]
+
+#### [Another Anatomical Area or Condition] (LCD [LCD Display ID])
+- [Local criterion 1]
+- [Local criterion 2]
+
+(If no state was provided, omit the Local Coverage subsection)
+
+---
+
+## Relevant Codes
+
+### ICD-10
+- Varies by anatomical region and indication under applicable LCDs
+- [ICD-10 Code] — [Description] (e.g., G25.0 Essential tremor, H81.4 Vertigo of central origin)
+- (List all specific examples found in the NCD/LCD documents)
+
+### CPT/HCPCS
+- NCD/LCD texts may not enumerate all CPT codes; confirm per payer/LCD
+- Examples by region (not exhaustive):
+  - [Anatomical Region]: [Code range, e.g., Brain: 70551–70553, Spine: 72141–72158]
+  - [Anatomical Region]: [Code range]
+
+---
+
+## Required Documentation
+
+### National (NCD [NCD Number])
+- [Documentation requirement 1]
+- [Documentation requirement 2]
+
+### Local ([MAC Name] LCDs)
+- [Documentation requirement 1]
+- [Documentation requirement 2]
+
+---
+
+## Limitations/Exclusions
+
+### National (NCD [NCD Number])
+- [Limitation/Exclusion 1]
+- [Limitation/Exclusion 2]
+
+### Local ([MAC Name] LCDs)
+- [Limitation/Exclusion 1]
+- [Limitation/Exclusion 2]
+
+---
 
 ## Summary Report
-**Summary report (Approve or Denied due to):** [Your AI-driven determination, e.g., "Approved as guideline met for medical necessity due to knee pain from trauma to knee, joint swelling and inability to extend knee." Explain how the patient's extracted history and findings meet or fail to meet the guidelines criteria.]
+Summary report (Approve or Denied due to): [AI-driven determination. If sufficient information was provided, explain how the patient's history and findings meet or fail to meet the criteria, e.g., "Approved — guideline met for medical necessity due to knee pain from trauma, joint swelling and inability to extend knee." If insufficient information, state "Pending — insufficient information" and explain what is missing.]
 
-**IMPORTANT COMMERCIAL GUIDELINES REMINDER:** If this is a Commercial guidelines response, ensure NO source information, tool names, URLs, or specific document references are mentioned anywhere in your response. Use only generic terminology should state readily information for commercial plans.
+Prior Authorization Requirement: [YES / NO / CONDITIONAL] — [Qualifier, e.g., "NO for Medicare Fee For Service. Note: If the patient is enrolled in a Medicare Advantage plan, plan-specific prior authorization may be required; verify with the plan."]
 
-Please format your response in clean, readable Markdown with the following style rules:
+Next steps to finalize:
+- [Step 1 — e.g., "Provide the anatomical region (e.g., brain, cervical spine, lumbar spine)"]
+- [Step 2 — e.g., "Provide the working diagnosis/ICD-10 and key clinical findings (e.g., new focal neurologic deficit, suspected infection/tumor, signs of radiculopathy with motor weakness)"]
+- [Step 3 — e.g., "Attach prior imaging results and treatment course to demonstrate why the service is indicated now"]
+(Omit the Next steps section entirely if all required information was provided and a definitive determination was made)
 
-• Use clear, bold section headers to separate major sections  
-• Use real Markdown bullet points for all lists  
-• Group related bullet points under meaningful sub-headers  
-• Add a blank line between sections and between logical bullet groups  
-• Use bold text for field labels and important terms  
-• Use italics sparingly for examples or clarifications
-• Do not nest bullet points  
-• convert top level bullets to headers — ensure proper vertical spacing  
-• Use tables only if data is naturally tabular (codes, comparisons, summaries)
+---
 
-The goal is a professional, scannable layout similar to a clinical intake checklist or prior-auth form.
+**IMPORTANT COMMERCIAL GUIDELINES REMINDER:** If this is a Commercial guidelines response, ensure NO source information, tool names, URLs, or specific document references are mentioned anywhere in your response. Use only generic terminology.
+
+Format your response as professional, scannable clinical documentation:
+- Use section headers (##) for major sections
+- Use sub-headers (###, ####) to separate National vs. Local coverage and individual LCDs by name and ID
+- Always reference NCD and LCD document IDs explicitly (e.g., NCD 220.2, LCD L37373)
+- Use bullet points for lists; separate logical groups with blank lines
+- Bold field labels and important terms
+- The goal is a professional layout similar to a clinical prior-auth checklist
 \`\`\`
 `;
 

@@ -42,6 +42,7 @@ export function PriorAuthView({
   const [chatInput, setChatInput] = useState("");
   const [formResetKey, setFormResetKey] = useState(0);
   const messagesEndRef = useRef<HTMLDivElement>(null);
+  const messagesContainerRef = useRef<HTMLDivElement>(null);
   const abortControllerRef = useRef<AbortController | null>(null);
   const loadingToast1Ref = useRef<NodeJS.Timeout | null>(null);
   const loadingToast2Ref = useRef<NodeJS.Timeout | null>(null);
@@ -140,7 +141,8 @@ export function PriorAuthView({
 
   // Auto-scroll to bottom on new messages
   useEffect(() => {
-    messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
+    const container = messagesContainerRef.current;
+    if (container) container.scrollTop = container.scrollHeight;
   }, [chat.messages]);
 
   // Consume pending message from upload flow
@@ -487,7 +489,7 @@ export function PriorAuthView({
               </div>
 
               {/* Messages */}
-              <div className="flex-1 overflow-y-auto px-4 py-4 space-y-3">
+              <div ref={messagesContainerRef} className="flex-1 overflow-y-auto px-4 py-4 space-y-3">
                 {chat.messages.length === 0 ? (
                   <div className="flex flex-col items-center justify-center h-full text-center px-4 py-8">
                     <div className="size-10 bg-blue-100 rounded-full flex items-center justify-center mb-3">

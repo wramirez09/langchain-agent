@@ -63,9 +63,9 @@ class LocalLcdSearchTool extends StructuredTool<
       const plainText = $("body").text().replace(/\s+/g, " ").trim().substring(0, 12000);
 
       const messages = [
-        { type: "system" as const, content: "You are a helpful assistant that summarizes medical coverage documents." },
+        { type: "system" as const, content: "You are an expert healthcare policy analyst. Extract structured clinical coverage information from Medicare LCD/NCD documents with high fidelity. Preserve specific codes, document IDs, and clinical criteria verbatim — do not paraphrase or generalize." },
         {
-          type: "human" as const, content: `Please provide a concise summary of the following content focusing on how it relates to the query: "${query}"\n\nContent:\n${plainText}`
+          type: "human" as const, content: `Analyze this Medicare coverage document as it relates to: "${query}"\n\nExtract and preserve the following with specificity:\n1. **Medical necessity criteria** — list each specific clinical condition, symptom, or finding required for coverage (verbatim where possible)\n2. **ICD-10 codes** — list every specific code and description mentioned (e.g., G25.0 Essential tremor, M54.16 Radiculopathy lumbar region)\n3. **CPT/HCPCS codes** — list every code or code range mentioned, grouped by anatomical region where applicable (e.g., Brain: 70551–70553, Spine: 72141–72158)\n4. **Required documentation** — list each specific documentation item required for coverage\n5. **Limitations and exclusions** — list each non-covered scenario or restriction verbatim\n6. **Referenced document IDs** — note any LCD or NCD IDs referenced within the document (e.g., LCD L37373, NCD 220.2)\n\nIf a section is not present in the document, state "Not specified in document."\n\nDocument content:\n${plainText}`
         }
       ];
 

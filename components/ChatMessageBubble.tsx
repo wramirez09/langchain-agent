@@ -1,6 +1,6 @@
 import { cn } from "@/utils/cn";
 import type { Message } from "ai/react";
-import React, { useEffect, useRef, useState } from "react";
+import React, { useEffect, useState } from "react";
 import { motion } from "framer-motion";
 import { Loader2 } from "lucide-react";
 import ReactMarkdown from "react-markdown";
@@ -28,7 +28,6 @@ export function ChatMessageBubble(props: {
 }) {
   const isUser = props.message.role === "user";
   const [displayContent, setDisplayContent] = useState("");
-  const messageEndRef = useRef<HTMLDivElement>(null);
 
   // Handle streaming content for AI messages
   useEffect(() => {
@@ -38,11 +37,6 @@ export function ChatMessageBubble(props: {
     }
     setDisplayContent(props.message.content);
   }, [props.message.content, isUser]);
-
-  // Auto-scroll to bottom when new content arrives
-  useEffect(() => {
-    messageEndRef.current?.scrollIntoView({ behavior: "smooth" });
-  }, [displayContent]);
 
   // Skip rendering if there's no content and it's not a loading state
   if (!displayContent && !props.isLoading) return null;
@@ -138,7 +132,6 @@ export function ChatMessageBubble(props: {
         </div>
       )}
 
-      <div ref={messageEndRef} />
     </motion.div>
   );
 }
