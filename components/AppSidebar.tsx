@@ -89,7 +89,7 @@ export function AppSidebar({ activeView, onViewChange }: AppSidebarProps) {
           <button
             onClick={handleLogout}
             title="Logout"
-            className="w-10 h-10 flex items-center justify-center rounded-lg text-gray-400 hover:bg-gray-50 hover:text-gray-600 transition-colors"
+            className="w-10 h-10 flex items-center justify-center rounded-lg text-red-400 hover:bg-red-50 hover:text-red-600 transition-colors"
           >
             <LogOut className="size-5" />
           </button>

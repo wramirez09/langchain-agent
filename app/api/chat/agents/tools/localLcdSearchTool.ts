@@ -2,6 +2,10 @@
 import { z } from "zod";
 import { StructuredTool } from "@langchain/core/tools";
 import { llmSummarizer } from "@/lib/llm";
+import * as cheerio from "cheerio";
+import { cache } from "@/lib/cache";
+
+const LCD_CACHE_TTL = 30 * 60 * 1000; // 30 minutes
 
 // Input schema for the LCD search tool
 const LocalLcdSearchInputSchema = z.object({
@@ -17,10 +21,6 @@ const LocalLcdSearchInputSchema = z.object({
     ),
 });
 
-// Interface for state metadata from the CMS API
-
-// Interface for the expected structure of an LCD document from the API
-const cache = new Map<string, string>();
 
 interface LocalCoverageDetermination {
   data: Array<{
@@ -58,15 +58,15 @@ class LocalLcdSearchTool extends StructuredTool<
       const response = await fetch(url);
       const html = await response.text();
 
-      // Create a prompt for summarization
+      const $ = cheerio.load(html);
+      $("script, style, nav, footer, header, iframe, noscript").remove();
+      const plainText = $("body").text().replace(/\s+/g, " ").trim().substring(0, 12000);
+
       const messages = [
-        { type: "system" as const, content: "You are a helpful assistant that summarizes HTML content from medical coverage documents." },
+        { type: "system" as const, content: "You are a helpful assistant that summarizes medical coverage documents." },
         {
-          type: "human" as const, content: `Please provide a concise summary of the following HTML content focusing on how it relates to the query: "${query}"
-        
-        HTML Content:
-        ${html.substring(0, 8000)}`
-        } // Limiting length to avoid token limits
+          type: "human" as const, content: `Please provide a concise summary of the following content focusing on how it relates to the query: "${query}"\n\nContent:\n${plainText}`
+        }
       ];
 
       const summary = await llmSummarizer().invoke(messages);
@@ -79,9 +79,10 @@ class LocalLcdSearchTool extends StructuredTool<
 
   protected async _call(input: z.infer<typeof LocalLcdSearchInputSchema>): Promise<string> {
     const cacheKey = JSON.stringify(input);
-    if (cache.has(cacheKey)) {
+    const cached = cache.get<string>(cacheKey);
+    if (cached) {
       console.log("LocalLcdSearchTool: Cache hit!");
-      return cache.get(cacheKey)!;
+      return cached;
     }
     const { query, state } = input;
 
@@ -114,17 +115,15 @@ class LocalLcdSearchTool extends StructuredTool<
       // 3. Perform client-side filtering based on the query.
       const queryLower = query.toLowerCase();
       const p1 = queryLower.split("(")[0].trim();
-      const p2 = queryLower
-        .substring(queryLower.indexOf("(") + 1, queryLower.indexOf(")"))
-        .trim();
+      const parenStart = queryLower.indexOf("(");
+      const parenEnd = queryLower.indexOf(")");
+      const p2 = parenStart !== -1 && parenEnd > parenStart
+        ? queryLower.substring(parenStart + 1, parenEnd).trim()
+        : "";
 
-      const lcds: LocalCoverageDetermination["data"] = [];
-
-      allLcds.data.filter((lcd) => {
+      const lcds = allLcds.data.filter((lcd) => {
         const titleLower = (lcd.title || "").toLowerCase();
-        // Check if the query is in the title
-        if (titleLower.includes(p1)) lcds.push(lcd);
-        if (titleLower.includes(p2)) lcds.push(lcd);
+        return (p1 && titleLower.includes(p1)) || (p2 && titleLower.includes(p2));
       });
 
       // 4. Handle cases where no relevant LCDs are found.
@@ -160,7 +159,7 @@ class LocalLcdSearchTool extends StructuredTool<
         `Displaying top ${maxResults} with summaries:\n\n` +
         outputResults.join("\n\n");
 
-      cache.set(cacheKey, result);
+      cache.set(cacheKey, result, LCD_CACHE_TTL);
       return result;
     } catch (error: unknown) {
       console.error("Error in LocalLcdSearchTool:", error);

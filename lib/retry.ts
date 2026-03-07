@@ -54,6 +54,8 @@ export function isRetryableError(error: Error, options: RetryOptions): boolean {
   // Default retryable conditions
   const defaultRetryablePatterns = [
     'timeout',
+    'aborted',
+    'operation was aborted',
     'network',
     'connection',
     'rate limit',

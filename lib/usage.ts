@@ -4,28 +4,42 @@ import { getStripe } from "@/lib/stripe";
 import Stripe from "stripe";
 import { withRetry, RETRY_CONFIGS } from "./retry";
 import { errorTracker, trackRetryError } from "./error-tracking";
+import { cache } from "./cache";
+
+const SUBSCRIPTION_CACHE_TTL = 5 * 60 * 1000; // 5 minutes
 
 export async function reportUsage({
     userId,
     quantity = 1,
     usageType,
+    metadata,
 }: {
     userId: string;
     quantity?: number;
     usageType: string;
-    }): Promise<Stripe.Billing.MeterEvent | null | undefined> {
+    metadata?: Record<string, unknown>;
+}): Promise<Stripe.Billing.MeterEvent | null | undefined> {
     const stripe = getStripe();
-    const { data: subscription } = await supabaseAdmin
-        .from("subscriptions")
-        .select("stripe_customer_id, stripe_subscription_id, metered_item_id")
-        .eq("user_id", userId)
-        .maybeSingle();
+
+    const cacheKey = `subscription:${userId}`;
+    let subscription = cache.get<{ stripe_customer_id: string; stripe_subscription_id: string; metered_item_id: string }>(cacheKey);
+
+    if (!subscription) {
+        const { data } = await supabaseAdmin
+            .from("subscriptions")
+            .select("stripe_customer_id, stripe_subscription_id, metered_item_id")
+            .eq("user_id", userId)
+            .maybeSingle();
+
+        if (!data) return null;
+        subscription = data;
+        cache.set(cacheKey, subscription, SUBSCRIPTION_CACHE_TTL);
+    }
 
     if (!subscription) return null;
 
     const {
         stripe_customer_id,
-        stripe_subscription_id,
         metered_item_id,
     } = subscription;
 
@@ -52,12 +66,10 @@ export async function reportUsage({
         const meterResult = await withRetry(
             async () => {
                 const event = await stripe.billing.meterEvents.create({
-                    event_name: process.env.STRIPE_METER_EVENT_NAME!, // your usage type
+                    event_name: process.env.STRIPE_METER_EVENT_NAME!,
                     payload: {
                         stripe_customer_id,        // REQUIRED
-                        subscription_id: stripe_subscription_id,
-                        subscription_item_id: metered_item_id,
-                        value: quantity.toString(), // MUST be string
+                        value: quantity.toString(), // REQUIRED — must be a string
                     },
                 });
                 return event;
@@ -79,23 +91,27 @@ export async function reportUsage({
 
         console.log("✅ Meter event sent:", meterEvent.identifier);
 
-        // optionally log to usage_logs with retry
+        // Log to usage_logs — check for Supabase-level errors
         try {
-            await withRetry(
+            const logResult = await withRetry(
                 async () => {
-                    await supabaseAdmin.from("usage_logs").insert({
+                    const { error } = await supabaseAdmin.from("usage_logs").insert({
                         user_id: userId,
                         usage_type: usageType,
                         quantity,
                         stripe_reported: true,
                         stripe_usage_id: meterEvent.identifier,
+                        ...(metadata ? { metadata } : {}),
                     });
+                    if (error) throw new Error(`Supabase insert failed: ${error.message}`);
                 },
                 RETRY_CONFIGS.DATABASE
             );
+            if (!logResult.success) {
+                console.warn("⚠️ Failed to log usage to database (non-critical):", logResult.error?.message);
+            }
         } catch (logError) {
             console.warn("⚠️ Failed to log usage to database (non-critical):", logError);
-            // Don't fail the operation if logging fails
         }
 
         return meterEvent;

@@ -69,7 +69,7 @@ const TopBar: React.FC = () => {
             <span className="text-sm font-medium text-gray-700">{displayName}</span>
             <span className="text-xs text-gray-500">{displayEmail}</span>
           </div>
-          <div className="size-10 bg-blue-600 rounded-full flex items-center justify-center flex-shrink-0">
+          <div className="w-10 h-10 bg-blue-600 rounded-full flex items-center justify-center flex-shrink-0 p-2">
             <span className="text-sm font-semibold text-white">{initials || 'U'}</span>
           </div>
         </div>

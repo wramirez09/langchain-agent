@@ -12,7 +12,7 @@ import { ErrorNotificationManager, useErrorNotifications } from "@/components/Er
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
-import AutoCompleteSelect from "@/components/ui/AutoCompleteSelect";
+import Select from "react-select";
 import CreatableSelect from "react-select/creatable";
 import { cn } from "@/utils/cn";
 import { createClient } from "@/utils/client";
@@ -40,6 +40,7 @@ export function PriorAuthView({
   const [intermediateStepsLoading, setIntermediateStepsLoading] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [chatInput, setChatInput] = useState("");
+  const [formResetKey, setFormResetKey] = useState(0);
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const abortControllerRef = useRef<AbortController | null>(null);
   const loadingToast1Ref = useRef<NodeJS.Timeout | null>(null);
@@ -167,8 +168,8 @@ export function PriorAuthView({
       return;
     }
     const formString = Array.from(formContent.entries())
-      .map(([k, v]) => `${k}: ${v}`)
       .filter(([, v]) => v)
+      .map(([k, v]) => `${k}: ${v}`)
       .join(". ");
     const combined = [formString, chatInput.trim()].filter(Boolean).join(" | ");
     if (!combined) return;
@@ -244,6 +245,7 @@ export function PriorAuthView({
     setSourcesForMessages({});
     setFormContent(new Map());
     setChatInput("");
+    setFormResetKey((k) => k + 1);
     toast.success("Chat cleared successfully");
   }, [chat, clearTimeouts]);
 
@@ -285,7 +287,7 @@ export function PriorAuthView({
               </div>
 
               {/* Form fields */}
-              <div className="flex-1 overflow-y-auto px-6 pb-4 pt-2 space-y-5">
+              <div key={formResetKey} className="flex-1 overflow-y-auto px-6 pb-4 pt-2 space-y-5">
 
                 {/* Row: Guidelines + State */}
                 <div className="grid grid-cols-2 gap-3">
@@ -294,9 +296,23 @@ export function PriorAuthView({
                       <FileText size={13} color="#2563EB" />
                       Guidelines
                     </label>
-                    <AutoCompleteSelect
+                    <Select
+                      isClearable
                       options={guidelinesOptions}
-                      onChange={(v) => handleFormStateChange("Guidelines", v)}
+                      onChange={(v) => handleFormStateChange("Guidelines", v?.value ?? "")}
+                      placeholder="Select..."
+                      classNamePrefix="react-select"
+                      styles={{
+                        control: (base) => ({
+                          ...base,
+                          minHeight: "36px",
+                          fontSize: "14px",
+                          borderColor: "#e2e8f0",
+                          borderRadius: "8px",
+                          "&:hover": { borderColor: "#bfdbfe" },
+                        }),
+                        menu: (base) => ({ ...base, borderRadius: "8px", overflow: "hidden" }),
+                      }}
                     />
                   </div>
                   <div>
@@ -304,9 +320,23 @@ export function PriorAuthView({
                       <MapPin size={13} color="#059669" />
                       State
                     </label>
-                    <AutoCompleteSelect
+                    <Select
+                      isClearable
                       options={stateOptions}
-                      onChange={(v) => handleFormStateChange("State", v)}
+                      onChange={(v) => handleFormStateChange("State", v?.value ?? "")}
+                      placeholder="Select..."
+                      classNamePrefix="react-select"
+                      styles={{
+                        control: (base) => ({
+                          ...base,
+                          minHeight: "36px",
+                          fontSize: "14px",
+                          borderColor: "#e2e8f0",
+                          borderRadius: "8px",
+                          "&:hover": { borderColor: "#bfdbfe" },
+                        }),
+                        menu: (base) => ({ ...base, borderRadius: "8px", overflow: "hidden" }),
+                      }}
                     />
                   </div>
                 </div>
@@ -393,7 +423,7 @@ export function PriorAuthView({
                       <Textarea
                         placeholder="previous knee pain, swelling, etc."
                         className="min-h-[100px] max-h-[200px] resize-y bg-white border-blue-200 text-gray-900 focus-visible:ring-blue-300"
-                        onChange={(e) => setChatInput(e.target.value)}
+                        onChange={(e) => handleFormStateChange("Relevant Medical History", e.target.value)}
                       />
                     </AccordionContent>
                   </AccordionItem>
@@ -402,23 +432,41 @@ export function PriorAuthView({
 
               {/* Generate button */}
               <div className="px-6 pb-6 pt-4 flex-shrink-0">
-                <Button
-                  onClick={handleGenerateAuth}
-                  disabled={isProcessing}
-                  className="w-full h-11 bg-blue-600 hover:bg-blue-700 text-white font-medium text-sm rounded-lg"
-                >
-                  {isProcessing ? (
-                    <span className="flex items-center gap-2">
-                      <LoaderCircle className="animate-spin size-4" />
-                      Generating…
-                    </span>
-                  ) : (
-                    <span className="flex items-center gap-2">
-                      <Send className="size-4" />
-                      Generate Authorization
-                    </span>
-                  )}
-                </Button>
+                <div className="mb-3 p-3 bg-amber-50 border border-amber-200 rounded-md">
+                  <div className="flex items-start gap-2">
+                    <AlertTriangle className="w-4 h-4 text-amber-600 mt-0.5 flex-shrink-0" />
+                    <div className="text-xs text-amber-800">
+                      <strong>HIPAA Compliance:</strong> Do not include patient-specific PHI such as names, dates of birth, medical record numbers, or other identifying information. Use generic descriptions only.
+                    </div>
+                  </div>
+                </div>
+                <div className="flex items-center gap-3">
+                  <Button
+                    onClick={handleGenerateAuth}
+                    disabled={isProcessing}
+                    className="flex-1 h-11 bg-blue-600 hover:bg-blue-700 text-white font-medium text-sm rounded-lg"
+                  >
+                    {isProcessing ? (
+                      <span className="flex items-center gap-2">
+                        <LoaderCircle className="animate-spin size-4" />
+                        Generating…
+                      </span>
+                    ) : (
+                      <span className="flex items-center gap-2">
+                        <Send className="size-4" />
+                        Generate Authorization
+                      </span>
+                    )}
+                  </Button>
+                  <Button
+                    type="button"
+                    variant="ghost"
+                    onClick={isProcessing ? handleStop : clearChat}
+                    className="h-11 px-4 text-red-500 hover:text-red-600 hover:bg-red-50 font-medium text-sm rounded-lg border border-red-200"
+                  >
+                    Cancel
+                  </Button>
+                </div>
               </div>
             </div>
 
@@ -458,11 +506,14 @@ export function PriorAuthView({
                       return <IntermediateStep key={m.id} message={m} />;
                     }
                     const sourceKey = (chat.messages.length - 1 - i).toString();
+                    const isLastMessage = i === chat.messages.length - 1;
                     return (
                       <ChatMessageBubble
                         key={m.id}
                         message={m}
                         sources={sourcesForMessages[sourceKey] as unknown[]}
+                        isLastMessage={isLastMessage}
+                        isLoading={isLastMessage && isProcessing}
                       />
                     );
                   })
@@ -482,20 +533,21 @@ export function PriorAuthView({
               <div className="border-t border-gray-100 px-4 pt-3 pb-4 flex-shrink-0">
                 <form
                   onSubmit={handleChatInputSubmit}
-                  className="flex items-center gap-2 border border-gray-200 rounded-lg px-3 py-2 bg-white"
+                  className="flex items-center gap-2 border border-gray-200 rounded-lg px-3 py-2 bg-white w-full"
                 >
                   <input
                     value={chatInput}
                     onChange={(e) => setChatInput(e.target.value)}
                     placeholder="Type your message..."
-                    className="flex-1 bg-transparent text-sm text-gray-900 placeholder-gray-400 outline-none"
+                    className="flex-1 min-w-0 bg-transparent text-sm text-gray-900 placeholder-gray-400 outline-none"
                     disabled={isProcessing}
+                    autoComplete="off"
                   />
                   <button
                     type={isProcessing ? "button" : "submit"}
                     onClick={isProcessing ? handleStop : undefined}
                     className={cn(
-                      "size-8 rounded-full flex items-center justify-center flex-shrink-0 transition-colors",
+                      "w-7 h-7 rounded-full flex items-center justify-center flex-shrink-0 transition-colors",
                       isProcessing
                         ? "bg-red-100 text-red-500 hover:bg-red-200"
                         : "bg-blue-600 text-white hover:bg-blue-700",
@@ -504,12 +556,24 @@ export function PriorAuthView({
                     {isProcessing ? (
                       <LoaderCircle className="animate-spin size-4" />
                     ) : (
-                      <IconSend2 className="size-4" />
+                      <IconSend2 className="size-2" strokeWidth={2} size={20}/>
                     )}
                   </button>
                 </form>
-                <div className="mt-2 flex items-start gap-1.5">
-                  <AlertTriangle className="w-3 h-3 text-amber-500 mt-0.5 flex-shrink-0" />
+                {chat.messages.length > 0 && (
+                  <div className="mt-2 flex justify-end">
+                    <button
+                      type="button"
+                      onClick={clearChat}
+                      className="flex items-center gap-1.5 text-xs text-gray-400 hover:text-red-500 transition-colors"
+                    >
+                      <Trash2 className="size-3.5" />
+                      End Chat
+                    </button>
+                  </div>
+                )}
+                <div className="mt-2 flex items-center gap-1.5 ml-1">
+                  <AlertTriangle className="w-4 h-4 text-amber-500" />
                   <p className="text-xs text-amber-700">Do not include patient PHI. Use generic descriptions only.</p>
                 </div>
               </div>
@@ -533,7 +597,12 @@ export function PriorAuthView({
                         {i === arr.length - 1 && (
                           <div className="text-xs font-semibold text-blue-600 uppercase tracking-wide mb-3">Latest Response</div>
                         )}
-                        <ChatMessageBubble message={m} sources={[]} />
+                        <ChatMessageBubble
+                          message={m}
+                          sources={[]}
+                          isLastMessage={i === arr.length - 1}
+                          isLoading={i === arr.length - 1 && isProcessing}
+                        />
                       </div>
                     ))}
                 </div>

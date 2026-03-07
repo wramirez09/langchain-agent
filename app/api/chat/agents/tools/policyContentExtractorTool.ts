@@ -159,14 +159,13 @@ class PolicyContentExtractorTool extends StructuredTool<
       }
 
       const response = await fetch(fetchUrl, { signal });
+      clearTimeout(timeout);
 
       if (!response.ok) {
         throw new Error(
           `Failed to fetch policy content: ${response.status} ${response.statusText}`,
         );
       }
-
-      clearTimeout(timeout);
       const contentType = response.headers.get("content-type") || "";
       let extractedText: string;
 
@@ -181,7 +180,7 @@ class PolicyContentExtractorTool extends StructuredTool<
         extractedText = $("body").text().replace(/\s+/g, " ").trim();
       }
 
-      extractedText = extractedText.replace(/\s+/g, " ").trim();
+      extractedText = extractedText.replace(/\s+/g, " ").trim().substring(0, 20000);
 
       if (extractedText.length < 100) {
         const warning = `Extracted content too short for ${policyUrl}.`;

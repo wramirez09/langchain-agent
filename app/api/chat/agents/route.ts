@@ -198,13 +198,7 @@ export async function POST(req: NextRequest) {
 
     /* ---------- AGENT (singleton, selected by payer type) ---------- */
     const agent = selectAgent(body.guidelines);
-
-    /* ---------- USAGE LOGGING ---------- */
-    void reportUsage({
-      userId,
-      usageType: "orchestrator",
-      quantity: 1,
-    }).catch(() => {});
+    const resolvedUserId: string = userId!;
 
     /* ======================================================
      MOBILE — NON-STREAMING (RN SAFE)
@@ -258,6 +252,9 @@ export async function POST(req: NextRequest) {
         .reverse()
         .find((m) => m._getType?.() === "ai");
 
+      // Report usage only after successful agent completion
+      void reportUsage({ userId: resolvedUserId, usageType: "orchestrator", quantity: 1 }).catch(() => {});
+
       return NextResponse.json(
         {
           messages: [
@@ -300,6 +297,7 @@ export async function POST(req: NextRequest) {
         
         const readable = new ReadableStream({
           async start(controller) {
+            let streamCompleted = false;
             try {
               for await (const { event, data } of eventStream) {
                 if (
@@ -310,9 +308,14 @@ export async function POST(req: NextRequest) {
                   controller.enqueue(encoder.encode(data.chunk.content));
                 }
               }
+              streamCompleted = true;
             } catch (err) {
               controller.error(err);
             } finally {
+              // Report usage only after a full successful stream
+              if (streamCompleted) {
+                void reportUsage({ userId: resolvedUserId, usageType: "orchestrator", quantity: 1 }).catch(() => {});
+              }
               controller.close();
             }
           },

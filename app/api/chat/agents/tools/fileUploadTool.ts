@@ -121,7 +121,8 @@ export class FileUploadTool extends StructuredTool<
       formData.append("query", query); // Add the query to the form data
 
       // 4. Send the POST request to the Next.js API endpoint.
-      const apiUrl = "/api/retrieval/ingest";
+      const baseUrl = process.env.NEXT_PUBLIC_APP_URL || process.env.NEXTAUTH_URL || "http://localhost:3000";
+      const apiUrl = `${baseUrl}/api/retrieval/ingest`;
       const controller = new AbortController();
       const timeout = setTimeout(() => controller.abort(), 30000);
 

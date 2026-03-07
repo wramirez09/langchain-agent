@@ -1,16 +1,14 @@
 
 import { Tool } from "@langchain/core/tools";
+import { cache } from "@/lib/cache";
 
-
+const ARTICLE_CACHE_TTL = 30 * 60 * 1000; // 30 minutes
 
 type StateIdentifier = { state_id: number; description: string };
 // Interface for state metadata (re-used)
 interface StateMetaData {
   data: Array<StateIdentifier>;
 }
-
-// Interface for the expected structure of a Local Coverage Article from the API
-const cache = new Map<string, string>();
 
 interface LocalCoverageArticle {
   meta: {
@@ -52,11 +50,19 @@ class LocalCoverageArticleSearchTool extends Tool {
     "https://api.coverage.cms.gov/v1/reports/local-coverage-articles/";
 
   protected async _call(input: string): Promise<string> {
-    if (cache.has(input)) {
+    const cached = cache.get<string>(input);
+    if (cached) {
       console.log("LocalCoverageArticleSearchTool: Cache hit!");
-      return cache.get(input)!;
+      return cached;
     }
-    const { query, state } = JSON.parse(input);
+
+    let query: string;
+    let state: StateIdentifier;
+    try {
+      ({ query, state } = JSON.parse(input));
+    } catch {
+      return `Error: Invalid input format. Expected JSON with 'query' and 'state' fields.`;
+    }
 
     console.log(
       `Searching Local Coverage Articles for query: '${query}' in state: '${state.description}'`,
@@ -90,22 +96,25 @@ class LocalCoverageArticleSearchTool extends Tool {
 
       // 3. Perform client-side filtering.
       const queryLower = query.toLowerCase();
+      const p1 = queryLower.split("(")[0].trim();
+      const parenStart = queryLower.indexOf("(");
+      const parenEnd = queryLower.indexOf(")");
+      const p2 = parenStart !== -1 && parenEnd > parenStart
+        ? queryLower.substring(parenStart + 1, parenEnd).trim()
+        : "";
+
       const relevantArticles = allArticles.data.filter((article) => {
         const titleLower = (article.title || "").toLowerCase();
-        const p1 = queryLower.split("(")[0].trim();
-        const p2 = queryLower
-          .substring(queryLower.indexOf("(") + 1, queryLower.indexOf(")"))
-          .trim();
-
-        if (titleLower.includes(p1) || titleLower.includes(p2)) return article;
+        return (p1 && titleLower.includes(p1)) || (p2 && titleLower.includes(p2));
       });
 
       if (relevantArticles.length === 0) {
         return `No Local Coverage Article found for '${query}' in ${state}.`;
       }
 
+      const maxResults = Math.min(relevantArticles.length, 5);
       const outputResults: string[] = [];
-      for (let i = 0; i < Math.min(relevantArticles.length, 10); i++) {
+      for (let i = 0; i < maxResults; i++) {
         const article = relevantArticles[i];
         // Construct full URL for the detailed article page.
         const fullHtmlUrl = article.url;
@@ -121,11 +130,11 @@ class LocalCoverageArticleSearchTool extends Tool {
         );
       }
 
-      const result = `Found ${relevantArticles.length} Local Coverage Article(s) for '${query}' in ${state}. ` +
-        `Displaying top ${Math.min(relevantArticles.length, 5)}:\n` +
+      const result = `Found ${relevantArticles.length} Local Coverage Article(s) for '${query}' in ${state.description}. ` +
+        `Displaying top ${maxResults}:\n` +
         outputResults.join("\n");
 
-      cache.set(input, result);
+      cache.set(input, result, ARTICLE_CACHE_TTL);
       return result;
     } catch (error: any) {
       console.error("Error in LocalCoverageArticleSearchTool:", error);

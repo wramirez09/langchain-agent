@@ -1,5 +1,5 @@
 import { z } from "zod";
-import { StructuredTool, ToolRunnableConfig } from "@langchain/core/tools";
+import { StructuredTool } from "@langchain/core/tools";
 import { createClient } from "@supabase/supabase-js";
 import { llmSummarizer } from "@/lib/llm";
 import { cleanRegex } from "./utils";
@@ -82,16 +82,6 @@ export class EvolentSearchTool extends StructuredTool<typeof EvolentSearchInputS
   name = "evolent_guidelines_search";
   description = "Search Evolent guidelines using full-text and fuzzy matching.";
   schema = EvolentSearchInputSchema;
-
-  async call<TConfig extends ToolRunnableConfig | undefined>(input: any) {
-    try {
-      const parsed = this.schema.parse(input);
-      return await this._call(parsed);
-    } catch (err: any) {
-      console.error("[EvolentSearchTool] Input validation failed:", err);
-      return `Invalid input: ${err.message}`;
-    }
-  }
 
   protected async _call(input: z.infer<typeof EvolentSearchInputSchema>) {
     const query = input.query.trim();
