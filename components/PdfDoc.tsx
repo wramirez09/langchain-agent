@@ -123,7 +123,7 @@ const PdfDoc: React.FC<PdfProps> = ({ name, role, messages }) => (
         <View style={styles.header}>
           <Image src={logoBase64} style={styles.logo} cache={false} />
           <View>
-            <Text style={styles.companyName}>NoteDoctor.Ai</Text>
+            <Text style={styles.companyName}>NoteDoctor.ai</Text>
             {/* <Text style={styles.subtitle}>
             Chat generated for {name} ({role})
           </Text> */}

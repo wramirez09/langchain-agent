@@ -27,7 +27,7 @@ export default async function Home() {
                 showIngestForm
                 showIntermediateStepsToggle
                 emoji={
-                    <Image src={logo} alt="NoteDoctor.Ai Logo" className="h-8 w-auto" />
+                    <Image src={logo} alt="NoteDoctor.ai Logo" className="h-8 w-auto" />
                 }
             />
             <TourTriggerButton />

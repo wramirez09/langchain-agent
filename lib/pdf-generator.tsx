@@ -117,7 +117,7 @@ const PdfDocument: React.FC<PdfDocumentProps> = ({ name, role, messages, logoBas
       <View style={styles.header}>
         <Image src={logoBase64} style={styles.logo} cache={false} />
         <View>
-          <Text style={styles.companyName}>NoteDoctor.Ai</Text>
+          <Text style={styles.companyName}>NoteDoctor.ai</Text>
         </View>
       </View>
 

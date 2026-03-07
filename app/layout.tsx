@@ -1,4 +1,4 @@
-import { Inter, Public_Sans } from "next/font/google";
+import { Inter, Public_Sans, Outfit } from "next/font/google";
 import { Toaster } from "@/components/ui/sonner";
 import { NuqsAdapter } from "nuqs/adapters/next/app";
 import "./globals.css";
@@ -10,6 +10,7 @@ import TopBar from "@/components/TopBar";
 
 const inter = Inter({ subsets: ["latin"], variable: '--font-inter' });
 const publicSans = Public_Sans({ subsets: ["latin"], variable: '--font-public-sans' });
+const outfit = Outfit({ subsets: ["latin"], variable: '--font-outfit' });
 
 export default async function RootLayout({
   children,
@@ -17,7 +18,7 @@ export default async function RootLayout({
   children: React.ReactNode;
 }) {
   return (
-    <html lang="en" className={`${inter.variable} ${publicSans.variable} font-sans`}>
+    <html lang="en" className={`${inter.variable} ${publicSans.variable} ${outfit.variable} font-sans`}>
       <head>
         {/* Primary Meta Tags */}
         <title>MediAuth Pro | AI-Powered Prior Authorization & Policy Lookup for Healthcare</title>

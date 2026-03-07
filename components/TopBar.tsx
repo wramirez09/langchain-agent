@@ -20,10 +20,10 @@ const TopBar: React.FC = () => {
                 >
                     <Image
                         src={logo}
-                        alt="NoteDoctor.Ai Logo"
+                        alt="NoteDoctor.ai Logo"
                         className="h-5 md:h-8 w-auto"
                     />
-                    <span className="text-sm md:text-md text-dark font-bold">NoteDoctor.Ai</span>
+                    <span className="text-sm md:text-md text-dark font-bold">NoteDoctor.ai</span>
                 </a>
             </div>
             <div className="flex-col items-center justify-end gap-2">

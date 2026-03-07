@@ -7,11 +7,12 @@ export default function Home() {
   return (
     <div className="min-h-screen flex items-center justify-center bg-gradient-gradient">
       <div className="text-center px-6">
-        <h1 className="text-4xl md:text-5xl font-bold text-black mb-4 text-shadow-lg">
-          Welcome to <span className="text-white">NoteDoctor.ai</span>
+        <h1 className="text-4xl md:text-5xl font-bold text-white text-shadow-lg" style={{ fontFamily: 'var(--font-outfit), sans-serif' }}>
+          <span className="block text-2xl md:text-3xl mb-2">Welcome to</span>
+          <span className="block text-5xl md:text-6xl" style={{ fontFamily: 'var(--font-outfit), sans-serif' }}>Note<span className="text-yellow-400">Doctor</span>.ai</span>
         </h1>
-        <p className="text-lg text-white max-w-xl mx-auto mb-8 text-shadow-lg">
-          AI-powered medical coding that saves time, reduces errors, and ensures compliance.
+        <p className="text-xl text-white max-w-xl mx-auto mb-8 text-shadow-lg" style={{ fontFamily: 'var(--font-inter), sans-serif' }}>
+          <span className="text-yellow-400">AI-powered</span> medical coding that saves time, reduces errors, and ensures compliance.
         </p>
 
         <div className="flex gap-4 justify-center mb-8">

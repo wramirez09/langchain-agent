@@ -79,6 +79,7 @@
 
   body {
     @apply font-sans antialiased bg-background text-foreground;
+    font-family: var(--font-inter), var(--font-public-sans), var(--font-outfit), sans-serif;
   }
 
   p {
