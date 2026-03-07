@@ -2,7 +2,6 @@ import { cn } from "@/utils/cn";
 import type { Message } from "ai/react";
 import React, { useEffect, useState } from "react";
 import { motion } from "framer-motion";
-import { Loader2 } from "lucide-react";
 import ReactMarkdown from "react-markdown";
 
 interface MarkdownRendererProps {
@@ -69,14 +68,7 @@ export function ChatMessageBubble(props: {
           )}
         >
           <div className="prose prose-sm max-w-none leading-snug">
-            {props.isLoading && props.isLastMessage && !displayContent ? (
-              <div className="flex items-center space-x-2">
-                <Loader2 className="h-3.5 w-3.5 animate-spin text-blue-500" />
-                <span className="text-sm">Thinking...</span>
-              </div>
-            ) : (
-              <MarkdownRenderer content={props.message.content} />
-            )}
+            <MarkdownRenderer content={props.message.content} />
           </div>
 
           {!isUser && props.isLastMessage && displayContent && !props.isLoading && (
@@ -115,11 +107,6 @@ export function ChatMessageBubble(props: {
             </div>
           )}
 
-          {props.isLoading && props.isLastMessage && displayContent && (
-            <div className="absolute -bottom-4 right-2">
-              <Loader2 className="h-3.5 w-3.5 animate-spin text-blue-500" />
-            </div>
-          )}
         </div>
 
       </div>

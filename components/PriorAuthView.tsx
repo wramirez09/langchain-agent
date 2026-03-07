@@ -520,14 +520,6 @@ export function PriorAuthView({
                     );
                   })
                 )}
-                {isProcessing && chat.messages.length > 0 && (
-                  <div className="flex items-center gap-2 px-2">
-                    <div className="size-8 bg-blue-100 rounded-full flex items-center justify-center flex-shrink-0">
-                      <span className="text-xs font-medium text-blue-600">AI</span>
-                    </div>
-                    <LoaderCircle className="animate-spin size-4 text-blue-400" />
-                  </div>
-                )}
                 <div ref={messagesEndRef} />
               </div>
 
@@ -562,18 +554,6 @@ export function PriorAuthView({
                     )}
                   </button>
                 </form>
-                {chat.messages.length > 0 && (
-                  <div className="mt-2 flex justify-end">
-                    <button
-                      type="button"
-                      onClick={clearChat}
-                      className="flex items-center gap-1.5 text-xs text-gray-400 hover:text-red-500 transition-colors"
-                    >
-                      <Trash2 className="size-3.5" />
-                      End Chat
-                    </button>
-                  </div>
-                )}
                 <div className="mt-2 flex items-center gap-1.5 ml-1">
                   <AlertTriangle className="w-4 h-4 text-amber-500" />
                   <p className="text-xs text-amber-700">Do not include patient PHI. Use generic descriptions only.</p>
