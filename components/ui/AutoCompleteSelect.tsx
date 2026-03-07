@@ -138,7 +138,7 @@ export function StatusList({
 }) {
   return (
     <Command
-      className="bg-white rounded-lg border border-blue-100 shadow-sm flex flex-col h-full"
+      className="bg-white rounded-lg border-0 shadow-sm flex flex-col h-full"
       shouldFilter={true}
       loop={true}
 
@@ -166,7 +166,7 @@ export function StatusList({
       }}
     >
       {showSearch && (
-        <div className="px-3 pt-2 pb-1.5 border-b border-blue-100 bg-white">
+        <div className="px-3 pt-2 pb-1.5 border-b border-gray-100 bg-white">
           <CommandInput
             placeholder="Search options..."
             className="w-full bg-white text-gray-900 focus-visible:ring-0 focus-visible:ring-offset-0 border-0 focus-visible:outline-none"
@@ -188,14 +188,14 @@ export function StatusList({
                 setOpen(false);
               }}
               className={cn(
-                "flex items-center gap-3 px-4 py-3 text-md text-gray-800 rounded-md",
-                "hover:bg-gray-100 cursor-pointer transition-colors duration-150",
-                "active:bg-gray-200 focus:bg-gray-100 focus:outline-none focus-visible:ring-1 focus-visible:ring-blue-200"
+                "flex items-center gap-3 px-4 py-4 text-base text-gray-900 rounded-lg",
+                "hover:bg-gray-50 cursor-pointer transition-colors duration-150",
+                "active:bg-gray-100 focus:bg-gray-50 focus:outline-none focus-visible:ring-2 focus-visible:ring-gray-200"
               )}
             >
-              <div className="flex items-center">
-                {option.icon && <span className="mr-2">{option.icon}</span>}
-                {option.label}
+              <div className="flex items-center w-full">
+                {option.icon && <span className="mr-3 flex-shrink-0">{option.icon}</span>}
+                <span className="font-medium">{option.label}</span>
               </div>
             </CommandItem>
           ))}
