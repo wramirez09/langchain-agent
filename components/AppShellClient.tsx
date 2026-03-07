@@ -7,7 +7,7 @@ import { PriorAuthView } from "@/components/PriorAuthView";
 import { UploadView } from "@/components/UploadView";
 import { FileExportView } from "@/components/FileExportView";
 
-export default function AgentsPage() {
+export function AppShellClient() {
   const [activeView, setActiveView] = useState<AppView>("auth");
   const [chatMessages, setChatMessages] = useState<Message[]>([]);
   const [pendingMessage, setPendingMessage] = useState<string | null>(null);

@@ -10,8 +10,6 @@ import {
   SystemMessage,
 } from "@langchain/core/messages";
 
-
-
 import { NCDCoverageSearchTool } from "./tools/NCDCoverageSearchTool";
 import { localLcdSearchTool } from "./tools/localLcdSearchTool";
 import { localCoverageArticleSearchTool } from "./tools/localArticleSearchTool";
@@ -34,26 +32,6 @@ const corsHeaders = {
 export async function OPTIONS() {
   return new Response(null, { headers: corsHeaders });
 }
-
-/* -------------------- MESSAGE CONVERSION -------------------- */
-const convertVercelMessageToLangChainMessage = (
-  message: VercelChatMessage | any,
-) => {
-  let content = message.content;
-
-  if ((!content || content === "") && Array.isArray(message.parts)) {
-    content = message.parts
-      .filter((p: any) => p.type === "text")
-      .map((p: any) => p.text)
-      .join("\n");
-  }
-
-  const text = content ? String(content) : "";
-
-  if (message.role === "user") return new HumanMessage(text);
-  if (message.role === "assistant") return new AIMessage(text);
-  return new ChatMessage(text, message.role);
-};
 
 /* -------------------- SYSTEM PROMPT -------------------- */
 const AGENT_SYSTEM_TEMPLATE = `You are an expert Medicare, Evolent, and Carelon Prior Authorization Assistant for healthcare providers.
@@ -79,7 +57,7 @@ pass only the treatment and diagnosis to the tool along with state if provided
 * Based on the extracted \`Guidelines\` provider, use ONLY the relevant tools. Do not call tools for a different provider.
 * **If \`Guidelines\` is "Commercial":** Immediately use the \`carelon_guidelines_search\` and \`evolent_guidelines_search\` tools in parallel with the extracted \`treatment\` and \`diagnosis\`.
 * **If \`Guidelines\` is "Medicare":** Immediately use the \`ncd_coverage_search\` tool, along with the \`local_lcd_search\` and \`local_coverage_article_search\` tools (if a \`state\` is provided). Execute these three search tools in parallel for maximum speed. Invoke each tool only once.
-* **For any policies, guidelines, or articles found:** Use the \`policy_content_extractor\` tool to fetch its complete text content from the provided URL. 
+* **For any policies, guidelines, or articles found:** Use the \`policy_content_extractor\` tool to fetch its complete text content from the provided URL. Pass ALL URLs in a single call.
 
 **Commercial Guidelines Confidentiality:**
 * **If \`Guidelines\` is "Commercial":** You MUST maintain strict confidentiality of all data sources.
@@ -152,6 +130,53 @@ The goal is a professional, scannable layout similar to a clinical intake checkl
 \`\`\`
 `;
 
+/* -------------------- MODULE-LEVEL SINGLETONS -------------------- */
+// Tool instances — created once per cold start, shared across all requests
+const serpApiTool = new SerpAPI();
+const carelonTool = new CarelonSearchTool();
+const evolentTool = new EvolentSearchTool();
+const ncdTool = new NCDCoverageSearchTool();
+const moduleFileUploadTool = new FileUploadTool();
+
+const commercialTools = [carelonTool, evolentTool, moduleFileUploadTool];
+const medicareTools = [ncdTool, localLcdSearchTool, localCoverageArticleSearchTool, policyContentExtractorTool, moduleFileUploadTool];
+const allTools = [serpApiTool, carelonTool, evolentTool, ncdTool, localLcdSearchTool, localCoverageArticleSearchTool, policyContentExtractorTool, moduleFileUploadTool];
+
+// SystemMessage is immutable — create once
+const SYSTEM_MESSAGE = new SystemMessage(AGENT_SYSTEM_TEMPLATE);
+
+// Pre-built agents per payer type — avoids createReactAgent() on every request
+const commercialAgent = createReactAgent({ llm: llmAgent(), tools: commercialTools, messageModifier: SYSTEM_MESSAGE });
+const medicareAgent = createReactAgent({ llm: llmAgent(), tools: medicareTools, messageModifier: SYSTEM_MESSAGE });
+const allToolsAgent = createReactAgent({ llm: llmAgent(), tools: allTools, messageModifier: SYSTEM_MESSAGE });
+
+function selectAgent(guidelines: string | undefined) {
+  const g = (guidelines ?? "").toLowerCase().trim();
+  if (g === "commercial") return commercialAgent;
+  if (g === "medicare") return medicareAgent;
+  return allToolsAgent;
+}
+
+/* -------------------- MESSAGE CONVERSION -------------------- */
+const convertVercelMessageToLangChainMessage = (
+  message: VercelChatMessage | any,
+) => {
+  let content = message.content;
+
+  if ((!content || content === "") && Array.isArray(message.parts)) {
+    content = message.parts
+      .filter((p: any) => p.type === "text")
+      .map((p: any) => p.text)
+      .join("\n");
+  }
+
+  const text = content ? String(content) : "";
+
+  if (message.role === "user") return new HumanMessage(text);
+  if (message.role === "assistant") return new AIMessage(text);
+  return new ChatMessage(text, message.role);
+};
+
 /* -------------------- POST -------------------- */
 export async function POST(req: NextRequest) {
   let userId: string | undefined;
@@ -171,24 +196,8 @@ export async function POST(req: NextRequest) {
       )
       .map(convertVercelMessageToLangChainMessage);
 
-    /* ---------- TOOLS ---------- */
-    const tools = [
-      new SerpAPI(),
-      new CarelonSearchTool(),
-      new EvolentSearchTool(),
-      new NCDCoverageSearchTool(),
-      localLcdSearchTool,
-      localCoverageArticleSearchTool,
-      policyContentExtractorTool,
-      new FileUploadTool(),
-    ];
-
-    /* ---------- AGENT ---------- */
-    const agent = createReactAgent({
-      llm: llmAgent("orchestrator"),
-      tools,
-      messageModifier: new SystemMessage(AGENT_SYSTEM_TEMPLATE),
-    });
+    /* ---------- AGENT (singleton, selected by payer type) ---------- */
+    const agent = selectAgent(body.guidelines);
 
     /* ---------- USAGE LOGGING ---------- */
     void reportUsage({

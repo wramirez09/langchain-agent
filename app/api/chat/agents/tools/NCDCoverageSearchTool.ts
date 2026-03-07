@@ -2,8 +2,11 @@ import { Tool } from "@langchain/core/tools";
 import { cache } from "@/lib/cache";
 
 
-// Cache TTL in milliseconds (5 minutes)
+// Per-query result cache TTL (5 minutes)
 const CACHE_TTL = 5 * 60 * 1000;
+// Shared NCD list cache TTL (1 hour — the list rarely changes)
+const NCD_LIST_CACHE_KEY = "ncd-list:all";
+const NCD_LIST_TTL = 60 * 60 * 1000;
 
 // ----------------- Similarity Helpers -----------------
 function normalizeText(str: string): string {
@@ -21,7 +24,15 @@ function tokenize(str: string): string[] {
     .filter((t) => t.length > 2);
 }
 
-function computeRelevanceScore(query: string, ncd: any): number {
+interface NCDRecord {
+  title?: string;
+  document_display_id?: string | number;
+  document_id?: string | number;
+  document_version?: string | number;
+  [key: string]: unknown;
+}
+
+function computeRelevanceScore(query: string, ncd: NCDRecord): number {
   // Remove parenthetical notes to focus on core terms
   const queryNoParens = query.replace(/\s*\(.*?\)\s*/g, "");
   const normQuery = normalizeText(queryNoParens);
@@ -105,54 +116,58 @@ export class NCDCoverageSearchTool extends Tool {
       return cachedResult;
     }
 
-    const controller = new AbortController();
-    const { signal } = controller;
-
-    // Increase max listeners & ensure cleanup
-    const eventTarget = signal as unknown as EventTarget & {
-      setMaxListeners?: (n: number) => void;
-    };
-    if (eventTarget.setMaxListeners) {
-      eventTarget.setMaxListeners(100);
-    }
-
-    const timeout = setTimeout(() => {
-      if (!signal.aborted) controller.abort();
-    }, 30000);
-
     try {
-      console.log(
-        "NCDCoverageSearchTool: Fetching NCD list from CMS Coverage API..."
-      );
+      // Use the shared NCD list cache to avoid re-fetching on every unique query
+      let allNCDs: NCDRecord[] = cache.get<NCDRecord[]>(NCD_LIST_CACHE_KEY) ?? [];
 
-      const response = await fetch(CMS_NCD_API_URL, {
-        method: "GET",
-        headers: { "Content-Type": "application/json" },
-        cache: "no-store",
-        signal,
-      });
+      if (allNCDs.length === 0) {
+        console.log(
+          "NCDCoverageSearchTool: Fetching NCD list from CMS Coverage API..."
+        );
 
-      clearTimeout(timeout);
+        const controller = new AbortController();
+        const { signal } = controller;
 
-      if (!response.ok) {
-        throw new Error(`HTTP error! status: ${response.status}`);
+        const eventTarget = signal as unknown as EventTarget & {
+          setMaxListeners?: (n: number) => void;
+        };
+        if (eventTarget.setMaxListeners) {
+          eventTarget.setMaxListeners(100);
+        }
+
+        const timeout = setTimeout(() => {
+          if (!signal.aborted) controller.abort();
+        }, 30000);
+
+        const response = await fetch(CMS_NCD_API_URL, {
+          method: "GET",
+          headers: { "Content-Type": "application/json" },
+          signal,
+        });
+
+        clearTimeout(timeout);
+
+        if (!response.ok) {
+          throw new Error(`HTTP error! status: ${response.status}`);
+        }
+
+        const responseData = await response.json();
+
+        if (!responseData || !responseData.meta || !Array.isArray(responseData.data)) {
+          console.error("Unexpected API response structure:", responseData);
+          return `Error: Unexpected CMS API response format while searching for '${cleanedQuery}'. Please try again later.`;
+        }
+
+        if (responseData.meta.status && responseData.meta.status.id >= 400) {
+          console.error("CMS API meta status error:", responseData.meta);
+          return `Error from CMS Coverage API: ${responseData.meta.status.message || "Unknown error"}`;
+        }
+
+        allNCDs = (responseData.data as NCDRecord[]) || [];
+        cache.set(NCD_LIST_CACHE_KEY, allNCDs, NCD_LIST_TTL);
+      } else {
+        console.log("NCDCoverageSearchTool: Using cached NCD list.");
       }
-
-      const responseData = await response.json();
-
-      // Validate API shape
-      if (!responseData || !responseData.meta || !Array.isArray(responseData.data)) {
-        console.error("Unexpected API response structure:", responseData);
-        return `Error: Unexpected CMS API response format while searching for '${cleanedQuery}'. Please try again later.`;
-      }
-
-      if (responseData.meta.status && responseData.meta.status.id >= 400) {
-        console.error("CMS API meta status error:", responseData.meta);
-        return `Error from CMS Coverage API: ${responseData.meta.status.message || "Unknown error"
-          }`;
-      }
-
-      const allNCDs: any[] = responseData.data || [];
       if (allNCDs.length === 0) {
         return `No National Coverage Determinations (NCDs) are currently available from CMS for this search.`;
       }

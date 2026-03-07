@@ -3,10 +3,9 @@ import { Toaster } from "@/components/ui/sonner";
 import { NuqsAdapter } from "nuqs/adapters/next/app";
 import "./globals.css";
 
-import { NavbarMinimal } from "@/components/ui/navBar/NavbarMinimal";
 import * as React from "react";
-
 import TopBar from "@/components/TopBar";
+import { MobileSidebarProvider } from "@/components/providers/MobileSidebarProvider";
 
 const inter = Inter({ subsets: ["latin"], variable: '--font-inter' });
 const publicSans = Public_Sans({ subsets: ["latin"], variable: '--font-public-sans' });
@@ -108,18 +107,14 @@ export default async function RootLayout({
       </head>
       <body style={{ height: "100dvh" }}>
         <NuqsAdapter>
-          <div className="bg-gradient grid grid-rows-[auto,1fr] h-full">
-            <TopBar />
-            <div
-              className="bg-gradient mx-0 relative grid rounded-1xl shadow-lg"
-              style={{ overflowY: "hidden" }}
-            >
-              <NavbarMinimal />
-              <div className="absolute inset-0 overflow-hidden flex flex-col justify-start md:justify-start align-items-center w-full">
+          <MobileSidebarProvider>
+            <div className="flex flex-col h-full bg-[#F8F9FB]">
+              <TopBar />
+              <div className="flex-1 overflow-hidden">
                 {children}
               </div>
             </div>
-          </div>
+          </MobileSidebarProvider>
           <Toaster />
         </NuqsAdapter>
       </body>

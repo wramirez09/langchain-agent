@@ -1,6 +1,6 @@
 // localLcdSearchTool.ts
 import { z } from "zod";
-import { StructuredTool, Tool } from "@langchain/core/tools";
+import { StructuredTool } from "@langchain/core/tools";
 import { llmSummarizer } from "@/lib/llm";
 
 // Input schema for the LCD search tool
@@ -69,18 +69,19 @@ class LocalLcdSearchTool extends StructuredTool<
         } // Limiting length to avoid token limits
       ];
 
-      const summary = await llmSummarizer("local-lcd-search-summerizer").invoke(messages);
+      const summary = await llmSummarizer().invoke(messages);
       return summary.content as string;
-    } catch (error: any) {
+    } catch (error: unknown) {
       console.error("Error fetching and summarizing LCD:", error);
       return "[Failed to summarize]";
     }
   }
 
   protected async _call(input: z.infer<typeof LocalLcdSearchInputSchema>): Promise<string> {
-    if (cache.has(input.toString())) {
+    const cacheKey = JSON.stringify(input);
+    if (cache.has(cacheKey)) {
       console.log("LocalLcdSearchTool: Cache hit!");
-      return cache.get(input.toString())!;
+      return cache.get(cacheKey)!;
     }
     const { query, state } = input;
 
@@ -117,7 +118,7 @@ class LocalLcdSearchTool extends StructuredTool<
         .substring(queryLower.indexOf("(") + 1, queryLower.indexOf(")"))
         .trim();
 
-      const lcds: any = [];
+      const lcds: LocalCoverageDetermination["data"] = [];
 
       allLcds.data.filter((lcd) => {
         const titleLower = (lcd.title || "").toLowerCase();
@@ -132,29 +133,26 @@ class LocalLcdSearchTool extends StructuredTool<
       }
 
       // 5. Format the output to be returned to the LLM.
-      const outputResults: string[] = [];
-      // Limit results to a reasonable number.
-      const maxResults = Math.min(lcds.length, 3); // Reduced to 3 to manage API calls
+      const maxResults = Math.min(lcds.length, 3);
+      const topLcds = lcds.slice(0, maxResults);
 
-      for (let i = 0; i < maxResults; i++) {
-        const lcd = lcds[i];
-        // Construct the full, clickable URL for the LCD's detailed page on CMS.gov.
-        const fullHtmlUrl = lcd.url ? `${lcd.url}` : "URL N/A";
-
-        // Get summary for this LCD
-        const summary = lcd.url
-          ? await this.fetchAndSummarizeLcd(lcd.url, query)
-          : "[No URL available for summarization]";
-
-        outputResults.push(
-          `## ${lcd.title} (ID: ${lcd.document_display_id || 'N/A'})\n` +
-          `- **MAC:** ${lcd.contractor_name_type || 'N/A'}\n` +
-          `- **Effective Date:** ${lcd.effective_date || 'N/A'}\n` +
-          `- **Last Updated:** ${lcd.updated_on || 'N/A'}\n` +
-          `- **Summary:** ${summary}\n` +
-          `- **Direct URL:** ${fullHtmlUrl}\n`
-        );
-      }
+      // Fetch and summarize all LCDs in parallel instead of sequentially
+      const outputResults = await Promise.all(
+        topLcds.map(async (lcd) => {
+          const fullHtmlUrl = lcd.url ? lcd.url : "URL N/A";
+          const summary = lcd.url
+            ? await this.fetchAndSummarizeLcd(lcd.url, query)
+            : "[No URL available for summarization]";
+          return (
+            `## ${lcd.title} (ID: ${lcd.document_display_id || "N/A"})\n` +
+            `- **MAC:** ${lcd.contractor_name_type || "N/A"}\n` +
+            `- **Effective Date:** ${lcd.effective_date || "N/A"}\n` +
+            `- **Last Updated:** ${lcd.updated_on || "N/A"}\n` +
+            `- **Summary:** ${summary}\n` +
+            `- **Direct URL:** ${fullHtmlUrl}\n`
+          );
+        })
+      );
 
       console.log(`${outputResults.length} LCD's found and summarized`);
 
@@ -162,11 +160,11 @@ class LocalLcdSearchTool extends StructuredTool<
         `Displaying top ${maxResults} with summaries:\n\n` +
         outputResults.join("\n\n");
 
-      cache.set(input.toString(), result);
+      cache.set(cacheKey, result);
       return result;
-    } catch (error: any) {
+    } catch (error: unknown) {
       console.error("Error in LocalLcdSearchTool:", error);
-      return `An error occurred while searching for local LCDs: ${error.message}`;
+      return `An error occurred while searching for local LCDs: ${(error as Error).message}`;
     }
   }
 }
