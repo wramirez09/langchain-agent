@@ -4,6 +4,8 @@ import Stripe from "stripe";
 import { supabaseAdmin } from "@/lib/supabaseAdmin";
 import { getStripe } from "@/lib/stripe";
 
+
+
 export async function POST(req: Request) {
     const stripe = getStripe();
     const endpointSecret = process.env.STRIPE_WEBHOOK_SECRET!;

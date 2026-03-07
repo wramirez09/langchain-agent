@@ -16,7 +16,7 @@ import { llmAgent } from "@/lib/llm";
 import { createRetrieverTool } from "langchain/tools/retriever";
 import { createReactAgent } from "@langchain/langgraph/prebuilt";
 
-export const runtime = "edge";
+
 
 const convertVercelMessageToLangChainMessage = (message: VercelChatMessage) => {
   if (message.role === "user") {

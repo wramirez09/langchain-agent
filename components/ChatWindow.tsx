@@ -18,7 +18,7 @@ import {
 import {
   
   IconSend2,
-  IconDots,
+  IconSettings,
   
 } from "@tabler/icons-react";
 import FlyoutForm from "./ui/FlyoutForm";
@@ -26,7 +26,7 @@ import Link from "next/link";
 import MobileDrawer from "./ui/MobileDrawer";
 import { toast } from "sonner";
 import { useChat } from "ai/react";
-import { ArrowDown, Download, Form, LoaderCircle, Upload, Trash2 } from "lucide-react";
+import { ArrowDown, Download, Form, LoaderCircle, Upload, Trash2, AlertTriangle } from "lucide-react";
 import { ChatMessageBubble } from "./ChatMessageBubble";
 import { IntermediateStep } from "./IntermediateStep";
 import { Button } from "./ui/button";
@@ -219,7 +219,7 @@ export function ChatInput(props: {
               className="md:hidden hover:bg-blue-100 bg-blue-50 text-[#1e7dbf] hover:text-[#1e7dbf] w-8 h-8 mt-1"
               onClick={() => props.setOpenMobileDrawer((prev) => !prev)}
             >
-              <IconDots className="w-4 h-4" strokeWidth={1.5} color="black" />
+              <IconSettings className="w-4 h-4" strokeWidth={1.5} color="black" />
             </Button>
                 <Button
               type="button"
@@ -266,6 +266,18 @@ export function ChatInput(props: {
               )}
             </Button>
           </div>
+          
+          <div className="px-4 pb-3">
+            <div className="p-3 bg-amber-50 border border-amber-200 rounded-md">
+              <div className="flex items-start gap-2">
+                <AlertTriangle className="w-4 h-4 text-amber-600 mt-0.5 flex-shrink-0" />
+                <div className="text-xs text-amber-800">
+                  <strong>HIPAA Compliance:</strong> Do not include patient-specific PHI such as names, dates of birth, medical record numbers, or other identifying information. Use generic descriptions only.
+                </div>
+              </div>
+            </div>
+          </div>
+          
           <MobileDrawer
             setOpen={props.setOpenMobileDrawer}
             onChange={handleMobileDrawerOptionSelection}
@@ -287,7 +299,7 @@ export function ChatLayout(props: {
     <StickToBottom>
       <StickyToBottomContent
         className={cn("fixed inset-0 pb-[var(--keyboard-inset-bottom,0)]", props.className)}
-        contentClassName="pt-16 px-2 pb-24 md:pb-32 relative"
+        contentClassName="pt-16 px-2 pb-40 md:pb-48 relative"
         content={
           props.content && <div className="h-full overflow-y-auto -mx-2 px-2">
             {props.content}
@@ -295,8 +307,8 @@ export function ChatLayout(props: {
         }
         footer={
           <>
-            <div className="fixed bottom-0 left-0 right-0  z-10">
-              <div className="max-w-3xl mx-auto px-2 py-2">
+            <div className="fixed bottom-0 left-0 right-0 z-10 pb-safe">
+              <div className="max-w-3xl mx-auto px-2 py-3">
                 <ScrollToBottom className="absolute bottom-full left-1/2 -translate-x-1/2 mb-4 bg-white border border-blue-200 text-gray-900 hover:bg-blue-50 hover:text-blue-900" />
                 {props.form}
               </div>

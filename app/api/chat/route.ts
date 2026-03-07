@@ -9,7 +9,7 @@ import { reportUsage } from "@/lib/usage";
 import { withRetry, RETRY_CONFIGS } from "@/lib/retry";
 import { errorTracker, trackRetryError, createClientErrorNotification } from "@/lib/error-tracking";
 
-// export const runtime = "edge";
+
 
 const formatMessage = (message: VercelChatMessage) => {
   return `${message.role}: ${message.content}`;

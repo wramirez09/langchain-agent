@@ -1,6 +1,8 @@
 import { getStripe } from "@/lib/stripe";
 import { NextResponse } from "next/server";
 
+
+
 export async function POST(req: Request) {
     const stripe = getStripe()
     const { customerId } = await req.json();

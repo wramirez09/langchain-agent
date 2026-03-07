@@ -14,10 +14,10 @@ const MobileDrawer: React.FC<{
   messages: Message[];
 }> = ({ setOpen, onChange, open, showSearch = false, messages }) => {
   const options: SelectOption[] = [
-    { label: "PreAuth Form", value: "form", icon: <IconFileSearch stroke={1.5} /> },
-    { label: "File Upload", value: "upload", disabled: messages.length > 0, icon: <IconUpload stroke={1.5} /> },
-    { label: "PDF Export", value: "export", icon: <IconFileTypePdf stroke={1.5} /> },
-    { label: "Clear Chat", value: "clear", icon: <IconTrash stroke={1.5} /> }
+    { label: "PreAuth Form", value: "form", icon: <IconFileSearch stroke={1.5} color="#0ce0e7ff" /> },
+    { label: "File Upload", value: "upload", disabled: messages.length > 0, icon: <IconUpload stroke={1.5} color="#161df9ff" /> },
+    { label: "PDF Export", value: "export", icon: <IconFileTypePdf stroke={1.5} color="#e70c0cff" /> },
+    { label: "Clear Chat", value: "clear", icon: <IconTrash stroke={1.5} color="#dc2626" /> }
   ];
 
   return (

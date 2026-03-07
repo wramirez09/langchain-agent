@@ -8,6 +8,7 @@ import { PDFLoader } from "@langchain/community/document_loaders/fs/pdf";
 import { HumanMessage } from "@langchain/core/messages";
 
 
+
 const supabaseUrl = process.env.SUPABASE_URL;
 const supabaseServiceKey = process.env.SUPABASE_PRIVATE_KEY;
 const openApiKey = process.env.OPENAI_API_KEY;

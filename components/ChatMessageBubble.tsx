@@ -85,6 +85,14 @@ export function ChatMessageBubble(props: {
             )}
           </div>
 
+          {!isUser && props.isLastMessage && displayContent && !props.isLoading && (
+            <div className="mt-3 p-2 bg-blue-50 border border-blue-100 rounded-md">
+              <div className="text-xs text-blue-700 italic">
+                Always verify with payer portal guidelines prior to submission
+              </div>
+            </div>
+          )}
+
           {!isUser && props.sources && props.sources.length > 0 && (
             <div className="mt-1.5 text-xs text-gray-500">
               <div className="font-medium mb-0.5">Sources:</div>

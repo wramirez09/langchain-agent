@@ -3,6 +3,8 @@ import { NextResponse } from "next/server";
 import { getStripe } from "@/lib/stripe";
 import { createClient } from "@/app/utils/server";
 
+
+
 export async function POST() {
     const stripe = getStripe()
     try {

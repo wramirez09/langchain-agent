@@ -14,6 +14,7 @@ import FormInputs from "./forms/Form";
 import { ChangeEventHandler } from "react";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { useBodyPointerEvents } from "@/utils/use-body-pointer-events";
+import { AlertTriangle } from "lucide-react";
 const FlyoutForm: React.FC<{
   id?: string;
   openSheet: boolean;
@@ -52,6 +53,14 @@ const FlyoutForm: React.FC<{
                 Please provide the necessary patient and clinical information to
                 begin the prior authorization process.
               </SheetDescription>
+              <div className="mt-3 p-3 bg-amber-50 border border-amber-200 rounded-md">
+                <div className="flex items-start gap-2">
+                  <AlertTriangle className="w-4 h-4 text-amber-600 mt-0.5 flex-shrink-0" />
+                  <div className="text-xs text-amber-800">
+                    <strong>HIPAA Compliance:</strong> Do not include patient-specific PHI such as names, dates of birth, medical record numbers, or other identifying information. Use generic descriptions only.
+                  </div>
+                </div>
+              </div>
             </SheetHeader>
 
             <ScrollArea className="flex-1 px-6 py-4" id={id || "flyout-form"}>

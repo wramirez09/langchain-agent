@@ -3,6 +3,8 @@ import { NextResponse } from "next/server";
 import { z } from "zod";
 import Stripe from "stripe";
 
+
+
 const CheckoutSessionSchema = z.object({
     email: z.string().email(),
     name: z.string().min(1),

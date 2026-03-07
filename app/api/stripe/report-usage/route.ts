@@ -3,6 +3,7 @@ import { createClient } from "@/utils/server";
 import { reportUsageToStripeServer } from "@/lib/reportUsageToStripeServer";
 
 
+
 export async function POST(req: Request) {
     const supabase = await createClient();
     const { data: { user } } = await supabase.auth.getUser();

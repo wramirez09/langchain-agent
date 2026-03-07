@@ -5,7 +5,7 @@ import { z } from "zod";
 import { llmSummarizer } from "@/lib/llm";
 import { PromptTemplate } from "@langchain/core/prompts";
 
-export const runtime = "edge";
+
 
 const TEMPLATE = `Extract the requested fields from the input.
 
