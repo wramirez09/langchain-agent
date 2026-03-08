@@ -1,0 +1,41 @@
+# NoteDoctor.ai
+
+> AI-powered authorization readiness screening for healthcare providers.
+
+NoteDoctor.ai helps healthcare providers quickly assess prior authorization readiness before submitting requests to payers. The platform uses LLM-based AI agents to surface relevant Medicare coverage policies and commercial payer guidelines in seconds.
+
+## What NoteDoctor.ai Does
+
+- **Authorization Readiness Screening**: Analyzes a clinical procedure or service description against known payer criteria to flag potential authorization issues before submission.
+- **Medicare Policy Lookup**: Queries National Coverage Determinations (NCDs) and Local Coverage Determinations (LCDs) to determine Medicare coverage applicability.
+- **Cigna Policy Guidance**: Retrieves relevant Cigna commercial insurance policy criteria for procedures and services.
+- **HIPAA-Safe Workflow**: No patient PHI is required or stored. Users describe procedures generically; the AI matches against policy language.
+
+## Intended Users
+
+- Healthcare providers (physicians, nurse practitioners, physician assistants)
+- Medical billing and coding specialists
+- Prior authorization coordinators
+- Revenue cycle management teams
+
+## Key Capabilities
+
+- Real-time conversational AI agent for policy Q&A
+- Structured output with coverage criteria summaries
+- Document upload for payer-specific policy comparison
+- Session-based workflow with no persistent patient data
+
+## Important Limitations
+
+- NoteDoctor.ai provides informational guidance only — not a guarantee of authorization approval.
+- All AI-generated guidance should be verified against the payer's official portal prior to submission.
+- The platform does not submit authorization requests on behalf of users.
+
+## Technology
+
+NoteDoctor.ai is built on a Next.js web application using LangChain agents, Supabase for authentication, and retrieval-augmented generation (RAG) over payer policy documents.
+
+## Contact & Links
+
+- Website: https://preauthproduction.vercel.app
+- Twitter/X: @notedoctorai
