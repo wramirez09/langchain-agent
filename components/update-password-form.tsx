@@ -72,7 +72,7 @@ function UpdatePasswordFormCore() {
 
             <div>
               <Label>Email</Label>
-              <Input type="email" value={email || ""} disabled />
+              <Input type="email" value={email || ""} />
             </div>
 
             <div>
