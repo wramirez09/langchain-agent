@@ -16,7 +16,7 @@ import { Label } from "@/components/ui/label";
 function UpdatePasswordFormCore() {
   const params = useSearchParams();
   const router = useRouter();
-  const [email, setEmail] = useState(params.get("email") ?? "");
+  const [email, setEmail] = useState((params.get("email") ?? "").toLowerCase());
   const [password, setPassword] = useState("");
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
@@ -74,7 +74,7 @@ function UpdatePasswordFormCore() {
               <Input
                 type="email"
                 value={email}
-                onChange={(e) => setEmail(e.target.value)}
+                onChange={(e) => setEmail(e.target.value.toLowerCase())}
                 placeholder="Enter your email"
               />
             </div>
