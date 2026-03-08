@@ -34,7 +34,7 @@ export function PriorAuthView({
   pendingMessage,
   onPendingMessageConsumed,
 }: PriorAuthViewProps) {
-  const [activeTab, setActiveTab] = useState<"input" | "output">("input");
+  const [activeTab, setActiveTab] = useState<"form" | "chat" | "output">("form");
   const [sourcesForMessages, setSourcesForMessages] = useState<Record<string, any>>({});
   const [formContent, setFormContent] = useState<Map<string, string>>(new Map());
   const [intermediateStepsLoading, setIntermediateStepsLoading] = useState(false);
@@ -152,7 +152,7 @@ export function PriorAuthView({
     setIsLoading(true);
     setIntermediateStepsLoading(true);
     chat.append({ role: "user", content: pendingMessage });
-    setActiveTab("input");
+    setActiveTab("chat");
   }, [pendingMessage]); // eslint-disable-line react-hooks/exhaustive-deps
 
   const clearTimeouts = useCallback(() => {
@@ -258,32 +258,59 @@ export function PriorAuthView({
       <ErrorNotificationManager errors={errors} onRetry={retryError} onDismiss={dismissError} />
 
       {/* Tabs — floating on gray background */}
-      <div className="px-6 pt-4 pb-0 flex-shrink-0">
+      <div className="px-4 md:px-6 pt-4 pb-0 flex-shrink-0">
         <div className="flex border-b border-gray-200">
-          {(["input", "output"] as const).map((tab) => (
+          {/* Mobile tabs: Form | Chat | Output */}
+          {(["form", "chat", "output"] as const).map((tab) => (
             <button
               key={tab}
               onClick={() => setActiveTab(tab)}
               className={cn(
-                "px-4 py-3 text-sm font-medium border-b-2 -mb-px transition-colors",
+                "md:hidden px-4 py-3 text-sm font-medium border-b-2 -mb-px transition-colors capitalize",
                 activeTab === tab
                   ? "border-blue-600 text-blue-600"
                   : "border-transparent text-gray-500 hover:text-gray-700",
               )}
             >
-              {tab.charAt(0).toUpperCase() + tab.slice(1)}
+              {tab}
             </button>
           ))}
+          {/* Desktop tabs: Input | Output */}
+          <button
+            onClick={() => setActiveTab(activeTab === "output" ? "form" : activeTab)}
+            className={cn(
+              "hidden md:block px-4 py-3 text-sm font-medium border-b-2 -mb-px transition-colors",
+              activeTab !== "output"
+                ? "border-blue-600 text-blue-600"
+                : "border-transparent text-gray-500 hover:text-gray-700",
+            )}
+          >
+            Input
+          </button>
+          <button
+            onClick={() => setActiveTab("output")}
+            className={cn(
+              "hidden md:block px-4 py-3 text-sm font-medium border-b-2 -mb-px transition-colors",
+              activeTab === "output"
+                ? "border-blue-600 text-blue-600"
+                : "border-transparent text-gray-500 hover:text-gray-700",
+            )}
+          >
+            Output
+          </button>
         </div>
       </div>
 
       {/* Content */}
       <div className="flex-1 overflow-hidden">
-        {activeTab === "input" && (
-          <div className="h-full grid grid-cols-2 gap-6 p-6 overflow-hidden">
+        {(activeTab === "form" || activeTab === "chat") && (
+          <div className="h-full flex flex-col md:grid md:grid-cols-2 gap-4 md:gap-6 p-4 md:p-6 overflow-hidden">
 
             {/* Left card — Request Details */}
-            <div className="bg-white rounded-lg border border-gray-200 shadow-sm flex flex-col overflow-hidden">
+            <div className={cn(
+              "flex-1 bg-white rounded-lg border border-gray-200 shadow-sm flex-col overflow-hidden",
+              activeTab === "chat" ? "hidden md:flex" : "flex",
+            )}>
               <div className="px-6 pt-6 pb-2 flex-shrink-0">
                 <h3 className="text-sm font-semibold text-gray-900">Request Details</h3>
               </div>
@@ -473,7 +500,10 @@ export function PriorAuthView({
             </div>
 
             {/* Right card — Chat Assistant */}
-            <div className="bg-white rounded-lg border border-gray-200 shadow-sm flex flex-col overflow-hidden">
+            <div className={cn(
+              "flex-1 bg-white rounded-lg border border-gray-200 shadow-sm flex-col overflow-hidden",
+              activeTab === "form" ? "hidden md:flex" : "flex",
+            )}>
               <div className="px-6 py-4 border-b border-gray-100 flex items-center justify-between flex-shrink-0">
                 <h3 className="text-sm font-semibold text-gray-900">Chat Assistant</h3>
                 {chat.messages.length > 0 && (

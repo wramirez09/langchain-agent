@@ -48,32 +48,38 @@ const TopBar: React.FC = () => {
   }, []);
 
   return (
-    <div className="h-16 bg-white border-b border-gray-200 flex items-center justify-between px-6 z-50 flex-shrink-0">
-      <div className="flex items-center gap-4">
+    <div className="h-16 bg-white border-b border-gray-200 flex items-center px-4 md:px-6 z-50 flex-shrink-0">
+      {/* Left — hamburger on mobile, spacer on desktop */}
+      <div className="flex-1 flex items-center">
         <button
           onClick={() => setIsOpen(true)}
-          className="md:hidden text-gray-600 hover:text-gray-900"
+          className="md:hidden text-gray-600 hover:text-gray-900 p-1"
           aria-label="Open menu"
         >
           <Menu className="size-6" />
         </button>
-        <div className="flex items-center gap-2">
-          <Image src={logo} alt="NoteDoctor.ai Logo" className="h-8 w-auto" />
-          <span className="text-sm font-bold text-gray-900">NoteDoctor.Ai</span>
-        </div>
       </div>
 
-      {isLoggedIn && (
-        <div className="flex items-center gap-3">
-          <div className="hidden md:flex flex-col text-right">
-            <span className="text-sm font-medium text-gray-700">{displayName}</span>
-            <span className="text-xs text-gray-500">{displayEmail}</span>
+      {/* Center — logo always centered */}
+      <div className="flex items-center gap-2">
+        <Image src={logo} alt="NoteDoctor.ai Logo" className="h-8 w-auto" />
+        <span className="text-sm font-bold text-gray-900">NoteDoctor.Ai</span>
+      </div>
+
+      {/* Right — user info */}
+      <div className="flex-1 flex items-center justify-end">
+        {isLoggedIn && (
+          <div className="flex items-center gap-3">
+            <div className="hidden md:flex flex-col text-right">
+              <span className="text-sm font-medium text-gray-700">{displayName}</span>
+              <span className="text-xs text-gray-500">{displayEmail}</span>
+            </div>
+            <div className="w-9 h-9 bg-blue-600 rounded-full flex items-center justify-center flex-shrink-0">
+              <span className="text-sm font-semibold text-white">{initials || 'U'}</span>
+            </div>
           </div>
-          <div className="w-10 h-10 bg-blue-600 rounded-full flex items-center justify-center flex-shrink-0 p-2">
-            <span className="text-sm font-semibold text-white">{initials || 'U'}</span>
-          </div>
-        </div>
-      )}
+        )}
+      </div>
     </div>
   );
 };
