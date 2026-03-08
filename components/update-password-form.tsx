@@ -16,8 +16,7 @@ import { Label } from "@/components/ui/label";
 function UpdatePasswordFormCore() {
   const params = useSearchParams();
   const router = useRouter();
-  const email = params.get("email");
-
+  const [email, setEmail] = useState(params.get("email") ?? "");
   const [password, setPassword] = useState("");
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
@@ -72,7 +71,12 @@ function UpdatePasswordFormCore() {
 
             <div>
               <Label>Email</Label>
-              {email ?  <Input type="email" value={email || ""} disabled /> : <Input type="email" />}
+              <Input
+                type="email"
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+                placeholder="Enter your email"
+              />
             </div>
 
             <div>
