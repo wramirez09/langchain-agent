@@ -19,6 +19,15 @@ const MarkdownRenderer: React.FC<MarkdownRendererProps> = ({ content }) => {
   );
 };
 
+const LOADING_MESSAGES = [
+  "Analyzing authorization criteria...",
+  "Reviewing documentation requirements...",
+  "Evaluating coding alignment...",
+  "Checking authorization readiness...",
+  "Cross-referencing payer guidelines...",
+  "Validating submission criteria...",
+];
+
 export function ChatMessageBubble(props: {
   message: Message;
   aiEmoji?: string;
@@ -28,6 +37,7 @@ export function ChatMessageBubble(props: {
 }) {
   const isUser = props.message.role === "user";
   const [displayContent, setDisplayContent] = useState("");
+  const [loadingMsgIndex, setLoadingMsgIndex] = useState(0);
   const messageEndRef = useRef<HTMLDivElement>(null);
 
   // Handle streaming content for AI messages
@@ -43,6 +53,18 @@ export function ChatMessageBubble(props: {
   useEffect(() => {
     messageEndRef.current?.scrollIntoView({ behavior: "smooth" });
   }, [displayContent]);
+
+  // Rotate loading messages every 3 seconds while waiting for initial response
+  useEffect(() => {
+    if (!props.isLoading || !props.isLastMessage || displayContent) return;
+    const interval = setInterval(() => {
+      setLoadingMsgIndex((prev) => (prev + 1) % LOADING_MESSAGES.length);
+    }, 3000);
+    return () => {
+      clearInterval(interval);
+      setLoadingMsgIndex(0);
+    };
+  }, [props.isLoading, props.isLastMessage, displayContent]);
 
   // Skip rendering if there's no content and it's not a loading state
   if (!displayContent && !props.isLoading) return null;
@@ -78,7 +100,7 @@ export function ChatMessageBubble(props: {
             {props.isLoading && props.isLastMessage && !displayContent ? (
               <div className="flex items-center space-x-2">
                 <Loader2 className="h-3.5 w-3.5 animate-spin text-blue-500" />
-                <span className="text-sm">Thinking...</span>
+                <span className="text-sm">{LOADING_MESSAGES[loadingMsgIndex]}</span>
               </div>
             ) : (
               <MarkdownRenderer content={props.message.content} />

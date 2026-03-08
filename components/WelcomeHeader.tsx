@@ -33,7 +33,7 @@ export function WelcomeHeader({ isVisible, onFadeOut }: WelcomeHeaderProps) {
           Welcome to <span className="text-blue-500">NoteDoctor.ai</span>
         </h1>
         <p className="text-lg md:text-xl text-gray-600 leading-relaxed max-w-xl mx-auto">
-          AI-powered prior authorization and medical policy lookup that saves time, reduces errors, and ensures compliance.
+          Structured prior authorization analysis and medical policy lookup that saves time, reduces errors, and ensures compliance.
         </p>
         <div className="flex flex-col sm:flex-row gap-4 justify-center items-center pt-4">
           <div className="flex items-center gap-2 text-sm text-gray-500">

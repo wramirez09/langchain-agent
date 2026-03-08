@@ -38,7 +38,7 @@ const preAuthSteps = [
     id: 'upload-file-step',
     selector: '#upload-file-button',
     highlightedSelectors: ['#upload-file-button'],
-    content: 'Upload PDF documents here for analysis. Our AI will extract relevant information and generate queries automatically.',
+    content: 'Upload PDF documents here for analysis. The system will extract relevant information and prepare authorization queries automatically.',
     position: 'top' as const,
     actionAfter: () => {
       const element = document.querySelector('#upload-file-button');
@@ -69,14 +69,14 @@ const preAuthSteps = [
   {
     id: 'send-button-step',
     selector: '#send-button',
-    content: 'Click here or press Enter to send your message to our AI assistant for processing.',
+    content: 'Click here or press Enter to submit your request for authorization analysis.',
     position: 'left' as const
   },
 
   {
     id: 'getting-started-step',
     selector: 'body',
-    content: 'You\'re all set! Start by asking a question, uploading a document, or filling out pre-authorization form. Our AI is here to help!',
+    content: 'You\'re all set! Start by asking a question, uploading a document, or filling out the pre-authorization form to begin your analysis.',
     position: "center" as const
   },
     

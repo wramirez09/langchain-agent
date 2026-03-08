@@ -12,7 +12,7 @@ export default function Home() {
           <span className="block text-5xl md:text-6xl" style={{ fontFamily: 'var(--font-outfit), sans-serif' }}>Note<span className="text-yellow-400">Doctor</span>.ai</span>
         </h1>
         <p className="text-xl text-white max-w-xl mx-auto mb-8 text-shadow-lg" style={{ fontFamily: 'var(--font-inter), sans-serif' }}>
-          <span className="text-yellow-400">AI-powered</span> medical coding that saves time, reduces errors, and ensures compliance.
+          <span className="text-yellow-400">Authorization readiness</span> screening that saves time, reduces errors, and ensures compliance.
         </p>
 
         <div className="flex gap-4 justify-center mb-8">

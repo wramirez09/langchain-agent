@@ -516,7 +516,7 @@ export function ChatWindow(props: {
       toast.info('Still processing your request');
     }, 60000); // Show after 1 minute
 
-    toast.info('Sending request to our AI agent');
+    toast.info('Analyzing authorization criteria...');
     try {
       // Clear the input field
       const userMessage = chat.input;
