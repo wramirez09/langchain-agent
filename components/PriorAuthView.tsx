@@ -34,7 +34,7 @@ export function PriorAuthView({
   pendingMessage,
   onPendingMessageConsumed,
 }: PriorAuthViewProps) {
-  const [activeTab, setActiveTab] = useState<"form" | "chat" | "output">("form");
+  const [activeTab, setActiveTab] = useState<"pre-auth" | "chat" | "input" | "output">("pre-auth");
   const [sourcesForMessages, setSourcesForMessages] = useState<Record<string, any>>({});
   const [formContent, setFormContent] = useState<Map<string, string>>(new Map());
   const [intermediateStepsLoading, setIntermediateStepsLoading] = useState(false);
@@ -260,24 +260,24 @@ export function PriorAuthView({
       {/* Tabs — floating on gray background */}
       <div className="px-4 md:px-6 pt-4 pb-0 flex-shrink-0">
         <div className="flex border-b border-gray-200">
-          {/* Mobile tabs: Form | Chat | Output */}
-          {(["form", "chat", "output"] as const).map((tab) => (
+          {/* Mobile tabs: Pre-Auth | Chat | Input | Output */}
+          {(["pre-auth", "chat", "input", "output"] as const).map((tab) => (
             <button
               key={tab}
               onClick={() => setActiveTab(tab)}
               className={cn(
-                "md:hidden px-4 py-3 text-sm font-medium border-b-2 -mb-px transition-colors capitalize",
+                "md:hidden px-3 py-3 text-sm font-medium border-b-2 -mb-px transition-colors",
                 activeTab === tab
                   ? "border-blue-600 text-blue-600"
                   : "border-transparent text-gray-500 hover:text-gray-700",
               )}
             >
-              {tab}
+              {tab === "pre-auth" ? "Pre-Auth" : tab.charAt(0).toUpperCase() + tab.slice(1)}
             </button>
           ))}
           {/* Desktop tabs: Input | Output */}
           <button
-            onClick={() => setActiveTab(activeTab === "output" ? "form" : activeTab)}
+            onClick={() => setActiveTab("input")}
             className={cn(
               "hidden md:block px-4 py-3 text-sm font-medium border-b-2 -mb-px transition-colors",
               activeTab !== "output"
@@ -303,13 +303,25 @@ export function PriorAuthView({
 
       {/* Content */}
       <div className="flex-1 overflow-hidden">
-        {(activeTab === "form" || activeTab === "chat") && (
+        {/* Desktop Input tab and mobile Pre-Auth/Chat tabs all share card layout */}
+        {(activeTab === "pre-auth" || activeTab === "chat" || activeTab === "input") && (
           <div className="h-full flex flex-col md:grid md:grid-cols-2 gap-4 md:gap-6 p-4 md:p-6 overflow-hidden">
 
-            {/* Left card — Request Details */}
+            {/* Mobile Input placeholder — shown only on mobile when Input tab is active */}
+            {activeTab === "input" && (
+              <div className="md:hidden flex-1 bg-white rounded-lg border border-gray-200 shadow-sm flex flex-col items-center justify-center p-8 text-center">
+                <div className="size-14 bg-blue-50 rounded-full flex items-center justify-center mx-auto mb-4">
+                  <FileText className="size-7 text-blue-600" />
+                </div>
+                <h3 className="text-sm font-semibold text-gray-900 mb-1">Use Pre-Auth or Chat Tabs</h3>
+                <p className="text-xs text-gray-500">Access the form in the Pre-Auth tab or start a conversation in the Chat tab</p>
+              </div>
+            )}
+
+            {/* Left card — Request Details (mobile: pre-auth tab only; desktop: always) */}
             <div className={cn(
               "flex-1 bg-white rounded-lg border border-gray-200 shadow-sm flex-col overflow-hidden",
-              activeTab === "chat" ? "hidden md:flex" : "flex",
+              activeTab === "pre-auth" ? "flex" : "hidden md:flex",
             )}>
               <div className="px-6 pt-6 pb-2 flex-shrink-0">
                 <h3 className="text-sm font-semibold text-gray-900">Request Details</h3>
@@ -499,10 +511,10 @@ export function PriorAuthView({
               </div>
             </div>
 
-            {/* Right card — Chat Assistant */}
+            {/* Right card — Chat Assistant (mobile: chat tab only; desktop: always) */}
             <div className={cn(
               "flex-1 bg-white rounded-lg border border-gray-200 shadow-sm flex-col overflow-hidden",
-              activeTab === "form" ? "hidden md:flex" : "flex",
+              activeTab === "chat" ? "flex" : "hidden md:flex",
             )}>
               <div className="px-6 py-4 border-b border-gray-100 flex items-center justify-between flex-shrink-0">
                 <h3 className="text-sm font-semibold text-gray-900">Chat Assistant</h3>
