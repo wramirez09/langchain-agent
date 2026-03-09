@@ -48,18 +48,25 @@ export async function reportUsage({
         return null;
     }
 
+    // Generate once outside withRetry so all retry attempts share the same key,
+    // preventing Stripe from processing duplicate meter events on timeout retries.
+    const idempotencyKey = `usage-${userId}-${Date.now()}-${Math.random().toString(36).slice(2, 9)}`;
+
     try {
         const meterResult = await withRetry(
             async () => {
-                const event = await stripe.billing.meterEvents.create({
-                    event_name: process.env.STRIPE_METER_EVENT_NAME!, // your usage type
-                    payload: {
-                        stripe_customer_id,        // REQUIRED
-                        subscription_id: stripe_subscription_id,
-                        subscription_item_id: metered_item_id,
-                        value: quantity.toString(), // MUST be string
+                const event = await stripe.billing.meterEvents.create(
+                    {
+                        event_name: process.env.STRIPE_METER_EVENT_NAME!, // your usage type
+                        payload: {
+                            stripe_customer_id,        // REQUIRED
+                            subscription_id: stripe_subscription_id,
+                            subscription_item_id: metered_item_id,
+                            value: quantity.toString(), // MUST be string
+                        },
                     },
-                });
+                    { idempotencyKey },
+                );
                 return event;
             },
             {

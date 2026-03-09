@@ -116,22 +116,22 @@ export async function POST(req: NextRequest) {
 
     const stream = streamResult.data;
 
-    // Report usage after generating the stream
-    try {
-      const supabase = await createClient();
-      const { data: { user } } = await supabase.auth.getUser();
-      if (user) {
-        await reportUsage({
-          userId: user.id,
-          usageType: "chat",
-          quantity: 1,
-        });
-      }
-    } catch (err) {
-      console.error("Failed to report usage from /api/chat:", err);
-    }
+    // Report usage only after the stream fully completes (not before sending).
+    // Using a passthrough TransformStream so the flush callback fires on completion.
+    const reportingTransform = new TransformStream<Uint8Array, Uint8Array>({
+      transform(chunk, controller) {
+        controller.enqueue(chunk);
+      },
+      flush() {
+        if (userId) {
+          void reportUsage({ userId, usageType: "chat", quantity: 1 }).catch((err) => {
+            console.error("Failed to report usage from /api/chat:", err);
+          });
+        }
+      },
+    });
 
-    return new StreamingTextResponse(stream);
+    return new StreamingTextResponse(stream.pipeThrough(reportingTransform));
   } catch (e: unknown) {
     const error = e as Error;
     const errorInfo = errorTracker.trackError(

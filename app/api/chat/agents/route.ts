@@ -190,12 +190,6 @@ export async function POST(req: NextRequest) {
       messageModifier: new SystemMessage(AGENT_SYSTEM_TEMPLATE),
     });
 
-    /* ---------- USAGE LOGGING ---------- */
-    void reportUsage({
-      userId,
-      usageType: "orchestrator",
-      quantity: 1,
-    }).catch(() => {});
 
     /* ======================================================
      MOBILE — NON-STREAMING (RN SAFE)
@@ -239,6 +233,9 @@ export async function POST(req: NextRequest) {
 
       const result = agentResult.data;
       console.log({ result });
+
+      // Report usage only after successful agent completion
+      void reportUsage({ userId: userId!, usageType: "orchestrator", quantity: 1 }).catch(() => {});
 
       // Get last user + last assistant messages
       const lastUser = [...result.messages]
@@ -284,65 +281,37 @@ export async function POST(req: NextRequest) {
        WEB — STREAMING (BACKWARDS COMPATIBLE)
        ====================================================== */
     const encoder = new TextEncoder();
-    
-    const streamResult = await withRetry(
-      async () => {
-        const eventStream = agent.streamEvents({ messages }, { version: "v2" });
-        
-        const readable = new ReadableStream({
-          async start(controller) {
-            try {
-              for await (const { event, data } of eventStream) {
-                if (
-                  event === "on_chat_model_stream" &&
-                  typeof data?.chunk?.content === "string" &&
-                  data.chunk.content.length > 0
-                ) {
-                  controller.enqueue(encoder.encode(data.chunk.content));
-                }
-              }
-            } catch (err) {
-              controller.error(err);
-            } finally {
-              controller.close();
+
+    // Note: withRetry is intentionally not used here. ReadableStream errors propagate
+    // through controller.error(), not as rejected promises, so retry wrappers are
+    // ineffective on streaming paths. Errors are caught by the outer try/catch.
+    const eventStream = agent.streamEvents({ messages }, { version: "v2" });
+
+    const readable = new ReadableStream({
+      async start(controller) {
+        let streamCompleted = false;
+        try {
+          for await (const { event, data } of eventStream) {
+            if (
+              event === "on_chat_model_stream" &&
+              typeof data?.chunk?.content === "string" &&
+              data.chunk.content.length > 0
+            ) {
+              controller.enqueue(encoder.encode(data.chunk.content));
             }
-          },
-        });
-        
-        return readable;
-      },
-      {
-        ...RETRY_CONFIGS.LLM_API,
-        context: "Agent streaming (web)",
-        onRetry: (attempt, error) => {
-          console.warn(`⚠️ [Agents API] Web streaming retry ${attempt} for user ${userId}:`, error.message);
+          }
+          streamCompleted = true;
+        } catch (err) {
+          controller.error(err);
+        } finally {
+          // Report usage only after a full successful stream
+          if (streamCompleted) {
+            void reportUsage({ userId: userId!, usageType: "orchestrator", quantity: 1 }).catch(() => {});
+          }
+          controller.close();
         }
-      }
-    );
-
-    if (!streamResult.success || !streamResult.data) {
-      const errorInfo = trackRetryError(
-        streamResult.error || new Error("Failed to create agent stream"),
-        "Agent streaming (web)",
-        streamResult.attempts,
-        userId,
-        "agents-web-streaming"
-      );
-      
-      const clientNotification = createClientErrorNotification(errorInfo);
-      
-      return NextResponse.json(
-        { 
-          error: clientNotification.userMessage,
-          technicalError: clientNotification.technicalMessage,
-          retryAttempts: clientNotification.retryAttempts,
-          canRetry: clientNotification.canRetry
-        },
-        { status: 500, headers: corsHeaders }
-      );
-    }
-
-    const readable = streamResult.data;
+      },
+    });
 
     return new StreamingTextResponse(readable, {
       headers: {
