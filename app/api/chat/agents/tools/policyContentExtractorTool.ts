@@ -149,13 +149,50 @@ class PolicyContentExtractorTool extends StructuredTool<
     }, 30000);
 
     try {
-      const ncdMatch = policyUrl.match(/ncdid=([^&]+)/);
+      const ncdMatch = policyUrl.match(/ncdid=([^&]+)/i);
+      const lcdMatch = policyUrl.match(/LCDId=(\d+)(?:.*?ver=(\d+))?/i);
+      const articleMatch = policyUrl.match(/articleId=(\d+)(?:.*?ver=(\d+))?/i);
       let fetchUrl = policyUrl;
 
       if (ncdMatch) {
         const ncdId = ncdMatch[1];
         fetchUrl = `https://www.cms.gov/medicare-coverage-database/view/ncd.aspx?ncdid=${ncdId}`;
         console.log(`Fetching NCD content from CMS page: ${fetchUrl}`);
+      }
+
+      // For LCD and Article URLs, try the CMS JSON API first — it returns full structured
+      // content including the Coding Information that is JS-rendered on the HTML page.
+      if (lcdMatch || articleMatch) {
+        try {
+          const [docId, docVer] = lcdMatch
+            ? [lcdMatch[1], lcdMatch[2] || "1"]
+            : [articleMatch![1], articleMatch![2] || "1"];
+          const apiBase = lcdMatch
+            ? `https://api.coverage.cms.gov/v1/lcd/${docId}/${docVer}/`
+            : `https://api.coverage.cms.gov/v1/article/${docId}/${docVer}/`;
+          console.log(`Trying CMS JSON API for ${lcdMatch ? "LCD" : "Article"}: ${apiBase}`);
+
+          const apiController = new AbortController();
+          const apiTimeout = setTimeout(() => apiController.abort(), 15000);
+          const apiResponse = await fetch(apiBase, { signal: apiController.signal });
+          clearTimeout(apiTimeout);
+
+          if (apiResponse.ok) {
+            const apiData = await apiResponse.json() as { data?: { content?: string; [key: string]: unknown } };
+            const apiText = apiData?.data?.content
+              ? cheerio.load(apiData.data.content)("body").text().replace(/\s+/g, " ").trim()
+              : JSON.stringify(apiData?.data ?? apiData, null, 2);
+
+            if (apiText && apiText.length > 200) {
+              clearTimeout(timeout);
+              const truncated = apiText.substring(0, 40000);
+              const structuredDetails = await getStructuredPolicyDetails(truncated);
+              if (structuredDetails) return JSON.stringify({ policyUrl, source: "cms-api", ...structuredDetails });
+            }
+          }
+        } catch (apiErr) {
+          console.warn(`CMS API fallback failed for ${policyUrl}, falling back to HTML:`, (apiErr as Error).message);
+        }
       }
 
       const response = await fetch(fetchUrl, { signal });
@@ -176,11 +213,11 @@ class PolicyContentExtractorTool extends StructuredTool<
       } else {
         const html = await response.text();
         const $ = cheerio.load(html);
-        $("script, style, nav, footer, header, iframe, noscript").remove();
+        $("script, style, nav, footer, header, iframe, noscript, dialog, [role='dialog'], .modal, .modal-dialog, .modal-content, .ui-dialog, .popup, .overlay, #licenseModal").remove();
         extractedText = $("body").text().replace(/\s+/g, " ").trim();
       }
 
-      extractedText = extractedText.replace(/\s+/g, " ").trim().substring(0, 20000);
+      extractedText = extractedText.replace(/\s+/g, " ").trim().substring(0, 40000);
 
       if (extractedText.length < 100) {
         const warning = `Extracted content too short for ${policyUrl}.`;

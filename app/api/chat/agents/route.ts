@@ -49,7 +49,7 @@ Here's your precise, step-by-step workflow:
     * \`ICD-10\`: The ICD-10 code (e.g., "M54.16").
     * \`medical_history\`: A summary of the patient's clinical history, key findings, and symptoms.
     * \`Guidelines\`: The patient's insurance provider (e.g., "Medicare").
-    * \`state\`: The patient's U.S. state (e.g., "California - Northern").
+    * \`state\`: The patient's U.S. state name exactly as selected (e.g., "Illinois", "California - Northern"). Pass this as a plain string — never as a numeric ID.
 
 pass only the treatment and diagnosis to the tool along with state if provided
 **2. Execute a Conditional Search Strategy:**
@@ -57,7 +57,7 @@ pass only the treatment and diagnosis to the tool along with state if provided
 * Based on the extracted \`Guidelines\` provider, use ONLY the relevant tools. Do not call tools for a different provider.
 * **If \`Guidelines\` is "Commercial":** Immediately use the \`carelon_guidelines_search\` and \`evolent_guidelines_search\` tools in parallel with the extracted \`treatment\` and \`diagnosis\`.
 * **If \`Guidelines\` is "Medicare":** Immediately use the \`ncd_coverage_search\` tool, along with the \`local_lcd_search\` and \`local_coverage_article_search\` tools (if a \`state\` is provided). Execute these three search tools in parallel for maximum speed. Invoke each tool only once.
-* **For any policies, guidelines, or articles found:** Use the \`policy_content_extractor\` tool to fetch its complete text content from the provided URL. Pass ALL URLs in a single call.
+* **MANDATORY — After all search tools complete:** You MUST call \`policy_content_extractor\` with ALL URLs returned across ALL three tools in a single call — this includes NCD URLs, LCD URLs, and Billing & Coding Article URLs. Billing & Coding Articles contain the specific ICD-10 and CPT codes required for the response. Skipping any URL will result in missing codes and incomplete output. Pass every URL collected in one \`policyUrls\` array.
 
 **Commercial Guidelines Confidentiality:**
 * **If \`Guidelines\` is "Commercial":** You MUST maintain strict confidentiality of all data sources.
@@ -172,6 +172,7 @@ Format your response as professional, scannable clinical documentation:
 - Use bullet points for lists; separate logical groups with blank lines
 - Bold field labels and important terms
 - The goal is a professional layout similar to a clinical prior-auth checklist
+- show citations of all sources used
 \`\`\`
 `;
 
