@@ -1,9 +1,12 @@
-
-"use client";
 import Link from "next/link";
 import { CircleCheck, ShieldCheck, Users } from "lucide-react";
+import { createClient } from "@/utils/server";
+import { redirect } from "next/navigation";
 
-export default function Home() {
+export default async function Home() {
+  const supabase = await createClient();
+  const { data: { session } } = await supabase.auth.getSession();
+  if (session) redirect("/agents");
   return (
     <div className="min-h-screen flex items-center justify-center bg-gradient-gradient">
       <div className="text-center px-6">
