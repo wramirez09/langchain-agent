@@ -185,7 +185,7 @@ export async function POST(req: NextRequest) {
 
     /* ---------- AGENT ---------- */
     const agent = createReactAgent({
-      llm: llmAgent("orchestrator"),
+      llm: llmAgent(),
       tools,
       messageModifier: new SystemMessage(AGENT_SYSTEM_TEMPLATE),
     });
