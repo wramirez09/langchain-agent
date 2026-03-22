@@ -57,9 +57,9 @@ export async function getUserFromRequest(req: NextRequest) {
                     return (await cookieStore).getAll();
                 },
                 async setAll(cookiesToSet) {
-                    for (const { name, value, options } of cookiesToSet) {
+                    cookiesToSet.forEach(async ({ name, value, options }) => {
                         (await cookieStore).set(name, value, options);
-                    }
+                    });
                 },
             },
         },

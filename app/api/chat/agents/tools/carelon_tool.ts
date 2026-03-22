@@ -1,10 +1,9 @@
 import { z } from "zod";
-import { StructuredTool } from "@langchain/core/tools";
+import { StructuredTool, ToolRunnableConfig } from "@langchain/core/tools";
 import { createClient } from "@supabase/supabase-js";
-import { llmSummarizer } from "@/lib/llm";
 import { cleanRegex } from "./utils";
 import { withRetry, RETRY_CONFIGS } from "@/lib/retry";
-import { trackRetryError } from "@/lib/error-tracking";
+import { errorTracker, trackRetryError, createClientErrorNotification } from "@/lib/error-tracking";
 
 // --- Supabase Client (server only) ---
 const supabaseUrl = process.env.SUPABASE_URL || "";
@@ -57,41 +56,22 @@ function buildFuzzyTerms(query: string): string[] {
   return Array.from(terms);
 }
 
-// --- Summarization helper (mirrors Evolent pattern) ---
-async function summarizeCarelonContent(content: string, query: string): Promise<string> {
-  const safeContent = content.slice(0, 16000);
-  const messages = [
-    {
-      role: "user" as const,
-      content: `You are a coverage guideline assistant working with Carelon policies.
-
-Summarize the following content based ONLY on the user's query.
-Be factual, concise, and do not add information that is not explicitly supported by the text.
-
-User's Query:
-${query}
-
-Policy Content:
-${safeContent}
-
-Return ONLY the summary (no intro, no commentary).`,
-    },
-  ];
-  try {
-    const response = await llmSummarizer().invoke(messages);
-    return response.content?.toString().trim() || "No summary generated.";
-  } catch (err: any) {
-    console.error("[CarelonSearchTool] Summarization error:", err);
-    return "Failed to summarize Carelon guidelines.";
-  }
-}
-
 // --- Main Tool ---
 export class CarelonSearchTool extends StructuredTool<typeof CarelonSearchInputSchema> {
   name = "carelon_guidelines_search";
   description =
     "Searches Carelon guidelines using full-text search with a fallback fuzzy search, then summarizes or asks for clarification.";
   schema = CarelonSearchInputSchema;
+
+  async call<TConfig extends ToolRunnableConfig | undefined>(input: any): Promise<any> {
+    try {
+      const parsed = this.schema.parse(input);
+      return await this._call(parsed);
+    } catch (err: any) {
+      console.error("[CarelonSearchTool] Input validation failed:", err);
+      return `Invalid input: ${err.message}`;
+    }
+  }
 
   protected async _call(input: z.infer<typeof CarelonSearchInputSchema>): Promise<string> {
     const query = input.query.trim();
@@ -143,26 +123,22 @@ export class CarelonSearchTool extends StructuredTool<typeof CarelonSearchInputS
         );
 
         if (ftsResults && ftsResults.length > 0) {
+          // Log docs used
           console.log("[CarelonSearchTool] Using FTS docs:", ftsResults.map(d => d.id));
 
-          const combinedContent = ftsResults
-            .map(d => (d.content || "").replace(cleanRegex, "").replace(/\s+/g, " "))
-            .join(" ");
-
-          const summary = await summarizeCarelonContent(combinedContent, query);
-
-          const sourceList = ftsResults
-            .map(d => `- **${d.metadata?.source || "Unknown source"}**`)
+          const sourceLines = ftsResults
+            .map(
+              d =>
+                `- **${d.metadata?.source || "Unknown source"}** (ID: ${d.id})`
+            )
             .join("\n");
 
           return `### Carelon Coverage Summary for: "${query}"
 
-**Documents used:**
-${sourceList}
-
----
-
-${summary}`;
+          **Policies used (Carelon docs):**
+          ${sourceLines}
+          ---
+          `;
         }
       }
 

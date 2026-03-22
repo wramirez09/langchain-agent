@@ -6,7 +6,6 @@ import { promises as fs } from "fs";
 import path from "path";
 import FormData from "form-data";
 import fetch from "cross-fetch";
-import { llmSummarizer } from "@/lib/llm";
 
 // The schema for the tool's input.
 const FileUploadToolInputSchema = z.object({
@@ -22,9 +21,10 @@ async function getSummaryFromDocs(
   content: string,
   query: string,
 ): Promise<string> {
-  const messages = [
+
+  const chatHistory = [
     {
-      role: "system" as const,
+      role: "system",
       content: `You are an expert healthcare documentation analyst. Your task is to analyze uploaded medical documents and extract the following key information in a structured format:
 
 1. Treatment/Service: The specific medical treatment or procedure mentioned
@@ -35,11 +35,11 @@ async function getSummaryFromDocs(
 6. Insurance: Mentioned insurance provider (if any)
 7. State: Patient's state of residence (if mentioned)
 
-Format your response as a clear, well-structured markdown document. If information is missing, note it as "Not specified".`,
+Format your response as a clear, well-structured markdown document. If information is missing, note it as "Not specified".`
     },
     {
-      role: "user" as const,
-      content: `Please analyze the following document and extract the relevant information as specified.
+      role: "user",
+      content: `Please analyze the following document and extract the relevant information as specified. 
 
 Document Content:
 ${content}
@@ -54,15 +54,49 @@ Provide a detailed analysis including:
 - Supporting clinical evidence
 - Any other pertinent details
 
-Format your response in clear, well-structured markdown with appropriate headings.`,
-    },
+Format your response in clear, well-structured markdown with appropriate headings.`
+    }
   ];
 
+  const payload = { contents: chatHistory };
+  const apiKey = process.env.OPENAI_API_KEY; // Make sure this is set in your .env.local
+  const apiUrl = "https://api.openai.com/v1/chat/completions";
+
+  const controller = new AbortController();
+  const timeout = setTimeout(() => controller.abort(), 60000); // 60 second timeout for LLM
+
   try {
-    const response = await llmSummarizer().invoke(messages);
-    return response.content?.toString().trim() || "Failed to generate a summary.";
+    const response = await fetch(apiUrl, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        "Authorization": `Bearer ${apiKey}`
+      },
+      body: JSON.stringify({
+        model: "gpt-4o", // or "gpt-3.5-turbo" for a more cost-effective option
+        messages: chatHistory,
+        temperature: 0.7,
+        max_tokens: 1000
+      }),
+      signal: controller.signal,
+    });
+
+    clearTimeout(timeout);
+
+    const result = await response.json();
+    if (
+      result.candidates &&
+      result.candidates.length > 0 &&
+      result.candidates[0].content &&
+      result.candidates[0].content.parts &&
+      result.candidates[0].content.parts.length > 0
+    ) {
+      return result.candidates[0].content.parts[0].text;
+    }
+    console.error("Gemini API response structure is unexpected.");
+    return "Failed to generate a summary.";
   } catch (error) {
-    console.error("Error calling LLM for file summarization:", error);
+    console.error("Error calling Gemini API for summarization:", error);
     return `An error occurred during summarization: ${(error as Error).message}`;
   }
 }
@@ -121,8 +155,7 @@ export class FileUploadTool extends StructuredTool<
       formData.append("query", query); // Add the query to the form data
 
       // 4. Send the POST request to the Next.js API endpoint.
-      const baseUrl = process.env.NEXT_PUBLIC_APP_URL || process.env.NEXTAUTH_URL || "http://localhost:3000";
-      const apiUrl = `${baseUrl}/api/retrieval/ingest`;
+      const apiUrl = "/api/retrieval/ingest";
       const controller = new AbortController();
       const timeout = setTimeout(() => controller.abort(), 30000);
 
@@ -154,7 +187,7 @@ export class FileUploadTool extends StructuredTool<
 
       // 7. Concatenate the retrieved documents for summarization.
       const retrievedDocsContent = result.docs
-        .map((doc: { pageContent: string }) => doc.pageContent)
+        .map((doc: any) => doc.pageContent)
         .join("\n---\n");
 
       // 8. Use an internal LLM call to get a concise summary.
@@ -162,7 +195,7 @@ export class FileUploadTool extends StructuredTool<
 
       // 9. Return a success message with the summary.
       return `File processed. Summary of retrieved information:\n${summary}`;
-    } catch (error: unknown) {
+    } catch (error) {
       console.error("An error occurred during file upload:", error);
 
       // Return a descriptive error message for the agent.

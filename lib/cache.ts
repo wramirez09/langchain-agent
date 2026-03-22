@@ -14,8 +14,6 @@ class MemoryCache {
     this.cleanupInterval = setInterval(() => {
       this.cleanup();
     }, 5 * 60 * 1000);
-    // Allow process to exit cleanly even if this interval is still active
-    this.cleanupInterval.unref();
   }
 
   set<T>(key: string, data: T, ttlMs: number = 5 * 60 * 1000): void {

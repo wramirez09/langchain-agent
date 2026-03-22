@@ -21,9 +21,8 @@ export async function POST(req: Request) {
         const usageRecord = await reportUsage({
           userId: user.id,
           usageType: usage_type,
-          quantity,
-          metadata: Object.keys(metadata).length > 0 ? metadata : undefined,
-        });
+            quantity,
+    });
 
       if (!usageRecord) {
           return NextResponse.json(
