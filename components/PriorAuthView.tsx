@@ -320,7 +320,7 @@ export function PriorAuthView({
 
             {/* Left card — Request Details (mobile: pre-auth tab only; desktop: always) */}
             <div className={cn(
-              "flex-1 bg-white rounded-lg border border-gray-200 shadow-sm flex-col overflow-hidden",
+              "flex-1 min-h-0 bg-white rounded-lg border border-gray-200 shadow-sm flex-col overflow-hidden",
               activeTab === "pre-auth" ? "flex" : "hidden md:flex",
             )}>
               <div className="px-6 pt-6 pb-2 flex-shrink-0">
@@ -513,7 +513,7 @@ export function PriorAuthView({
 
             {/* Right card — Chat Assistant (mobile: chat tab only; desktop: always) */}
             <div className={cn(
-              "flex-1 bg-white rounded-lg border border-gray-200 shadow-sm flex-col overflow-hidden",
+              "flex-1 min-h-0 bg-white rounded-lg border border-gray-200 shadow-sm flex-col overflow-hidden",
               activeTab === "chat" ? "flex" : "hidden md:flex",
             )}>
               <div className="px-6 py-4 border-b border-gray-100 flex items-center justify-between flex-shrink-0">
