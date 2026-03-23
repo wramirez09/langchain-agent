@@ -85,25 +85,7 @@ export function FileExportView({ messages = [] }: FileExportViewProps) {
             Export and download patient records and reports
           </p>
         </div>
-        {filteredMessages.length > 0 && (
-          <Button
-            onClick={handleDownload}
-            disabled={isDownloading}
-            className="bg-blue-600 hover:bg-blue-700 text-white flex items-center gap-2"
-          >
-            {isDownloading ? (
-              <>
-                <LoaderCircle className="animate-spin size-4" />
-                Generating…
-              </>
-            ) : (
-              <>
-                <Download className="size-4" />
-                Download PDF
-              </>
-            )}
-          </Button>
-        )}
+        
       </div>
 
       {/* PDF Preview area */}
