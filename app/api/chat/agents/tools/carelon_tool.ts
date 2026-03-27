@@ -3,7 +3,7 @@ import { StructuredTool, ToolRunnableConfig } from "@langchain/core/tools";
 import { createClient } from "@supabase/supabase-js";
 import { cleanRegex } from "./utils";
 import { withRetry, RETRY_CONFIGS } from "@/lib/retry";
-import { errorTracker, trackRetryError, createClientErrorNotification } from "@/lib/error-tracking";
+import { trackRetryError } from "@/lib/error-tracking";
 
 // --- Supabase Client (server only) ---
 const supabaseUrl = process.env.SUPABASE_URL || "";

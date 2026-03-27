@@ -273,8 +273,8 @@ export function PriorAuthView({
       {/* Tabs — floating on gray background */}
       <div className="px-4 md:px-6 pt-4 pb-0 flex-shrink-0">
         <div className="flex border-b border-gray-200">
-          {/* Mobile tabs: Pre-Auth | Chat | Input | Output */}
-          {(["pre-auth", "chat", "input", "output"] as const).map((tab) => (
+          {/* Mobile tabs: Pre-Auth | Chat | Output */}
+          {(["pre-auth", "chat", "output"] as const).map((tab) => (
             <button
               key={tab}
               onClick={() => setActiveTab(tab)}
@@ -319,17 +319,6 @@ export function PriorAuthView({
         {/* Desktop Input tab and mobile Pre-Auth/Chat tabs all share card layout */}
         {(activeTab === "pre-auth" || activeTab === "chat" || activeTab === "input") && (
           <div className="h-full flex flex-col md:grid md:grid-cols-2 gap-4 md:gap-6 p-4 md:p-6 overflow-hidden">
-
-            {/* Mobile Input placeholder — shown only on mobile when Input tab is active */}
-            {activeTab === "input" && (
-              <div className="md:hidden flex-1 bg-white rounded-lg border border-gray-200 shadow-sm flex flex-col items-center justify-center p-8 text-center">
-                <div className="size-14 bg-blue-50 rounded-full flex items-center justify-center mx-auto mb-4">
-                  <FileText className="size-7 text-blue-600" />
-                </div>
-                <h3 className="text-sm font-semibold text-gray-900 mb-1">Use Pre-Auth or Chat Tabs</h3>
-                <p className="text-xs text-gray-500">Access the form in the Pre-Auth tab or start a conversation in the Chat tab</p>
-              </div>
-            )}
 
             {/* Left card — Request Details (mobile: pre-auth tab only; desktop: always) */}
             <div className={cn(
