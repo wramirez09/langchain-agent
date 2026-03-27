@@ -1,6 +1,6 @@
 import { cn } from "@/utils/cn";
 import type { Message } from "ai/react";
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import { motion } from "framer-motion";
 import ReactMarkdown from "react-markdown";
 
@@ -36,11 +36,8 @@ export function ChatMessageBubble(props: {
 }) {
   const isUser = props.message.role === "user";
   const [displayContent, setDisplayContent] = useState("");
-<<<<<<< HEAD
   const [loadingMsgIndex, setLoadingMsgIndex] = useState(0);
   const messageEndRef = useRef<HTMLDivElement>(null);
-=======
->>>>>>> dev
 
   // Handle streaming content for AI messages
   useEffect(() => {
@@ -51,7 +48,6 @@ export function ChatMessageBubble(props: {
     setDisplayContent(props.message.content);
   }, [props.message.content, isUser]);
 
-<<<<<<< HEAD
   // Auto-scroll to bottom when new content arrives
   useEffect(() => {
     messageEndRef.current?.scrollIntoView({ behavior: "smooth" });
@@ -69,8 +65,6 @@ export function ChatMessageBubble(props: {
     };
   }, [props.isLoading, props.isLastMessage, displayContent]);
 
-=======
->>>>>>> dev
   // Skip rendering if there's no content and it's not a loading state
   if (!displayContent && !props.isLoading) return null;
 
@@ -102,7 +96,6 @@ export function ChatMessageBubble(props: {
           )}
         >
           <div className="prose prose-sm max-w-none leading-snug">
-<<<<<<< HEAD
             {props.isLoading && props.isLastMessage && !displayContent ? (
               <div className="flex items-center space-x-2">
                 <Loader2 className="h-3.5 w-3.5 animate-spin text-blue-500" />
@@ -111,9 +104,6 @@ export function ChatMessageBubble(props: {
             ) : (
               <MarkdownRenderer content={props.message.content} />
             )}
-=======
-            <MarkdownRenderer content={props.message.content} />
->>>>>>> dev
           </div>
 
           {!isUser && props.isLastMessage && displayContent && !props.isLoading && (

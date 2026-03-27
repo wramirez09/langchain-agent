@@ -193,8 +193,6 @@ export async function POST(req: NextRequest) {
       messageModifier: new SystemMessage(AGENT_SYSTEM_TEMPLATE),
     });
 
-<<<<<<< HEAD
-=======
     // Configure agent execution with extended timeout
     const agentConfig = {
       recursionLimit: 50, // Increase from default 25 to allow more tool calls
@@ -202,8 +200,6 @@ export async function POST(req: NextRequest) {
         thread_id: `user-${userId}-${Date.now()}`,
       },
     };
-
->>>>>>> dev
 
     /* ======================================================
      MOBILE — NON-STREAMING (RN SAFE)
@@ -303,18 +299,12 @@ export async function POST(req: NextRequest) {
        WEB — STREAMING (BACKWARDS COMPATIBLE)
        ====================================================== */
     const encoder = new TextEncoder();
-<<<<<<< HEAD
-=======
     const streamStartTime = Date.now();
     console.log(`[Agents API] Starting web streaming for user ${userId}`);
->>>>>>> dev
 
     // Note: withRetry is intentionally not used here. ReadableStream errors propagate
     // through controller.error(), not as rejected promises, so retry wrappers are
     // ineffective on streaming paths. Errors are caught by the outer try/catch.
-<<<<<<< HEAD
-    const eventStream = agent.streamEvents({ messages }, { version: "v2" });
-=======
     const eventStream = agent.streamEvents(
       { messages }, 
       { 
@@ -322,17 +312,13 @@ export async function POST(req: NextRequest) {
         ...agentConfig
       }
     );
->>>>>>> dev
 
     const readable = new ReadableStream({
       async start(controller) {
         let streamCompleted = false;
-<<<<<<< HEAD
-=======
         let firstChunkTime: number | null = null;
         let chunkCount = 0;
         
->>>>>>> dev
         try {
           for await (const { event, data } of eventStream) {
             if (
@@ -340,28 +326,21 @@ export async function POST(req: NextRequest) {
               typeof data?.chunk?.content === "string" &&
               data.chunk.content.length > 0
             ) {
-<<<<<<< HEAD
-=======
               if (!firstChunkTime) {
                 firstChunkTime = Date.now();
                 const timeToFirstChunk = ((firstChunkTime - streamStartTime) / 1000).toFixed(2);
                 console.log(`[Agents API] First chunk received after ${timeToFirstChunk}s for user ${userId}`);
               }
               chunkCount++;
->>>>>>> dev
               controller.enqueue(encoder.encode(data.chunk.content));
             }
           }
           streamCompleted = true;
-<<<<<<< HEAD
-        } catch (err) {
-=======
           const totalElapsed = ((Date.now() - streamStartTime) / 1000).toFixed(2);
           console.log(`✅ [Agents API] Stream completed in ${totalElapsed}s (${chunkCount} chunks) for user ${userId}`);
         } catch (err) {
           const errorElapsed = ((Date.now() - streamStartTime) / 1000).toFixed(2);
           console.error(`❌ [Agents API] Stream error after ${errorElapsed}s for user ${userId}:`, err);
->>>>>>> dev
           controller.error(err);
         } finally {
           // Report usage only after a full successful stream
