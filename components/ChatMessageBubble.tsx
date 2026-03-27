@@ -1,8 +1,7 @@
 import { cn } from "@/utils/cn";
 import type { Message } from "ai/react";
-import React, { useEffect, useRef, useState } from "react";
+import React, { useEffect, useState } from "react";
 import { motion } from "framer-motion";
-import { Loader2 } from "lucide-react";
 import ReactMarkdown from "react-markdown";
 
 interface MarkdownRendererProps {
@@ -37,8 +36,11 @@ export function ChatMessageBubble(props: {
 }) {
   const isUser = props.message.role === "user";
   const [displayContent, setDisplayContent] = useState("");
+<<<<<<< HEAD
   const [loadingMsgIndex, setLoadingMsgIndex] = useState(0);
   const messageEndRef = useRef<HTMLDivElement>(null);
+=======
+>>>>>>> dev
 
   // Handle streaming content for AI messages
   useEffect(() => {
@@ -49,6 +51,7 @@ export function ChatMessageBubble(props: {
     setDisplayContent(props.message.content);
   }, [props.message.content, isUser]);
 
+<<<<<<< HEAD
   // Auto-scroll to bottom when new content arrives
   useEffect(() => {
     messageEndRef.current?.scrollIntoView({ behavior: "smooth" });
@@ -66,6 +69,8 @@ export function ChatMessageBubble(props: {
     };
   }, [props.isLoading, props.isLastMessage, displayContent]);
 
+=======
+>>>>>>> dev
   // Skip rendering if there's no content and it's not a loading state
   if (!displayContent && !props.isLoading) return null;
 
@@ -97,6 +102,7 @@ export function ChatMessageBubble(props: {
           )}
         >
           <div className="prose prose-sm max-w-none leading-snug">
+<<<<<<< HEAD
             {props.isLoading && props.isLastMessage && !displayContent ? (
               <div className="flex items-center space-x-2">
                 <Loader2 className="h-3.5 w-3.5 animate-spin text-blue-500" />
@@ -105,6 +111,9 @@ export function ChatMessageBubble(props: {
             ) : (
               <MarkdownRenderer content={props.message.content} />
             )}
+=======
+            <MarkdownRenderer content={props.message.content} />
+>>>>>>> dev
           </div>
 
           {!isUser && props.isLastMessage && displayContent && !props.isLoading && (
@@ -143,40 +152,8 @@ export function ChatMessageBubble(props: {
             </div>
           )}
 
-          {props.isLoading && props.isLastMessage && displayContent && (
-            <div className="absolute -bottom-4 right-2">
-              <Loader2 className="h-3.5 w-3.5 animate-spin text-blue-500" />
-            </div>
-          )}
         </div>
 
-        {!isUser && props.sources && props.sources.length > 0 && (
-          <div className="mt-2 text-xs text-gray-500">
-            <div className="font-medium mb-1">Sources:</div>
-            <div className="space-y-1">
-              {props.sources.map((source, index) => (
-                <div key={index} className="flex items-center">
-                  <svg
-                    className="w-3 h-3 mr-1.5 flex-shrink-0"
-                    fill="currentColor"
-                    viewBox="0 0 20 20"
-                  >
-                    <path d="M11 3a1 1 0 10-2 0v1H8a1 1 0 100 2h1v1a1 1 0 102 0V6h1a1 1 0 100-2h-1V3z" />
-                    <path d="M3 5a2 2 0 012-2h1a1 1 0 010 2H5v7h2v1H5a2 2 0 01-2-2V5zm12 0v10a2 2 0 01-2 2H7a2 2 0 01-2-2V5h10z" />
-                  </svg>
-                  <a
-                    href={source.url}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="text-blue-600 hover:underline truncate max-w-xs inline-block"
-                  >
-                    {source.title || source.url}
-                  </a>
-                </div>
-              ))}
-            </div>
-          </div>
-        )}
       </div>
 
       {isUser && (
@@ -187,7 +164,6 @@ export function ChatMessageBubble(props: {
         </div>
       )}
 
-      <div ref={messageEndRef} />
     </motion.div>
   );
 }

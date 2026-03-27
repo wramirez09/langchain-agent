@@ -8,7 +8,7 @@ export default async function Home() {
   const { data: { session } } = await supabase.auth.getSession();
   if (session) redirect("/agents");
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gradient-gradient">
+    <div className="h-full flex items-center justify-center bg-gradient">
       <div className="text-center px-6">
         <h1 className="text-4xl md:text-5xl font-bold text-white text-shadow-lg" style={{ fontFamily: 'var(--font-outfit), sans-serif' }}>
           <span className="block text-2xl md:text-3xl mb-2">Welcome to</span>

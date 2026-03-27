@@ -29,6 +29,7 @@ const getStateOptions = (data: StateData[]) => {
 const FormInputs: React.FC<Props> = (props: Props) => {
   const [guidelinesoptins, setGuidelinesOptions] = React.useState<SelectOption[]>([])
   const [, setUserEmail] = React.useState('')
+  const [selectedGuideline, setSelectedGuideline] = React.useState<string>('')
   const stateOptions = getStateOptions(data);
   const [, setIsLoggedIn] = React.useState(false)
   React.useEffect(() => {
@@ -52,7 +53,15 @@ const FormInputs: React.FC<Props> = (props: Props) => {
   }, [])
 
   const handleInsuranceSelectChange = React.useCallback(
-    (value: string) => props.onStateFormStateChange("Guidelines", value),
+    (value: string) => {
+      setSelectedGuideline(value);
+      props.onStateFormStateChange("Guidelines", value);
+      
+      // Clear state selection when switching to Commercial
+      if (value === "Commercial") {
+        props.onStateFormStateChange("State", "");
+      }
+    },
     [props],
   );
 
@@ -106,8 +115,13 @@ const FormInputs: React.FC<Props> = (props: Props) => {
           <AutoCompleteSelect
             options={stateOptions}
             onChange={handleStateSelectChange}
-           
+            disabled={selectedGuideline === "Commercial"}
           />
+          {selectedGuideline === "Commercial" && (
+            <p className="text-xs text-gray-500 mt-1">
+              State selection not required for Commercial guidelines
+            </p>
+          )}
         </div>
       </div>
 

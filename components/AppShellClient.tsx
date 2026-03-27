@@ -7,7 +7,7 @@ import { PriorAuthView } from "@/components/PriorAuthView";
 import { UploadView } from "@/components/UploadView";
 import { FileExportView } from "@/components/FileExportView";
 
-export default function AgentsPage() {
+export function AppShellClient() {
   const [activeView, setActiveView] = useState<AppView>("auth");
   const [chatMessages, setChatMessages] = useState<Message[]>([]);
   const [pendingMessage, setPendingMessage] = useState<string | null>(null);
@@ -25,19 +25,19 @@ export default function AgentsPage() {
     <div className="flex h-full">
       <AppSidebar activeView={activeView} onViewChange={setActiveView} />
       <main className="flex-1 overflow-hidden bg-[#F8F9FB]">
-        <div className={activeView !== "auth" ? "hidden" : ""}>
+        {activeView === "auth" && (
           <PriorAuthView
             onMessagesChange={setChatMessages}
             pendingMessage={pendingMessage}
             onPendingMessageConsumed={handlePendingMessageConsumed}
           />
-        </div>
-        <div className={activeView !== "upload" ? "hidden" : ""}>
+        )}
+        {activeView === "upload" && (
           <UploadView onUploadComplete={handleUploadComplete} />
-        </div>
-        <div className={activeView !== "export" ? "hidden" : ""}>
+        )}
+        {activeView === "export" && (
           <FileExportView messages={chatMessages} />
-        </div>
+        )}
       </main>
     </div>
   );

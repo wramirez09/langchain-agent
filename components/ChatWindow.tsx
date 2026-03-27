@@ -337,10 +337,12 @@ export function ChatWindow(props: {
   const [uploading, setUploading] = useState(false);
   const [showWelcome, setShowWelcome] = useState(true);
 
-  // Refs for managing request cancellation
+  // Refs for managing request cancellation and retry
   const abortControllerRef = useRef<AbortController | null>(null);
   const loadingToastTimeout1Ref = useRef<NodeJS.Timeout | null>(null);
   const loadingToastTimeout2Ref = useRef<NodeJS.Timeout | null>(null);
+  const retryCountRef = useRef<number>(0);
+  const maxRetries = 3;
 
   // Check if welcome has been seen in this session
   useEffect(() => {
@@ -376,10 +378,19 @@ export function ChatWindow(props: {
       setIntermediateStepsLoading(false);
       setIsLoading(false);
     },
-    onError(error) {
+    async onError(error) {
       console.error('Chat error:', error);
+      
+      // Try automatic retry for timeout errors
+      const retried = await handleRetryableError(error, retryCountRef.current);
+      if (retried) {
+        return; // Don't show error UI if we're retrying
+      }
+      
+      // If not retrying, show error and reset states
       setIntermediateStepsLoading(false);
       setIsLoading(false);
+      retryCountRef.current = 0;
       
       // Try to parse error as our enhanced error format
       try {
@@ -419,7 +430,7 @@ export function ChatWindow(props: {
             canRetry: true
           });
         }
-      } catch (parseError) {
+      } catch {
         // Ultimate fallback
         addError({
           severity: 'error',
@@ -489,6 +500,33 @@ export function ChatWindow(props: {
     },
   });
 
+  // Retry handler for timeout errors
+  const handleRetryableError = useCallback(async (error: any, currentRetry: number = 0) => {
+    const errorMessage = error?.message || error?.error || String(error);
+    const isTimeout = errorMessage.toLowerCase().includes('timeout') ||
+                     errorMessage.toLowerCase().includes('timed out') ||
+                     error?.status === 504;
+    
+    if (isTimeout && currentRetry < maxRetries) {
+      const delay = Math.min(1000 * Math.pow(2, currentRetry), 10000);
+      toast.info(`Request timed out. Retrying in ${delay / 1000}s... (Attempt ${currentRetry + 2}/${maxRetries + 1})`);
+      
+      await new Promise(resolve => setTimeout(resolve, delay));
+      
+      // Retry by resubmitting the last user message
+      const lastUserMessage = chat.messages.filter(m => m.role === 'user').pop();
+      if (lastUserMessage) {
+        retryCountRef.current = currentRetry + 1;
+        await chat.append({
+          role: 'user',
+          content: lastUserMessage.content
+        });
+      }
+      return true;
+    }
+    return false;
+  }, [chat, maxRetries]);
+
   const sendMessage = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
 
@@ -503,9 +541,10 @@ export function ChatWindow(props: {
     const abortController = new AbortController();
     abortControllerRef.current = abortController;
 
-    // Reset loading states
+    // Reset loading states and retry counter
     setIsLoading(true);
     setIntermediateStepsLoading(true);
+    retryCountRef.current = 0;
 
     // Set up the loading toasts using refs
     loadingToastTimeout1Ref.current = setTimeout(() => {

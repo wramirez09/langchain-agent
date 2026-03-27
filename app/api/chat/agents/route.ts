@@ -155,11 +155,14 @@ The goal is a professional, scannable layout similar to a clinical intake checkl
 /* -------------------- POST -------------------- */
 export async function POST(req: NextRequest) {
   let userId: string | undefined;
+  const requestStartTime = Date.now();
   
   try {
     /* ---------- AUTH ---------- */
     const user = await getUserFromRequest(req);
     userId = user.id;
+    
+    console.log(`[Agents API] Request started for user ${userId} at ${new Date().toISOString()}`);
 
     /* ---------- REQUEST ---------- */
     const body = await req.json();
@@ -185,26 +188,43 @@ export async function POST(req: NextRequest) {
 
     /* ---------- AGENT ---------- */
     const agent = createReactAgent({
-      llm: llmAgent("orchestrator"),
+      llm: llmAgent(),
       tools,
       messageModifier: new SystemMessage(AGENT_SYSTEM_TEMPLATE),
     });
 
+<<<<<<< HEAD
+=======
+    // Configure agent execution with extended timeout
+    const agentConfig = {
+      recursionLimit: 50, // Increase from default 25 to allow more tool calls
+      configurable: {
+        thread_id: `user-${userId}-${Date.now()}`,
+      },
+    };
+
+>>>>>>> dev
 
     /* ======================================================
      MOBILE — NON-STREAMING (RN SAFE)
      ====================================================== */
     if (clientType === "mobile") {
+      const mobileStartTime = Date.now();
+      console.log(`[Agents API] Starting mobile agent execution for user ${userId}`);
+      
       const agentResult = await withRetry(
         async () => {
-          const result = await agent.invoke({ messages });
+          const result = await agent.invoke({ messages }, agentConfig);
           return result;
         },
         {
           ...RETRY_CONFIGS.LLM_API,
+          maxAttempts: 5, // Increase retries for mobile
+          initialDelay: 2000, // Longer initial delay
           context: "Agent execution (mobile)",
           onRetry: (attempt, error) => {
-            console.warn(`⚠️ [Agents API] Mobile retry ${attempt} for user ${userId}:`, error.message);
+            const elapsed = ((Date.now() - mobileStartTime) / 1000).toFixed(2);
+            console.warn(`⚠️ [Agents API] Mobile retry ${attempt} for user ${userId} after ${elapsed}s:`, error.message);
           }
         }
       );
@@ -232,6 +252,8 @@ export async function POST(req: NextRequest) {
       }
 
       const result = agentResult.data;
+      const mobileElapsed = ((Date.now() - mobileStartTime) / 1000).toFixed(2);
+      console.log(`✅ [Agents API] Mobile agent completed in ${mobileElapsed}s for user ${userId}`);
       console.log({ result });
 
       // Report usage only after successful agent completion
@@ -281,15 +303,36 @@ export async function POST(req: NextRequest) {
        WEB — STREAMING (BACKWARDS COMPATIBLE)
        ====================================================== */
     const encoder = new TextEncoder();
+<<<<<<< HEAD
+=======
+    const streamStartTime = Date.now();
+    console.log(`[Agents API] Starting web streaming for user ${userId}`);
+>>>>>>> dev
 
     // Note: withRetry is intentionally not used here. ReadableStream errors propagate
     // through controller.error(), not as rejected promises, so retry wrappers are
     // ineffective on streaming paths. Errors are caught by the outer try/catch.
+<<<<<<< HEAD
     const eventStream = agent.streamEvents({ messages }, { version: "v2" });
+=======
+    const eventStream = agent.streamEvents(
+      { messages }, 
+      { 
+        version: "v2",
+        ...agentConfig
+      }
+    );
+>>>>>>> dev
 
     const readable = new ReadableStream({
       async start(controller) {
         let streamCompleted = false;
+<<<<<<< HEAD
+=======
+        let firstChunkTime: number | null = null;
+        let chunkCount = 0;
+        
+>>>>>>> dev
         try {
           for await (const { event, data } of eventStream) {
             if (
@@ -297,11 +340,28 @@ export async function POST(req: NextRequest) {
               typeof data?.chunk?.content === "string" &&
               data.chunk.content.length > 0
             ) {
+<<<<<<< HEAD
+=======
+              if (!firstChunkTime) {
+                firstChunkTime = Date.now();
+                const timeToFirstChunk = ((firstChunkTime - streamStartTime) / 1000).toFixed(2);
+                console.log(`[Agents API] First chunk received after ${timeToFirstChunk}s for user ${userId}`);
+              }
+              chunkCount++;
+>>>>>>> dev
               controller.enqueue(encoder.encode(data.chunk.content));
             }
           }
           streamCompleted = true;
+<<<<<<< HEAD
         } catch (err) {
+=======
+          const totalElapsed = ((Date.now() - streamStartTime) / 1000).toFixed(2);
+          console.log(`✅ [Agents API] Stream completed in ${totalElapsed}s (${chunkCount} chunks) for user ${userId}`);
+        } catch (err) {
+          const errorElapsed = ((Date.now() - streamStartTime) / 1000).toFixed(2);
+          console.error(`❌ [Agents API] Stream error after ${errorElapsed}s for user ${userId}:`, err);
+>>>>>>> dev
           controller.error(err);
         } finally {
           // Report usage only after a full successful stream
@@ -321,6 +381,9 @@ export async function POST(req: NextRequest) {
     });
   } catch (e: unknown) {
     const error = e as Error;
+    const requestElapsed = ((Date.now() - requestStartTime) / 1000).toFixed(2);
+    console.error(`❌ [Agents API] Request failed after ${requestElapsed}s for user ${userId}:`, error.message);
+    
     const errorInfo = errorTracker.trackError(
       error,
       "Agents API request",

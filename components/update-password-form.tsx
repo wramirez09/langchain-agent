@@ -71,12 +71,16 @@ function UpdatePasswordFormCore() {
 
             <div>
               <Label>Email</Label>
+<<<<<<< HEAD
               <Input
                 type="email"
                 value={email}
                 onChange={(e) => setEmail(e.target.value.toLowerCase())}
                 placeholder="Enter your email"
               />
+=======
+              {email ?  <Input type="email" value={email || ""} disabled /> : <Input type="email" />}
+>>>>>>> dev
             </div>
 
             <div>

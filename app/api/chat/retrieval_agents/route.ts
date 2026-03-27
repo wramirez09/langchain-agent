@@ -94,7 +94,7 @@ export async function POST(req: NextRequest) {
      * Use a prebuilt LangGraph agent.
      */
     const agent = await createReactAgent({
-      llm: llmAgent("retrieval"),
+      llm: llmAgent(),
       tools: [tool],
       /**
        * Modify the stock prompt in the prebuilt agent. See docs
