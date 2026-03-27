@@ -3,6 +3,7 @@ import type { Message } from "ai/react";
 import React, { useEffect, useRef, useState } from "react";
 import { motion } from "framer-motion";
 import ReactMarkdown from "react-markdown";
+import { Loader2 } from "lucide-react";
 
 interface MarkdownRendererProps {
   content: string;
