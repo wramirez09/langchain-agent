@@ -132,31 +132,30 @@ class LocalLcdSearchTool extends StructuredTool<
       }
 
       // 5. Format the output to be returned to the LLM.
-      const outputResults: string[] = [];
       // Limit results to a reasonable number.
       const maxResults = Math.min(lcds.length, 3); // Reduced to 3 to manage API calls
+      const selectedLcds = lcds.slice(0, maxResults);
 
-      for (let i = 0; i < maxResults; i++) {
-        const lcd = lcds[i];
-        // Construct the full, clickable URL for the LCD's detailed page on CMS.gov.
+      // Parallelize summarization for better performance
+      const summaryPromises = selectedLcds.map((lcd: any) => 
+        lcd.url 
+          ? this.fetchAndSummarizeLcd(lcd.url, query)
+          : Promise.resolve("[No URL available for summarization]")
+      );
+
+      const summaries = await Promise.all(summaryPromises);
+
+      const outputResults = selectedLcds.map((lcd: any, i: number) => {
         const fullHtmlUrl = lcd.url ? `${lcd.url}` : "URL N/A";
-
-        // Get summary for this LCD
-        const summary = lcd.url
-          ? await this.fetchAndSummarizeLcd(lcd.url, query)
-          : "[No URL available for summarization]";
-
-        outputResults.push(
-          `## ${lcd.title} (ID: ${lcd.document_display_id || 'N/A'})\n` +
+        return `## ${lcd.title} (ID: ${lcd.document_display_id || 'N/A'})\n` +
           `- **MAC:** ${lcd.contractor_name_type || 'N/A'}\n` +
           `- **Effective Date:** ${lcd.effective_date || 'N/A'}\n` +
           `- **Last Updated:** ${lcd.updated_on || 'N/A'}\n` +
-          `- **Summary:** ${summary}\n` +
-          `- **Direct URL:** ${fullHtmlUrl}\n`
-        );
-      }
+          `- **Summary:** ${summaries[i]}\n` +
+          `- **Direct URL:** ${fullHtmlUrl}\n`;
+      });
 
-      console.log(`${outputResults.length} LCD's found and summarized`);
+      console.log(`${outputResults.length} LCD's found and summarized in parallel`);
 
       const result = `Found ${lcds.length} Local Coverage Determination(s) for '${query}' in ${state}. ` +
         `Displaying top ${maxResults} with summaries:\n\n` +

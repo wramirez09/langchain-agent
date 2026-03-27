@@ -41,6 +41,7 @@ export function PriorAuthView({
   const [isLoading, setIsLoading] = useState(false);
   const [chatInput, setChatInput] = useState("");
   const [formResetKey, setFormResetKey] = useState(0);
+  const [selectedGuideline, setSelectedGuideline] = useState<string>("");
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const messagesContainerRef = useRef<HTMLDivElement>(null);
   const abortControllerRef = useRef<AbortController | null>(null);
@@ -162,6 +163,18 @@ export function PriorAuthView({
 
   const handleFormStateChange = useCallback((key: string, value: string) => {
     setFormContent((prev) => new Map(prev).set(key, value));
+    
+    // Track guideline selection and clear state if Commercial is selected
+    if (key === "Guidelines") {
+      setSelectedGuideline(value);
+      if (value === "Commercial") {
+        setFormContent((prev) => {
+          const newMap = new Map(prev);
+          newMap.set("State", "");
+          return newMap;
+        });
+      }
+    }
   }, []);
 
   const handleGenerateAuth = useCallback(async () => {
@@ -363,6 +376,7 @@ export function PriorAuthView({
                     </label>
                     <Select
                       isClearable
+                      isDisabled={selectedGuideline === "Commercial"}
                       options={stateOptions}
                       onChange={(v) => handleFormStateChange("State", v?.value ?? "")}
                       placeholder="Select..."
@@ -375,10 +389,17 @@ export function PriorAuthView({
                           borderColor: "#e2e8f0",
                           borderRadius: "8px",
                           "&:hover": { borderColor: "#bfdbfe" },
+                          opacity: selectedGuideline === "Commercial" ? 0.5 : 1,
+                          cursor: selectedGuideline === "Commercial" ? "not-allowed" : "default",
                         }),
                         menu: (base) => ({ ...base, borderRadius: "8px", overflow: "hidden" }),
                       }}
                     />
+                    {selectedGuideline === "Commercial" && (
+                      <p className="text-xs text-gray-500 mt-1">
+                        State selection not required for Commercial guidelines
+                      </p>
+                    )}
                   </div>
                 </div>
 

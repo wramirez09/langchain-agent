@@ -24,9 +24,11 @@ import { useMediaQuery } from "@/utils/use-media-query";
 export function AutoCompleteSelect({
   options,
   onChange,
+  disabled = false,
 }: {
   options: SelectOption[];
   onChange: (value: string) => void;
+  disabled?: boolean;
 }) {
   const [open, setOpen] = React.useState(false);
   const isDesktop = useMediaQuery("(min-width: 768px)");
@@ -49,11 +51,13 @@ export function AutoCompleteSelect({
         <PopoverTrigger asChild className="w-full">
           <Button
             variant="outline"
+            disabled={disabled}
             className={cn(
               "w-full justify-between text-gray-900 bg-white text-md border-blue-200 rounded-lg",
               "hover:bg-blue-50 hover:border-blue-300 h-10 px-3",
               "focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 focus:outline-none hover:text-gray-900",
-              !isDesktop && "mobile-select-touch"
+              !isDesktop && "mobile-select-touch",
+              disabled && "opacity-50 cursor-not-allowed hover:bg-white"
             )}
           >
             <span className={cn("truncate", !selectedStatus && "text-gray-500")}>
@@ -93,10 +97,12 @@ export function AutoCompleteSelect({
     <Drawer open={open} onOpenChange={setOpen}>
       <DrawerTrigger asChild>
         <Button 
-          variant="outline" 
+          variant="outline"
+          disabled={disabled}
           className={cn(
             "w-full md:w-[150px] justify-start text-gray-900 bg-blue-50 border-blue-200 hover:bg-blue-100",
-            !isDesktop && "mobile-select-touch"
+            !isDesktop && "mobile-select-touch",
+            disabled && "opacity-50 cursor-not-allowed hover:bg-blue-50"
           )}
           onTouchStart={handleMobileTouch}
         >
