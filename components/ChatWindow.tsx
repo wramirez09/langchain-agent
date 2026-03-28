@@ -91,11 +91,11 @@ function StickyToBottomContent(props: {
 }) {
   const context = useStickToBottomContext();
 
-  // scrollRef will also switch between overflow: unset to overflow: auto
+  // Force overflow-y-auto to prevent container expansion
   return (
     <div
       ref={context.scrollRef}
-      className={cn("bg-gradient-light grid grid-rows-[1fr,auto] bottom-fixed-element mb-3 md:mb-0", props.className)}
+      className={cn("bg-gradient-light grid grid-rows-[1fr,auto] bottom-fixed-element mb-3 md:mb-0 !overflow-y-auto", props.className)}
     >
       <div ref={context.contentRef} className={props.contentClassName}>
         {props.content}
@@ -301,7 +301,7 @@ export function ChatLayout(props: {
         className={cn("fixed inset-0 pb-[var(--keyboard-inset-bottom,0)]", props.className)}
         contentClassName="pt-16 px-2 pb-40 md:pb-48 relative"
         content={
-          props.content && <div className="h-full overflow-y-auto -mx-2 px-2">
+          props.content && <div className="-mx-2 px-2">
             {props.content}
           </div>
         }
