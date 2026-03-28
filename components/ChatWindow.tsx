@@ -90,12 +90,44 @@ function StickyToBottomContent(props: {
   contentClassName?: string;
 }) {
   const context = useStickToBottomContext();
+  const scrollContainerRef = useRef<HTMLDivElement>(null);
 
   // Force overflow-y-auto to prevent container expansion
+  // The use-stick-to-bottom library tries to set overflow dynamically, so we override it
+  useEffect(() => {
+    const element = scrollContainerRef.current;
+    if (!element) return;
+
+    // Force overflow-y to auto
+    element.style.overflowY = 'auto';
+
+    // Create a MutationObserver to watch for style changes and re-apply our override
+    const observer = new MutationObserver(() => {
+      if (element.style.overflowY !== 'auto') {
+        element.style.overflowY = 'auto';
+      }
+    });
+
+    observer.observe(element, {
+      attributes: true,
+      attributeFilter: ['style'],
+    });
+
+    return () => observer.disconnect();
+  }, []);
+
   return (
     <div
-      ref={context.scrollRef}
-      className={cn("bg-gradient-light grid grid-rows-[1fr,auto] bottom-fixed-element mb-3 md:mb-0 !overflow-y-auto", props.className)}
+      ref={(node) => {
+        scrollContainerRef.current = node;
+        // Also assign to the library's ref
+        if (typeof context.scrollRef === 'function') {
+          context.scrollRef(node);
+        } else if (context.scrollRef) {
+          (context.scrollRef as any).current = node;
+        }
+      }}
+      className={cn("bg-gradient-light grid grid-rows-[1fr,auto] bottom-fixed-element mb-3 md:mb-0", props.className)}
       style={{ overflowY: 'auto' }}
     >
       <div ref={context.contentRef} className={props.contentClassName}>
