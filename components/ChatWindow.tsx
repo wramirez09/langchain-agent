@@ -128,7 +128,11 @@ function StickyToBottomContent(props: {
         }
       }}
       className={cn("bg-gradient-light grid grid-rows-[1fr,auto] bottom-fixed-element mb-3 md:mb-0", props.className)}
-      style={{ overflowY: 'auto' }}
+      style={{ 
+        overflowY: 'auto',
+        WebkitOverflowScrolling: 'touch',
+        touchAction: 'pan-y',
+      }}
     >
       <div ref={context.contentRef} className={props.contentClassName}>
         {props.content}
