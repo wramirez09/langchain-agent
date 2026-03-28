@@ -16,8 +16,7 @@ import { NCDCoverageSearchTool } from "./tools/NCDCoverageSearchTool";
 import { localLcdSearchTool } from "./tools/localLcdSearchTool";
 import { localCoverageArticleSearchTool } from "./tools/localArticleSearchTool";
 import { policyContentExtractorTool } from "./tools/policyContentExtractorTool";
-import { CarelonSearchTool } from "./tools/carelon_tool";
-import { EvolentSearchTool } from "./tools/evolent_tool";
+import { createCommercialGuidelineSearchTool } from "./tools/CommercialGuidelineSearchTool";
 import { FileUploadTool } from "./tools/fileUploadTool";
 import { reportUsage } from "@/lib/usage";
 import { getUserFromRequest } from "../../../../lib/auth/getUserFromRequest";
@@ -56,7 +55,7 @@ const convertVercelMessageToLangChainMessage = (
 };
 
 /* -------------------- SYSTEM PROMPT -------------------- */
-const AGENT_SYSTEM_TEMPLATE = `You are an expert Medicare, Evolent, and Carelon Prior Authorization Assistant for healthcare providers.
+const AGENT_SYSTEM_TEMPLATE = `You are an expert Medicare and Commercial Prior Authorization Assistant for healthcare providers.
 Your primary goal is to help providers understand the requirements for obtaining pre-approval for treatments and services, streamlining their research.
 
 Here's your precise, step-by-step workflow:
@@ -70,23 +69,23 @@ Here's your precise, step-by-step workflow:
     * \`diagnosis\`: The patient's diagnosis (e.g., "lower back pain with radiculopathy").
     * \`ICD-10\`: The ICD-10 code (e.g., "M54.16").
     * \`medical_history\`: A summary of the patient's clinical history, key findings, and symptoms.
-    * \`Guidelines\`: The patient's insurance provider (e.g., "Medicare").
+    * \`Guidelines\`: The patient's insurance provider (e.g., "Medicare" or "Commercial").
     * \`state\`: The patient's U.S. state (e.g., "California - Northern").
 
 pass only the treatment and diagnosis to the tool along with state if provided
 **2. Execute a Conditional Search Strategy:**
 
 * Based on the extracted \`Guidelines\` provider, use ONLY the relevant tools. Do not call tools for a different provider.
-* **If \`Guidelines\` is "Commercial":** Immediately use the \`carelon_guidelines_search\` and \`evolent_guidelines_search\` tools in parallel with the extracted \`treatment\` and \`diagnosis\`.
+* **If \`Guidelines\` is "Commercial":** Immediately use the \`commercial_guidelines_search\` tool with the extracted \`treatment\` and \`diagnosis\`. This tool performs semantic search across commercial guidelines and will automatically find related treatments and procedures.
 * **If \`Guidelines\` is "Medicare":** Immediately use the \`ncd_coverage_search\` tool, along with the \`local_lcd_search\` and \`local_coverage_article_search\` tools (if a \`state\` is provided). Execute these three search tools in parallel for maximum speed. Invoke each tool only once.
 * **For any policies, guidelines, or articles found:** Use the \`policy_content_extractor\` tool to fetch its complete text content from the provided URL. 
 
 **Commercial Guidelines Confidentiality:**
 * **If \`Guidelines\` is "Commercial":** You MUST maintain strict confidentiality of all data sources.
-* **PROHIBITED:** Never mention "Carelon", "Evolent", tool names, URLs, document titles, or any specific data sources in your response.
+* **PROHIBITED:** Never mention tool names, URLs, document titles, file names, folder names, or any specific data sources in your response.
 * **REQUIRED LANGUAGE:** Use only generic terms like "commercial guidelines", "proprietary criteria", or "industry standards".
 * **SELF-MONITORING:** Before finalizing your response, verify that no source information is disclosed.
-* **EXAMPLES OF WHAT NOT TO SAY:** "According to Carelon guidelines...", "The Evolent policy states...", "Based on the document at URL...", "Source: [any document name or tool]".
+* **EXAMPLES OF WHAT NOT TO SAY:** "According to the cardio guidelines...", "Based on the document at...", "Source: [any document name or tool]", "From the plaintextcardio folder...".
 * **COMPLIANT EXAMPLES:** "According to commercial guidelines...", "Industry standards require...", "Proprietary criteria indicate...". 
 **3. Analyze and Extract Key Information from policies, guidelines, and or related documents:**
 
@@ -175,10 +174,12 @@ export async function POST(req: NextRequest) {
       .map(convertVercelMessageToLangChainMessage);
 
     /* ---------- TOOLS ---------- */
+    // Initialize commercial guideline search tool
+    const commercialGuidelineTool = await createCommercialGuidelineSearchTool();
+    
     const tools = [
       new SerpAPI(),
-      new CarelonSearchTool(),
-      new EvolentSearchTool(),
+      commercialGuidelineTool,
       new NCDCoverageSearchTool(),
       localLcdSearchTool,
       localCoverageArticleSearchTool,
