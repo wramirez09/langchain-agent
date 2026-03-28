@@ -1,176 +1,123 @@
-import { MemoryVectorStore } from "langchain/vectorstores/memory";
-import { OpenAIEmbeddings } from "@langchain/openai";
-import { createRetrieverTool } from "langchain/tools/retriever";
-import { Document } from "@langchain/core/documents";
+import { StructuredTool } from "@langchain/core/tools";
 import { loadCommercialGuidelines } from "./utils/commercialGuidelineLoader";
-
-/**
- * Singleton vector store instance for commercial guidelines.
- * Initialized lazily on first use and cached for subsequent requests.
- */
-let vectorStoreInstance: MemoryVectorStore | null = null;
-let isInitializing = false;
-let initializationPromise: Promise<MemoryVectorStore> | null = null;
-
-/**
- * Initialize the vector store with commercial guideline documents.
- * Uses lazy initialization and caching to avoid reloading on every request.
- */
-async function getVectorStore(): Promise<MemoryVectorStore> {
-  // Return cached instance if available
-  if (vectorStoreInstance) {
-    console.log("[CommercialGuidelineSearchTool] Using cached vector store");
-    return vectorStoreInstance;
-  }
-  
-  // If already initializing, wait for that to complete
-  if (isInitializing && initializationPromise) {
-    console.log("[CommercialGuidelineSearchTool] Waiting for ongoing initialization");
-    return initializationPromise;
-  }
-  
-  // Start initialization
-  isInitializing = true;
-  console.log("[CommercialGuidelineSearchTool] Initializing vector store...");
-  
-  initializationPromise = (async () => {
-    try {
-      const startTime = Date.now();
-      
-      // Load documents from filesystem
-      const documents = await loadCommercialGuidelines();
-      
-      if (documents.length === 0) {
-        console.warn("[CommercialGuidelineSearchTool] No documents found in app/api/data/");
-        throw new Error("No commercial guideline documents found. Please ensure markdown files exist in app/api/data/");
-      }
-      
-      // Create embeddings
-      const embeddings = new OpenAIEmbeddings({
-        openAIApiKey: process.env.OPENAI_API_KEY,
-      });
-      
-      // Create vector store from documents
-      const vectorStore = await MemoryVectorStore.fromDocuments(
-        documents,
-        embeddings
-      );
-      
-      const elapsed = ((Date.now() - startTime) / 1000).toFixed(2);
-      console.log(`[CommercialGuidelineSearchTool] Vector store initialized in ${elapsed}s with ${documents.length} document chunks`);
-      
-      vectorStoreInstance = vectorStore;
-      return vectorStore;
-    } catch (error) {
-      console.error("[CommercialGuidelineSearchTool] Failed to initialize vector store:", error);
-      throw error;
-    } finally {
-      isInitializing = false;
-      initializationPromise = null;
-    }
-  })();
-  
-  return initializationPromise;
-}
-
-/**
- * Create a retriever with optional metadata filtering.
- * 
- * @param domain - Optional domain filter (e.g., "cardio", "genetic")
- * @param k - Number of results to return (default: 5)
- */
-async function createFilteredRetriever(domain?: string, k: number = 5) {
-  const vectorStore = await getVectorStore();
-  
-  // Create retriever with metadata filtering if domain is specified
-  if (domain) {
-    const normalizedDomain = domain.toLowerCase();
-    console.log(`[CommercialGuidelineSearchTool] Creating retriever with domain filter: ${normalizedDomain}`);
-    
-    return vectorStore.asRetriever({
-      k,
-      filter: (doc: Document) => {
-        return doc.metadata.domain?.toLowerCase() === normalizedDomain;
-      },
-    });
-  }
-  
-  // No filtering - return all results
-  return vectorStore.asRetriever({ k });
-}
+import { scoreAndRankDocuments } from "./utils/scoreCommercialGuideline";
+import {
+  CommercialGuidelineSearchInputSchema,
+  CommercialGuidelineSearchInput,
+  CommercialGuidelineSearchOutput,
+} from "./utils/commercialGuidelineTypes";
 
 /**
  * Commercial Guideline Search Tool
  * 
- * Uses LangChain's MemoryVectorStore with OpenAI embeddings for semantic search
- * across local commercial guideline documents.
+ * A structured tool that uses deterministic scoring to search commercial guidelines
+ * for prior authorization requirements.
  * 
  * Features:
- * - Semantic similarity search (finds related treatments automatically)
- * - Metadata filtering by domain (cardio, genetic, etc.)
- * - Inferred metadata from filename and folder structure
- * - Lazy initialization with caching
+ * - Deterministic weighted scoring (no embeddings, no LLM calls)
+ * - Exact CPT/ICD-10 code matching (+10 points each)
+ * - Treatment/diagnosis keyword overlap scoring
+ * - Domain and metadata filtering
+ * - Fast, cached document loading
+ * - Structured input/output
+ * 
+ * Architecture:
+ * - Load full documents (no chunking)
+ * - Score using weighted signals (CPT, ICD-10, keywords, fuzzy matching)
+ * - Return top matches + related matches
+ * - LLM synthesizes final answer from structured results
  */
-export async function createCommercialGuidelineSearchTool() {
-  // Ensure vector store is initialized
-  await getVectorStore();
+export class CommercialGuidelineSearchTool extends StructuredTool<typeof CommercialGuidelineSearchInputSchema> {
+  name = "commercial_guidelines_search";
   
-  // Create a default retriever (no domain filter, top 5 results)
-  const retriever = await createFilteredRetriever(undefined, 5);
-  
-  // Wrap retriever as a tool using LangChain's createRetrieverTool
-  const tool = createRetrieverTool(retriever, {
-    name: "commercial_guidelines_search",
-    description: `Search commercial guidelines for prior authorization requirements.
+  description = `Search commercial guidelines for prior authorization requirements using structured inputs.
+
+This tool performs deterministic search across commercial guideline documents to find relevant authorization criteria.
+
+**When to use:**
+- User asks about commercial insurance authorization requirements
+- Query mentions treatments, procedures, or diagnoses
+- Need to find coverage criteria for commercial payers
+
+**How it works:**
+- Exact matching on CPT and ICD-10 codes (highest priority)
+- Keyword overlap scoring for treatment and diagnosis
+- Domain filtering (cardio, genetic, etc.)
+- Returns ranked results with match explanations
+
+**Input fields:**
+- query: Main search query (required)
+- treatment: Specific treatment name (optional, e.g., "MRI lumbar spine")
+- diagnosis: Diagnosis description (optional)
+- cpt: CPT code(s) for exact matching (optional, e.g., "72148")
+- icd10: ICD-10 code(s) for exact matching (optional, e.g., "M54.16")
+- domain: Domain filter (optional, e.g., "cardio", "genetic")
+- state: Patient state (optional)
+- payer: Payer name (optional)
+- maxResults: Number of results (optional, default: 5)
+
+**Output:**
+Returns structured JSON with topMatches and relatedMatches, each containing:
+- title, score, domain, matchedOn (signals), excerpt
+
+**CRITICAL CONFIDENTIALITY:**
+Never mention specific data sources, tool names, URLs, file names, folder names, or document references in your response.
+Use ONLY generic terms like "commercial guidelines", "proprietary criteria", or "industry standards".`;
+
+  schema = CommercialGuidelineSearchInputSchema;
+
+  async _call(input: CommercialGuidelineSearchInput): Promise<string> {
+    console.log("[CommercialGuidelineSearchTool] Received input:", input);
     
-This tool performs semantic search across commercial guideline documents to find relevant authorization criteria.
-
-Use this tool when:
-- The user asks about commercial insurance authorization requirements
-- The query mentions treatments, procedures, or diagnoses
-- You need to find coverage criteria for commercial payers
-
-The tool automatically:
-- Finds semantically similar treatments (e.g., "spine imaging" matches "MRI lumbar spine")
-- Detects related procedures in the same domain
-- Matches synonyms and related terminology
-- Returns the most relevant guideline excerpts
-
-Input should be a natural language query describing the treatment, procedure, or diagnosis.
-Examples:
-- "MRI lumbar spine authorization requirements"
-- "cardiac imaging prior auth criteria"
-- "genetic testing coverage guidelines"
-
-IMPORTANT: Never mention specific data sources, tool names, URLs, or document references in your response.
-Use only generic terms like "commercial guidelines" or "industry standards".`,
-  });
-  
-  return tool;
+    try {
+      // Load documents (cached after first load)
+      const docs = await loadCommercialGuidelines();
+      
+      if (docs.length === 0) {
+        return JSON.stringify({
+          query: input.query,
+          topMatches: [],
+          relatedMatches: [],
+          error: "No commercial guideline documents found in the system.",
+        });
+      }
+      
+      console.log(`[CommercialGuidelineSearchTool] Searching ${docs.length} documents`);
+      
+      // Score and rank documents using deterministic scoring
+      const { topMatches, relatedMatches } = scoreAndRankDocuments(docs, input);
+      
+      // Build structured output
+      const output: CommercialGuidelineSearchOutput = {
+        query: input.query,
+        topMatches,
+        relatedMatches,
+      };
+      
+      console.log(`[CommercialGuidelineSearchTool] Found ${topMatches.length} top matches, ${relatedMatches.length} related matches`);
+      
+      // Return as JSON string for LLM to parse
+      return JSON.stringify(output, null, 2);
+    } catch (error) {
+      console.error("[CommercialGuidelineSearchTool] Error during search:", error);
+      return JSON.stringify({
+        query: input.query,
+        topMatches: [],
+        relatedMatches: [],
+        error: error instanceof Error ? error.message : "Unknown error occurred during search",
+      });
+    }
+  }
 }
 
 /**
- * Create a domain-specific retriever tool
- * Useful if you need to create multiple tools with different domain filters
+ * Factory function to create the tool instance
+ * Maintains compatibility with existing code that uses createCommercialGuidelineSearchTool()
  */
-export async function createDomainSpecificTool(domain: string, k: number = 5) {
-  const retriever = await createFilteredRetriever(domain, k);
+export async function createCommercialGuidelineSearchTool(): Promise<CommercialGuidelineSearchTool> {
+  // Pre-load documents to warm the cache
+  console.log("[CommercialGuidelineSearchTool] Pre-loading documents...");
+  await loadCommercialGuidelines();
   
-  return createRetrieverTool(retriever, {
-    name: `commercial_guidelines_search_${domain}`,
-    description: `Search ${domain} commercial guidelines for prior authorization requirements.
-    
-This tool searches specifically within ${domain} domain guidelines.
-Input should be a treatment, procedure, or diagnosis query.`,
-  });
-}
-
-/**
- * Reset the vector store cache (useful for testing or if documents are updated)
- */
-export function resetVectorStore() {
-  console.log("[CommercialGuidelineSearchTool] Resetting vector store cache");
-  vectorStoreInstance = null;
-  isInitializing = false;
-  initializationPromise = null;
+  return new CommercialGuidelineSearchTool();
 }

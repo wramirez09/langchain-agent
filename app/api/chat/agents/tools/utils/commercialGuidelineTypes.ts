@@ -3,60 +3,102 @@ import { z } from "zod";
 /**
  * Document model for commercial guidelines loaded from local files.
  * Metadata is inferred from filename and folder structure.
+ * Full documents are loaded (no chunking) for deterministic scoring.
  */
 export interface CommercialGuidelineDoc {
   id: string;                    // generated from file path hash
   title: string;                 // inferred from filename (e.g., "mri-lumbar-spine" → "MRI Lumbar Spine")
-  treatment?: string;            // inferred from filename
-  domain: string;                // inferred from folder name (e.g., "plaintextcardio" → "cardio")
-  sourceGroup: string;           // folder name (plaintextcardio, plaintextgenetic, etc.)
+  treatment: string;             // inferred from filename
+  domain: string;                // inferred from folder name (e.g., "cardio", "genetic")
+  sourceGroup: string;           // folder name (cardio, genetic, etc.)
   sourceType: "commercial-guideline";
   path: string;                  // absolute file path
   fileName: string;              // just the filename
-  body: string;                  // full markdown/text content
+  body: string;                  // full markdown/text content (no chunking)
   
-  // Optional fields that may be extracted from content via simple parsing:
-  cptCodes?: string[];           // extracted from content if present
-  icd10Codes?: string[];         // extracted from content if present
-  keywords?: string[];           // extracted from filename and content
+  // Extracted metadata for scoring:
+  cptCodes: string[];            // extracted from content
+  icd10Codes: string[];          // extracted from content
+  tags: string[];                // keywords from filename and content
+  
+  // Optional structured sections (if parseable):
+  sections?: {
+    criteria?: string;
+    documentation?: string;
+    exclusions?: string;
+  };
 }
 
 /**
  * Input schema for the commercial guideline search tool
+ * Supports structured inputs for deterministic scoring
  */
 export const CommercialGuidelineSearchInputSchema = z.object({
   query: z
     .string()
-    .min(3, "Query must be at least 3 characters long.")
-    .describe("The treatment, diagnosis, or procedure query to search for in commercial guidelines."),
+    .min(1, "Query must not be empty.")
+    .describe("The main search query describing the treatment, diagnosis, or procedure."),
   treatment: z
     .string()
     .optional()
-    .describe("Optional: specific treatment name to filter results."),
+    .describe("Optional: specific treatment name (e.g., 'MRI lumbar spine')."),
   diagnosis: z
     .string()
     .optional()
     .describe("Optional: diagnosis description to enhance search relevance."),
   cpt: z
-    .string()
+    .union([z.string(), z.array(z.string())])
     .optional()
-    .describe("Optional: CPT code to search for in guideline content."),
+    .describe("Optional: CPT code(s) to match exactly (e.g., '72148' or ['72148', '72149'])."),
   icd10: z
+    .union([z.string(), z.array(z.string())])
+    .optional()
+    .describe("Optional: ICD-10 code(s) to match exactly (e.g., 'M54.16' or ['M54.16', 'M54.17'])."),
+  state: z
     .string()
     .optional()
-    .describe("Optional: ICD-10 code to search for in guideline content."),
+    .describe("Optional: patient's U.S. state for state-specific guidelines."),
   domain: z
     .string()
     .optional()
     .describe("Optional: domain/specialty filter (e.g., 'cardio', 'genetic')."),
+  payer: z
+    .string()
+    .optional()
+    .describe("Optional: payer name for payer-specific guidelines."),
   maxResults: z
     .number()
     .optional()
     .default(5)
-    .describe("Maximum number of results to return. Default: 5."),
+    .describe("Maximum number of top results to return. Default: 5."),
 });
 
 export type CommercialGuidelineSearchInput = z.infer<typeof CommercialGuidelineSearchInputSchema>;
+
+/**
+ * Output schema for scored results
+ */
+export interface ScoredResult {
+  id: string;
+  title: string;
+  score: number;
+  domain: string;
+  matchedOn: string[];           // Signals that contributed to score
+  excerpt: string;               // First 300 chars of content
+  path: string;
+  treatment?: string;
+  cptCodes?: string[];
+  icd10Codes?: string[];
+}
+
+/**
+ * Tool output structure
+ */
+export interface CommercialGuidelineSearchOutput {
+  query: string;
+  topMatches: ScoredResult[];
+  relatedMatches: ScoredResult[];
+}
 
 /**
  * Helper function to infer domain from folder name
