@@ -181,15 +181,6 @@ export function scoreCommercialGuideline(
     }
   }
   
-  // +2 for state match (if applicable)
-  if (input.state && doc.body) {
-    const normalizedState = normalize(input.state);
-    if (normalize(doc.body).includes(normalizedState)) {
-      score += 2;
-      matchedOn.push(`state:${input.state}`);
-    }
-  }
-  
   // +1 for payer match (if applicable)
   if (input.payer && doc.body) {
     const normalizedPayer = normalize(input.payer);

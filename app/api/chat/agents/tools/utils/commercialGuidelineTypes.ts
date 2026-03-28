@@ -54,10 +54,6 @@ export const CommercialGuidelineSearchInputSchema = z.object({
     .union([z.string(), z.array(z.string())])
     .optional()
     .describe("Optional: ICD-10 code(s) to match exactly (e.g., 'M54.16' or ['M54.16', 'M54.17'])."),
-  state: z
-    .string()
-    .optional()
-    .describe("Optional: patient's U.S. state for state-specific guidelines."),
   domain: z
     .string()
     .optional()

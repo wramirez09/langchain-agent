@@ -52,7 +52,6 @@ This tool performs deterministic search across commercial guideline documents to
 - cpt: CPT code(s) for exact matching (optional, e.g., "72148")
 - icd10: ICD-10 code(s) for exact matching (optional, e.g., "M54.16")
 - domain: Domain filter (optional, e.g., "cardio", "genetic")
-- state: Patient state (optional)
 - payer: Payer name (optional)
 - maxResults: Number of results (optional, default: 5)
 

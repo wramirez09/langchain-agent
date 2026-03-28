@@ -50,7 +50,8 @@ When PHI is detected and removed:
         * \`diagnosis\`: The extracted diagnosis
         * \`cpt\`: The CPT code (if provided)
         * \`icd10\`: The ICD-10 code (if provided)
-        * \`state\`: The patient's state (if provided)
+        * \`payer\`: The payer name (if provided)
+        * \`domain\`: The domain/specialty (if relevant)
     * This tool performs deterministic scoring across commercial guidelines using exact code matching and keyword overlap.
     * The tool returns structured JSON with topMatches and relatedMatches, each containing score and matchedOn signals.
 
