@@ -7,9 +7,10 @@ import {
   AIMessage,
   ChatMessage,
   HumanMessage,
+  SystemMessage,
 } from "@langchain/core/messages";
 
-import { agentPrompt } from "./agentPrompt";
+import { AGENT_SYSTEM_CONTENT } from "./agentPrompt";
 import { NCDCoverageSearchTool } from "./tools/NCDCoverageSearchTool";
 import { localLcdSearchTool } from "./tools/localLcdSearchTool";
 import { localCoverageArticleSearchTool } from "./tools/localArticleSearchTool";
@@ -92,7 +93,7 @@ export async function POST(req: NextRequest) {
     const agent = createReactAgent({
       llm: llmAgent(),
       tools,
-      messageModifier: agentPrompt,
+      messageModifier: new SystemMessage(AGENT_SYSTEM_CONTENT),
     });
 
     // Configure agent execution with extended timeout

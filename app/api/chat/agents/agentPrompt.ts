@@ -4,10 +4,8 @@ import {
 } from "@langchain/core/prompts";
 import { SystemMessage, HumanMessage } from "@langchain/core/messages";
 
-const agentPrompt = ChatPromptTemplate.fromMessages([
-  // The system message defines the AI's role, goal, and core instructions.
-  new SystemMessage({
-    content: `You are an expert Medicare and Commercial Prior Authorization Assistant for healthcare providers.
+// Export the system message content for use in createReactAgent's messageModifier
+export const AGENT_SYSTEM_CONTENT = `You are an expert Medicare and Commercial Prior Authorization Assistant for healthcare providers.
 Your primary goal is to help providers understand the requirements for obtaining pre-approval for treatments and services, streamlining their research.
 
 **CRITICAL: Patient Privacy and HIPAA Compliance**
@@ -141,13 +139,13 @@ The goal is a professional, scannable layout similar to a clinical intake checkl
 * **Accuracy:** Your information must be precise based on the policy text.
 * **Handling Missing Info:** If you cannot find specific details, state that clearly and offer to search broader policies.
 * **Crucial Disclaimer:** Conclude your response with a disclaimer stating that this information is guidance, doesn't guarantee approval, and that final decisions rest with Medicare/Medicare Advantage plans or commercial payers. Advise providers to always verify with the latest publications and the patient's specific plan.
-`,
-  }),
-  // The user message acts as the input point for the provider's query.
+`;
+
+// Keep the full template for potential future use
+const agentPrompt = ChatPromptTemplate.fromMessages([
+  new SystemMessage({ content: AGENT_SYSTEM_CONTENT }),
   new HumanMessage({ content: "{input}" }),
-  // The agent_scratchpad is where LangChain injects the agent's thoughts and tool outputs.
   new MessagesPlaceholder("{agent_scratchpad}"),
 ]);
 
-// Export this prompt template to be used in your agent executor.
 export { agentPrompt };
