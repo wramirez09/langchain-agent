@@ -37,5 +37,5 @@ NoteDoctor.ai is built on a Next.js web application using LangChain agents, Supa
 
 ## Contact & Links
 
-- Website: https://preauthproduction.vercel.app
+- Website: https://app.notedoctor.ai
 - Twitter/X: @notedoctorai

@@ -8,7 +8,7 @@ import * as React from "react";
 import TopBar from "@/components/TopBar";
 import { MobileSidebarProvider } from "@/components/providers/MobileSidebarProvider";
 
-const BASE_URL = "https://preauthproduction.vercel.app";
+const BASE_URL = "https://app.notedoctor.ai";
 const SITE_NAME = "NoteDoctor.ai";
 const DEFAULT_TITLE = "NoteDoctor.ai | Authorization Readiness Screening for Healthcare";
 const DEFAULT_DESCRIPTION =
