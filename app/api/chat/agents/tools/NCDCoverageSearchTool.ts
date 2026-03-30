@@ -1,109 +1,58 @@
-import { Tool } from "@langchain/core/tools";
+import { StructuredTool } from "@langchain/core/tools";
 import { cache } from "@/lib/cache";
+import {
+  MedicareSearchInputSchema,
+  MedicareSearchInput,
+  MedicareScoredResult,
+  normalizeInput,
+} from "./utils/medicareSearchTypes";
+import { scoreMedicareNCD } from "./utils/scoreMedicareDocument";
 
 
 // Cache TTL in milliseconds (5 minutes)
 const CACHE_TTL = 5 * 60 * 1000;
 
-// ----------------- Similarity Helpers -----------------
-function normalizeText(str: string): string {
-  return str
-    .toLowerCase()
-    .normalize("NFKD")
-    .replace(/[^\p{Letter}\p{Number}\s.]/gu, " ")
-    .replace(/\s+/g, " ")
-    .trim();
-}
 
-function tokenize(str: string): string[] {
-  return normalizeText(str)
-    .split(/\s+/)
-    .filter((t) => t.length > 2);
-}
-
-function computeRelevanceScore(query: string, ncd: any): number {
-  // Remove parenthetical notes to focus on core terms
-  const queryNoParens = query.replace(/\s*\(.*?\)\s*/g, "");
-  const normQuery = normalizeText(queryNoParens);
-  const queryTokens = tokenize(normQuery);
-
-  const title = ncd.title || "";
-  const displayId = ncd.document_display_id || "";
-
-  const normTitle = normalizeText(title);
-  const titleTokens = tokenize(normTitle);
-  const displayIdLower = String(displayId).toLowerCase();
-
-  let score = 0;
-
-  // Strong boost if query matches the NCD number
-  if (normQuery === displayIdLower) {
-    score += 4;
-  } else if (
-    normQuery.includes(displayIdLower) ||
-    displayIdLower.includes(normQuery)
-  ) {
-    score += 2;
-  }
-
-  // Boost if the title contains the whole normalized query
-  if (normTitle.includes(normQuery) && normQuery.length > 0) {
-    score += 2;
-  }
-
-  // Token overlap between query and title
-  if (queryTokens.length > 0 && titleTokens.length > 0) {
-    const titleTokenSet = new Set(titleTokens);
-    const matchedTokens = queryTokens.filter((t) => titleTokenSet.has(t));
-    if (matchedTokens.length > 0) {
-      const coverage = matchedTokens.length / queryTokens.length; // 0–1
-      score += coverage; // modest additive score
-    }
-  }
-
-  // Tiny boost if any query token appears in title at all
-  if (
-    queryTokens.some((t) => normTitle.includes(t)) &&
-    score === 0
-  ) {
-    score += 0.5;
-  }
-
-  return score;
-}
-
-// ----------------- Tool Implementation -----------------
-export class NCDCoverageSearchTool extends Tool {
+export class NCDCoverageSearchTool extends StructuredTool<typeof MedicareSearchInputSchema> {
   name = "ncd_coverage_search";
+  schema = MedicareSearchInputSchema;
   description =
-    "Searches National Coverage Determinations (NCDs) for a given disease, treatment, or NCD number. " +
-    "Returns title, NCD ID, status, last updated date, and a CMS URL. " +
-    "If multiple NCDs are found, it lists up to 10 ordered by relevance.";
+    "Searches National Coverage Determinations (NCDs) for Medicare coverage policies. " +
+    "Uses deterministic scoring to rank NCDs by relevance. " +
+    "Returns structured JSON with topMatches containing scored results.\n\n" +
+    "**Input fields:**\n" +
+    "- query: Main search query (required) - treatment, diagnosis, or NCD number\n" +
+    "- treatment: Specific treatment name (optional)\n" +
+    "- diagnosis: Diagnosis description (optional)\n" +
+    "- cpt: CPT code(s) (optional)\n" +
+    "- icd10: ICD-10 code(s) (optional)\n" +
+    "- maxResults: Number of results (optional, default: 10)\n\n" +
+    "**Output:** Returns structured JSON with topMatches array. Each match includes title, displayId, score, matchedOn signals, and URL.";
 
-  protected async _call(input: string): Promise<string> {
+  async _call(input: MedicareSearchInput): Promise<string> {
+    const normalized = normalizeInput(input);
     // Record tool usage
 
 
     const CMS_NCD_API_URL =
       "https://api.coverage.cms.gov/v1/reports/national-coverage-ncd/";
-    // Human-readable HTML page base (correct pattern uses lowercase ncdid/ncdver)
     const CMS_NCD_BASE_HTML_URL =
       "https://www.cms.gov/medicare-coverage-database/view/ncd.aspx";
 
-    if (!input || !input.trim()) {
-      return "Input is missing. Please provide a query such as a disease, treatment, or NCD number (e.g., '220.3').";
-    }
-
-    const cleanedQuery = input.trim();
-    const cacheKey = `ncd-search:${cleanedQuery.toLowerCase()}`;
+    const cacheKey = `ncd-search:${JSON.stringify(normalized)}`;
     const cachedResult: string | null = await cache.get(cacheKey);
 
     if (cachedResult) {
       console.log(
-        `NCDCoverageSearchTool: Cache hit for query: "${cleanedQuery}"`
+        `[NCDCoverageSearchTool] Cache hit for query: "${normalized.query}"`
       );
       return cachedResult;
     }
+
+    console.log(
+      `[NCDCoverageSearchTool] Searching NCDs with input:`,
+      JSON.stringify(normalized, null, 2)
+    );
 
     const controller = new AbortController();
     const { signal } = controller;
@@ -122,7 +71,7 @@ export class NCDCoverageSearchTool extends Tool {
 
     try {
       console.log(
-        "NCDCoverageSearchTool: Fetching NCD list from CMS Coverage API..."
+        "[NCDCoverageSearchTool] Fetching NCD list from CMS Coverage API..."
       );
 
       const response = await fetch(CMS_NCD_API_URL, {
@@ -143,45 +92,53 @@ export class NCDCoverageSearchTool extends Tool {
       // Validate API shape
       if (!responseData || !responseData.meta || !Array.isArray(responseData.data)) {
         console.error("Unexpected API response structure:", responseData);
-        return `Error: Unexpected CMS API response format while searching for '${cleanedQuery}'. Please try again later.`;
+        return JSON.stringify({
+          query: normalized,
+          topMatches: [],
+          error: "Unexpected CMS API response format. Please try again later."
+        });
       }
 
       if (responseData.meta.status && responseData.meta.status.id >= 400) {
         console.error("CMS API meta status error:", responseData.meta);
-        return `Error from CMS Coverage API: ${responseData.meta.status.message || "Unknown error"
-          }`;
+        return JSON.stringify({
+          query: normalized,
+          topMatches: [],
+          error: `CMS Coverage API error: ${responseData.meta.status.message || "Unknown error"}`
+        });
       }
 
       const allNCDs: any[] = responseData.data || [];
       if (allNCDs.length === 0) {
-        return `No National Coverage Determinations (NCDs) are currently available from CMS for this search.`;
+        return JSON.stringify({
+          query: normalized,
+          topMatches: [],
+          message: "No National Coverage Determinations (NCDs) are currently available from CMS."
+        });
       }
 
-      // --- Improved similarity search ---
       const scored = allNCDs
-        .map((ncd) => ({
-          ncd,
-          score: computeRelevanceScore(cleanedQuery, ncd),
-        }))
+        .map((ncd) => {
+          const { score, matchedOn } = scoreMedicareNCD(ncd, input);
+          return { ncd, score, matchedOn };
+        })
         .filter((item) => item.score > 0)
         .sort((a, b) => b.score - a.score);
 
       console.log(
-        `NCDCoverageSearchTool: ${scored.length} scored matches for query "${cleanedQuery}".`
+        `[NCDCoverageSearchTool] ${scored.length} scored matches for query "${normalized.query}"`
       );
 
       if (scored.length === 0) {
-        return (
-          `No National Coverage Determination (NCD) found for '${cleanedQuery}'. ` +
-          `Try using a simpler phrase, a key word from the NCD title, or the NCD number (for example, "220.3").`
-        );
+        return JSON.stringify({
+          query: normalized,
+          topMatches: [],
+          message: `No National Coverage Determination (NCD) found for '${normalized.query}'. Try using a simpler phrase, a key word from the NCD title, or the NCD number (e.g., "220.3").`
+        });
       }
 
-      // Take top 10 most relevant NCDs
-      const top = scored.slice(0, 10);
-      const outputResults: string[] = [];
-
-      for (const { ncd, score } of top) {
+      const top = scored.slice(0, normalized.maxResults);
+      const topMatches: MedicareScoredResult[] = top.map(({ ncd, score, matchedOn }) => {
         const {
           document_id: documentId,
           document_version: documentVersion,
@@ -191,52 +148,56 @@ export class NCDCoverageSearchTool extends Tool {
           last_updated: lastUpdated,
         } = ncd;
 
-        // Build *correct* human-viewable URL:
-        // https://www.cms.gov/medicare-coverage-database/view/ncd.aspx?ncdid=177&ncdver=6
         let fullHtmlUrl = "";
         if (documentId != null && documentVersion != null) {
           fullHtmlUrl = `${CMS_NCD_BASE_HTML_URL}?ncdid=${documentId}&ncdver=${documentVersion}`;
         }
 
-        outputResults.push(
-          `- Title: ${title || "N/A"}\n` +
-          `  ID: ${documentDisplayId || "N/A"}\n` +
-          `  Status: ${status || "N/A"}\n` +
-          `  Last Updated: ${lastUpdated || "N/A"}\n` +
-          `  Relevance Score: ${score.toFixed(2)}\n` +
-          (fullHtmlUrl ? `  URL: ${fullHtmlUrl}\n` : "") +
-          (fullHtmlUrl ? `  [POLICY_URL:${fullHtmlUrl}]` : "")
-        );
-      }
+        return {
+          id: `${documentId}-${documentVersion}`,
+          title: title || "N/A",
+          displayId: documentDisplayId || undefined,
+          score,
+          url: fullHtmlUrl || undefined,
+          matchedOn,
+          metadata: {
+            status: status || undefined,
+            lastUpdated: lastUpdated || undefined,
+          },
+        };
+      });
 
-      const best = top[0].ncd;
+      const result = JSON.stringify(
+        {
+          query: normalized,
+          topMatches,
+        },
+        null,
+        2
+      );
 
-      const guidance =
-        `\n\nTo view the complete NCD text in the Medicare Coverage Database:\n` +
-        `1. Open: ${CMS_NCD_BASE_HTML_URL}?ncdid=${best.document_id}&ncdver=${best.document_version}\n` +
-        `2. Review the full policy, including coverage indications, limitations, and any coding details.\n`;
-
-      // const troubleshooting =
-      //   `\n\nIf you have trouble accessing the NCD page:\n` +
-      //   `- Try a different browser (Chrome, Edge, Firefox)\n` +
-      //   `- Ensure pop-up blockers or corporate filters are not blocking cms.gov\n` +
-      //   `- You can also search manually at: https://www.cms.gov/medicare-coverage-database\n`;
-
-      const result =
-        `Found ${scored.length} potentially relevant National Coverage Determination(s) for '${cleanedQuery}'. ` +
-        `Displaying top ${top.length} by relevance:\n\n` +
-        outputResults.join("\n") +
-        guidance;
+      console.log(
+        `[NCDCoverageSearchTool] Returning ${topMatches.length} results with scores:`,
+        topMatches.map(m => ({ title: m.title, score: m.score, matchedOn: m.matchedOn }))
+      );
 
       await cache.set(cacheKey, result, CACHE_TTL);
 
       return result;
     } catch (error: any) {
-      console.error("Error in NCD coverage search:", error);
+      console.error("[NCDCoverageSearchTool] Error in NCD coverage search:", error);
       if (error.name === "AbortError") {
-        return `The search for '${input}' timed out. Please try again with a more specific or shorter query.`;
+        return JSON.stringify({
+          query: normalized,
+          topMatches: [],
+          error: "Search timed out. Please try again with a more specific query."
+        });
       }
-      return `Error searching for NCD coverage information. Please try again later.`;
+      return JSON.stringify({
+        query: normalized,
+        topMatches: [],
+        error: "Error searching for NCD coverage information. Please try again later."
+      });
     }
   }
 }

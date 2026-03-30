@@ -124,7 +124,7 @@ function StickyToBottomContent(props: {
         if (typeof context.scrollRef === 'function') {
           context.scrollRef(node);
         } else if (context.scrollRef) {
-          (context.scrollRef as any).current = node;
+          (context.scrollRef).current = node;
         }
       }}
       className={cn("bg-gradient-light grid grid-rows-[1fr,auto] bottom-fixed-element mb-3 md:mb-0 max-h-screen", props.className)}
