@@ -494,7 +494,7 @@ export function PriorAuthView({
                 <div className="flex items-center gap-3">
                   <Button
                     onClick={handleGenerateAuth}
-                    disabled={isProcessing}
+                    disabled={isProcessing || !selectedGuideline}
                     className="flex-1 h-11 bg-blue-600 hover:bg-blue-700 text-white font-medium text-sm rounded-lg"
                   >
                     {isProcessing ? (
