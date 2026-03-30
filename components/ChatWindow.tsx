@@ -120,11 +120,8 @@ function StickyToBottomContent(props: {
     <div
       ref={(node) => {
         scrollContainerRef.current = node;
-        // Also assign to the library's ref
-        if (typeof context.scrollRef === 'function') {
+        if (context.scrollRef) {
           context.scrollRef(node);
-        } else if (context.scrollRef) {
-          (context.scrollRef).current = node;
         }
       }}
       className={cn("bg-gradient-light grid grid-rows-[1fr,auto] bottom-fixed-element mb-3 md:mb-0 max-h-screen", props.className)}
