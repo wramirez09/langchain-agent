@@ -36,8 +36,11 @@ const TopBar: React.FC = () => {
     loadUser();
 
     const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
-      setIsLoggedIn(!!session?.user);
-      if (!session?.user) {
+      if (session?.user) {
+        setIsLoggedIn(true);
+        loadUser();
+      } else {
+        setIsLoggedIn(false);
         setDisplayName('');
         setDisplayEmail('');
         setInitials('');
