@@ -1,3 +1,18 @@
+---
+title: "Venous System Procedures"
+domain: "cardio"
+specialty: ["vascular surgery", "interventional radiology", "phlebology"]
+procedures:
+  - "endovenous ablation"
+  - "sclerotherapy"
+  - "varicose vein treatment"
+  - "venous stenting"
+aliases: ["vein ablation", "varicose vein surgery", "venous insufficiency treatment"]
+relatedConditions: ["varicose veins", "chronic venous insufficiency", "venous reflux", "venous ulcer", "deep vein thrombosis"]
+priority: "medium"
+keywords: ["saphenous vein", "thermal ablation", "cyanoacrylate", "foam sclerotherapy"]
+---
+
 MEDICAL NECESSITY CRITERIA
 
 1.  General Clinical Appropriateness Requirements

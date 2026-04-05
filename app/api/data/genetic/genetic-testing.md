@@ -1,3 +1,17 @@
+---
+title: "Inherited Condition Genetic Testing"
+domain: "genetic"
+specialty: ["genetics", "medical genetics", "genetic counseling"]
+procedures:
+  - "genetic testing"
+  - "multigene panel testing"
+  - "germline testing"
+aliases: ["hereditary genetic testing", "inherited disease testing", "germline mutation testing"]
+relatedConditions: ["long QT syndrome", "Brugada syndrome", "hypertrophic cardiomyopathy", "arrhythmogenic right ventricular dysplasia", "hereditary aortopathy", "mitochondrial disease", "amyloidosis"]
+priority: "medium"
+keywords: ["pathogenic variant", "family history", "CPVT", "HTAD", "sudden cardiac death", "TTR sequencing"]
+---
+
 1.  MEDICAL NECESSITY CRITERIA
 
 A. General requirements for inherited-condition genetic testing

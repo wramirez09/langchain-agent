@@ -1,3 +1,17 @@
+---
+title: "Permanent Pacemaker Implantation"
+domain: "cardio"
+specialty: ["cardiology", "electrophysiology", "cardiac surgery"]
+procedures:
+  - "permanent pacemaker implantation"
+  - "transvenous pacemaker"
+  - "leadless pacemaker"
+aliases: ["pacemaker placement", "cardiac pacing", "PPM implantation"]
+relatedConditions: ["sinus node dysfunction", "AV block", "bradycardia", "heart block", "sick sinus syndrome", "tachy-brady syndrome"]
+priority: "high"
+keywords: ["bradyarrhythmia", "conduction disturbance", "chronotropic incompetence", "neuromuscular disease"]
+---
+
 MEDICAL NECESSITY CRITERIA
 
 1.  General Clinical Appropriateness Requirements

@@ -71,6 +71,7 @@
     "framer-motion": "^12.23.12",
     "fs": "^0.0.1-security",
     "gpt-tokenizer": "^3.0.1",
+    "gray-matter": "^4.0.3",
     "install": "^0.13.0",
     "langchain": "^0.3.27",
     "lodash": "^4.17.21",

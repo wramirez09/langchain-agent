@@ -1,3 +1,17 @@
+---
+title: "Cardiac Monitoring"
+domain: "cardio"
+specialty: ["cardiology", "electrophysiology"]
+procedures:
+  - "implantable loop recorder"
+  - "cardiac event monitor"
+  - "ambulatory ECG monitoring"
+aliases: ["ILR", "insertable cardiac monitor", "Holter monitor", "event recorder"]
+relatedConditions: ["syncope", "atrial fibrillation", "cryptogenic stroke", "palpitations", "arrhythmia"]
+priority: "medium"
+keywords: ["rhythm monitoring", "AF detection", "recurrent syncope"]
+---
+
 Medical Necessity Criteria
 
 -   General clinical appropriateness framework:

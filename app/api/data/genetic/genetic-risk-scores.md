@@ -1,3 +1,17 @@
+---
+title: "Polygenic Risk Scores"
+domain: "genetic"
+specialty: ["genetics", "precision medicine"]
+procedures:
+  - "polygenic risk score testing"
+  - "polygenic expression testing"
+  - "multivariable prognostic testing"
+aliases: ["PRS", "genetic risk score", "polygenic testing"]
+relatedConditions: ["disease risk prediction", "cancer prognosis"]
+priority: "low"
+keywords: ["risk prediction", "not medically necessary", "clinical utility"]
+---
+
 Medical Necessity Criteria General clinical review requirements in the
 document include the following baseline elements for any requested
 diagnostic or therapeutic intervention:

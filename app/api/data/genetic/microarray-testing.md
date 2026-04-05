@@ -1,3 +1,17 @@
+---
+title: "Chromosomal Microarray Analysis"
+domain: "genetic"
+specialty: ["genetics", "maternal-fetal medicine", "pediatrics"]
+procedures:
+  - "chromosomal microarray analysis"
+  - "CMA"
+  - "array CGH"
+aliases: ["microarray testing", "chromosomal microarray", "genetic microarray"]
+relatedConditions: ["developmental delay", "autism spectrum disorder", "intellectual disability", "congenital anomalies", "fetal anomaly"]
+priority: "medium"
+keywords: ["copy number variant", "CNV", "prenatal diagnosis", "genetic counseling"]
+---
+
 Medical Necessity Criteria
 
 -   General clinical appropriateness requirements

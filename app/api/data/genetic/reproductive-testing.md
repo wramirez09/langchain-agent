@@ -1,3 +1,17 @@
+---
+title: "Reproductive Carrier Screening"
+domain: "genetic"
+specialty: ["genetics", "obstetrics", "reproductive medicine"]
+procedures:
+  - "carrier screening"
+  - "expanded carrier screening"
+  - "preconception genetic testing"
+aliases: ["reproductive genetic screening", "carrier testing", "preconception screening"]
+relatedConditions: ["cystic fibrosis", "spinal muscular atrophy", "hemoglobinopathies", "sickle cell disease", "thalassemia"]
+priority: "high"
+keywords: ["autosomal recessive", "carrier frequency", "genetic counseling", "consanguinity"]
+---
+
 MEDICAL NECESSITY CRITERIA
 
 General clinical appropriateness requirements

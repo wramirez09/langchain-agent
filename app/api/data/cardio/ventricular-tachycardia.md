@@ -1,3 +1,18 @@
+---
+title: "Ventricular Tachycardia Ablation"
+domain: "cardio"
+specialty: ["cardiology", "electrophysiology"]
+procedures:
+  - "catheter ablation for ventricular tachycardia"
+  - "VT ablation"
+  - "SVT ablation"
+  - "PVC ablation"
+aliases: ["VT ablation", "ventricular arrhythmia ablation", "PVC ablation"]
+relatedConditions: ["ventricular tachycardia", "ventricular fibrillation", "PVCs", "supraventricular tachycardia", "Brugada syndrome", "arrhythmogenic right ventricular cardiomyopathy"]
+priority: "high"
+keywords: ["ICD shocks", "structural heart disease", "cardiomyopathy", "outflow tract VT"]
+---
+
 Medical Necessity Criteria
 
 -   General clinical appropriateness requirements:

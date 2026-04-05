@@ -1,3 +1,17 @@
+---
+title: "Wearable Cardioverter Defibrillator"
+domain: "cardio"
+specialty: ["cardiology", "electrophysiology"]
+procedures:
+  - "wearable cardioverter defibrillator"
+  - "LifeVest"
+aliases: ["WCD", "wearable defibrillator", "external defibrillator"]
+relatedConditions: ["cardiomyopathy", "myocarditis", "Takotsubo cardiomyopathy", "post-partum cardiomyopathy", "ICD infection"]
+cpt_codes: ["93745", "K0606"]
+priority: "medium"
+keywords: ["bridge to ICD", "temporary protection", "heart transplant waiting list"]
+---
+
 MEDICAL NECESSITY CRITERIA
 
 General clinical criteria that support appropriateness

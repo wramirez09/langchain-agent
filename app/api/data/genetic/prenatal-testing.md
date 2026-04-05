@@ -1,3 +1,19 @@
+---
+title: "Prenatal Cell-Free DNA Screening"
+domain: "genetic"
+specialty: ["maternal-fetal medicine", "obstetrics", "genetics"]
+procedures:
+  - "cell-free DNA screening"
+  - "NIPT"
+  - "prenatal aneuploidy screening"
+aliases: ["cfDNA screening", "non-invasive prenatal testing", "NIPS"]
+relatedConditions: ["trisomy 21", "trisomy 18", "trisomy 13", "sex chromosome aneuploidy", "Down syndrome"]
+cpt_codes: ["81403", "81420", "81479", "81507", "81599", "0327U"]
+priority: "high"
+keywords: ["aneuploidy", "singleton pregnancy", "twin pregnancy", "genetic counseling"]
+ageRestrictions: "9 weeks gestational age or later"
+---
+
 Medical Necessity Criteria
 
 -   Prenatal screening using cell-free DNA (cfDNA) should occur only

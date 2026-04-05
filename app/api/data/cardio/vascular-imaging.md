@@ -1,3 +1,18 @@
+---
+title: "Vascular Imaging"
+domain: "cardio"
+specialty: ["radiology", "vascular surgery", "interventional radiology"]
+procedures:
+  - "CTA"
+  - "MRA"
+  - "duplex ultrasound"
+  - "vascular ultrasound"
+aliases: ["CT angiography", "MR angiography", "vascular CT", "vascular MRI"]
+relatedConditions: ["aneurysm", "carotid stenosis", "peripheral artery disease", "aortic dissection", "vasculitis"]
+priority: "high"
+keywords: ["TAVI", "TAVR", "intracranial aneurysm", "fibromuscular dysplasia"]
+---
+
 MEDICAL NECESSITY CRITERIA
 
 General clinical appropriateness requirements

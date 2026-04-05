@@ -1,3 +1,17 @@
+---
+title: "Endovascular Procedures"
+domain: "cardio"
+specialty: ["vascular surgery", "interventional radiology"]
+procedures:
+  - "peripheral angioplasty"
+  - "peripheral stenting"
+  - "atherectomy"
+aliases: ["peripheral vascular intervention", "lower extremity revascularization"]
+relatedConditions: ["peripheral artery disease", "claudication", "critical limb ischemia", "chronic limb-threatening ischemia"]
+priority: "high"
+keywords: ["PAD", "CLI", "CLTI", "optimal medical therapy", "structured exercise"]
+---
+
 MEDICAL NECESSITY CRITERIA
 
 General clinical requirements

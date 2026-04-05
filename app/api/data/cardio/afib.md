@@ -1,3 +1,19 @@
+---
+title: "Atrial Fibrillation Ablation"
+domain: "cardio"
+specialty: ["cardiology", "electrophysiology"]
+procedures:
+  - "pulmonary vein isolation"
+  - "catheter ablation"
+  - "AV node ablation"
+  - "accessory pathway ablation"
+aliases: ["afib ablation", "PVI", "atrial fib treatment", "AF ablation"]
+relatedConditions: ["atrial fibrillation", "paroxysmal atrial fibrillation", "persistent atrial fibrillation", "heart failure", "hypertrophic cardiomyopathy"]
+cpt_codes: ["93650", "93653", "93655", "93656", "93657"]
+priority: "high"
+keywords: ["rhythm control", "antiarrhythmic", "electrophysiology study", "tachycardia"]
+---
+
 Medical Necessity Criteria
 
 General clinical appropriateness requirements

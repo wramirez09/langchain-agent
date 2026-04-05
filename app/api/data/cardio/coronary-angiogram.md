@@ -1,3 +1,16 @@
+---
+title: "Coronary Angiography"
+domain: "cardio"
+specialty: ["cardiology", "interventional cardiology"]
+procedures:
+  - "coronary angiography"
+  - "cardiac catheterization"
+aliases: ["coronary angiogram", "cardiac cath", "heart catheterization"]
+relatedConditions: ["coronary artery disease", "chest pain", "angina", "myocardial infarction", "unstable angina"]
+priority: "high"
+keywords: ["CAD", "stenosis", "CCTA", "PCI", "CABG", "GDMT"]
+---
+
 MEDICAL NECESSITY CRITERIA
 
 General clinical appropriateness framework

@@ -32,7 +32,7 @@ export class CommercialGuidelineSearchTool extends StructuredTool<typeof Commerc
   
   description = `Search commercial guidelines for prior authorization requirements using structured inputs.
 
-This tool performs deterministic search across commercial guideline documents to find relevant authorization criteria.
+This tool performs deterministic search across commercial guideline documents to find relevant authorization criteria with enhanced metadata matching.
 
 **When to use:**
 - User asks about commercial insurance authorization requirements
@@ -40,9 +40,15 @@ This tool performs deterministic search across commercial guideline documents to
 - Need to find coverage criteria for commercial payers
 
 **How it works:**
-- Exact matching on CPT and ICD-10 codes (highest priority)
+- Exact matching on CPT and ICD-10 codes (+10 points each, highest priority)
+- Procedure name matching (+8 points per match)
+- Alias/alternative name matching (+6 points per match)
+- Specialty matching (+5 points per match)
+- Related condition matching (+4 points per match)
+- Payer-specific notes matching (+3 points)
+- Priority document boosting (+1-2 points)
 - Keyword overlap scoring for treatment and diagnosis
-- Domain filtering (cardio, genetic, etc.)
+- Domain filtering (cardio, genetic, musculoskeletal, etc.)
 - Returns ranked results with match explanations
 
 **Input fields:**
@@ -51,13 +57,13 @@ This tool performs deterministic search across commercial guideline documents to
 - diagnosis: Diagnosis description (optional)
 - cpt: CPT code(s) for exact matching (optional, e.g., "72148")
 - icd10: ICD-10 code(s) for exact matching (optional, e.g., "M54.16")
-- domain: Domain filter (optional, e.g., "cardio", "genetic")
-- payer: Payer name (optional)
+- domain: Domain filter (optional, e.g., "cardio", "genetic", "muscle")
+- payer: Payer name (optional, e.g., "commercial", "medicare")
 - maxResults: Number of results (optional, default: 5)
 
 **Output:**
 Returns structured JSON with topMatches and relatedMatches, each containing:
-- title, score, domain, matchedOn (signals), excerpt
+- title, score, domain, matchedOn (signals), excerpt, cptCodes, icd10Codes
 
 **CRITICAL CONFIDENTIALITY:**
 Never mention specific data sources, tool names, URLs, file names, folder names, or document references in your response.

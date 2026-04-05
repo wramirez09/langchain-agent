@@ -1,3 +1,17 @@
+---
+title: "Patent Foramen Ovale Closure"
+domain: "cardio"
+specialty: ["cardiology", "interventional cardiology", "structural heart"]
+procedures:
+  - "PFO closure"
+  - "transcatheter PFO closure"
+aliases: ["patent foramen ovale closure", "PFO device closure"]
+relatedConditions: ["cryptogenic stroke", "embolic stroke", "patent foramen ovale", "atrial septal aneurysm"]
+priority: "medium"
+keywords: ["RoPE score", "paradoxical embolism", "anticoagulation"]
+ageRestrictions: "60 years or younger"
+---
+
 MEDICAL NECESSITY CRITERIA
 
 -   Percutaneous transcatheter closure of patent foramen ovale is

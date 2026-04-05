@@ -1,3 +1,18 @@
+---
+title: "Electrophysiology Study"
+domain: "cardio"
+specialty: ["cardiology", "electrophysiology"]
+procedures:
+  - "electrophysiology study"
+  - "EP study"
+  - "cardiac electrophysiology testing"
+aliases: ["EPS", "EP testing", "invasive cardiac electrophysiology"]
+relatedConditions: ["syncope", "arrhythmia", "sudden cardiac death", "ventricular tachycardia", "preexcitation", "WPW syndrome", "cardiac sarcoidosis", "myotonic dystrophy"]
+cpt_codes: ["93600", "93602", "93603", "93609", "93610", "93612", "93613", "93618", "93619", "93620", "93621", "93622", "93623", "93624", "93642", "93644", "93662"]
+priority: "medium"
+keywords: ["ICD candidacy", "LVEF", "bifascicular block", "congenital heart disease"]
+---
+
 MEDICAL NECESSITY CRITERIA
 
 -   The study is considered medically necessary only when the patient

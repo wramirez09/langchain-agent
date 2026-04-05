@@ -1,3 +1,18 @@
+---
+title: "Cardiac Resynchronization Therapy"
+domain: "cardio"
+specialty: ["cardiology", "electrophysiology", "heart failure"]
+procedures:
+  - "CRT implantation"
+  - "CRT-D"
+  - "CRT-P"
+  - "biventricular pacemaker"
+aliases: ["CRT", "biventricular pacing", "cardiac resynchronization"]
+relatedConditions: ["heart failure", "left bundle branch block", "cardiomyopathy", "atrial fibrillation"]
+priority: "high"
+keywords: ["LVEF", "QRS duration", "NYHA class", "LBBB", "GDMT", "biventricular capture"]
+---
+
 MEDICAL NECESSITY: BASIC SCREEN
 
 -   Confirm the request is for standard CRT, not wireless CRT. Wireless

@@ -1,3 +1,17 @@
+---
+title: "Percutaneous Coronary Intervention"
+domain: "cardio"
+specialty: ["cardiology", "interventional cardiology"]
+procedures:
+  - "percutaneous coronary intervention"
+  - "coronary stenting"
+  - "balloon angioplasty"
+aliases: ["PCI", "coronary angioplasty", "stent placement"]
+relatedConditions: ["coronary artery disease", "myocardial infarction", "angina", "acute coronary syndrome"]
+priority: "high"
+keywords: ["FFR", "iFR", "SYNTAX score", "GDMT", "stenosis", "revascularization"]
+---
+
 MEDICAL NECESSITY CRITERIA
 
 1.  General clinical appropriateness framework

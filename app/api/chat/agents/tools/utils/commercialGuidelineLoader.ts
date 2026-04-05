@@ -2,6 +2,7 @@ import { DirectoryLoader } from "langchain/document_loaders/fs/directory";
 import { TextLoader } from "langchain/document_loaders/fs/text";
 import path from "path";
 import crypto from "crypto";
+import matter from "gray-matter";
 import {
   CommercialGuidelineDoc,
   inferDomainFromFolder,
@@ -108,22 +109,52 @@ export async function loadCommercialGuidelines(): Promise<CommercialGuidelineDoc
         const fileName = path.basename(filePath);
         const folderName = path.basename(path.dirname(filePath));
         
-        // Infer metadata from filename and folder
-        const domain = inferDomainFromFolder(folderName);
-        const title = inferTitleFromFilename(fileName);
+        // Parse YAML front matter if present (only for .md files)
+        let frontMatter: Record<string, any> = {};
+        let bodyContent = doc.pageContent;
+        
+        if (fileName.endsWith('.md')) {
+          try {
+            const parsed = matter(doc.pageContent);
+            frontMatter = parsed.data;
+            bodyContent = parsed.content; // Content without front matter
+          } catch (error) {
+            console.warn(`[CommercialGuidelineLoader] Failed to parse front matter for ${fileName}:`, error);
+            // Fall back to using full content if parsing fails
+          }
+        }
+        
+        // Infer metadata from filename and folder (used as fallback)
+        const inferredDomain = inferDomainFromFolder(folderName);
+        const inferredTitle = inferTitleFromFilename(fileName);
         const filenameKeywords = extractKeywordsFromFilename(fileName);
         
-        // Extract codes from content
-        const cptCodes = extractCPTCodes(doc.pageContent);
-        const icd10Codes = extractICD10Codes(doc.pageContent);
+        // Extract codes from content (body without front matter)
+        const contentCptCodes = extractCPTCodes(bodyContent);
+        const contentIcd10Codes = extractICD10Codes(bodyContent);
         
         // Extract keywords from content
-        const contentKeywords = extractContentKeywords(doc.pageContent);
+        const contentKeywords = extractContentKeywords(bodyContent);
         
-        // Combine filename and content keywords
-        const allTags = [...new Set([...filenameKeywords, ...contentKeywords])];
+        // Merge front matter with auto-extracted metadata
+        // Front matter takes precedence when present
+        const title = frontMatter.title || inferredTitle;
+        const domain = frontMatter.domain || inferredDomain;
         
-        return {
+        // Combine CPT codes from front matter and content
+        const frontMatterCptCodes = frontMatter.cpt_codes || frontMatter.cptCodes || [];
+        const cptCodes = [...new Set([...frontMatterCptCodes, ...contentCptCodes])];
+        
+        // Combine ICD-10 codes from front matter and content
+        const frontMatterIcd10Codes = frontMatter.icd10_codes || frontMatter.icd10Codes || [];
+        const icd10Codes = [...new Set([...frontMatterIcd10Codes, ...contentIcd10Codes])];
+        
+        // Combine keywords from front matter, filename, and content
+        const frontMatterKeywords = frontMatter.keywords || [];
+        const allTags = [...new Set([...frontMatterKeywords, ...filenameKeywords, ...contentKeywords])];
+        
+        // Build the document with all metadata
+        const docData: CommercialGuidelineDoc = {
           id: generateDocId(filePath),
           title,
           treatment: title,
@@ -132,11 +163,40 @@ export async function loadCommercialGuidelines(): Promise<CommercialGuidelineDoc
           sourceType: "commercial-guideline" as const,
           path: filePath,
           fileName,
-          body: doc.pageContent,
+          body: bodyContent, // Use content without front matter
           cptCodes,
           icd10Codes,
           tags: allTags,
         };
+        
+        // Add optional front matter fields if present
+        if (frontMatter.specialty) {
+          docData.specialty = Array.isArray(frontMatter.specialty) ? frontMatter.specialty : [frontMatter.specialty];
+        }
+        if (frontMatter.procedures) {
+          docData.procedures = Array.isArray(frontMatter.procedures) ? frontMatter.procedures : [frontMatter.procedures];
+        }
+        if (frontMatter.aliases) {
+          docData.aliases = Array.isArray(frontMatter.aliases) ? frontMatter.aliases : [frontMatter.aliases];
+        }
+        if (frontMatter.relatedConditions || frontMatter.related_conditions) {
+          const conditions = frontMatter.relatedConditions || frontMatter.related_conditions;
+          docData.relatedConditions = Array.isArray(conditions) ? conditions : [conditions];
+        }
+        if (frontMatter.ageRestrictions || frontMatter.age_restrictions) {
+          docData.ageRestrictions = frontMatter.ageRestrictions || frontMatter.age_restrictions;
+        }
+        if (frontMatter.payerNotes || frontMatter.payer_notes) {
+          docData.payerNotes = frontMatter.payerNotes || frontMatter.payer_notes;
+        }
+        if (frontMatter.lastUpdated || frontMatter.last_updated) {
+          docData.lastUpdated = frontMatter.lastUpdated || frontMatter.last_updated;
+        }
+        if (frontMatter.priority) {
+          docData.priority = frontMatter.priority;
+        }
+        
+        return docData;
       });
       
       const elapsed = ((Date.now() - startTime) / 1000).toFixed(2);
@@ -144,13 +204,18 @@ export async function loadCommercialGuidelines(): Promise<CommercialGuidelineDoc
       
       // Log sample for debugging
       if (docs.length > 0) {
+        const sample = docs[0];
         console.log(`[CommercialGuidelineLoader] Sample document:`, {
-          id: docs[0].id,
-          title: docs[0].title,
-          domain: docs[0].domain,
-          cptCodes: docs[0].cptCodes.slice(0, 3),
-          icd10Codes: docs[0].icd10Codes.slice(0, 3),
-          tags: docs[0].tags.slice(0, 5),
+          id: sample.id,
+          title: sample.title,
+          domain: sample.domain,
+          cptCodes: sample.cptCodes.slice(0, 3),
+          icd10Codes: sample.icd10Codes.slice(0, 3),
+          tags: sample.tags.slice(0, 5),
+          hasSpecialty: !!sample.specialty,
+          hasProcedures: !!sample.procedures,
+          hasAliases: !!sample.aliases,
+          priority: sample.priority,
         });
       }
       

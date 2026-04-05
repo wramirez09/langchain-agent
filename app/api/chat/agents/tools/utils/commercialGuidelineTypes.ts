@@ -21,6 +21,16 @@ export interface CommercialGuidelineDoc {
   icd10Codes: string[];          // extracted from content
   tags: string[];                // keywords from filename and content
   
+  // Optional front matter metadata (from YAML front matter):
+  specialty?: string[];          // e.g., ["orthopedic", "spine", "neurosurgery"]
+  procedures?: string[];         // e.g., ["cervical disc arthroplasty", "lumbar laminectomy"]
+  aliases?: string[];            // alternative names for treatment
+  relatedConditions?: string[];  // common diagnoses associated with this guideline
+  ageRestrictions?: string;      // e.g., "18-60 for lumbar arthroplasty"
+  payerNotes?: Record<string, string>;  // payer-specific guidance (e.g., { "commercial": "...", "medicare": "..." })
+  lastUpdated?: string;          // ISO date string
+  priority?: "high" | "medium" | "low";  // document importance for ranking
+  
   // Optional structured sections (if parseable):
   sections?: {
     criteria?: string;

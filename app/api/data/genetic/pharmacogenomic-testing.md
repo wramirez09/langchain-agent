@@ -1,3 +1,17 @@
+---
+title: "Pharmacogenomic Testing"
+domain: "genetic"
+specialty: ["genetics", "pharmacology", "precision medicine"]
+procedures:
+  - "pharmacogenetic testing"
+  - "pharmacogenomic testing"
+  - "drug-gene interaction testing"
+aliases: ["PGx testing", "drug metabolism testing", "genotype-guided therapy"]
+relatedConditions: ["adverse drug reactions", "drug efficacy", "medication management"]
+priority: "medium"
+keywords: ["CYP2C19", "CYP2D6", "DPYD", "HLA-B", "G6PD", "CFTR", "clopidogrel", "fluorouracil"]
+---
+
 1.  MEDICAL NECESSITY CRITERIA
 
 General clinical appropriateness requirements

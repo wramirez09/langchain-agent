@@ -1,3 +1,17 @@
+---
+title: "Implantable Cardioverter Defibrillator"
+domain: "cardio"
+specialty: ["cardiology", "electrophysiology", "cardiac surgery"]
+procedures:
+  - "ICD implantation"
+  - "transvenous ICD"
+  - "subcutaneous ICD"
+aliases: ["ICD", "implantable defibrillator", "AICD"]
+relatedConditions: ["ventricular fibrillation", "ventricular tachycardia", "sudden cardiac death", "cardiomyopathy", "heart failure", "long QT syndrome", "Brugada syndrome", "hypertrophic cardiomyopathy"]
+priority: "high"
+keywords: ["LVEF", "cardiac arrest", "syncope", "NYHA class", "primary prevention"]
+---
+
 MEDICAL NECESSITY CRITERIA
 
 General clinical threshold

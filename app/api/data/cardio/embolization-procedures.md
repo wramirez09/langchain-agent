@@ -1,3 +1,19 @@
+---
+title: "Embolization Procedures"
+domain: "cardio"
+specialty: ["interventional radiology", "vascular surgery"]
+procedures:
+  - "prostate artery embolization"
+  - "splenic artery embolization"
+  - "TACE"
+  - "SIRT"
+  - "TAE"
+aliases: ["PAE", "transarterial chemoembolization", "radioembolization", "Y90"]
+relatedConditions: ["benign prostatic hypertrophy", "hepatocellular carcinoma", "liver metastases", "gastric varices"]
+priority: "medium"
+keywords: ["liver malignancy", "neuroendocrine tumor", "colorectal metastases"]
+---
+
 MEDICAL NECESSITY CRITERIA
 
 General clinical criteria for any requested intervention:

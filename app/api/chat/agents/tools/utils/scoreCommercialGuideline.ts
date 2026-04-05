@@ -212,6 +212,101 @@ export function scoreCommercialGuideline(
     }
   }
   
+  // +5 for specialty match (from front matter)
+  if (doc.specialty && doc.specialty.length > 0) {
+    const queryTokens = tokenize(input.query);
+    const treatmentTokens = input.treatment ? tokenize(input.treatment) : [];
+    const allInputTokens = [...queryTokens, ...treatmentTokens];
+    
+    const matchingSpecialties = doc.specialty.filter(spec =>
+      allInputTokens.some(token => normalize(spec).includes(token) || token.includes(normalize(spec)))
+    );
+    
+    if (matchingSpecialties.length > 0) {
+      score += matchingSpecialties.length * 5;
+      matchedOn.push(`specialty:${matchingSpecialties.join(",")}`);
+    }
+  }
+  
+  // +8 for procedure match (from front matter)
+  if (doc.procedures && doc.procedures.length > 0) {
+    const queryTokens = tokenize(input.query);
+    const treatmentTokens = input.treatment ? tokenize(input.treatment) : [];
+    const allInputTokens = [...queryTokens, ...treatmentTokens];
+    
+    const matchingProcedures = doc.procedures.filter(proc => {
+      const procNorm = normalize(proc);
+      return allInputTokens.some(token => procNorm.includes(token) || token.includes(procNorm)) ||
+             (input.treatment && keywordOverlap(proc, input.treatment) > 0.5);
+    });
+    
+    if (matchingProcedures.length > 0) {
+      score += matchingProcedures.length * 8;
+      matchedOn.push(`procedures:${matchingProcedures.join(",")}`);
+    }
+  }
+  
+  // +6 for alias match (from front matter)
+  if (doc.aliases && doc.aliases.length > 0) {
+    const treatmentNorm = input.treatment ? normalize(input.treatment) : "";
+    const queryNorm = normalize(input.query);
+    
+    const matchingAliases = doc.aliases.filter(alias => {
+      const aliasNorm = normalize(alias);
+      return (treatmentNorm && aliasNorm.includes(treatmentNorm)) ||
+             (treatmentNorm && treatmentNorm.includes(aliasNorm)) ||
+             queryNorm.includes(aliasNorm) ||
+             aliasNorm.includes(queryNorm);
+    });
+    
+    if (matchingAliases.length > 0) {
+      score += matchingAliases.length * 6;
+      matchedOn.push(`aliases:${matchingAliases.join(",")}`);
+    }
+  }
+  
+  // +4 for related condition match (from front matter)
+  if (doc.relatedConditions && doc.relatedConditions.length > 0 && input.diagnosis) {
+    const diagnosisNorm = normalize(input.diagnosis);
+    const diagnosis = input.diagnosis; // Type guard for closure
+    
+    const matchingConditions = doc.relatedConditions.filter(condition => {
+      const conditionNorm = normalize(condition);
+      return diagnosisNorm.includes(conditionNorm) ||
+             conditionNorm.includes(diagnosisNorm) ||
+             keywordOverlap(condition, diagnosis) > 0.4;
+    });
+    
+    if (matchingConditions.length > 0) {
+      score += matchingConditions.length * 4;
+      matchedOn.push(`relatedConditions:${matchingConditions.join(",")}`);
+    }
+  }
+  
+  // +3 for payer-specific notes match (from front matter)
+  if (doc.payerNotes && input.payer) {
+    const payerNorm = normalize(input.payer);
+    const matchingPayers = Object.keys(doc.payerNotes).filter(payer =>
+      normalize(payer).includes(payerNorm) || payerNorm.includes(normalize(payer))
+    );
+    
+    if (matchingPayers.length > 0) {
+      score += 3;
+      matchedOn.push(`payerNotes:${matchingPayers.join(",")}`);
+    }
+  }
+  
+  // Priority boost (from front matter)
+  if (doc.priority) {
+    if (doc.priority === "high") {
+      score += 2;
+      matchedOn.push("priority:high");
+    } else if (doc.priority === "medium") {
+      score += 1;
+      matchedOn.push("priority:medium");
+    }
+  }
+  
   return { score, matchedOn };
 }
 

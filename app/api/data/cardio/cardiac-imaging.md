@@ -1,3 +1,21 @@
+---
+title: "Cardiac Imaging"
+domain: "cardio"
+specialty: ["cardiology", "radiology", "nuclear medicine"]
+procedures:
+  - "coronary artery calcium scoring"
+  - "cardiac CT angiography"
+  - "cardiac MRI"
+  - "PET myocardial imaging"
+  - "myocardial perfusion imaging"
+  - "echocardiography"
+aliases: ["CCTA", "cardiac CT", "FFR-CT", "CAC scoring", "stress test imaging"]
+relatedConditions: ["coronary artery disease", "chest pain", "ischemia", "hypercholesterolemia", "heart failure"]
+cpt_codes: ["75571", "75572", "75573", "75574", "75580", "78429", "78430", "78431", "78432", "78433", "78451", "78452", "78453", "78454"]
+priority: "high"
+keywords: ["CAD", "ASCVD", "atherosclerosis", "cardiac risk assessment"]
+---
+
 RELEVANT CODES
 
 -   ICD-10:

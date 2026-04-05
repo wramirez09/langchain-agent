@@ -1,3 +1,18 @@
+---
+title: "Cancer Liquid Biopsy Testing"
+domain: "genetic"
+specialty: ["oncology", "molecular pathology"]
+procedures:
+  - "liquid biopsy"
+  - "cell-free DNA testing"
+  - "circulating tumor DNA testing"
+  - "NGS-based somatic profiling"
+aliases: ["ctDNA testing", "cfDNA testing", "blood-based tumor testing"]
+relatedConditions: ["non-small cell lung cancer", "biliary tract carcinoma", "metastatic breast cancer", "advanced malignancy"]
+priority: "medium"
+keywords: ["biomarker testing", "companion diagnostic", "PIK3CA", "ESR1", "actionable variants"]
+---
+
 MEDICAL NECESSITY CRITERIA
 
 -   General clinical appropriateness requirements

@@ -1,3 +1,18 @@
+---
+title: "Hereditary Cancer Genetic Testing"
+domain: "genetic"
+specialty: ["genetics", "oncology", "genetic counseling"]
+procedures:
+  - "hereditary cancer testing"
+  - "BRCA testing"
+  - "Lynch syndrome testing"
+  - "cancer gene panel testing"
+aliases: ["inherited cancer testing", "familial cancer testing", "cancer predisposition testing"]
+relatedConditions: ["hereditary breast and ovarian cancer", "Lynch syndrome", "familial adenomatous polyposis", "Peutz-Jeghers syndrome", "Cowden syndrome", "Li-Fraumeni syndrome"]
+priority: "high"
+keywords: ["BRCA1", "BRCA2", "APC", "MUTYH", "PTEN", "STK11", "genetic counseling"]
+---
+
 MEDICAL NECESSITY CRITERIA
 
 General clinical requirements
