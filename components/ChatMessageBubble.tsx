@@ -1,6 +1,6 @@
 import { cn } from "@/utils/cn";
 import type { Message } from "ai/react";
-import React, { useEffect, useRef, useState } from "react";
+import React, { useEffect, useState } from "react";
 import { motion } from "framer-motion";
 import ReactMarkdown from "react-markdown";
 import { Loader2 } from "lucide-react";
@@ -38,7 +38,6 @@ export function ChatMessageBubble(props: {
   const isUser = props.message.role === "user";
   const [displayContent, setDisplayContent] = useState("");
   const [loadingMsgIndex, setLoadingMsgIndex] = useState(0);
-  const messageEndRef = useRef<HTMLDivElement>(null);
 
   // Handle streaming content for AI messages
   useEffect(() => {
@@ -48,11 +47,6 @@ export function ChatMessageBubble(props: {
     }
     setDisplayContent(props.message.content);
   }, [props.message.content, isUser]);
-
-  // Auto-scroll to bottom when new content arrives
-  useEffect(() => {
-    messageEndRef.current?.scrollIntoView({ behavior: "smooth" });
-  }, [displayContent]);
 
   // Rotate loading messages every 3 seconds while waiting for initial response
   useEffect(() => {

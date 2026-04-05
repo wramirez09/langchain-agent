@@ -25,17 +25,17 @@ export default function AgentsPage() {
     <div className="flex h-full">
       <AppSidebar activeView={activeView} onViewChange={setActiveView} />
       <main className="flex-1 overflow-hidden bg-[#F8F9FB]">
-        <div className={activeView !== "auth" ? "hidden" : ""}>
+        <div className={activeView !== "auth" ? "hidden" : "h-full"}>
           <PriorAuthView
             onMessagesChange={setChatMessages}
             pendingMessage={pendingMessage}
             onPendingMessageConsumed={handlePendingMessageConsumed}
           />
         </div>
-        <div className={activeView !== "upload" ? "hidden" : ""}>
+        <div className={activeView !== "upload" ? "hidden" : "h-full"}>
           <UploadView onUploadComplete={handleUploadComplete} />
         </div>
-        <div className={activeView !== "export" ? "hidden" : ""}>
+        <div className={activeView !== "export" ? "hidden" : "h-full"}>
           <FileExportView messages={chatMessages} />
         </div>
       </main>

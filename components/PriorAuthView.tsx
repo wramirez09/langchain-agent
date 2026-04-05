@@ -4,7 +4,7 @@ import React, { useState, useCallback, useEffect, useRef, FormEvent } from "reac
 import { type Message } from "ai";
 import { useChat } from "ai/react";
 import { toast } from "sonner";
-import { Activity, AlertTriangle, BookOpen, ClipboardList, FileBarChart, FileText, LoaderCircle, MapPin, Send, Stethoscope, Trash2 } from "lucide-react";
+import { Activity, AlertTriangle, BookOpen, ClipboardList, FileBarChart, FileText, LoaderCircle, MapPin, Send, Stethoscope, Trash2, Repeat } from "lucide-react";
 import { IconSend2 } from "@tabler/icons-react";
 import { ChatMessageBubble } from "@/components/ChatMessageBubble";
 import { IntermediateStep } from "@/components/IntermediateStep";
@@ -35,7 +35,8 @@ export function PriorAuthView({
   onPendingMessageConsumed,
 }: PriorAuthViewProps) {
   const [activeTab, setActiveTab] = useState<"pre-auth" | "chat" | "input" | "output">("pre-auth");
-  const [sourcesForMessages, setSourcesForMessages] = useState<Record<string, any>>({});
+  const [isLayoutSwapped, setIsLayoutSwapped] = useState(false);
+  const [sourcesForMessages, setSourcesForMessages] = useState<Record<string, any>>({}); 
   const [formContent, setFormContent] = useState<Map<string, string>>(new Map());
   const [intermediateStepsLoading, setIntermediateStepsLoading] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
@@ -140,11 +141,11 @@ export function PriorAuthView({
     onMessagesChange?.(chat.messages);
   }, [chat.messages, onMessagesChange]);
 
-  // Auto-scroll to bottom on new messages
-  useEffect(() => {
-    const container = messagesContainerRef.current;
-    if (container) container.scrollTop = container.scrollHeight;
-  }, [chat.messages]);
+  // Auto-scroll to bottom on new messages - DISABLED to allow manual scrolling
+  // useEffect(() => {
+  //   const container = messagesContainerRef.current;
+  //   if (container) container.scrollTop = container.scrollHeight;
+  // }, [chat.messages]);
 
   // Consume pending message from upload flow
   useEffect(() => {
@@ -272,45 +273,73 @@ export function PriorAuthView({
 
       {/* Tabs — floating on gray background */}
       <div className="px-4 md:px-6 pt-4 pb-0 flex-shrink-0">
-        <div className="flex border-b border-gray-200">
-          {/* Mobile tabs: Pre-Auth | Chat | Output */}
-          {(["pre-auth", "chat", "output"] as const).map((tab) => (
+        <div className="flex items-center justify-between border-b border-gray-200">
+          <div className="flex">
+            {/* Mobile tabs: Pre-Auth | Chat | Output */}
+            {(["pre-auth", "chat", "output"] as const).map((tab) => (
+              <button
+                key={tab}
+                onClick={() => setActiveTab(tab)}
+                className={cn(
+                  "md:hidden px-3 py-3 text-sm font-medium border-b-2 -mb-px transition-colors",
+                  activeTab === tab
+                    ? "border-blue-600 text-blue-600"
+                    : "border-transparent text-gray-500 hover:text-gray-700",
+                )}
+              >
+                {tab === "pre-auth" ? "Pre-Auth" : tab.charAt(0).toUpperCase() + tab.slice(1)}
+              </button>
+            ))}
+            {/* Desktop tabs: Input | Output */}
             <button
-              key={tab}
-              onClick={() => setActiveTab(tab)}
+              onClick={() => setActiveTab("input")}
               className={cn(
-                "md:hidden px-3 py-3 text-sm font-medium border-b-2 -mb-px transition-colors",
-                activeTab === tab
+                "hidden md:block px-4 py-3 text-sm font-medium border-b-2 -mb-px transition-colors",
+                activeTab !== "output"
                   ? "border-blue-600 text-blue-600"
                   : "border-transparent text-gray-500 hover:text-gray-700",
               )}
             >
-              {tab === "pre-auth" ? "Pre-Auth" : tab.charAt(0).toUpperCase() + tab.slice(1)}
+              Input
             </button>
-          ))}
-          {/* Desktop tabs: Input | Output */}
-          <button
-            onClick={() => setActiveTab("input")}
-            className={cn(
-              "hidden md:block px-4 py-3 text-sm font-medium border-b-2 -mb-px transition-colors",
-              activeTab !== "output"
-                ? "border-blue-600 text-blue-600"
-                : "border-transparent text-gray-500 hover:text-gray-700",
-            )}
-          >
-            Input
-          </button>
-          <button
-            onClick={() => setActiveTab("output")}
-            className={cn(
-              "hidden md:block px-4 py-3 text-sm font-medium border-b-2 -mb-px transition-colors",
-              activeTab === "output"
-                ? "border-blue-600 text-blue-600"
-                : "border-transparent text-gray-500 hover:text-gray-700",
-            )}
-          >
-            Output
-          </button>
+            <button
+              onClick={() => setActiveTab("output")}
+              className={cn(
+                "hidden md:block px-4 py-3 text-sm font-medium border-b-2 -mb-px transition-colors",
+                activeTab === "output"
+                  ? "border-blue-600 text-blue-600"
+                  : "border-transparent text-gray-500 hover:text-gray-700",
+              )}
+            >
+              Output
+            </button>
+          </div>
+          
+          {/* Toggle Switch - Desktop only, inline with tabs, flush right */}
+          <div className="hidden md:flex items-center pb-3">
+            <button
+              onClick={() => setIsLayoutSwapped(!isLayoutSwapped)}
+              className="flex items-center gap-2.5 px-3 py-1.5 bg-white border border-gray-200 rounded-lg shadow-sm hover:bg-gray-50 transition-all duration-200 group"
+              title="Swap layout positions"
+            >
+              <span className={cn(
+                "text-xs font-medium transition-colors duration-200",
+                isLayoutSwapped ? "text-blue-600" : "text-gray-700"
+              )}>
+                Swap Layout
+              </span>
+              <div className={cn(
+                "relative w-9 h-5 rounded-full transition-all duration-300",
+                isLayoutSwapped ? "bg-blue-600" : "bg-gray-300"
+              )}>
+                <div className={cn(
+                  "absolute top-0.5 left-0.5 w-4 h-4 bg-white rounded-full shadow-sm transition-transform duration-300",
+                  isLayoutSwapped && "translate-x-4"
+                )}>
+                </div>
+              </div>
+            </button>
+          </div>
         </div>
       </div>
 
@@ -318,13 +347,16 @@ export function PriorAuthView({
       <div className="flex-1 overflow-hidden">
         {/* Desktop Input tab and mobile Pre-Auth/Chat tabs all share card layout */}
         {(activeTab === "pre-auth" || activeTab === "chat" || activeTab === "input") && (
-          <div className="h-full flex flex-col md:grid md:grid-cols-2 gap-4 md:gap-6 p-4 md:p-6 overflow-hidden">
+          <div className="h-full flex flex-col md:grid md:grid-cols-2 gap-4 md:gap-6 p-4 md:p-6 overflow-hidden relative">
 
             {/* Left card — Request Details (mobile: pre-auth tab only; desktop: always) */}
-            <div className={cn(
-              "flex-1 min-h-0 bg-white rounded-lg border border-gray-200 shadow-sm flex-col overflow-hidden",
-              activeTab === "pre-auth" ? "flex" : "hidden md:flex",
-            )}>
+            <div 
+              className={cn(
+                "flex flex-col flex-1 min-h-0 bg-white rounded-lg border border-gray-200 shadow-sm overflow-hidden",
+                activeTab !== "pre-auth" && "hidden md:flex",
+                isLayoutSwapped && "md:order-2"
+              )}
+            >
               <div className="px-6 pt-6 pb-2 flex-shrink-0">
                 <h3 className="text-sm font-semibold text-gray-900">Request Details</h3>
               </div>
@@ -522,10 +554,13 @@ export function PriorAuthView({
             </div>
 
             {/* Right card — Chat Assistant (mobile: chat tab only; desktop: always) */}
-            <div className={cn(
-              "flex-1 min-h-0 bg-white rounded-lg border border-gray-200 shadow-sm flex-col overflow-hidden",
-              activeTab === "chat" ? "flex" : "hidden md:flex",
-            )}>
+            <div 
+              className={cn(
+                "flex flex-col flex-1 min-h-0 bg-white rounded-lg border border-gray-200 shadow-sm overflow-hidden",
+                activeTab !== "chat" && "hidden md:flex",
+                isLayoutSwapped && "md:order-1"
+              )}
+            >
               <div className="px-6 py-4 border-b border-gray-100 flex items-center justify-between flex-shrink-0">
                 <h3 className="text-sm font-semibold text-gray-900">Chat Assistant</h3>
                 {chat.messages.length > 0 && (
@@ -541,7 +576,14 @@ export function PriorAuthView({
               </div>
 
               {/* Messages */}
-              <div ref={messagesContainerRef} className="flex-1 min-h-0 overflow-y-auto px-4 py-4 space-y-3">
+              <div 
+                ref={messagesContainerRef} 
+                className="flex-1 min-h-0 px-4 py-4 space-y-3"
+                style={{
+                  overflowY: 'scroll',
+                  maxHeight: '100%'
+                }}
+              >
                 {chat.messages.length === 0 ? (
                   <div className="flex flex-col items-center justify-center h-full text-center px-4 py-8">
                     <div className="size-10 bg-blue-100 rounded-full flex items-center justify-center mb-3">
