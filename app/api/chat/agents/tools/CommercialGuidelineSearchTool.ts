@@ -1,5 +1,5 @@
 import { StructuredTool } from "@langchain/core/tools";
-import { loadCommercialGuidelines } from "./utils/commercialGuidelineLoader";
+import { loadRelevantDocuments, getMetadataIndex } from "./utils/commercialGuidelineLoaderOptimized";
 import { scoreAndRankDocuments } from "./utils/scoreCommercialGuideline";
 import {
   CommercialGuidelineSearchInputSchema,
@@ -75,19 +75,20 @@ Use ONLY generic terms like "commercial guidelines", "proprietary criteria", or 
     console.log("[CommercialGuidelineSearchTool] Received input:", input);
     
     try {
-      // Load documents (cached after first load)
-      const docs = await loadCommercialGuidelines();
+      // Load only relevant documents based on metadata filtering
+      // This is much faster than loading all 58 documents
+      const docs = loadRelevantDocuments(input);
       
       if (docs.length === 0) {
         return JSON.stringify({
           query: input.query,
           topMatches: [],
           relatedMatches: [],
-          error: "No commercial guideline documents found in the system.",
+          error: "No matching commercial guideline documents found for the query criteria.",
         });
       }
       
-      console.log(`[CommercialGuidelineSearchTool] Searching ${docs.length} documents`);
+      console.log(`[CommercialGuidelineSearchTool] Searching ${docs.length} relevant documents`);
       
       // Score and rank documents using deterministic scoring
       const { topMatches, relatedMatches } = scoreAndRankDocuments(docs, input);
@@ -116,19 +117,16 @@ Use ONLY generic terms like "commercial guidelines", "proprietary criteria", or 
 }
 
 /**
- * Pre-load documents at module initialization time (singleton pattern)
- * This runs once when the module is first imported, not on every request
+ * Pre-load metadata index at module initialization time (singleton pattern)
+ * This is very fast (~0.02-0.05s) and only loads YAML front matter, not full content
+ * Full documents are loaded on-demand based on query criteria
  */
-const documentLoadPromise = loadCommercialGuidelines();
-documentLoadPromise.then(() => {
-  console.log("[CommercialGuidelineSearchTool] Documents pre-loaded at module initialization");
-}).catch((error) => {
-  console.error("[CommercialGuidelineSearchTool] Failed to pre-load documents:", error);
-});
+const metadataIndex = getMetadataIndex();
+console.log(`[CommercialGuidelineSearchTool] Metadata index loaded at module initialization: ${metadataIndex.length} documents`);
 
 /**
  * Factory function to create the tool instance
- * Documents are already loaded at module scope, so this returns immediately
+ * Metadata is already indexed at module scope, so this returns immediately
  */
 export function createCommercialGuidelineSearchTool(): CommercialGuidelineSearchTool {
   return new CommercialGuidelineSearchTool();
