@@ -116,13 +116,20 @@ Use ONLY generic terms like "commercial guidelines", "proprietary criteria", or 
 }
 
 /**
- * Factory function to create the tool instance
- * Maintains compatibility with existing code that uses createCommercialGuidelineSearchTool()
+ * Pre-load documents at module initialization time (singleton pattern)
+ * This runs once when the module is first imported, not on every request
  */
-export async function createCommercialGuidelineSearchTool(): Promise<CommercialGuidelineSearchTool> {
-  // Pre-load documents to warm the cache
-  console.log("[CommercialGuidelineSearchTool] Pre-loading documents...");
-  await loadCommercialGuidelines();
-  
+const documentLoadPromise = loadCommercialGuidelines();
+documentLoadPromise.then(() => {
+  console.log("[CommercialGuidelineSearchTool] Documents pre-loaded at module initialization");
+}).catch((error) => {
+  console.error("[CommercialGuidelineSearchTool] Failed to pre-load documents:", error);
+});
+
+/**
+ * Factory function to create the tool instance
+ * Documents are already loaded at module scope, so this returns immediately
+ */
+export function createCommercialGuidelineSearchTool(): CommercialGuidelineSearchTool {
   return new CommercialGuidelineSearchTool();
 }

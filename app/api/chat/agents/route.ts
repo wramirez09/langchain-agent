@@ -76,8 +76,8 @@ export async function POST(req: NextRequest) {
       .map(convertVercelMessageToLangChainMessage);
 
     /* ---------- TOOLS ---------- */
-    // Initialize commercial guideline search tool
-    const commercialGuidelineTool = await createCommercialGuidelineSearchTool();
+    // Initialize commercial guideline search tool (documents pre-loaded at module scope)
+    const commercialGuidelineTool = createCommercialGuidelineSearchTool();
     
     const tools = [
       new SerpAPI(),

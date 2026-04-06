@@ -596,24 +596,11 @@ export function ChatWindow(props: {
       const userMessage = chat.input;
       chat.setInput("");
 
-      // Append the user message
+      // Append the user message (this handles the API call internally)
       await chat.append({
         role: "user",
         content: userMessage,
       });
-
-      const response = await fetch(props.endpoint, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          messages: chat.messages,
-        }),
-        signal: abortController.signal,
-      });
-
-      // ... rest of your try block ...
 
     } catch (error: any) {
       // Don't show error if request was aborted

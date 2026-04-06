@@ -6,7 +6,7 @@ export const llmAgent = () => new ChatOpenAI({
   maxRetries: 2,
   maxConcurrency: 3,
   timeout: 60000,
-  streaming: false,
+  streaming: true,
 });
 
 // For summarization and data extraction - using GPT-4o for consistency

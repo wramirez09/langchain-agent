@@ -202,22 +202,6 @@ export async function loadCommercialGuidelines(): Promise<CommercialGuidelineDoc
       const elapsed = ((Date.now() - startTime) / 1000).toFixed(2);
       console.log(`[CommercialGuidelineLoader] Loaded ${docs.length} documents in ${elapsed}s`);
       
-      // Log sample for debugging
-      if (docs.length > 0) {
-        const sample = docs[0];
-        console.log(`[CommercialGuidelineLoader] Sample document:`, {
-          id: sample.id,
-          title: sample.title,
-          domain: sample.domain,
-          cptCodes: sample.cptCodes.slice(0, 3),
-          icd10Codes: sample.icd10Codes.slice(0, 3),
-          tags: sample.tags.slice(0, 5),
-          hasSpecialty: !!sample.specialty,
-          hasProcedures: !!sample.procedures,
-          hasAliases: !!sample.aliases,
-          priority: sample.priority,
-        });
-      }
       
       // Cache the results
       docsCache = docs;
