@@ -84,10 +84,13 @@ export function loadRelevantDocuments(input: CommercialGuidelineSearchInput): Co
     diagnosis: input.diagnosis,
   });
   
-  console.log(`[OptimizedLoader] Filtered from ${metadataIndex.length} to ${filteredMetadata.length} candidates based on metadata`);
+  // Fallback: if no matches, use all documents (filtering was too strict)
+  const candidateMetadata = filteredMetadata.length > 0 ? filteredMetadata : metadataIndex;
+  
+  console.log(`[OptimizedLoader] Filtered from ${metadataIndex.length} to ${candidateMetadata.length} candidates based on metadata`);
   
   // Step 2: Load full documents only for filtered candidates
-  const fullDocs = filteredMetadata.map(metadata => loadFullDocument(metadata));
+  const fullDocs = candidateMetadata.map(metadata => loadFullDocument(metadata));
   
   const elapsed = ((Date.now() - startTime) / 1000).toFixed(2);
   console.log(`[OptimizedLoader] Loaded ${fullDocs.length} full documents in ${elapsed}s`);

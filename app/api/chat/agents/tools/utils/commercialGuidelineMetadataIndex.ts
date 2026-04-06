@@ -110,7 +110,7 @@ function scanDirectoryForMetadata(dir: string): DocumentMetadata[] {
           metadata.keywords = Array.isArray(frontMatter.keywords) ? frontMatter.keywords : [frontMatter.keywords];
         }
         if (frontMatter.priority) {
-          metadata.priority = frontMatter.priority;
+          metadata.priority = frontMatter.priority as string;
         }
         
         results.push(metadata);
