@@ -1,0 +1,16 @@
+{
+  "functions": {
+    "app/api/chat/agents/route.ts": {
+      "maxDuration": 180
+    },
+    "app/api/chat/route.ts": {
+      "maxDuration": 180
+    },
+    "app/api/chat/retrieval/route.ts": {
+      "maxDuration": 180
+    },
+    "app/api/chat/retrieval_agents/route.ts": {
+      "maxDuration": 180
+    }
+  }
+}

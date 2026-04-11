@@ -149,8 +149,7 @@ These Terms are governed by the laws of the United States, without regard to con
 ## 16. Contact Information
 
 For questions about these Terms, please contact us at:
-- Email: support@mediauth.pro
-- Address: [Your Business Address]
+- Email: [support@mediauth.pro](mailto:support@mediauth.pro)
 
 ---
 
@@ -292,7 +291,7 @@ If you are a California resident, you have additional rights under the Californi
 - Right to request deletion of personal information
 - Right to non-discrimination for exercising your rights
 
-To exercise these rights, contact us at privacy@mediauth.pro.
+To exercise these rights, contact us at [privacy@mediauth.pro](mailto:privacy@mediauth.pro).
 
 ## 12. European Privacy Rights
 
@@ -305,7 +304,7 @@ If you are in the European Economic Area (EEA), you have rights under the Genera
 - Right to object to processing
 - Right to withdraw consent
 
-To exercise these rights, contact us at privacy@mediauth.pro.
+To exercise these rights, contact us at [privacy@mediauth.pro](mailto:privacy@mediauth.pro).
 
 ## 13. Changes to This Privacy Policy
 
@@ -324,8 +323,8 @@ In the event of a data breach that affects your personal information, we will no
 
 For questions or concerns about this Privacy Policy or our data practices, please contact us:
 
-- **Email:** privacy@mediauth.pro
-- **Support:** support@mediauth.pro
+- **Email:** [privacy@mediauth.pro](mailto:privacy@mediauth.pro)
+- **Support:** [support@mediauth.pro](mailto:support@mediauth.pro)
 - **Address:** [Your Business Address]
 
 ## 16. Consent
@@ -347,7 +346,7 @@ This Agreement is between you and NOTEDOCTOR.AI LLC ("AI") and describes the ter
 
 BY ACCEPTING THIS AGREEMENT, YOU AGREE TO THESE TERMS AND CONDITIONS. IF YOU DO NOT AGREE, YOU MAY NOT USE THE SERVICES. IN THE EVENT YOU REJECT THIS AGREEMENT WITHIN TEN (10) DAYS OF PURCHASE, YOU MAY REQUEST A FULL REFUND.
 
-For complete terms, please contact sales@notedoctor.ai
+For complete terms, please contact [sales@notedoctor.ai](mailto:sales@notedoctor.ai)
 
 This is a comprehensive subscription agreement covering service usage, payment terms, confidentiality, warranties, indemnification, and AI-specific supplemental terms including provisions for artificial intelligence features and acceptable use policies.
 `;

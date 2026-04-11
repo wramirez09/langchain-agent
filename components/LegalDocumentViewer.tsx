@@ -46,6 +46,17 @@ export function LegalDocumentViewer({ content, className }: LegalDocumentViewerP
           blockquote: ({ ...props }) => (
             <blockquote className="border-l-4 border-blue-500 pl-4 italic text-gray-700 my-4" {...props} />
           ),
+          a: ({ href, ...props }) => {
+            const isEmail = href?.startsWith('mailto:') || (href && /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(href));
+            const mailtoHref = isEmail && !href?.startsWith('mailto:') ? `mailto:${href}` : href;
+            return (
+              <a 
+                href={mailtoHref} 
+                className="text-blue-600 hover:underline font-medium"
+                {...props} 
+              />
+            );
+          },
         }}
       >
         {content}
