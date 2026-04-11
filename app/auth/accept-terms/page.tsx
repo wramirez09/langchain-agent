@@ -1,12 +1,12 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useEffect, useState, Suspense } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { TermsAcceptanceForm } from '@/components/TermsAcceptanceForm';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { LoaderCircle } from 'lucide-react';
 
-export default function AcceptTermsPage() {
+function AcceptTermsContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const [email, setEmail] = useState('');
@@ -90,5 +90,17 @@ export default function AcceptTermsPage() {
         </Card>
       </div>
     </div>
+  );
+}
+
+export default function AcceptTermsPage() {
+  return (
+    <Suspense fallback={
+      <div className="min-h-screen flex items-center justify-center">
+        <LoaderCircle className="animate-spin h-8 w-8 text-blue-600" />
+      </div>
+    }>
+      <AcceptTermsContent />
+    </Suspense>
   );
 }

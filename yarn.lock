@@ -4866,12 +4866,21 @@ __metadata:
   languageName: node
   linkType: hard
 
-"baseline-browser-mapping@npm:^2.9.0, baseline-browser-mapping@npm:^2.9.19":
+"baseline-browser-mapping@npm:^2.9.0":
   version: 2.9.19
   resolution: "baseline-browser-mapping@npm:2.9.19"
   bin:
     baseline-browser-mapping: dist/cli.js
   checksum: 5a9979a501f43d06188d6b4c1e5d540b3c5104d03439603af4bda0f1698b60ae2a44180fb7bdaeb9eea5118eb484a34e454211eb8cf0d104809fc668a0b2eb18
+  languageName: node
+  linkType: hard
+
+"baseline-browser-mapping@npm:latest":
+  version: 2.10.18
+  resolution: "baseline-browser-mapping@npm:2.10.18"
+  bin:
+    baseline-browser-mapping: dist/cli.cjs
+  checksum: 89ea23fd68ebb11621af7df3d82984ed1249de361f7f609216bc9a4f38993a6635598d78e6cb674bf24d043ac948806947ed9692842dd08a8e5f85981f490270
   languageName: node
   linkType: hard
 
@@ -8226,7 +8235,7 @@ __metadata:
     ai: ^3.1.12
     autoprefixer: 10.4.14
     axios: ^1.11.0
-    baseline-browser-mapping: ^2.9.19
+    baseline-browser-mapping: latest
     button: ^1.1.1
     cheerio: ^1.0.0
     class-variance-authority: ^0.7.1
