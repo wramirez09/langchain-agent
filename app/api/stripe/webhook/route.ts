@@ -109,6 +109,11 @@ export async function POST(req: Request) {
 
                 userId = data.user.id;
 
+                /* --- Get terms acceptance from Stripe customer metadata -- */
+                const customer = await stripe.customers.retrieve(stripeCustomerId);
+                const termsAccepted = 
+                    (customer as any).metadata?.terms_accepted === 'true' ? true : null;
+
                 await supabaseAdmin.from("profiles").insert({
                     id: userId,
                     email,
@@ -116,6 +121,7 @@ export async function POST(req: Request) {
                     is_active:
                         normalized.status === "active" ||
                         normalized.status === "trialing",
+                    term_of_agreement: termsAccepted,
                 });
             }
 
