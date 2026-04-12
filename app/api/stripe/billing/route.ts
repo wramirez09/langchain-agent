@@ -54,6 +54,25 @@ export async function POST() {
 
         const customerId = profile.stripe_customer_id;
         console.log("Creating billing portal for customer:", customerId);
+        
+        // Verify customer exists in Stripe
+        try {
+            const customer = await stripe.customers.retrieve(customerId);
+            if (customer.deleted) {
+                console.error("Customer was deleted:", customerId);
+                return NextResponse.json(
+                    { error: "Your billing account has been deleted. Please contact support." },
+                    { status: 404 }
+                );
+            }
+            console.log("Customer verified:", customer.id);
+        } catch (customerError: any) {
+            console.error("Customer not found in Stripe:", customerError.message);
+            return NextResponse.json(
+                { error: `Customer not found in Stripe. Please contact support. (Customer ID: ${customerId})` },
+                { status: 404 }
+            );
+        }
 
         // 3. Create Stripe Billing Portal Session
         const returnUrl = process.env.STRIPE_BILLING_RETURN_URL || 
