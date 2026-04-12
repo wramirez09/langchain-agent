@@ -204,9 +204,9 @@ export function PriorAuthView({
     try {
       setChatInput("");
       await chat.append({ role: "user", content: combined });
-    } catch (error: any) {
-      if (error?.name !== "AbortError") {
-        toast.error("Failed to send message", { description: error?.message });
+    } catch (error) {
+      if ((error as any)?.name !== "AbortError") {
+        toast.error("Failed to send message", { description: (error as any)?.message });
       }
     } finally {
       clearTimeouts();
@@ -230,8 +230,8 @@ export function PriorAuthView({
 
     try {
       await chat.append({ role: "user", content: message });
-    } catch (error: any) {
-      if (error?.name !== "AbortError") {
+    } catch (error) {
+      if ((error as any)?.name !== "AbortError") {
         toast.error("Failed to send message");
       }
     } finally {

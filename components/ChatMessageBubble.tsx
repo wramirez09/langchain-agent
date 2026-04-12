@@ -9,8 +9,11 @@ interface MarkdownRendererProps {
   content: string;
 }
 const MarkdownRenderer: React.FC<MarkdownRendererProps> = ({ content }) => {
+  // Track current section as we render (using object to allow mutation during render)
+  const sectionTracker = { current: null as 'medical-necessity-zone' | 'exclusions' | 'summary' | 'relevant-codes' | null };
+  
   // Helper to detect section context from content
-  const getSectionContext = (position: number): 'required-documentation' | 'medical-necessity' | 'exclusions' | 'summary' | 'relevant-codes' | null => {
+  const getSectionContext = (position: number): 'medical-necessity-zone' | 'exclusions' | 'summary' | 'relevant-codes' | null => {
     const beforeText = content.substring(Math.max(0, position - 1500), position).toLowerCase();
     
     // Find the last occurrence of each section marker
@@ -28,11 +31,13 @@ const MarkdownRenderer: React.FC<MarkdownRendererProps> = ({ content }) => {
     );
     const lastRelevantCodesIndex = beforeText.lastIndexOf('relevant codes');
     
+    // Medical Necessity Zone: from "Medical Necessity Criteria" OR "Required Documentation" until "Relevant Codes"
+    const medNecZoneStart = Math.max(lastMedNecIndex, lastReqDocIndex);
+    
     // Determine which section we're in based on the most recent section header
-    const sectionIndices: Array<{ index: number; type: 'required-documentation' | 'medical-necessity' | 'exclusions' | 'summary' | 'relevant-codes' | null }> = [
+    const sectionIndices: Array<{ index: number; type: 'medical-necessity-zone' | 'exclusions' | 'summary' | 'relevant-codes' | null }> = [
       { index: lastSummaryIndex, type: 'summary' },
-      { index: lastMedNecIndex, type: 'medical-necessity' },
-      { index: lastReqDocIndex, type: 'required-documentation' },
+      { index: medNecZoneStart, type: 'medical-necessity-zone' },
       { index: lastExclIndex, type: 'exclusions' },
       { index: lastRelevantCodesIndex, type: 'relevant-codes' },
     ];
@@ -60,14 +65,32 @@ const MarkdownRenderer: React.FC<MarkdownRendererProps> = ({ content }) => {
           strong: ({ children, ...props }) => {
             const text = String(children).toLowerCase();
             
-            // Style Medical Necessity Criteria header in green
+            // Update section tracking and style Medical Necessity Criteria header in green
             if (text.includes('medical necessity criteria')) {
+              sectionTracker.current = 'medical-necessity-zone';
               return <strong {...props} className="text-green-700 font-semibold">{children}</strong>;
             }
             
-            // Style Limitations and Exclusions header in red
+            // Update section tracking and style Required Documentation header in green
+            if (text.includes('required documentation')) {
+              sectionTracker.current = 'medical-necessity-zone';
+              return <strong {...props} className="text-green-700 font-semibold">{children}</strong>;
+            }
+            
+            // Update section tracking for Relevant Codes
+            if (text.includes('relevant codes')) {
+              sectionTracker.current = 'relevant-codes';
+            }
+            
+            // Update section tracking and style Limitations and Exclusions header in red
             if (text.includes('limitations and exclusions') || text.includes('limitations') && text.includes('exclusions')) {
+              sectionTracker.current = 'exclusions';
               return <strong {...props} className="text-red-700 font-semibold">{children}</strong>;
+            }
+            
+            // Update section tracking for Summary
+            if (text.includes('summary report') || text.includes('summary')) {
+              sectionTracker.current = 'summary';
             }
             
             // Render all other strong/bold text as default markdown
@@ -119,32 +142,20 @@ const MarkdownRenderer: React.FC<MarkdownRendererProps> = ({ content }) => {
               }
             }
             
-            const context = position >= 0 ? getSectionContext(position) : null;
+            // Try to detect context from position, fallback to sectionTracker.current
+            const context = position >= 0 ? getSectionContext(position) : sectionTracker.current;
             
-            // Required Documentation section - checkboxes only
-            if (context === 'required-documentation') {
+            // Medical Necessity Zone (Medical Necessity Criteria + Required Documentation until Relevant Codes)
+            // Green text with green checkboxes
+            if (context === 'medical-necessity-zone') {
               return (
                 <li {...props} className="flex items-start gap-2">
                   <input 
                     type="checkbox" 
-                    className="mt-1 h-4 w-4 flex-shrink-0 rounded border-gray-300 focus:ring-blue-500"
+                    className="mt-1 h-4 w-4 flex-shrink-0 rounded border-green-400 text-green-600 focus:ring-green-500"
                     disabled
                   />
-                  <span>{children}</span>
-                </li>
-              );
-            }
-            
-            // Medical Necessity Criteria section - green text with checkboxes (until Relevant Codes)
-            if (context === 'medical-necessity') {
-              return (
-                <li {...props} className="flex items-start gap-2 text-green-700">
-                  <input 
-                    type="checkbox" 
-                    className="mt-1 h-4 w-4 flex-shrink-0 rounded border-gray-300 focus:ring-blue-500"
-                    disabled
-                  />
-                  <span>{children}</span>
+                  <span className="text-green-700">{children}</span>
                 </li>
               );
             }
@@ -187,17 +198,8 @@ export function ChatMessageBubble(props: {
   isLoading?: boolean;
 }) {
   const isUser = props.message.role === "user";
-  const [displayContent, setDisplayContent] = useState("");
+  const displayContent = props.message.content;
   const [loadingMsgIndex, setLoadingMsgIndex] = useState(0);
-
-  // Handle streaming content for AI messages
-  useEffect(() => {
-    if (isUser) {
-      setDisplayContent(props.message.content);
-      return;
-    }
-    setDisplayContent(props.message.content);
-  }, [props.message.content, isUser]);
 
   // Rotate loading messages every 3 seconds while waiting for initial response
   useEffect(() => {

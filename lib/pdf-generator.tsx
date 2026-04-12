@@ -42,9 +42,7 @@ const styles = StyleSheet.create({
     fontFamily: 'Helvetica-Bold',
     marginBottom: 4,
   },
-  userMessage: {
-    color: '#1e7dbf',
-  },
+  
   aiMessage: {
     color: '#333',
   },
@@ -98,7 +96,16 @@ const styles = StyleSheet.create({
   checkbox: {
     width: 10,
     height: 10,
-    border: '1px solid #4ade80',
+    border: '1.5px solid #9ca3af',
+    borderRadius: 2,
+    marginRight: 6,
+    marginTop: 2,
+    backgroundColor: '#ffffff',
+  },
+  redX: {
+    fontSize: 11,
+    color: '#b91c1c',
+    fontWeight: 'bold',
     marginRight: 6,
     marginTop: 2,
   },
@@ -128,89 +135,167 @@ interface PdfDocumentProps {
   logoBase64: string;
 }
 
-const PdfDocument: React.FC<PdfDocumentProps> = ({ name, role, messages, logoBase64 }) => (
-  <Document>
-    <Page style={styles.page}>
-      <View style={styles.header}>
-        <Image src={logoBase64} style={styles.logo} cache={false} />
-        <View>
-          <Text style={styles.companyName}>NoteDoctor.ai</Text>
-        </View>
-      </View>
+const PdfDocument: React.FC<PdfDocumentProps> = ({ name, role, messages, logoBase64 }) => {
+  console.log({messages})
+  // Helper to render a single message with section tracking
+  const renderMessage = (message: Message, index: number) => {
+    console.log({message})
+    // Track current section as we process lines (mimics sectionTracker from ChatMessageBubble)
+    const sectionTracker = { current: null as 'medical-necessity-zone' | 'exclusions' | 'summary' | 'relevant-codes' | null };
+    const lines = message.content.split('\n');
+    const renderedLines: JSX.Element[] = [];
 
-      {/* Messages */}
-      {messages.map((message, index) => {
-        // Track current section for styling
-        let currentSection: 'required-documentation' | 'medical-necessity' | 'exclusions' | 'summary' | null = null;
-        const lines = message.content.split('\n');
+    lines.forEach((line, i) => {
+      const lineLower = line.toLowerCase();
+      
+      // Process bold/strong text (section headers) - matches ChatMessageBubble strong component
+      if (line.includes('**')) {
+        const boldMatch = line.match(/\*\*([^*]+)\*\*/g);
+        if (boldMatch) {
+          boldMatch.forEach(bold => {
+            const text = bold.replace(/\*\*/g, '').toLowerCase();
+            
+            // Update section tracking and style Medical Necessity Criteria header in green
+            if (text.includes('medical necessity criteria')) {
+              sectionTracker.current = 'medical-necessity-zone';
+              renderedLines.push(
+                <Text key={`${i}-mednec`} style={[styles.heading4, styles.sectionHeaderGreen]}>
+                  {bold.replace(/\*\*/g, '')}
+                </Text>
+              );
+              return;
+            }
+            
+            // Update section tracking and style Required Documentation header in green
+            if (text.includes('required documentation')) {
+              sectionTracker.current = 'medical-necessity-zone';
+              renderedLines.push(
+                <Text key={`${i}-reqdoc`} style={[styles.heading4, styles.sectionHeaderGreen]}>
+                  {bold.replace(/\*\*/g, '')}
+                </Text>
+              );
+              return;
+            }
+            
+            // Update section tracking for Relevant Codes
+            if (text.includes('relevant codes')) {
+              sectionTracker.current = 'relevant-codes';
+              renderedLines.push(
+                <Text key={`${i}-relcodes`} style={styles.heading4}>
+                  {bold.replace(/\*\*/g, '')}
+                </Text>
+              );
+              return;
+            }
+            
+            // Update section tracking and style Limitations and Exclusions header in red
+            if (text.includes('limitations and exclusions') || (text.includes('limitations') && text.includes('exclusions'))) {
+              sectionTracker.current = 'exclusions';
+              renderedLines.push(
+                <Text key={`${i}-excl`} style={[styles.heading4, styles.sectionHeaderRed]}>
+                  {bold.replace(/\*\*/g, '')}
+                </Text>
+              );
+              return;
+            }
+            
+            // Update section tracking for Summary
+            if (text.includes('summary report') || text.includes('summary')) {
+              sectionTracker.current = 'summary';
+            }
+          });
+          return;
+        }
+      }
+      
+      // Handle markdown headers
+      if (line.startsWith('## ')) {
+        renderedLines.push(<Text key={i} style={styles.heading2}>{line.replace('## ', '')}</Text>);
+        return;
+      } else if (line.startsWith('### ')) {
+        renderedLines.push(<Text key={i} style={styles.heading3}>{line.replace('### ', '')}</Text>);
+        return;
+      } else if (line.startsWith('# ')) {
+        renderedLines.push(<Text key={i} style={styles.heading1}>{line.replace('# ', '')}</Text>);
+        return;
+      } else if (line.match(/^\s*[\-\*]\s+/)) {
+        // Handle bullets at any indentation level (matches ChatMessageBubble li component)
+        const content = line.replace(/^\s*[\-\*]\s+/, '');
+        const indentLevel = (line.match(/^\s*/)?.[0].length || 0) / 2;
         
-        return (
-          <View key={index} style={styles.messageContainer}>
-            <View style={styles.messageContent}>
-              {lines.map((line, i) => {
-                // Update section tracking
-                const lineLower = line.toLowerCase();
-                if (lineLower.includes('required documentation')) {
-                  currentSection = 'required-documentation';
-                } else if (lineLower.includes('medical necessity criteria')) {
-                  currentSection = 'medical-necessity';
-                } else if (lineLower.includes('limitations') || lineLower.includes('exclusions')) {
-                  currentSection = 'exclusions';
-                } else if (lineLower.includes('summary report') || lineLower.includes('## summary')) {
-                  currentSection = 'summary';
-                }
-
-                // Detect section headers
-                const isRequiredDoc = lineLower.includes('required documentation');
-                const isMedicalNecessity = lineLower.includes('medical necessity criteria');
-                const isExclusions = lineLower.includes('limitations') || lineLower.includes('exclusions');
-                const isSectionHeader = isRequiredDoc || isMedicalNecessity || isExclusions;
-
-                // Handle markdown headers and lists
-                if (isSectionHeader && line.startsWith('**') && line.endsWith('**')) {
-                  const headerStyle = (isRequiredDoc || isMedicalNecessity) ? styles.sectionHeaderGreen : styles.sectionHeaderRed;
-                  return <Text key={i} style={[styles.heading4, headerStyle]}>{line.replace(/\*\*/g, '')}</Text>;
-              } else if (line.startsWith('## ')) {
-                return <Text key={i} style={styles.heading2}>{line.replace('## ', '')}</Text>;
-              } else if (line.startsWith('### ')) {
-                return <Text key={i} style={styles.heading3}>{line.replace('### ', '')}</Text>;
-              } else if (line.startsWith('# ')) {
-                return <Text key={i} style={styles.heading1}>{line.replace('# ', '')}</Text>;
-              } else if (line.startsWith('- ') || line.startsWith('* ')) {
-                const content = line.replace(/^[\-\*]\s+/, '');
-                const showCheckbox = currentSection === 'required-documentation' || currentSection === 'medical-necessity';
-                const isRed = currentSection === 'exclusions';
-                const textStyle = showCheckbox ? styles.listItemGreen : (isRed ? styles.listItemRed : {});
-                
-                return (
-                  <View key={i} style={styles.listItem}>
-                    {showCheckbox && <View style={styles.checkbox} />}
-                    <Text style={[styles.listItemContent, textStyle]}>{content}</Text>
-                  </View>
-                );
-              } else if (line.match(/^\d+\.\s/)) {
-                // Handle numbered lists
-                const [num, ...rest] = line.split('. ');
-                return (
-                  <View key={i} style={styles.listItem}>
-                    <Text style={styles.listItemBullet}>{num}.</Text>
-                    <Text style={styles.listItemContent}>{rest.join('. ')}</Text>
-                  </View>
-                );
-              } else if (line.trim() === '') {
-                // Add some space between paragraphs
-                return <Text key={i} style={{ height: 8 }}> </Text>;
-              } else {
-                // Regular text
-                return <Text key={i} style={styles.messageContent}>{line}</Text>;
-              }
-              })}
+        // Medical Necessity Zone - green text with green checkboxes
+        if (sectionTracker.current === 'medical-necessity-zone') {
+          renderedLines.push(
+            <View key={i} style={[styles.listItem, { marginLeft: indentLevel * 10 }]}>
+              <View style={styles.checkbox} />
+              <Text style={[styles.listItemContent, styles.listItemGreen]}>{content}</Text>
             </View>
+          );
+          return;
+        }
+        
+        // Limitations/Exclusions - red text with red X
+        if (sectionTracker.current === 'exclusions') {
+          renderedLines.push(
+            <View key={i} style={[styles.listItem, { marginLeft: indentLevel * 10 }]}>
+              <Text style={styles.redX}>✗</Text>
+              <Text style={[styles.listItemContent, styles.listItemRed]}>{content}</Text>
+            </View>
+          );
+          return;
+        }
+        
+        // All other sections - default rendering
+        renderedLines.push(
+          <View key={i} style={[styles.listItem, { marginLeft: indentLevel * 10 }]}>
+            <Text style={styles.listItemContent}>{content}</Text>
           </View>
         );
-      })}
-    </Page>
-  </Document>
-);
+        return;
+      } else if (line.match(/^\d+\.\s/)) {
+        // Handle numbered lists
+        const [num, ...rest] = line.split('. ');
+        renderedLines.push(
+          <View key={i} style={styles.listItem}>
+            <Text style={styles.listItemBullet}>{num}.</Text>
+            <Text style={styles.listItemContent}>{rest.join('. ')}</Text>
+          </View>
+        );
+        return;
+      } else if (line.trim() === '') {
+        // Add some space between paragraphs
+        renderedLines.push(<Text key={i} style={{ height: 8 }}> </Text>);
+        return;
+      } else {
+        // Regular text
+        renderedLines.push(<Text key={i} style={styles.messageContent}>{line}</Text>);
+      }
+    });
+    
+    return (
+      <View key={index} style={styles.messageContainer}>
+        <View style={styles.messageContent}>
+          {renderedLines}
+        </View>
+      </View>
+    );
+  };
+  
+  return (
+    <Document>
+      <Page style={styles.page}>
+        <View style={styles.header}>
+          <Image src={logoBase64} style={styles.logo} cache={false} alt="NoteDoctor.ai Logo"/>
+          <View>
+            <Text style={styles.companyName}>NoteDoctor.ai</Text>
+          </View>
+        </View>
+
+        {/* Messages */}
+        {messages.map((message, index) => renderMessage(message, index))}
+      </Page>
+    </Document>
+  );
+};
 
 export default PdfDocument;
