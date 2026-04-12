@@ -150,7 +150,6 @@ These Terms are governed by the laws of the United States, without regard to con
 
 For questions about these Terms, please contact us at:
 - Email: support@mediauth.pro
-- Address: [Your Business Address]
 
 ---
 

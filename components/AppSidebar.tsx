@@ -1,9 +1,10 @@
 'use client';
-import { FileText, Upload, FileDown, LogOut } from 'lucide-react';
+import { FileText, Upload, FileDown, LogOut, CreditCard } from 'lucide-react';
 import { cn } from '@/utils/cn';
 import { createClient } from '@/utils/client';
 import { useRouter } from 'next/navigation';
 import { useMobileSidebar } from '@/components/providers/MobileSidebarProvider';
+import { useState } from 'react';
 
 export type AppView = 'auth' | 'upload' | 'export';
 
@@ -21,10 +22,42 @@ const navItems: { id: AppView; icon: React.ElementType; label: string }[] = [
 export function AppSidebar({ activeView, onViewChange }: AppSidebarProps) {
   const router = useRouter();
   const { isOpen, setIsOpen } = useMobileSidebar();
+  const [billingLoading, setBillingLoading] = useState(false);
 
   const handleNavClick = (view: AppView) => {
     onViewChange(view);
     setIsOpen(false);
+  };
+
+  const handleBilling = async () => {
+    try {
+      setBillingLoading(true);
+      const res = await fetch("/api/stripe/billing", {
+        method: "POST",
+      });
+      
+      const data = await res.json();
+      
+      if (!res.ok) {
+        if (res.status === 404) {
+          alert("No billing account found. Please complete your subscription first.");
+        } else if (res.status === 401) {
+          alert("Please log in to access billing.");
+        } else {
+          alert(data.error || "Unable to open billing portal.");
+        }
+        return;
+      }
+      
+      if (data.url) {
+        window.location.href = data.url;
+      }
+    } catch (err) {
+      console.error("Portal error:", err);
+      alert("Unable to open billing portal. Please try again later.");
+    } finally {
+      setBillingLoading(false);
+    }
   };
 
   const handleLogout = async () => {
@@ -83,9 +116,25 @@ export function AppSidebar({ activeView, onViewChange }: AppSidebarProps) {
           })}
         </div>
 
-        {/* Logout */}
-        <div className="flex flex-col items-center w-full">
-          <div className="w-8 h-px bg-gray-200 mb-2" />
+        {/* Billing & Logout */}
+        <div className="flex flex-col items-center w-full gap-2">
+          <div className="w-8 h-px bg-gray-200" />
+          <div className="flex flex-col items-center gap-1">
+            <button
+              onClick={handleBilling}
+              disabled={billingLoading}
+              title="Manage Billing"
+              className={cn(
+                "w-10 h-10 flex items-center justify-center rounded-lg transition-colors",
+                billingLoading 
+                  ? "text-gray-300 cursor-not-allowed"
+                  : "text-green-500 hover:bg-green-50 hover:text-green-600"
+              )}
+            >
+              <CreditCard className="size-5" />
+            </button>
+          </div>
+          <div className="w-8 h-px bg-gray-200" />
           <button
             onClick={handleLogout}
             title="Logout"

@@ -13,14 +13,16 @@ export function Footer() {
           
           <div className="flex items-center gap-6 text-sm">
             <Link 
-              href="/legal/terms" 
+              href="/legal/terms-of-service" 
               className="text-gray-600 hover:text-blue-600 transition-colors"
+              prefetch={true}
             >
               Terms of Service
             </Link>
             <Link 
-              href="/legal/privacy" 
+              href="/legal/privacy-policy" 
               className="text-gray-600 hover:text-blue-600 transition-colors"
+              prefetch={true}
             >
               Privacy Policy
             </Link>

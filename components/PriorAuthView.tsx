@@ -587,12 +587,12 @@ export function PriorAuthView({
                 {chat.messages.length === 0 ? (
                   <div className="flex flex-col items-center justify-center h-full text-center px-4 py-8">
                     <div className="size-10 bg-blue-100 rounded-full flex items-center justify-center mb-3">
-                      <span className="text-sm font-bold text-blue-600">AI</span>
+                      <span className="text-sm font-bold text-blue-600 p-3">NoteDoctor.Ai</span>
                     </div>
-                    <p className="text-sm font-medium text-gray-700 mb-1">
+                    <p className="text-md font-medium text-gray-700 mb-1">
                       Hello! I&apos;m here to help you with your prior authorization request.
                     </p>
-                    <p className="text-xs text-gray-400">
+                    <p className="text-sm text-gray-400">
                       Fill in the form and click &quot;Generate Authorization&quot;, or type a question below.
                     </p>
                   </div>

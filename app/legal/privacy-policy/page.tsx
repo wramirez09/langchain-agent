@@ -1,9 +1,8 @@
-import { promises as fs } from 'fs';
-import path from 'path';
 import { LegalDocumentViewer } from '@/components/LegalDocumentViewer';
 import { Button } from '@/components/ui/button';
 import Link from 'next/link';
 import { ArrowLeft } from 'lucide-react';
+import { PRIVACY_POLICY } from '@/lib/legalDocuments';
 
 export const metadata = {
   title: 'Privacy Policy | MediAuth Pro',
@@ -11,18 +10,11 @@ export const metadata = {
   robots: { index: true, follow: true },
 };
 
-async function getPrivacyContent() {
-  const filePath = path.join(process.cwd(), 'documents', 'privacy-policy.md');
-  const content = await fs.readFile(filePath, 'utf8');
-  return content;
-}
-
-export default async function PrivacyPage() {
-  const content = await getPrivacyContent();
+export default function PrivacyPage() {
 
   return (
-    <div className="min-h-screen bg-gray-50">
-      <div className="max-w-4xl mx-auto px-4 py-8 sm:px-6 lg:px-8">
+    <div className="h-screen bg-gray-50 overflow-y-auto">
+      <div className="max-w-4xl mx-auto px-4 py-8 sm:px-6 lg:px-8 pb-16">
         <div className="mb-6">
           <Link href="/">
             <Button variant="ghost" className="gap-2">
@@ -33,7 +25,7 @@ export default async function PrivacyPage() {
         </div>
 
         <div className="bg-white rounded-lg shadow-sm p-8">
-          <LegalDocumentViewer content={content} />
+          <LegalDocumentViewer content={PRIVACY_POLICY} />
         </div>
 
         <div className="mt-8 text-center text-sm text-gray-600">
