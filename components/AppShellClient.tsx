@@ -2,6 +2,7 @@
 
 import { useState, useCallback } from "react";
 import { type Message } from "ai";
+import { motion, AnimatePresence } from "framer-motion";
 import { AppSidebar, type AppView } from "@/components/AppSidebar";
 import { PriorAuthView } from "@/components/PriorAuthView";
 import { UploadView } from "@/components/UploadView";
@@ -24,21 +25,57 @@ export function AppShellClient() {
   return (
     <div className="flex h-full">
       <AppSidebar activeView={activeView} onViewChange={setActiveView} />
-      <main className="flex-1 overflow-hidden bg-[#F8F9FB]">
+      <AnimatePresence mode="wait" initial={false}>
         {activeView === "auth" && (
-          <PriorAuthView
-            onMessagesChange={setChatMessages}
-            pendingMessage={pendingMessage}
-            onPendingMessageConsumed={handlePendingMessageConsumed}
-          />
+          <motion.main
+            key="auth"
+            initial={{ opacity: 0, x: -20 }}
+            animate={{ opacity: 1, x: 0 }}
+            exit={{ opacity: 0, x: 20 }}
+            transition={{ 
+              duration: 0.2,
+              ease: [0.4, 0, 0.2, 1]
+            }}
+            className="flex-1 overflow-hidden bg-[#F8F9FB]"
+          >
+            <PriorAuthView
+              onMessagesChange={setChatMessages}
+              pendingMessage={pendingMessage}
+              onPendingMessageConsumed={handlePendingMessageConsumed}
+            />
+          </motion.main>
         )}
         {activeView === "upload" && (
-          <UploadView onUploadComplete={handleUploadComplete} />
+          <motion.main
+            key="upload"
+            initial={{ opacity: 0, x: -20 }}
+            animate={{ opacity: 1, x: 0 }}
+            exit={{ opacity: 0, x: 20 }}
+            transition={{ 
+              duration: 0.2,
+              ease: [0.4, 0, 0.2, 1]
+            }}
+            className="flex-1 overflow-hidden bg-[#F8F9FB]"
+          >
+            <UploadView onUploadComplete={handleUploadComplete} />
+          </motion.main>
         )}
         {activeView === "export" && (
-          <FileExportView messages={chatMessages} />
+          <motion.main
+            key="export"
+            initial={{ opacity: 0, x: -20 }}
+            animate={{ opacity: 1, x: 0 }}
+            exit={{ opacity: 0, x: 20 }}
+            transition={{ 
+              duration: 0.2,
+              ease: [0.4, 0, 0.2, 1]
+            }}
+            className="flex-1 overflow-hidden bg-[#F8F9FB]"
+          >
+            <FileExportView messages={chatMessages} />
+          </motion.main>
         )}
-      </main>
+      </AnimatePresence>
     </div>
   );
 }

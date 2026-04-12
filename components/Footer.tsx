@@ -7,28 +7,28 @@ export function Footer() {
     <footer className="bg-white border-t border-gray-200 py-6 px-4 mt-auto">
       <div className="max-w-7xl mx-auto">
         <div className="flex flex-col sm:flex-row items-center justify-between gap-4">
-          <div className="text-sm text-gray-600">
-            © {currentYear} MediAuth Pro. All rights reserved.
+          <div className="text-xs sm:text-sm text-gray-600">
+            © {currentYear} NoteDoctor.Ai. All rights reserved.
           </div>
           
-          <div className="flex items-center gap-6 text-sm">
+          <div className="flex items-center gap-6 text-xs sm:text-sm">
             <Link 
               href="/legal/terms-of-service" 
-              className="text-gray-600 hover:text-blue-600 transition-colors"
+              className="text-blue-600 underline hover:text-blue-900 transition-colors underline-offset-2"
               prefetch={true}
             >
               Terms of Service
             </Link>
             <Link 
               href="/legal/privacy-policy" 
-              className="text-gray-600 hover:text-blue-600 transition-colors"
+              className="text-blue-600 underline hover:text-blue-900 transition-colors underline-offset-2"
               prefetch={true}
             >
               Privacy Policy
             </Link>
             <a 
               href="mailto:support@mediauth.pro" 
-              className="text-gray-600 hover:text-blue-600 transition-colors"
+              className="text-blue-600 underline hover:text-blue-900 transition-colors underline-offset-2"
             >
               Contact
             </a>

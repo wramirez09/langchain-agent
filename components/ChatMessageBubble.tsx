@@ -12,6 +12,16 @@ const MarkdownRenderer: React.FC<MarkdownRendererProps> = ({ content }) => {
   return (
     <div className="prose max-w-none">
       <ReactMarkdown
+        components={{
+          a: (props) => (
+            <a
+              {...props}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="text-blue-600 hover:text-blue-800 underline break-all"
+            />
+          ),
+        }}
       >
         {content}
       </ReactMarkdown>
@@ -104,7 +114,7 @@ export function ChatMessageBubble(props: {
           {!isUser && props.isLastMessage && displayContent && !props.isLoading && (
             <div className="mt-3 p-2 bg-blue-50 border border-blue-100 rounded-md">
               <div className="text-xs text-blue-700 italic">
-                Always verify with payer portal guidelines prior to submission
+                Always verify with payer portal guidelines prior to submission. This analysis is based on publicly available information.
               </div>
             </div>
           )}

@@ -5,6 +5,12 @@ import { createClient } from '@/utils/client';
 import { useRouter } from 'next/navigation';
 import { useMobileSidebar } from '@/components/providers/MobileSidebarProvider';
 import { useState } from 'react';
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from '@/components/ui/tooltip';
 
 export type AppView = 'auth' | 'upload' | 'export';
 
@@ -68,7 +74,7 @@ export function AppSidebar({ activeView, onViewChange }: AppSidebarProps) {
   };
 
   return (
-    <>
+    <TooltipProvider delayDuration={300}>
       {/* Mobile overlay */}
       {isOpen && (
         <div
@@ -79,7 +85,7 @@ export function AppSidebar({ activeView, onViewChange }: AppSidebarProps) {
 
       <aside
         className={cn(
-          'w-12 bg-white border-r border-gray-200 flex flex-col items-center py-4',
+          'w-12 bg-white border-r border-gray-200 flex flex-col items-center py-8',
           'transition-transform duration-300 ease-in-out',
           'fixed left-0 top-16 bottom-0 z-50',
           'md:relative md:top-0 md:translate-x-0',
@@ -93,21 +99,27 @@ export function AppSidebar({ activeView, onViewChange }: AppSidebarProps) {
             const isActive = activeView === item.id;
             return (
               <div key={item.id} className="w-full flex flex-col items-center">
-                <button
-                  onClick={() => handleNavClick(item.id)}
-                  title={item.label}
-                  className={cn(
-                    'relative w-10 h-10 flex items-center justify-center rounded-lg transition-colors',
-                    isActive
-                      ? 'bg-blue-50 text-blue-600'
-                      : 'text-gray-400 hover:bg-gray-50 hover:text-gray-600',
-                  )}
-                >
-                  {isActive && (
-                    <div className="absolute left-0 top-1/2 -translate-y-1/2 w-1 h-8 bg-blue-600 rounded-r" />
-                  )}
-                  <Icon className="size-5" />
-                </button>
+                <Tooltip>
+                  <TooltipTrigger asChild>
+                    <button
+                      onClick={() => handleNavClick(item.id)}
+                      className={cn(
+                        'relative w-10 h-10 flex items-center justify-center rounded-lg transition-colors',
+                        isActive
+                          ? 'bg-blue-50 text-blue-600'
+                          : 'text-gray-400 hover:bg-gray-50 hover:text-gray-600',
+                      )}
+                    >
+                      {isActive && (
+                        <div className="absolute left-0 top-1/2 -translate-y-1/2 w-1 h-8 bg-blue-600 rounded-r" />
+                      )}
+                      <Icon className="size-5" />
+                    </button>
+                  </TooltipTrigger>
+                  <TooltipContent side="right">
+                    <p>{item.label}</p>
+                  </TooltipContent>
+                </Tooltip>
                 {index < navItems.length - 1 && (
                   <div className="w-8 h-px bg-gray-200 my-1" />
                 )}
@@ -120,30 +132,42 @@ export function AppSidebar({ activeView, onViewChange }: AppSidebarProps) {
         <div className="flex flex-col items-center w-full gap-2">
           <div className="w-8 h-px bg-gray-200" />
           <div className="flex flex-col items-center gap-1">
-            <button
-              onClick={handleBilling}
-              disabled={billingLoading}
-              title="Manage Billing"
-              className={cn(
-                "w-10 h-10 flex items-center justify-center rounded-lg transition-colors",
-                billingLoading 
-                  ? "text-gray-300 cursor-not-allowed"
-                  : "text-green-500 hover:bg-green-50 hover:text-green-600"
-              )}
-            >
-              <CreditCard className="size-5" />
-            </button>
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <button
+                  onClick={handleBilling}
+                  disabled={billingLoading}
+                  className={cn(
+                    "w-10 h-10 flex items-center justify-center rounded-lg transition-colors",
+                    billingLoading 
+                      ? "text-gray-300 cursor-not-allowed"
+                      : "text-green-500 hover:bg-green-50 hover:text-green-600"
+                  )}
+                >
+                  <CreditCard className="size-5" />
+                </button>
+              </TooltipTrigger>
+              <TooltipContent side="right">
+                <p>Manage Billing</p>
+              </TooltipContent>
+            </Tooltip>
           </div>
           <div className="w-8 h-px bg-gray-200" />
-          <button
-            onClick={handleLogout}
-            title="Logout"
-            className="w-10 h-10 flex items-center justify-center rounded-lg text-red-400 hover:bg-red-50 hover:text-red-600 transition-colors"
-          >
-            <LogOut className="size-5" />
-          </button>
+          <Tooltip>
+            <TooltipTrigger asChild>
+              <button
+                onClick={handleLogout}
+                className="w-10 h-10 flex items-center justify-center rounded-lg text-red-400 hover:bg-red-50 hover:text-red-600 transition-colors"
+              >
+                <LogOut className="size-5" />
+              </button>
+            </TooltipTrigger>
+            <TooltipContent side="right">
+              <p>Logout</p>
+            </TooltipContent>
+          </Tooltip>
         </div>
       </aside>
-    </>
+    </TooltipProvider>
   );
 }

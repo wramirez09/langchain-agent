@@ -6,6 +6,7 @@ import { useChat } from "ai/react";
 import { toast } from "sonner";
 import { Activity, AlertTriangle, BookOpen, ClipboardList, FileBarChart, FileText, LoaderCircle, MapPin, Send, Stethoscope, Trash2, Repeat } from "lucide-react";
 import { IconSend2 } from "@tabler/icons-react";
+import { motion, LayoutGroup } from "framer-motion";
 import { ChatMessageBubble } from "@/components/ChatMessageBubble";
 import { IntermediateStep } from "@/components/IntermediateStep";
 import { ErrorNotificationManager, useErrorNotifications } from "@/components/ErrorNotification";
@@ -48,6 +49,9 @@ export function PriorAuthView({
   const abortControllerRef = useRef<AbortController | null>(null);
   const loadingToast1Ref = useRef<NodeJS.Timeout | null>(null);
   const loadingToast2Ref = useRef<NodeJS.Timeout | null>(null);
+  const patientHistoryRef = useRef<HTMLDivElement>(null);
+  const relevantHistoryRef = useRef<HTMLDivElement>(null);
+  const [openAccordions, setOpenAccordions] = useState<string[]>([]);
 
   const [guidelinesOptions, setGuidelinesOptions] = useState<SelectOption[]>([]);
 
@@ -347,16 +351,19 @@ export function PriorAuthView({
       <div className="flex-1 overflow-hidden">
         {/* Desktop Input tab and mobile Pre-Auth/Chat tabs all share card layout */}
         {(activeTab === "pre-auth" || activeTab === "chat" || activeTab === "input") && (
-          <div className="h-full flex flex-col md:grid md:grid-cols-2 gap-4 md:gap-6 p-4 md:p-6 overflow-hidden relative">
+          <LayoutGroup>
+            <div className="h-full flex flex-col md:grid md:grid-cols-2 gap-4 md:gap-6 p-4 md:p-6 overflow-hidden relative">
 
-            {/* Left card — Request Details (mobile: pre-auth tab only; desktop: always) */}
-            <div 
-              className={cn(
-                "flex flex-col flex-1 min-h-0 bg-white rounded-lg border border-gray-200 shadow-sm overflow-hidden",
-                activeTab !== "pre-auth" && "hidden md:flex",
-                isLayoutSwapped && "md:order-2"
-              )}
-            >
+              {/* Left card — Request Details (mobile: pre-auth tab only; desktop: always) */}
+              <motion.div
+                layout
+                transition={{ duration: 0.3, ease: [0.4, 0, 0.2, 1] }}
+                className={cn(
+                  "flex flex-col flex-1 min-h-0 bg-white rounded-lg border border-gray-200 shadow-sm overflow-hidden",
+                  activeTab !== "pre-auth" && "hidden md:flex",
+                  isLayoutSwapped && "md:order-2"
+                )}
+              >
               <div className="px-6 pt-6 pb-2 flex-shrink-0">
                 <h3 className="text-sm font-semibold text-gray-900">Request Details</h3>
               </div>
@@ -478,8 +485,24 @@ export function PriorAuthView({
                 </div>
 
                 {/* History accordion */}
-                <Accordion type="multiple" className="w-full space-y-2">
-                  <AccordionItem value="patient-history" className="border border-gray-200 rounded-lg px-3 py-0">
+                <Accordion 
+                  type="multiple" 
+                  className="w-full space-y-2"
+                  value={openAccordions}
+                  onValueChange={(value) => {
+                    setOpenAccordions(value);
+                    // Scroll to the newly opened accordion after a short delay
+                    setTimeout(() => {
+                      if (value.includes('patient-history') && !openAccordions.includes('patient-history')) {
+                        patientHistoryRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+                      }
+                      if (value.includes('relevant-history') && !openAccordions.includes('relevant-history')) {
+                        relevantHistoryRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+                      }
+                    }, 150);
+                  }}
+                >
+                  <AccordionItem value="patient-history" className="border border-gray-200 rounded-lg px-3 py-0" ref={patientHistoryRef}>
                     <AccordionTrigger className="hover:no-underline py-3 text-xs font-semibold text-gray-900">
                       <span className="flex items-center gap-1.5">
                         <ClipboardList size={13} color="#F43F5E" />
@@ -495,7 +518,7 @@ export function PriorAuthView({
                     </AccordionContent>
                   </AccordionItem>
 
-                  <AccordionItem value="relevant-history" className="border border-gray-200 rounded-lg px-3 py-0">
+                  <AccordionItem value="relevant-history" className="border border-gray-200 rounded-lg px-3 py-0" ref={relevantHistoryRef}>
                     <AccordionTrigger className="hover:no-underline py-3 text-xs font-semibold text-gray-900">
                       <span className="flex items-center gap-1.5">
                         <BookOpen size={13} color="#0EA5E9" />
@@ -515,14 +538,6 @@ export function PriorAuthView({
 
               {/* Generate button */}
               <div className="px-6 pb-6 pt-4 flex-shrink-0">
-                <div className="mb-3 p-3 bg-amber-50 border border-amber-200 rounded-md">
-                  <div className="flex items-start gap-2">
-                    <AlertTriangle className="w-4 h-4 text-amber-600 mt-0.5 flex-shrink-0" />
-                    <div className="text-xs text-amber-800">
-                      <strong>HIPAA Compliance:</strong> Do not include patient-specific PHI such as names, dates of birth, medical record numbers, or other identifying information. Use generic descriptions only.
-                    </div>
-                  </div>
-                </div>
                 <div className="flex items-center gap-3">
                   <Button
                     onClick={handleGenerateAuth}
@@ -536,7 +551,7 @@ export function PriorAuthView({
                       </span>
                     ) : (
                       <span className="flex items-center gap-2">
-                        <Send className="size-4" />
+                        <Send size={20}/>
                         Generate Authorization
                       </span>
                     )}
@@ -551,10 +566,12 @@ export function PriorAuthView({
                   </Button>
                 </div>
               </div>
-            </div>
+            </motion.div>
 
             {/* Right card — Chat Assistant (mobile: chat tab only; desktop: always) */}
-            <div 
+            <motion.div
+              layout
+              transition={{ duration: 0.3, ease: [0.4, 0, 0.2, 1] }}
               className={cn(
                 "flex flex-col flex-1 min-h-0 bg-white rounded-lg border border-gray-200 shadow-sm overflow-hidden",
                 activeTab !== "chat" && "hidden md:flex",
@@ -648,13 +665,18 @@ export function PriorAuthView({
                     )}
                   </button>
                 </form>
-                <div className="mt-2 flex items-center gap-1.5 ml-1">
-                  <AlertTriangle className="w-4 h-4 text-amber-500" />
-                  <p className="text-xs text-amber-700">Do not include patient PHI. Use generic descriptions only.</p>
+                <div className="mt-2 p-2 bg-amber-50 border border-amber-200 rounded-md">
+                  <div className="flex items-center gap-2">
+                    <AlertTriangle className="w-4 h-4 text-amber-600 flex-shrink-0" />
+                    <p className="text-xs text-amber-800">
+                      <strong>HIPAA Compliance:</strong> Do not include patient-specific PHI such as names, dates of birth, medical record numbers, or other identifying information. Use generic descriptions only.
+                    </p>
+                  </div>
                 </div>
               </div>
-            </div>
+            </motion.div>
           </div>
+          </LayoutGroup>
         )}
 
         {activeTab === "output" && (

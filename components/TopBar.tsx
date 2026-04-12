@@ -7,7 +7,7 @@ import { createClient } from '@/utils/client';
 import { useMobileSidebar } from '@/components/providers/MobileSidebarProvider';
 
 const TopBar: React.FC = () => {
-  const { setIsOpen } = useMobileSidebar();
+  const { toggleIsOpen } = useMobileSidebar();
   const [displayName, setDisplayName] = React.useState('');
   const [displayEmail, setDisplayEmail] = React.useState('');
   const [initials, setInitials] = React.useState('');
@@ -55,9 +55,9 @@ const TopBar: React.FC = () => {
       {/* Left — hamburger on mobile, spacer on desktop */}
       <div className="flex-1 flex items-center">
         <button
-          onClick={() => setIsOpen(true)}
+          onClick={toggleIsOpen}
           className="md:hidden text-gray-600 hover:text-gray-900 p-1"
-          aria-label="Open menu"
+          aria-label="Toggle menu"
         >
           <Menu className="size-6" />
         </button>

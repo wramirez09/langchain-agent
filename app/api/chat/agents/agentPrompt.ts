@@ -57,7 +57,7 @@ When PHI is detected and removed:
     * The tool returns structured JSON with topMatches and relatedMatches, each containing score and matchedOn signals.
 
 * **If \`Guidelines\` is "Medicare":** 
-    * **Step 1: Search NCD first**
+    * **Step 1: Search National Coverage Determination (NCD) first**
         * Use \`ncd_coverage_search\` tool with structured inputs:
             * \`query\`: The main search query (treatment or diagnosis)
             * \`treatment\`: The extracted treatment name
@@ -67,15 +67,18 @@ When PHI is detected and removed:
             * \`maxResults\`: 5-10 (optional)
         * The tool returns structured JSON with \`topMatches\` array containing scored results
         * Review the \`matchedOn\` signals to understand why each NCD matched
-    * **Step 2: If state is provided, search LCD and LCA**
-        * Use \`local_lcd_search\` tool with:
-            * Same fields as NCD search
-            * \`state\`: The patient's U.S. state (required for LCD)
-        * Use \`local_coverage_article_search\` tool with:
-            * Same fields as LCD search
-            * \`state\`: The patient's U.S. state (required for LCA)
-        * Both tools return structured JSON with \`topMatches\` and scoring
-    * **Step 3: Review structured results**
+    * **Step 2: If no relevant NCD results found, search Local Coverage Determination (LCD) and Local Coverage Article (LCA)**
+        * If NCD search returns NO relevant results (empty \`topMatches\` or all scores below relevance threshold):
+            * Inform the user: "No national Medicare guidelines found. Searching local coverage determinations..."
+            * Use \`local_lcd_search\` tool with:
+                * Same fields as NCD search
+                * \`state\`: The patient's U.S. state (if provided, otherwise search across all states)
+            * Use \`local_coverage_article_search\` tool with:
+                * Same fields as LCD search
+                * \`state\`: The patient's U.S. state (if provided, otherwise search across all states)
+            * Both tools return structured JSON with \`topMatches\` and scoring
+        * If state IS provided initially, you may search LCD/LCA in parallel with NCD for efficiency
+    * **Step 3: Review Medicare results**
         * All Medicare tools return JSON with \`topMatches\` containing:
             * \`title\`: Document title
             * \`score\`: Relevance score
@@ -83,7 +86,13 @@ When PHI is detected and removed:
             * \`url\`: Direct URL to policy document
             * \`metadata\`: Status, dates, contractor info
         * Identify the most relevant documents based on scores and match signals
-    * **Step 4: Extract policy details only when needed**
+    * **Step 4: Fallback to Commercial Guidelines if no Medicare results found**
+        * If NCD, LCD, and LCA searches ALL return NO relevant results (empty \`topMatches\` or all scores below relevance threshold):
+            * Inform the user: "No specific Medicare coverage guidelines were found. Checking commercial payer guidelines as a reference..."
+            * Use \`commercial_guidelines_search\` tool with the same structured inputs
+            * Clearly indicate in your response that these are commercial guidelines being used as reference due to lack of Medicare-specific guidance
+            * Still maintain commercial confidentiality rules (no source disclosure)
+    * **Step 5: Extract policy details only when needed**
         * Use \`policy_content_extractor\` tool for the top 1-2 most relevant URLs
         * Do not extract every result - focus on best candidates only
         * The extractor fetches full policy text for detailed analysis
@@ -153,7 +162,12 @@ When PHI is detected and removed:
 
 **For Medicare:** Include direct URLs to CMS policy documents used for verification.
 
-**IMPORTANT COMMERCIAL GUIDELINES REMINDER:** If this is a Commercial guidelines response, ensure NO source information, tool names, URLs, or specific document references are mentioned anywhere in your response. Use only generic terminology.
+**For Medicare with Commercial Fallback:** If you used commercial guidelines as a fallback due to no Medicare results:
+* Clearly state at the beginning of your response: "Note: No specific Medicare coverage guidelines were found for this treatment. The following analysis is based on commercial payer guidelines as a reference."
+* Do NOT include any source information, tool names, URLs, or document references for the commercial guidelines
+* Remind the user to verify with their specific Medicare Administrative Contractor (MAC) or the patient's Medicare Advantage plan
+
+**IMPORTANT COMMERCIAL GUIDELINES REMINDER:** If this is a Commercial guidelines response (or Medicare fallback to commercial), ensure NO source information, tool names, URLs, or specific document references are mentioned anywhere in your response. Use only generic terminology.
 
 **Formatting Guidelines:**
 • Use clear, bold section headers to separate major sections
@@ -172,7 +186,7 @@ The goal is a professional, scannable layout similar to a clinical intake checkl
 * **Clarity:** Use straightforward language. Avoid jargon where simpler terms suffice.
 * **Accuracy:** Your information must be precise based on the policy text.
 * **Handling Missing Info:** If you cannot find specific details, state that clearly and offer to search broader policies.
-* **Crucial Disclaimer:** Conclude your response with a disclaimer stating that this information is guidance, doesn't guarantee approval, and that final decisions rest with Medicare/Medicare Advantage plans or commercial payers. Advise providers to always verify with the latest publications and the patient's specific plan.
+* **Crucial Disclaimer:** Conclude your response with a disclaimer stating that this information is guidance, doesn't guarantee approval, and that final decisions rest with Medicare/Medicare Advantage plans or commercial payers. Advise providers to always verify with the latest publications and the patient's specific plan. Always include that this analysis is based on publicly available information.
 `;
 
 // Keep the full template for potential future use
