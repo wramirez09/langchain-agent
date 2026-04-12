@@ -9,6 +9,49 @@ interface MarkdownRendererProps {
   content: string;
 }
 const MarkdownRenderer: React.FC<MarkdownRendererProps> = ({ content }) => {
+  // Helper to detect section context from content
+  const getSectionContext = (position: number): 'required-documentation' | 'medical-necessity' | 'exclusions' | null => {
+    const beforeText = content.substring(Math.max(0, position - 500), position).toLowerCase();
+    
+    // Check for required documentation section (checkboxes only for this)
+    if (beforeText.includes('required documentation')) {
+      const lastReqDocIndex = beforeText.lastIndexOf('required documentation');
+      const lastExclIndex = Math.max(
+        beforeText.lastIndexOf('limitations/exclusions'),
+        beforeText.lastIndexOf('exclusions:'),
+        beforeText.lastIndexOf('limitations:')
+      );
+      
+      if (lastReqDocIndex > lastExclIndex) {
+        return 'required-documentation';
+      }
+    }
+    
+    // Check for medical necessity criteria section (green text with checkboxes)
+    if (beforeText.includes('medical necessity criteria')) {
+      const lastMedNecIndex = beforeText.lastIndexOf('medical necessity criteria');
+      const lastReqDocIndex = beforeText.lastIndexOf('required documentation');
+      const lastExclIndex = Math.max(
+        beforeText.lastIndexOf('limitations/exclusions'),
+        beforeText.lastIndexOf('exclusions:'),
+        beforeText.lastIndexOf('limitations:')
+      );
+      
+      if (lastMedNecIndex > Math.max(lastReqDocIndex, lastExclIndex)) {
+        return 'medical-necessity';
+      }
+    }
+    
+    // Check for exclusions/limitations section markers
+    if (beforeText.includes('limitations/exclusions') || 
+        beforeText.includes('exclusions:') ||
+        beforeText.includes('limitations:')) {
+      return 'exclusions';
+    }
+    
+    return null;
+  };
+
   return (
     <div className="prose max-w-none">
       <ReactMarkdown
@@ -21,6 +64,73 @@ const MarkdownRenderer: React.FC<MarkdownRendererProps> = ({ content }) => {
               className="text-blue-600 hover:text-blue-800 underline break-all"
             />
           ),
+          strong: ({ children, ...props }) => {
+            const text = String(children).toLowerCase();
+            
+            // Style section headers
+            if (text.includes('required documentation') || text.includes('medical necessity criteria')) {
+              return <strong {...props} className="text-green-700 font-semibold">{children}</strong>;
+            } else if (text.includes('limitations') || text.includes('exclusions')) {
+              return <strong {...props} className="text-red-700 font-semibold">{children}</strong>;
+            }
+            
+            return <strong {...props}>{children}</strong>;
+          },
+          li: ({ children, ...props }) => {
+            // Try to determine context from content position
+            const childText = String(children).toLowerCase();
+            const contentLower = content.toLowerCase();
+            
+            // Find approximate position of this list item in content
+            const searchText = childText.substring(0, 50);
+            const position = contentLower.indexOf(searchText);
+            const context = position >= 0 ? getSectionContext(position) : null;
+            
+            // Additional heuristics based on content
+            const looksLikeExclusion = childText.includes('exclusion') || 
+                                      childText.includes('limitation') ||
+                                      childText.includes('not covered') ||
+                                      childText.includes('excluded');
+            
+            // Required Documentation section - green text with checkboxes
+            if (context === 'required-documentation') {
+              return (
+                <li {...props} className="text-green-700 flex items-start gap-2">
+                  <input 
+                    type="checkbox" 
+                    className="mt-1 h-4 w-4 rounded border-green-400 text-green-600 focus:ring-green-500"
+                    disabled
+                  />
+                  <span>{children}</span>
+                </li>
+              );
+            }
+            
+            // Medical Necessity Criteria section - green text with checkboxes
+            if (context === 'medical-necessity') {
+              return (
+                <li {...props} className="text-green-700 flex items-start gap-2">
+                  <input 
+                    type="checkbox" 
+                    className="mt-1 h-4 w-4 rounded border-green-400 text-green-600 focus:ring-green-500"
+                    disabled
+                  />
+                  <span>{children}</span>
+                </li>
+              );
+            }
+            
+            // Exclusions/Limitations section - red text
+            if (context === 'exclusions' || looksLikeExclusion) {
+              return (
+                <li {...props} className="text-red-700">
+                  {children}
+                </li>
+              );
+            }
+            
+            return <li {...props}>{children}</li>;
+          },
         }}
       >
         {content}
