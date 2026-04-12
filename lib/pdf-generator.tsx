@@ -84,14 +84,31 @@ const styles = StyleSheet.create({
   listItemBullet: {
     width: 20,
     fontSize: 11,
-    fontWeight: 'bold',
-    color: "#1e7dbf"
   },
   listItemContent: {
     flex: 1,
     fontSize: 11,
-    fontWeight: 'bold',
-    color: '#1e7dbf'
+  },
+  listItemGreen: {
+    color: '#15803d',
+  },
+  listItemRed: {
+    color: '#b91c1c',
+  },
+  checkbox: {
+    width: 10,
+    height: 10,
+    border: '1px solid #4ade80',
+    marginRight: 6,
+    marginTop: 2,
+  },
+  sectionHeaderGreen: {
+    color: '#15803d',
+    fontFamily: 'Helvetica-Bold',
+  },
+  sectionHeaderRed: {
+    color: '#b91c1c',
+    fontFamily: 'Helvetica-Bold',
   },
   companyName: {
     fontSize: 16,
@@ -122,21 +139,37 @@ const PdfDocument: React.FC<PdfDocumentProps> = ({ name, role, messages, logoBas
       </View>
 
       {/* Messages */}
-      {messages.map((message, index) => (
-        <View key={index} style={styles.messageContainer}>
-          <View style={styles.messageContent}>
-            {message.content.split('\n').map((line, i) => {
-              const specialHeaders = [
-                'Medical Necessity Criteria:',
-                'Relevant Codes:',
-                'Required Documentation:',
-                'Limitations/Exclusions:'
-              ];
-              const isSpecialHeader = specialHeaders.some(header => line.trim() === header);
+      {messages.map((message, index) => {
+        // Track current section for styling
+        let currentSection: 'required-documentation' | 'medical-necessity' | 'exclusions' | 'summary' | null = null;
+        const lines = message.content.split('\n');
+        
+        return (
+          <View key={index} style={styles.messageContainer}>
+            <View style={styles.messageContent}>
+              {lines.map((line, i) => {
+                // Update section tracking
+                const lineLower = line.toLowerCase();
+                if (lineLower.includes('required documentation')) {
+                  currentSection = 'required-documentation';
+                } else if (lineLower.includes('medical necessity criteria')) {
+                  currentSection = 'medical-necessity';
+                } else if (lineLower.includes('limitations') || lineLower.includes('exclusions')) {
+                  currentSection = 'exclusions';
+                } else if (lineLower.includes('summary report') || lineLower.includes('## summary')) {
+                  currentSection = 'summary';
+                }
 
-              // Handle markdown headers and lists
-              if (isSpecialHeader) {
-                return <Text key={i} style={[styles.heading4, { color: 'red' }]}>{line}</Text>;
+                // Detect section headers
+                const isRequiredDoc = lineLower.includes('required documentation');
+                const isMedicalNecessity = lineLower.includes('medical necessity criteria');
+                const isExclusions = lineLower.includes('limitations') || lineLower.includes('exclusions');
+                const isSectionHeader = isRequiredDoc || isMedicalNecessity || isExclusions;
+
+                // Handle markdown headers and lists
+                if (isSectionHeader && line.startsWith('**') && line.endsWith('**')) {
+                  const headerStyle = (isRequiredDoc || isMedicalNecessity) ? styles.sectionHeaderGreen : styles.sectionHeaderRed;
+                  return <Text key={i} style={[styles.heading4, headerStyle]}>{line.replace(/\*\*/g, '')}</Text>;
               } else if (line.startsWith('## ')) {
                 return <Text key={i} style={styles.heading2}>{line.replace('## ', '')}</Text>;
               } else if (line.startsWith('### ')) {
@@ -144,9 +177,15 @@ const PdfDocument: React.FC<PdfDocumentProps> = ({ name, role, messages, logoBas
               } else if (line.startsWith('# ')) {
                 return <Text key={i} style={styles.heading1}>{line.replace('# ', '')}</Text>;
               } else if (line.startsWith('- ') || line.startsWith('* ')) {
+                const content = line.replace(/^[\-\*]\s+/, '');
+                const showCheckbox = currentSection === 'required-documentation' || currentSection === 'medical-necessity';
+                const isRed = currentSection === 'exclusions';
+                const textStyle = showCheckbox ? styles.listItemGreen : (isRed ? styles.listItemRed : {});
+                
                 return (
                   <View key={i} style={styles.listItem}>
-                    <Text style={styles.listItemContent}>{line.replace('- ', '')}</Text>
+                    {showCheckbox && <View style={styles.checkbox} />}
+                    <Text style={[styles.listItemContent, textStyle]}>{content}</Text>
                   </View>
                 );
               } else if (line.match(/^\d+\.\s/)) {
@@ -165,10 +204,11 @@ const PdfDocument: React.FC<PdfDocumentProps> = ({ name, role, messages, logoBas
                 // Regular text
                 return <Text key={i} style={styles.messageContent}>{line}</Text>;
               }
-            })}
+              })}
+            </View>
           </View>
-        </View>
-      ))}
+        );
+      })}
     </Page>
   </Document>
 );

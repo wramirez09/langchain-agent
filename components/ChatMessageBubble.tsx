@@ -10,46 +10,39 @@ interface MarkdownRendererProps {
 }
 const MarkdownRenderer: React.FC<MarkdownRendererProps> = ({ content }) => {
   // Helper to detect section context from content
-  const getSectionContext = (position: number): 'required-documentation' | 'medical-necessity' | 'exclusions' | null => {
-    const beforeText = content.substring(Math.max(0, position - 500), position).toLowerCase();
+  const getSectionContext = (position: number): 'required-documentation' | 'medical-necessity' | 'exclusions' | 'summary' | 'relevant-codes' | null => {
+    const beforeText = content.substring(Math.max(0, position - 1500), position).toLowerCase();
     
-    // Check for required documentation section (checkboxes only for this)
-    if (beforeText.includes('required documentation')) {
-      const lastReqDocIndex = beforeText.lastIndexOf('required documentation');
-      const lastExclIndex = Math.max(
-        beforeText.lastIndexOf('limitations/exclusions'),
-        beforeText.lastIndexOf('exclusions:'),
-        beforeText.lastIndexOf('limitations:')
-      );
-      
-      if (lastReqDocIndex > lastExclIndex) {
-        return 'required-documentation';
-      }
-    }
+    // Find the last occurrence of each section marker
+    const lastSummaryIndex = Math.max(
+      beforeText.lastIndexOf('summary report'),
+      beforeText.lastIndexOf('## summary')
+    );
+    const lastMedNecIndex = beforeText.lastIndexOf('medical necessity criteria');
+    const lastReqDocIndex = beforeText.lastIndexOf('required documentation');
+    const lastExclIndex = Math.max(
+      beforeText.lastIndexOf('limitations and exclusions'),
+      beforeText.lastIndexOf('limitations/exclusions'),
+      beforeText.lastIndexOf('exclusions:'),
+      beforeText.lastIndexOf('limitations:')
+    );
+    const lastRelevantCodesIndex = beforeText.lastIndexOf('relevant codes');
     
-    // Check for medical necessity criteria section (green text with checkboxes)
-    if (beforeText.includes('medical necessity criteria')) {
-      const lastMedNecIndex = beforeText.lastIndexOf('medical necessity criteria');
-      const lastReqDocIndex = beforeText.lastIndexOf('required documentation');
-      const lastExclIndex = Math.max(
-        beforeText.lastIndexOf('limitations/exclusions'),
-        beforeText.lastIndexOf('exclusions:'),
-        beforeText.lastIndexOf('limitations:')
-      );
-      
-      if (lastMedNecIndex > Math.max(lastReqDocIndex, lastExclIndex)) {
-        return 'medical-necessity';
-      }
-    }
+    // Determine which section we're in based on the most recent section header
+    const sectionIndices: Array<{ index: number; type: 'required-documentation' | 'medical-necessity' | 'exclusions' | 'summary' | 'relevant-codes' | null }> = [
+      { index: lastSummaryIndex, type: 'summary' },
+      { index: lastMedNecIndex, type: 'medical-necessity' },
+      { index: lastReqDocIndex, type: 'required-documentation' },
+      { index: lastExclIndex, type: 'exclusions' },
+      { index: lastRelevantCodesIndex, type: 'relevant-codes' },
+    ];
     
-    // Check for exclusions/limitations section markers
-    if (beforeText.includes('limitations/exclusions') || 
-        beforeText.includes('exclusions:') ||
-        beforeText.includes('limitations:')) {
-      return 'exclusions';
-    }
+    // Sort by index descending to find the most recent section
+    const mostRecent = sectionIndices
+      .filter(s => s.index >= 0)
+      .sort((a, b) => b.index - a.index)[0];
     
-    return null;
+    return mostRecent?.type ?? null;
   };
 
   return (
@@ -67,38 +60,74 @@ const MarkdownRenderer: React.FC<MarkdownRendererProps> = ({ content }) => {
           strong: ({ children, ...props }) => {
             const text = String(children).toLowerCase();
             
-            // Style section headers
-            if (text.includes('required documentation') || text.includes('medical necessity criteria')) {
+            // Style Medical Necessity Criteria header in green
+            if (text.includes('medical necessity criteria')) {
               return <strong {...props} className="text-green-700 font-semibold">{children}</strong>;
-            } else if (text.includes('limitations') || text.includes('exclusions')) {
+            }
+            
+            // Style Limitations and Exclusions header in red
+            if (text.includes('limitations and exclusions') || text.includes('limitations') && text.includes('exclusions')) {
               return <strong {...props} className="text-red-700 font-semibold">{children}</strong>;
             }
             
+            // Render all other strong/bold text as default markdown
             return <strong {...props}>{children}</strong>;
           },
+          ul: ({ children, ...props }) => {
+            // Pass through ul elements with default styling
+            return <ul {...props}>{children}</ul>;
+          },
+          ol: ({ children, ...props }) => {
+            // Pass through ol elements with default styling
+            return <ol {...props}>{children}</ol>;
+          },
           li: ({ children, ...props }) => {
-            // Try to determine context from content position
-            const childText = String(children).toLowerCase();
+            // Extract text from children, handling React elements
+            const extractText = (node: React.ReactNode): string => {
+              if (typeof node === 'string') return node;
+              if (typeof node === 'number') return String(node);
+              if (Array.isArray(node)) return node.map(extractText).join(' ');
+              if (node && typeof node === 'object' && 'props' in node) {
+                const element = node as { props?: { children?: React.ReactNode } };
+                if (element.props?.children) {
+                  return extractText(element.props.children);
+                }
+              }
+              return '';
+            };
+            
+            const childText = extractText(children).toLowerCase();
             const contentLower = content.toLowerCase();
             
             // Find approximate position of this list item in content
-            const searchText = childText.substring(0, 50);
-            const position = contentLower.indexOf(searchText);
+            // Use first meaningful text for matching (minimum 5 chars)
+            const meaningfulText = childText.trim();
+            let position = -1;
+            
+            if (meaningfulText.length >= 5) {
+              // Try to find the text in content, using progressively shorter search strings
+              const searchLength = Math.min(30, meaningfulText.length);
+              const searchText = meaningfulText.substring(0, searchLength);
+              position = contentLower.indexOf(searchText);
+              
+              // If not found, try first few words
+              if (position === -1) {
+                const firstWords = meaningfulText.split(' ').slice(0, 3).join(' ');
+                if (firstWords.length >= 5) {
+                  position = contentLower.indexOf(firstWords);
+                }
+              }
+            }
+            
             const context = position >= 0 ? getSectionContext(position) : null;
             
-            // Additional heuristics based on content
-            const looksLikeExclusion = childText.includes('exclusion') || 
-                                      childText.includes('limitation') ||
-                                      childText.includes('not covered') ||
-                                      childText.includes('excluded');
-            
-            // Required Documentation section - green text with checkboxes
+            // Required Documentation section - checkboxes only
             if (context === 'required-documentation') {
               return (
-                <li {...props} className="text-green-700 flex items-start gap-2">
+                <li {...props} className="flex items-start gap-2">
                   <input 
                     type="checkbox" 
-                    className="mt-1 h-4 w-4 rounded border-green-400 text-green-600 focus:ring-green-500"
+                    className="mt-1 h-4 w-4 flex-shrink-0 rounded border-gray-300 focus:ring-blue-500"
                     disabled
                   />
                   <span>{children}</span>
@@ -106,13 +135,13 @@ const MarkdownRenderer: React.FC<MarkdownRendererProps> = ({ content }) => {
               );
             }
             
-            // Medical Necessity Criteria section - green text with checkboxes
+            // Medical Necessity Criteria section - green text with checkboxes (until Relevant Codes)
             if (context === 'medical-necessity') {
               return (
-                <li {...props} className="text-green-700 flex items-start gap-2">
+                <li {...props} className="flex items-start gap-2 text-green-700">
                   <input 
                     type="checkbox" 
-                    className="mt-1 h-4 w-4 rounded border-green-400 text-green-600 focus:ring-green-500"
+                    className="mt-1 h-4 w-4 flex-shrink-0 rounded border-gray-300 focus:ring-blue-500"
                     disabled
                   />
                   <span>{children}</span>
@@ -120,15 +149,17 @@ const MarkdownRenderer: React.FC<MarkdownRendererProps> = ({ content }) => {
               );
             }
             
-            // Exclusions/Limitations section - red text
-            if (context === 'exclusions' || looksLikeExclusion) {
+            // Limitations/Exclusions section - red text with red X (until Summary Report)
+            if (context === 'exclusions') {
               return (
-                <li {...props} className="text-red-700">
-                  {children}
+                <li {...props} className="flex items-start gap-2 text-red-700">
+                  <span className="mt-0.5 font-bold text-red-700 flex-shrink-0">✗</span>
+                  <span>{children}</span>
                 </li>
               );
             }
             
+            // All other sections - render as default markdown (no modifications)
             return <li {...props}>{children}</li>;
           },
         }}
