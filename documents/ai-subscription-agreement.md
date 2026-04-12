@@ -374,6 +374,6 @@ This Agreement may be executed in counterparts. Execution by electronic signatur
 
 **Contact Information:**
 - Email: sales@notedoctor.ai
-- Support: support@mediauth.pro
+- Support: sales@notedoctor.ai
 
 By using the Service, you acknowledge that you have read, understood, and agree to be bound by this Subscription Agreement.

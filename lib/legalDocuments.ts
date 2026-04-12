@@ -149,7 +149,7 @@ These Terms are governed by the laws of the United States, without regard to con
 ## 16. Contact Information
 
 For questions about these Terms, please contact us at:
-- Email: [support@mediauth.pro](mailto:support@mediauth.pro)
+- Email: [sales@notedoctor.ai](mailto:sales@notedoctor.ai)
 
 ---
 
@@ -291,7 +291,7 @@ If you are a California resident, you have additional rights under the Californi
 - Right to request deletion of personal information
 - Right to non-discrimination for exercising your rights
 
-To exercise these rights, contact us at [privacy@mediauth.pro](mailto:privacy@mediauth.pro).
+To exercise these rights, contact us at [sales@notedoctor.ai](mailto:sales@notedoctor.ai).
 
 ## 12. European Privacy Rights
 
@@ -304,7 +304,7 @@ If you are in the European Economic Area (EEA), you have rights under the Genera
 - Right to object to processing
 - Right to withdraw consent
 
-To exercise these rights, contact us at [privacy@mediauth.pro](mailto:privacy@mediauth.pro).
+To exercise these rights, contact us at [sales@notedoctor.ai](mailto:sales@notedoctor.ai).
 
 ## 13. Changes to This Privacy Policy
 
@@ -323,9 +323,9 @@ In the event of a data breach that affects your personal information, we will no
 
 For questions or concerns about this Privacy Policy or our data practices, please contact us:
 
-- **Email:** [privacy@mediauth.pro](mailto:privacy@mediauth.pro)
-- **Support:** [support@mediauth.pro](mailto:support@mediauth.pro)
-- **Address:** [Your Business Address]
+- **Email:** [sales@notedoctor.ai](mailto:sales@notedoctor.ai)
+- **Support:** [sales@notedoctor.ai](mailto:sales@notedoctor.ai)
+
 
 ## 16. Consent
 

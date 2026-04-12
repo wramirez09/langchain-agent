@@ -149,7 +149,7 @@ These Terms are governed by the laws of the United States, without regard to con
 ## 16. Contact Information
 
 For questions about these Terms, please contact us at:
-- Email: support@mediauth.pro
+- Email: sales@notedoctor.ai
 
 ---
 

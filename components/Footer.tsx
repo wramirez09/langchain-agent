@@ -27,7 +27,7 @@ export function Footer() {
               Privacy Policy
             </Link>
             <a 
-              href="mailto:support@mediauth.pro" 
+              href="mailto:sales@notedoctor.ai" 
               className="text-blue-600 underline hover:text-blue-900 transition-colors underline-offset-2"
             >
               Contact
