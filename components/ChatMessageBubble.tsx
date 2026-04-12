@@ -140,10 +140,33 @@ const MarkdownRenderer: React.FC<MarkdownRendererProps> = ({ content }) => {
                   position = contentLower.indexOf(firstWords);
                 }
               }
+              
+              // If still not found, try first two words
+              if (position === -1) {
+                const firstTwoWords = meaningfulText.split(' ').slice(0, 2).join(' ');
+                if (firstTwoWords.length >= 5) {
+                  position = contentLower.indexOf(firstTwoWords);
+                }
+              }
             }
             
-            // Try to detect context from position, fallback to sectionTracker.current
-            const context = position >= 0 ? getSectionContext(position) : sectionTracker.current;
+            // Try to detect context from position, ALWAYS fallback to sectionTracker.current if position fails
+            let context = position >= 0 ? getSectionContext(position) : null;
+            
+            // If position-based detection failed or returned null, use sectionTracker
+            if (!context) {
+              context = sectionTracker.current;
+            }
+            
+            // Debug logging for nested bullets
+            if (childText.includes('intra-articular') || childText.includes('mechanical symptoms')) {
+              console.log('List item debug:', {
+                text: childText.substring(0, 50),
+                position,
+                context,
+                trackerCurrent: sectionTracker.current
+              });
+            }
             
             // Medical Necessity Zone (Medical Necessity Criteria + Required Documentation until Relevant Codes)
             // Green text with green checkboxes

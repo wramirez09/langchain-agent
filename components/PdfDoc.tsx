@@ -55,36 +55,38 @@ const styles = StyleSheet.create({
   },
   messageContent: {
     fontSize: 10,
-    lineHeight: 1.4,
-    marginBottom: 8,
+    lineHeight: 1.5,
+    marginBottom: 6,
+    fontFamily: 'Helvetica',
   },
   heading1: {
     fontSize: 16,
     fontFamily: 'Helvetica-Bold',
-    marginTop: 10,
-    marginBottom: 10,
+    marginTop: 16,
+    marginBottom: 12,
   },
   heading2: {
     fontSize: 14,
     fontFamily: 'Helvetica-Bold',
-    marginTop: 8,
+    marginTop: 14,
     marginBottom: 10,
   },
   heading3: {
     fontSize: 12,
     fontFamily: 'Helvetica-Bold',
-    marginTop: 6,
-    marginBottom: 10,
+    marginTop: 12,
+    marginBottom: 8,
   },
   heading4: {
     fontSize: 11,
-    fontFamily: 'Helvetica',
-    marginTop: 6,
-    marginBottom: 10,
+    fontFamily: 'Helvetica-Bold',
+    marginTop: 10,
+    marginBottom: 6,
   },
   listItem: {
     flexDirection: 'row',
-    marginBottom: 4,
+    marginBottom: 5,
+    marginTop: 2,
   },
   listItemBullet: {
     width: 20,
@@ -92,7 +94,9 @@ const styles = StyleSheet.create({
   },
   listItemContent: {
     flex: 1,
-    fontSize: 11,
+    fontSize: 10,
+    lineHeight: 1.4,
+    fontFamily: 'Helvetica',
   },
   listItemGreen: {
     color: '#15803d',
@@ -155,15 +159,15 @@ const PdfDoc: React.FC<PdfProps> = ({ name, role, messages }) => {
       // Process bold/strong text (section headers) - matches ChatMessageBubble strong component
       if (line.includes('**')) {
         const boldMatch = line.match(/\*\*([^*]+)\*\*/g);
-        if (boldMatch) {
-          boldMatch.forEach(bold => {
+        if (boldMatch && boldMatch.length > 0) {
+          boldMatch.forEach((bold, boldIndex) => {
             const text = bold.replace(/\*\*/g, '').toLowerCase();
             
             // Update section tracking and style Medical Necessity Criteria header in green
             if (text.includes('medical necessity criteria')) {
               sectionTracker.current = 'medical-necessity-zone';
               renderedLines.push(
-                <Text key={`${i}-mednec`} style={[styles.heading4, styles.sectionHeaderGreen]}>
+                <Text key={`${i}-${boldIndex}-mednec`} style={[styles.heading4, styles.sectionHeaderGreen]}>
                   {bold.replace(/\*\*/g, '')}
                 </Text>
               );
@@ -174,7 +178,7 @@ const PdfDoc: React.FC<PdfProps> = ({ name, role, messages }) => {
             if (text.includes('required documentation')) {
               sectionTracker.current = 'medical-necessity-zone';
               renderedLines.push(
-                <Text key={`${i}-reqdoc`} style={[styles.heading4, styles.sectionHeaderGreen]}>
+                <Text key={`${i}-${boldIndex}-reqdoc`} style={[styles.heading4, styles.sectionHeaderGreen]}>
                   {bold.replace(/\*\*/g, '')}
                 </Text>
               );
@@ -185,7 +189,7 @@ const PdfDoc: React.FC<PdfProps> = ({ name, role, messages }) => {
             if (text.includes('relevant codes')) {
               sectionTracker.current = 'relevant-codes';
               renderedLines.push(
-                <Text key={`${i}-relcodes`} style={styles.heading4}>
+                <Text key={`${i}-${boldIndex}-relcodes`} style={styles.heading4}>
                   {bold.replace(/\*\*/g, '')}
                 </Text>
               );
@@ -196,7 +200,7 @@ const PdfDoc: React.FC<PdfProps> = ({ name, role, messages }) => {
             if (text.includes('limitations and exclusions') || (text.includes('limitations') && text.includes('exclusions'))) {
               sectionTracker.current = 'exclusions';
               renderedLines.push(
-                <Text key={`${i}-excl`} style={[styles.heading4, styles.sectionHeaderRed]}>
+                <Text key={`${i}-${boldIndex}-excl`} style={[styles.heading4, styles.sectionHeaderRed]}>
                   {bold.replace(/\*\*/g, '')}
                 </Text>
               );
@@ -206,8 +210,23 @@ const PdfDoc: React.FC<PdfProps> = ({ name, role, messages }) => {
             // Update section tracking for Summary
             if (text.includes('summary report') || text.includes('summary')) {
               sectionTracker.current = 'summary';
+              renderedLines.push(
+                <Text key={`${i}-${boldIndex}-summary`} style={styles.heading4}>
+                  {bold.replace(/\*\*/g, '')}
+                </Text>
+              );
+              return;
             }
+            
+            // Render all other bold text as headers (e.g., **Determination:**, **Prior Authorization Required:**)
+            renderedLines.push(
+              <Text key={`${i}-${boldIndex}-bold`} style={[styles.heading4, { fontFamily: 'Helvetica-Bold' }]}>
+                {bold.replace(/\*\*/g, '')}
+              </Text>
+            );
           });
+          
+          // We handled the bold text, skip further processing
           return;
         }
       }
@@ -222,10 +241,24 @@ const PdfDoc: React.FC<PdfProps> = ({ name, role, messages }) => {
       } else if (line.startsWith('# ')) {
         renderedLines.push(<Text key={i} style={styles.heading1}>{line.replace('# ', '')}</Text>);
         return;
-      } else if (line.match(/^\s*[\-\*]\s+/)) {
+      } else if (line.match(/^\s*[\-\*]\s*/)) {
         // Handle bullets at any indentation level (matches ChatMessageBubble li component)
         const content = line.replace(/^\s*[\-\*]\s+/, '');
         const indentLevel = (line.match(/^\s*/)?.[0].length || 0) / 2;
+        
+        // Skip empty bullets or bullets with only whitespace/special chars
+        const cleanContent = content.trim().replace(/[\u200B-\u200D\uFEFF]/g, ''); // Remove zero-width spaces
+        
+        // Debug logging for empty bullets
+        if (!cleanContent || cleanContent.length === 0) {
+          console.log('Skipping empty bullet:', { 
+            line: JSON.stringify(line), 
+            content: JSON.stringify(content),
+            cleanContent: JSON.stringify(cleanContent),
+            lineLength: line.length 
+          });
+          return;
+        }
         
         // Medical Necessity Zone - green text with green checkboxes
         if (sectionTracker.current === 'medical-necessity-zone') {
@@ -268,7 +301,7 @@ const PdfDoc: React.FC<PdfProps> = ({ name, role, messages }) => {
         return;
       } else if (line.trim() === '') {
         // Add some space between paragraphs
-        renderedLines.push(<Text key={i} style={{ height: 8 }}> </Text>);
+        renderedLines.push(<Text key={i} style={{ height: 10 }}> </Text>);
         return;
       } else {
         // Regular text

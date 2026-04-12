@@ -88,7 +88,7 @@ const styles = StyleSheet.create({
     fontSize: 11,
   },
   listItemGreen: {
-    color: '#15803d',
+    color: '#5e1580',
   },
   listItemRed: {
     color: '#b91c1c',
