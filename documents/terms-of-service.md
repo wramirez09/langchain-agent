@@ -4,11 +4,11 @@
 
 ## 1. Acceptance of Terms
 
-By accessing or using MediAuth Pro (the "Service"), you agree to be bound by these Terms of Service ("Terms"). If you do not agree to these Terms, you may not access or use the Service.
+By accessing or using NoteDoctor.AI (the "Service"), you agree to be bound by these Terms of Service ("Terms"). If you do not agree to these Terms, you may not access or use the Service.
 
 ## 2. Description of Service
 
-MediAuth Pro provides authorization readiness analysis and documentation review tools for healthcare professionals. The Service assists with prior authorization workflows but does not replace professional medical judgment or guarantee authorization approval.
+NoteDoctor.AI provides authorization readiness analysis and documentation review tools for healthcare professionals. The Service assists with prior authorization workflows but does not replace professional medical judgment or guarantee authorization approval.
 
 ## 3. User Accounts
 

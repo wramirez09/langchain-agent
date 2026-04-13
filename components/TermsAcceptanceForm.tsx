@@ -63,7 +63,7 @@ export function TermsAcceptanceForm({ email, name, onAccepted }: TermsAcceptance
           <p className="font-semibold mb-1">Important: Review Before Accepting</p>
           <p>
             Please carefully review our Terms of Service and Privacy Policy before proceeding.
-            You must accept these terms to use MediAuth Pro.
+            You must accept these terms to use NoteDoctor.AI.
           </p>
         </div>
       </div>
@@ -229,7 +229,7 @@ export function TermsAcceptanceForm({ email, name, onAccepted }: TermsAcceptance
       </div>
 
       <p className="text-xs text-gray-500 text-center">
-        By continuing, you authorize MediAuth Pro to charge your payment method for the subscription fees.
+        By continuing, you authorize NoteDoctor.AI to charge your payment method for the subscription fees.
       </p>
 
       <LegalDocumentModal

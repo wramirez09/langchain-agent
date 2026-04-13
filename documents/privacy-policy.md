@@ -4,7 +4,7 @@
 
 ## 1. Introduction
 
-MediAuth Pro ("we," "our," or "us") is committed to protecting your privacy. This Privacy Policy explains how we collect, use, disclose, and safeguard your information when you use our Service.
+NoteDoctor.AI ("we," "our," or "us") is committed to protecting your privacy. This Privacy Policy explains how we collect, use, disclose, and safeguard your information when you use our Service.
 
 ## 2. Information We Collect
 

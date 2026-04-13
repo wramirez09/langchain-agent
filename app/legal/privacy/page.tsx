@@ -5,8 +5,8 @@ import { ArrowLeft } from 'lucide-react';
 import { PRIVACY_POLICY } from '@/lib/legalDocuments';
 
 export const metadata = {
-  title: 'Privacy Policy | MediAuth Pro',
-  description: 'Privacy Policy for MediAuth Pro authorization readiness platform',
+  title: 'Privacy Policy | NoteDoctor.AI',
+  description: 'Privacy Policy for NoteDoctor.AI authorization readiness platform',
   robots: { index: true, follow: true },
 };
 
