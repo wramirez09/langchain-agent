@@ -24,17 +24,31 @@ const PdfDoc = dynamic(() => import("@/components/PdfDoc"), {
 
 function filterMessages(messages: Message[]): Message[] {
   return messages.filter((message) => {
+    // Filter out system messages
     if (message.role === "system") return false;
-    if (
-      message.content &&
-      typeof message.content === "string" &&
-      (message.content.includes('"action":') ||
+    
+    // Filter out tool call messages - be specific to avoid filtering legitimate content
+    if (message.content && typeof message.content === "string") {
+      const content = message.content.trim();
+      
+      // Only filter if it's clearly a tool call JSON object
+      if (
         message.content.includes('"tool_call_id":') ||
-        message.content.includes('"tool_calls":') ||
-        (message.content.trim().startsWith("{") &&
-          message.content.trim().endsWith("}")))
-    )
-      return false;
+        message.content.includes('"tool_calls":')
+      ) {
+        return false;
+      }
+      
+      // Filter out pure JSON objects that are tool-related (not markdown with code blocks)
+      if (
+        content.startsWith("{") &&
+        content.endsWith("}") &&
+        (content.includes('"action":') || content.includes('"name":') && content.includes('"arguments":'))
+      ) {
+        return false;
+      }
+    }
+    
     return true;
   });
 }
