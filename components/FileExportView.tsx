@@ -57,12 +57,7 @@ export function FileExportView() {
   const { chatMessages } = usePriorAuthContext();
   const [isDownloading, setIsDownloading] = useState(false);
 
-  const filteredMessages = useMemo(() => {
-    console.log('FileExportView - chatMessages from context:', chatMessages);
-    const filtered = filterMessages(chatMessages);
-    console.log('FileExportView - filteredMessages:', filtered);
-    return filtered;
-  }, [chatMessages]);
+  const filteredMessages = useMemo(() => filterMessages(chatMessages), [chatMessages]);
 
   const handleDownload = async () => {
     if (isDownloading) return;

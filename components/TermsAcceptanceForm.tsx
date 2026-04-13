@@ -23,6 +23,12 @@ export function TermsAcceptanceForm({ email, name, onAccepted }: TermsAcceptance
   const [showTermsModal, setShowTermsModal] = useState(false);
   const [showPrivacyModal, setShowPrivacyModal] = useState(false);
   const [showAiAgreementModal, setShowAiAgreementModal] = useState(false);
+  
+  // Track which documents have been scrolled to bottom
+  const [termsScrolledToBottom, setTermsScrolledToBottom] = useState(false);
+  const [privacyScrolledToBottom, setPrivacyScrolledToBottom] = useState(false);
+  // AI Agreement doesn't require scroll-to-bottom
+  const aiAgreementScrolledToBottom = true;
 
   const allAccepted = termsAccepted && privacyAccepted && aiAgreementAccepted;
 
@@ -128,6 +134,7 @@ export function TermsAcceptanceForm({ email, name, onAccepted }: TermsAcceptance
             id="terms-agreement"
             checked={termsAccepted}
             onCheckedChange={(checked) => setTermsAccepted(checked === true)}
+            disabled={!termsScrolledToBottom}
             className="mt-1"
           />
           <label
@@ -153,6 +160,7 @@ export function TermsAcceptanceForm({ email, name, onAccepted }: TermsAcceptance
             id="privacy-agreement"
             checked={privacyAccepted}
             onCheckedChange={(checked) => setPrivacyAccepted(checked === true)}
+            disabled={!privacyScrolledToBottom}
             className="mt-1"
           />
           <label
@@ -178,6 +186,7 @@ export function TermsAcceptanceForm({ email, name, onAccepted }: TermsAcceptance
             id="ai-agreement"
             checked={aiAgreementAccepted}
             onCheckedChange={(checked) => setAiAgreementAccepted(checked === true)}
+            disabled={!aiAgreementScrolledToBottom}
             className="mt-1"
           />
           <label
@@ -233,20 +242,25 @@ export function TermsAcceptanceForm({ email, name, onAccepted }: TermsAcceptance
       </p>
 
       <LegalDocumentModal
+        key={`terms-${showTermsModal}`}
         isOpen={showTermsModal}
         onClose={() => setShowTermsModal(false)}
         title="Terms of Service"
         content={TERMS_OF_SERVICE}
+        onScrolledToBottom={() => setTermsScrolledToBottom(true)}
       />
 
       <LegalDocumentModal
+        key={`privacy-${showPrivacyModal}`}
         isOpen={showPrivacyModal}
         onClose={() => setShowPrivacyModal(false)}
         title="Privacy Policy"
         content={PRIVACY_POLICY}
+        onScrolledToBottom={() => setPrivacyScrolledToBottom(true)}
       />
 
       <LegalDocumentModal
+        key={`ai-${showAiAgreementModal}`}
         isOpen={showAiAgreementModal}
         onClose={() => setShowAiAgreementModal(false)}
         title="AI Subscription Agreement"

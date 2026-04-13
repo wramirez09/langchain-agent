@@ -57,12 +57,16 @@ const PriorAuthContext = createContext<PriorAuthContextState | undefined>(undefi
 export function PriorAuthProvider({ children }: { children: ReactNode }) {
   const [formFields, setFormFields] = useState<FormFields>(defaultFormFields);
   const [openAccordions, setOpenAccordions] = useState<string[]>([]);
-  const [chatMessages, setChatMessages] = useState<Message[]>([]);
+  const [chatMessages, _setChatMessages] = useState<Message[]>([]);
   const [chatInput, setChatInput] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const [intermediateStepsLoading, setIntermediateStepsLoading] = useState(false);
   const [sourcesForMessages, setSourcesForMessages] = useState<Record<string, any>>({});
   const [activeFormTab, setActiveFormTab] = useState<"pre-auth" | "chat" | "input" | "output">("pre-auth");
+
+  const setChatMessages = (messages: Message[]) => {
+    _setChatMessages(messages);
+  };
 
   const updateFormField = (field: keyof FormFields, value: string) => {
     setFormFields((prev) => ({
