@@ -146,8 +146,24 @@ type PdfProps = {
 };
 
 const PdfDoc: React.FC<PdfProps> = ({ name, role, messages }) => {
+  // Defensive check
+  if (!messages || messages.length === 0) {
+    return (
+      <PDFViewer width="100%" height="100%">
+        <Document>
+          <Page style={styles.page}>
+            <Text>No messages to display</Text>
+          </Page>
+        </Document>
+      </PDFViewer>
+    );
+  }
+
   // Helper to render a single message with section tracking
   const renderMessage = (message: Message, index: number) => {
+    if (!message || !message.content) {
+      return null;
+    }
     // Track current section as we process lines (mimics sectionTracker from ChatMessageBubble)
     const sectionTracker = { current: null as 'medical-necessity-zone' | 'exclusions' | 'summary' | 'relevant-codes' | null };
     const lines = message.content.split('\n');
