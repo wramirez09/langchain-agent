@@ -1,10 +1,9 @@
 "use client";
 
 import React, { useState, useCallback, useEffect, useRef, FormEvent } from "react";
-import { type Message } from "ai";
 import { useChat } from "ai/react";
 import { toast } from "sonner";
-import { Activity, AlertTriangle, BookOpen, ClipboardList, FileBarChart, FileText, LoaderCircle, MapPin, Send, Stethoscope, Trash2, Repeat } from "lucide-react";
+import { Send, LoaderCircle, FileText, MapPin, Stethoscope, FileBarChart, Activity, ClipboardList, BookOpen, Trash2, AlertTriangle } from "lucide-react";
 import { IconSend2 } from "@tabler/icons-react";
 import { motion, LayoutGroup } from "framer-motion";
 import { ChatMessageBubble } from "@/components/ChatMessageBubble";
@@ -40,7 +39,6 @@ export function PriorAuthView({
     updateFormField,
     openAccordions,
     setOpenAccordions,
-    chatMessages,
     setChatMessages,
     chatInput,
     setChatInput,
@@ -132,7 +130,7 @@ export function PriorAuthView({
         }
         const messageIndexHeader = response.headers.get("x-message-index");
         if (sources.length && messageIndexHeader !== null) {
-          setSourcesForMessages((prev) => ({ ...prev, [messageIndexHeader]: sources }));
+          setSourcesForMessages((prev: Record<string, any>) => ({ ...prev, [messageIndexHeader]: sources }));
         }
         const toastHeader = response.headers.get("x-toast-notifications");
         if (toastHeader) {
@@ -271,7 +269,7 @@ export function PriorAuthView({
       setIntermediateStepsLoading(false);
       setIsLoading(false);
     }
-  }, [chatInput, chat, intermediateStepsLoading, clearTimeouts]);
+  }, [chatInput, chat, intermediateStepsLoading, clearTimeouts, setChatInput, setIntermediateStepsLoading, setIsLoading]);
 
   const handleStop = useCallback(() => {
     chat.stop();

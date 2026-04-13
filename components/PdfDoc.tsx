@@ -151,7 +151,7 @@ const PdfDoc: React.FC<PdfProps> = ({ name, role, messages }) => {
     // Track current section as we process lines (mimics sectionTracker from ChatMessageBubble)
     const sectionTracker = { current: null as 'medical-necessity-zone' | 'exclusions' | 'summary' | 'relevant-codes' | null };
     const lines = message.content.split('\n');
-    const renderedLines: JSX.Element[] = [];
+    const renderedLines: React.ReactElement[] = [];
 
     lines.forEach((line, i) => {
       const lineLower = line.toLowerCase();
