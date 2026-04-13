@@ -17,6 +17,7 @@ import {
  * - Deterministic weighted scoring (no embeddings, no LLM calls)
  * - Exact CPT/ICD-10 code matching (+10 points each)
  * - Treatment/diagnosis keyword overlap scoring
+ * - Automatic merging of overlapping documents (same CPT/ICD-10 codes or similar treatments)
  * - Domain and metadata filtering
  * - Fast, cached document loading
  * - Structured input/output
@@ -24,6 +25,7 @@ import {
  * Architecture:
  * - Load full documents (no chunking)
  * - Score using weighted signals (CPT, ICD-10, keywords, fuzzy matching)
+ * - Detect and merge overlapping documents for comprehensive results
  * - Return top matches + related matches
  * - LLM synthesizes final answer from structured results
  */
@@ -49,6 +51,8 @@ This tool performs deterministic search across commercial guideline documents to
 - Priority document boosting (+1-2 points)
 - Keyword overlap scoring for treatment and diagnosis
 - Domain filtering (cardio, genetic, musculoskeletal, etc.)
+- Automatically merges overlapping documents (same CPT/ICD-10 or >70% treatment similarity)
+- Merged documents receive bonus scoring (+2 per additional source)
 - Returns ranked results with match explanations
 
 **Input fields:**

@@ -9,9 +9,194 @@ interface MarkdownRendererProps {
   content: string;
 }
 const MarkdownRenderer: React.FC<MarkdownRendererProps> = ({ content }) => {
+  // Track current section as we render (using object to allow mutation during render)
+  const sectionTracker = { current: null as 'medical-necessity-zone' | 'exclusions' | 'summary' | 'relevant-codes' | null };
+  
+  // Helper to detect section context from content
+  const getSectionContext = (position: number): 'medical-necessity-zone' | 'exclusions' | 'summary' | 'relevant-codes' | null => {
+    const beforeText = content.substring(Math.max(0, position - 1500), position).toLowerCase();
+    
+    // Find the last occurrence of each section marker
+    const lastSummaryIndex = Math.max(
+      beforeText.lastIndexOf('summary report'),
+      beforeText.lastIndexOf('## summary')
+    );
+    const lastMedNecIndex = beforeText.lastIndexOf('medical necessity criteria');
+    const lastReqDocIndex = beforeText.lastIndexOf('required documentation');
+    const lastExclIndex = Math.max(
+      beforeText.lastIndexOf('limitations and exclusions'),
+      beforeText.lastIndexOf('limitations/exclusions'),
+      beforeText.lastIndexOf('exclusions:'),
+      beforeText.lastIndexOf('limitations:')
+    );
+    const lastRelevantCodesIndex = beforeText.lastIndexOf('relevant codes');
+    
+    // Medical Necessity Zone: from "Medical Necessity Criteria" OR "Required Documentation" until "Relevant Codes"
+    const medNecZoneStart = Math.max(lastMedNecIndex, lastReqDocIndex);
+    
+    // Determine which section we're in based on the most recent section header
+    const sectionIndices: Array<{ index: number; type: 'medical-necessity-zone' | 'exclusions' | 'summary' | 'relevant-codes' | null }> = [
+      { index: lastSummaryIndex, type: 'summary' },
+      { index: medNecZoneStart, type: 'medical-necessity-zone' },
+      { index: lastExclIndex, type: 'exclusions' },
+      { index: lastRelevantCodesIndex, type: 'relevant-codes' },
+    ];
+    
+    // Sort by index descending to find the most recent section
+    const mostRecent = sectionIndices
+      .filter(s => s.index >= 0)
+      .sort((a, b) => b.index - a.index)[0];
+    
+    return mostRecent?.type ?? null;
+  };
+
   return (
     <div className="prose max-w-none">
       <ReactMarkdown
+        components={{
+          a: (props) => (
+            <a
+              {...props}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="text-blue-600 hover:text-blue-800 underline break-all"
+            />
+          ),
+          strong: ({ children, ...props }) => {
+            const text = String(children).toLowerCase();
+            
+            // Update section tracking and style Medical Necessity Criteria header in green
+            if (text.includes('medical necessity criteria')) {
+              sectionTracker.current = 'medical-necessity-zone';
+              return <strong {...props} className="text-green-700 font-semibold">{children}</strong>;
+            }
+            
+            // Update section tracking and style Required Documentation header in green
+            if (text.includes('required documentation')) {
+              sectionTracker.current = 'medical-necessity-zone';
+              return <strong {...props} className="text-green-700 font-semibold">{children}</strong>;
+            }
+            
+            // Update section tracking for Relevant Codes
+            if (text.includes('relevant codes')) {
+              sectionTracker.current = 'relevant-codes';
+            }
+            
+            // Update section tracking and style Limitations and Exclusions header in red
+            if (text.includes('limitations and exclusions') || text.includes('limitations') && text.includes('exclusions')) {
+              sectionTracker.current = 'exclusions';
+              return <strong {...props} className="text-red-700 font-semibold">{children}</strong>;
+            }
+            
+            // Update section tracking for Summary
+            if (text.includes('summary report') || text.includes('summary')) {
+              sectionTracker.current = 'summary';
+            }
+            
+            // Render all other strong/bold text as default markdown
+            return <strong {...props}>{children}</strong>;
+          },
+          ul: ({ children, ...props }) => {
+            // Pass through ul elements with default styling
+            return <ul {...props}>{children}</ul>;
+          },
+          ol: ({ children, ...props }) => {
+            // Pass through ol elements with default styling
+            return <ol {...props}>{children}</ol>;
+          },
+          li: ({ children, ...props }) => {
+            // Extract text from children, handling React elements
+            const extractText = (node: React.ReactNode): string => {
+              if (typeof node === 'string') return node;
+              if (typeof node === 'number') return String(node);
+              if (Array.isArray(node)) return node.map(extractText).join(' ');
+              if (node && typeof node === 'object' && 'props' in node) {
+                const element = node as { props?: { children?: React.ReactNode } };
+                if (element.props?.children) {
+                  return extractText(element.props.children);
+                }
+              }
+              return '';
+            };
+            
+            const childText = extractText(children).toLowerCase();
+            const contentLower = content.toLowerCase();
+            
+            // Find approximate position of this list item in content
+            // Use first meaningful text for matching (minimum 5 chars)
+            const meaningfulText = childText.trim();
+            let position = -1;
+            
+            if (meaningfulText.length >= 5) {
+              // Try to find the text in content, using progressively shorter search strings
+              const searchLength = Math.min(30, meaningfulText.length);
+              const searchText = meaningfulText.substring(0, searchLength);
+              position = contentLower.indexOf(searchText);
+              
+              // If not found, try first few words
+              if (position === -1) {
+                const firstWords = meaningfulText.split(' ').slice(0, 3).join(' ');
+                if (firstWords.length >= 5) {
+                  position = contentLower.indexOf(firstWords);
+                }
+              }
+              
+              // If still not found, try first two words
+              if (position === -1) {
+                const firstTwoWords = meaningfulText.split(' ').slice(0, 2).join(' ');
+                if (firstTwoWords.length >= 5) {
+                  position = contentLower.indexOf(firstTwoWords);
+                }
+              }
+            }
+            
+            // Try to detect context from position, ALWAYS fallback to sectionTracker.current if position fails
+            let context = position >= 0 ? getSectionContext(position) : null;
+            
+            // If position-based detection failed or returned null, use sectionTracker
+            if (!context) {
+              context = sectionTracker.current;
+            }
+            
+            // Debug logging for nested bullets
+            if (childText.includes('intra-articular') || childText.includes('mechanical symptoms')) {
+              console.log('List item debug:', {
+                text: childText.substring(0, 50),
+                position,
+                context,
+                trackerCurrent: sectionTracker.current
+              });
+            }
+            
+            // Medical Necessity Zone (Medical Necessity Criteria + Required Documentation until Relevant Codes)
+            // Green text with green checkboxes
+            if (context === 'medical-necessity-zone') {
+              return (
+                <li {...props} className="flex items-start gap-2">
+                  <input 
+                    type="checkbox" 
+                    className="mt-1 h-4 w-4 flex-shrink-0 rounded border-green-400 text-green-600 focus:ring-green-500"
+                    disabled
+                  />
+                  <span className="text-green-700">{children}</span>
+                </li>
+              );
+            }
+            
+            // Limitations/Exclusions section - red text with red X (until Summary Report)
+            if (context === 'exclusions') {
+              return (
+                <li {...props} className="flex items-start gap-2 text-red-700">
+                  <span className="mt-0.5 font-bold text-red-700 flex-shrink-0">✗</span>
+                  <span>{children}</span>
+                </li>
+              );
+            }
+            
+            // All other sections - render as default markdown (no modifications)
+            return <li {...props}>{children}</li>;
+          },
+        }}
       >
         {content}
       </ReactMarkdown>
@@ -36,17 +221,8 @@ export function ChatMessageBubble(props: {
   isLoading?: boolean;
 }) {
   const isUser = props.message.role === "user";
-  const [displayContent, setDisplayContent] = useState("");
+  const displayContent = props.message.content;
   const [loadingMsgIndex, setLoadingMsgIndex] = useState(0);
-
-  // Handle streaming content for AI messages
-  useEffect(() => {
-    if (isUser) {
-      setDisplayContent(props.message.content);
-      return;
-    }
-    setDisplayContent(props.message.content);
-  }, [props.message.content, isUser]);
 
   // Rotate loading messages every 3 seconds while waiting for initial response
   useEffect(() => {
@@ -104,7 +280,7 @@ export function ChatMessageBubble(props: {
           {!isUser && props.isLastMessage && displayContent && !props.isLoading && (
             <div className="mt-3 p-2 bg-blue-50 border border-blue-100 rounded-md">
               <div className="text-xs text-blue-700 italic">
-                Always verify with payer portal guidelines prior to submission
+                Always verify with payer portal guidelines prior to submission. This analysis is based on publicly available information.
               </div>
             </div>
           )}

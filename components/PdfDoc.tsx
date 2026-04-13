@@ -55,49 +55,78 @@ const styles = StyleSheet.create({
   },
   messageContent: {
     fontSize: 10,
-    lineHeight: 1.4,
-    marginBottom: 8,
+    lineHeight: 1.5,
+    marginBottom: 6,
+    fontFamily: 'Helvetica',
   },
   heading1: {
     fontSize: 16,
     fontFamily: 'Helvetica-Bold',
-    marginTop: 10,
-    marginBottom: 10,
+    marginTop: 16,
+    marginBottom: 12,
   },
   heading2: {
     fontSize: 14,
     fontFamily: 'Helvetica-Bold',
-    marginTop: 8,
+    marginTop: 14,
     marginBottom: 10,
   },
   heading3: {
     fontSize: 12,
     fontFamily: 'Helvetica-Bold',
-    marginTop: 6,
-    marginBottom: 10,
+    marginTop: 12,
+    marginBottom: 8,
   },
   heading4: {
     fontSize: 11,
-    fontFamily: 'Helvetica',
-    marginTop: 6,
-    marginBottom: 10,
+    fontFamily: 'Helvetica-Bold',
+    marginTop: 10,
+    marginBottom: 6,
   },
   listItem: {
     flexDirection: 'row',
-    marginBottom: 4,
-
+    marginBottom: 5,
+    marginTop: 2,
   },
   listItemBullet: {
     width: 20,
     fontSize: 11,
-    fontWeight: 'bold',
-    color: "#1e7dbf"
   },
   listItemContent: {
     flex: 1,
+    fontSize: 10,
+    lineHeight: 1.4,
+    fontFamily: 'Helvetica',
+  },
+  listItemGreen: {
+    color: '#15803d',
+  },
+  listItemRed: {
+    color: '#b91c1c',
+  },
+  checkbox: {
+    width: 10,
+    height: 10,
+    border: '1.5px solid #9ca3af',
+    borderRadius: 2,
+    marginRight: 6,
+    marginTop: 2,
+    backgroundColor: '#ffffff',
+  },
+  redX: {
     fontSize: 11,
+    color: '#b91c1c',
     fontWeight: 'bold',
-    color: '#1e7dbf'
+    marginRight: 6,
+    marginTop: 2,
+  },
+  sectionHeaderGreen: {
+    color: '#15803d',
+    fontFamily: 'Helvetica-Bold',
+  },
+  sectionHeaderRed: {
+    color: '#b91c1c',
+    fontFamily: 'Helvetica-Bold',
   },
   companyName: {
     fontSize: 16,
@@ -116,74 +145,212 @@ type PdfProps = {
   messages: Message[];
 };
 
-const PdfDoc: React.FC<PdfProps> = ({ name, role, messages }) => (
-  <PDFViewer width="100%" height="100%">
-    <Document>
-      <Page style={styles.page}>
-        <View style={styles.header}>
-          <Image src={logoBase64} style={styles.logo} cache={false} />
-          <View>
-            <Text style={styles.companyName}>NoteDoctor.ai</Text>
-            {/* <Text style={styles.subtitle}>
-            Chat generated for {name} ({role})
-          </Text> */}
+const PdfDoc: React.FC<PdfProps> = ({ name, role, messages }) => {
+  // Defensive check
+  if (!messages || messages.length === 0) {
+    return (
+      <PDFViewer width="100%" height="100%">
+        <Document>
+          <Page style={styles.page}>
+            <Text>No messages to display</Text>
+          </Page>
+        </Document>
+      </PDFViewer>
+    );
+  }
+
+  // Helper to render a single message with section tracking
+  const renderMessage = (message: Message, index: number) => {
+    if (!message || !message.content) {
+      return null;
+    }
+    // Track current section as we process lines (mimics sectionTracker from ChatMessageBubble)
+    const sectionTracker = { current: null as 'medical-necessity-zone' | 'exclusions' | 'summary' | 'relevant-codes' | null };
+    const lines = message.content.split('\n');
+    const renderedLines: React.ReactElement[] = [];
+
+    lines.forEach((line, i) => {
+      const lineLower = line.toLowerCase();
+      
+      // Process bold/strong text (section headers) - matches ChatMessageBubble strong component
+      if (line.includes('**')) {
+        const boldMatch = line.match(/\*\*([^*]+)\*\*/g);
+        if (boldMatch && boldMatch.length > 0) {
+          boldMatch.forEach((bold, boldIndex) => {
+            const text = bold.replace(/\*\*/g, '').toLowerCase();
+            
+            // Update section tracking and style Medical Necessity Criteria header in green
+            if (text.includes('medical necessity criteria')) {
+              sectionTracker.current = 'medical-necessity-zone';
+              renderedLines.push(
+                <Text key={`${i}-${boldIndex}-mednec`} style={[styles.heading4, styles.sectionHeaderGreen]}>
+                  {bold.replace(/\*\*/g, '')}
+                </Text>
+              );
+              return;
+            }
+            
+            // Update section tracking and style Required Documentation header in green
+            if (text.includes('required documentation')) {
+              sectionTracker.current = 'medical-necessity-zone';
+              renderedLines.push(
+                <Text key={`${i}-${boldIndex}-reqdoc`} style={[styles.heading4, styles.sectionHeaderGreen]}>
+                  {bold.replace(/\*\*/g, '')}
+                </Text>
+              );
+              return;
+            }
+            
+            // Update section tracking for Relevant Codes
+            if (text.includes('relevant codes')) {
+              sectionTracker.current = 'relevant-codes';
+              renderedLines.push(
+                <Text key={`${i}-${boldIndex}-relcodes`} style={styles.heading4}>
+                  {bold.replace(/\*\*/g, '')}
+                </Text>
+              );
+              return;
+            }
+            
+            // Update section tracking and style Limitations and Exclusions header in red
+            if (text.includes('limitations and exclusions') || (text.includes('limitations') && text.includes('exclusions'))) {
+              sectionTracker.current = 'exclusions';
+              renderedLines.push(
+                <Text key={`${i}-${boldIndex}-excl`} style={[styles.heading4, styles.sectionHeaderRed]}>
+                  {bold.replace(/\*\*/g, '')}
+                </Text>
+              );
+              return;
+            }
+            
+            // Update section tracking for Summary
+            if (text.includes('summary report') || text.includes('summary')) {
+              sectionTracker.current = 'summary';
+              renderedLines.push(
+                <Text key={`${i}-${boldIndex}-summary`} style={styles.heading4}>
+                  {bold.replace(/\*\*/g, '')}
+                </Text>
+              );
+              return;
+            }
+            
+            // Render all other bold text as headers (e.g., **Determination:**, **Prior Authorization Required:**)
+            renderedLines.push(
+              <Text key={`${i}-${boldIndex}-bold`} style={[styles.heading4, { fontFamily: 'Helvetica-Bold' }]}>
+                {bold.replace(/\*\*/g, '')}
+              </Text>
+            );
+          });
+          
+          // We handled the bold text, skip further processing
+          return;
+        }
+      }
+      
+      // Handle markdown headers
+      if (line.startsWith('## ')) {
+        renderedLines.push(<Text key={i} style={styles.heading2}>{line.replace('## ', '')}</Text>);
+        return;
+      } else if (line.startsWith('### ')) {
+        renderedLines.push(<Text key={i} style={styles.heading3}>{line.replace('### ', '')}</Text>);
+        return;
+      } else if (line.startsWith('# ')) {
+        renderedLines.push(<Text key={i} style={styles.heading1}>{line.replace('# ', '')}</Text>);
+        return;
+      } else if (line.match(/^\s*[\-\*]\s*/)) {
+        // Handle bullets at any indentation level (matches ChatMessageBubble li component)
+        const content = line.replace(/^\s*[\-\*]\s+/, '');
+        const indentLevel = (line.match(/^\s*/)?.[0].length || 0) / 2;
+        
+        // Skip empty bullets or bullets with only whitespace/special chars
+        const cleanContent = content.trim().replace(/[\u200B-\u200D\uFEFF]/g, ''); // Remove zero-width spaces
+        
+        // Debug logging for empty bullets
+        if (!cleanContent || cleanContent.length === 0) {
+          console.log('Skipping empty bullet:', { 
+            line: JSON.stringify(line), 
+            content: JSON.stringify(content),
+            cleanContent: JSON.stringify(cleanContent),
+            lineLength: line.length 
+          });
+          return;
+        }
+        
+        // Medical Necessity Zone - green text with green checkboxes
+        if (sectionTracker.current === 'medical-necessity-zone') {
+          renderedLines.push(
+            <View key={i} style={[styles.listItem, { marginLeft: indentLevel * 10 }]}>
+              <View style={styles.checkbox} />
+              <Text style={[styles.listItemContent, styles.listItemGreen]}>{content}</Text>
+            </View>
+          );
+          return;
+        }
+        
+        // Limitations/Exclusions - red text with red X
+        if (sectionTracker.current === 'exclusions') {
+          renderedLines.push(
+            <View key={i} style={[styles.listItem, { marginLeft: indentLevel * 10 }]}>
+              <Text style={styles.redX}>✗</Text>
+              <Text style={[styles.listItemContent, styles.listItemRed]}>{content}</Text>
+            </View>
+          );
+          return;
+        }
+        
+        // All other sections - default rendering
+        renderedLines.push(
+          <View key={i} style={[styles.listItem, { marginLeft: indentLevel * 10 }]}>
+            <Text style={styles.listItemContent}>{content}</Text>
           </View>
+        );
+        return;
+      } else if (line.match(/^\d+\.\s/)) {
+        // Handle numbered lists
+        const [num, ...rest] = line.split('. ');
+        renderedLines.push(
+          <View key={i} style={styles.listItem}>
+            <Text style={styles.listItemBullet}>{num}.</Text>
+            <Text style={styles.listItemContent}>{rest.join('. ')}</Text>
+          </View>
+        );
+        return;
+      } else if (line.trim() === '') {
+        // Add some space between paragraphs
+        renderedLines.push(<Text key={i} style={{ height: 10 }}> </Text>);
+        return;
+      } else {
+        // Regular text
+        renderedLines.push(<Text key={i} style={styles.messageContent}>{line}</Text>);
+      }
+    });
+    
+    return (
+      <View key={index} style={styles.messageContainer}>
+        <View style={styles.messageContent}>
+          {renderedLines}
         </View>
-
-
-        {/* Messages */}
-        {messages.map((message, index) => (
-          <View key={index} style={styles.messageContainer}>
-
-            <View style={styles.messageContent}>
-              {message.content.split('\n').map((line, i) => {
-                const specialHeaders = [
-                  'Medical Necessity Criteria:',
-                  'Relevant Codes:',
-                  'Required Documentation:',
-                  'Limitations/Exclusions:'
-                ];
-                const isSpecialHeader = specialHeaders.some(header => line.trim() === header);
-
-                // Handle markdown headers and lists
-                if (isSpecialHeader) {
-                  return <Text key={i} style={[styles.heading4, { color: 'red' }]}>{line}</Text>;
-                } else if (line.startsWith('## ')) {
-                  return <Text key={i} style={styles.heading2}>{line.replace('## ', '')}</Text>;
-                } else if (line.startsWith('### ')) {
-                  return <Text key={i} style={styles.heading3}>{line.replace('### ', '')}</Text>;
-                } else if (line.startsWith('# ')) {
-                  return <Text key={i} style={styles.heading1}>{line.replace('# ', '')}</Text>;
-                } else if (line.startsWith('- ') || line.startsWith('* ')) {
-                  return (
-                    <View key={i} style={styles.listItem}>
-                      <Text style={styles.listItemContent}>{line.replace('- ', '')}</Text>
-                    </View>
-                  );
-
-                } else if (line.match(/^\d+\.\s/)) {
-                  // Handle numbered lists
-                  const [num, ...rest] = line.split('. ');
-                  return (
-                    <View key={i} style={styles.listItem}>
-                      <Text style={styles.listItemBullet}>{num}.</Text>
-                      <Text style={styles.listItemContent}>{rest.join('. ')}</Text>
-                    </View>
-                  );
-                } else if (line.trim() === '') {
-                  // Add some space between paragraphs
-                  return <Text key={i} style={{ height: 8 }}> </Text>;
-                } else {
-                  // Regular text
-                  return <Text key={i} style={styles.messageContent}>{line}</Text>;
-                }
-              })}
+      </View>
+    );
+  };
+  
+  return (
+    <PDFViewer width="100%" height="100%">
+      <Document>
+        <Page style={styles.page}>
+          <View style={styles.header}>
+            <Image src={logoBase64} style={styles.logo} cache={false} />
+            <View>
+              <Text style={styles.companyName}>NoteDoctor.ai</Text>
             </View>
           </View>
-        ))}
-      </Page>
-    </Document>
-  </PDFViewer>
-);
+
+          {/* Messages */}
+          {messages.map((message, index) => renderMessage(message, index))}
+        </Page>
+      </Document>
+    </PDFViewer>
+  );
+};
 
 export default PdfDoc;

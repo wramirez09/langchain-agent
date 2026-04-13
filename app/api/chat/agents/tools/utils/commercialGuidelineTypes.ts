@@ -82,6 +82,15 @@ export const CommercialGuidelineSearchInputSchema = z.object({
 export type CommercialGuidelineSearchInput = z.infer<typeof CommercialGuidelineSearchInputSchema>;
 
 /**
+ * Information about a source document that was merged
+ */
+export interface MergedSourceInfo {
+  id: string;
+  title: string;
+  path: string;
+}
+
+/**
  * Output schema for scored results
  */
 export interface ScoredResult {
@@ -95,6 +104,8 @@ export interface ScoredResult {
   treatment?: string;
   cptCodes?: string[];
   icd10Codes?: string[];
+  mergedFrom?: MergedSourceInfo[]; // Optional: list of source documents if this is a merged result
+  body?: string;                 // Optional: full body content for merged documents
 }
 
 /**

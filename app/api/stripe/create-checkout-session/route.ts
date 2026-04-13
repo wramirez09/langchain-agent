@@ -50,6 +50,10 @@ export async function POST(req: Request) {
             (await stripe.customers.create({
                 email,
                 name,
+                metadata: {
+                    terms_accepted: 'true',
+                    terms_accepted_at: new Date().toISOString(),
+                },
             }));
 
         /* ------------------------------------------------------------

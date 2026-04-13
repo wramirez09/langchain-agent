@@ -802,7 +802,7 @@ Cardiac MRI
 -   ER/inpatient acute coronary syndrome evaluation is outside this
     > elective guideline.
 
-    > Potential limitations/exclusions:
+    > Potential limitations and exclusions:
 
     -   Irregular rhythms can reduce image quality
 

@@ -51,7 +51,7 @@ export function WelcomeHeader({ isVisible, onFadeOut }: WelcomeHeaderProps) {
         </div>
         <div className="pt-6 border-t border-gray-400">
           <p className="text-sm text-gray-500 italic">
-            Start by asking a question, uploading a document or fill out a form to begin your analysis.<br/><strong>Always verify with payer portal guidelines prior to submission.</strong>
+            Start by asking a question, uploading a document or fill out a form to begin your analysis.<br/><strong>Always verify with payer portal guidelines prior to submission. This analysis is based on publicly available information.</strong>
           </p>
         </div>
       </div>

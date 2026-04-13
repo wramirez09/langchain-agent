@@ -30,6 +30,7 @@
     "@radix-ui/react-scroll-area": "^1.2.10",
     "@radix-ui/react-slot": "^1.2.3",
     "@radix-ui/react-toast": "^1.2.15",
+    "@radix-ui/react-tooltip": "^1.2.8",
     "@react-pdf/renderer": "^4.3.0",
     "@reactour/tour": "^3.8.0",
     "@stripe/react-stripe-js": "^5.3.0",
@@ -114,7 +115,7 @@
   "devDependencies": {
     "@next/bundle-analyzer": "16.0.7",
     "autoprefixer": "10.4.14",
-    "baseline-browser-mapping": "^2.9.19",
+    "baseline-browser-mapping": "latest",
     "eslint": "latest",
     "eslint-config-next": "16.0.7",
     "eslint-plugin-next": "latest",

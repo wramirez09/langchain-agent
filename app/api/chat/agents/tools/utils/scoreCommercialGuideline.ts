@@ -1,17 +1,4 @@
-import { CommercialGuidelineDoc, CommercialGuidelineSearchInput } from "./commercialGuidelineTypes";
-
-export interface ScoredResult {
-  id: string;
-  title: string;
-  score: number;
-  domain: string;
-  matchedOn: string[];
-  excerpt: string;
-  path: string;
-  treatment?: string;
-  cptCodes?: string[];
-  icd10Codes?: string[];
-}
+import { CommercialGuidelineDoc, CommercialGuidelineSearchInput, ScoredResult, MergedSourceInfo } from "./commercialGuidelineTypes";
 
 /**
  * Normalize a string for comparison: lowercase, trim, remove extra spaces
@@ -311,11 +298,151 @@ export function scoreCommercialGuideline(
 }
 
 /**
+ * Check if two documents overlap based on shared codes or treatment similarity
+ */
+function documentsOverlap(doc1: ScoredResult, doc2: ScoredResult): boolean {
+  // Check for shared CPT codes
+  if (doc1.cptCodes && doc2.cptCodes && doc1.cptCodes.length > 0 && doc2.cptCodes.length > 0) {
+    const sharedCpt = doc1.cptCodes.some(code => doc2.cptCodes!.includes(code));
+    if (sharedCpt) return true;
+  }
+  
+  // Check for shared ICD-10 codes
+  if (doc1.icd10Codes && doc2.icd10Codes && doc1.icd10Codes.length > 0 && doc2.icd10Codes.length > 0) {
+    const sharedIcd10 = doc1.icd10Codes.some(code => 
+      doc2.icd10Codes!.some(c => c.toUpperCase() === code.toUpperCase())
+    );
+    if (sharedIcd10) return true;
+  }
+  
+  // Check for high treatment similarity (>70% keyword overlap)
+  if (doc1.treatment && doc2.treatment) {
+    const overlap = keywordOverlap(doc1.treatment, doc2.treatment);
+    if (overlap > 0.7) return true;
+  }
+  
+  // Check for high title similarity (>70% keyword overlap)
+  const titleOverlap = keywordOverlap(doc1.title, doc2.title);
+  if (titleOverlap > 0.7) return true;
+  
+  return false;
+}
+
+/**
+ * Detect groups of overlapping documents
+ * Returns a map where key is the representative doc ID and value is array of overlapping docs
+ */
+function detectOverlappingDocuments(scoredDocs: ScoredResult[]): Map<string, ScoredResult[]> {
+  const groups = new Map<string, ScoredResult[]>();
+  const processed = new Set<string>();
+  
+  for (let i = 0; i < scoredDocs.length; i++) {
+    const doc1 = scoredDocs[i];
+    
+    if (processed.has(doc1.id)) continue;
+    
+    const group: ScoredResult[] = [doc1];
+    processed.add(doc1.id);
+    
+    // Find all documents that overlap with doc1
+    for (let j = i + 1; j < scoredDocs.length; j++) {
+      const doc2 = scoredDocs[j];
+      
+      if (processed.has(doc2.id)) continue;
+      
+      if (documentsOverlap(doc1, doc2)) {
+        group.push(doc2);
+        processed.add(doc2.id);
+      }
+    }
+    
+    // Only create a group if there are multiple overlapping documents
+    if (group.length > 1) {
+      groups.set(doc1.id, group);
+    }
+  }
+  
+  return groups;
+}
+
+/**
+ * Merge multiple overlapping documents into a single comprehensive result
+ */
+function mergeDocuments(docs: ScoredResult[], fullDocs: CommercialGuidelineDoc[]): ScoredResult {
+  // Use the highest-scoring document as the base
+  const baseDoc = docs[0];
+  
+  // Combine all CPT codes
+  const allCptCodes = new Set<string>();
+  docs.forEach(doc => {
+    if (doc.cptCodes) {
+      doc.cptCodes.forEach(code => allCptCodes.add(code));
+    }
+  });
+  
+  // Combine all ICD-10 codes
+  const allIcd10Codes = new Set<string>();
+  docs.forEach(doc => {
+    if (doc.icd10Codes) {
+      doc.icd10Codes.forEach(code => allIcd10Codes.add(code.toUpperCase()));
+    }
+  });
+  
+  // Combine all match signals
+  const allMatchedOn = new Set<string>();
+  docs.forEach(doc => {
+    doc.matchedOn.forEach(signal => allMatchedOn.add(signal));
+  });
+  
+  // Calculate merged score: highest score + bonus for additional sources
+  const maxScore = Math.max(...docs.map(d => d.score));
+  const mergeBonus = (docs.length - 1) * 2; // +2 points per additional source
+  const mergedScore = maxScore + mergeBonus;
+  
+  // Combine document bodies
+  const mergedBody = docs.map((doc, index) => {
+    // Find the full document to get the complete body
+    const fullDoc = fullDocs.find(fd => fd.id === doc.id);
+    const body = fullDoc ? fullDoc.body : doc.excerpt;
+    
+    if (index === 0) {
+      return body;
+    } else {
+      return `\n\n---\n\n${body}`;
+    }
+  }).join('');
+  
+  // Create merged source info
+  const mergedFrom: MergedSourceInfo[] = docs.map(doc => ({
+    id: doc.id,
+    title: doc.title,
+    path: doc.path,
+  }));
+  
+  // Create merged result
+  return {
+    id: `merged-${docs.map(d => d.id).join('-')}`,
+    title: baseDoc.title + ` (${docs.length} sources)`,
+    score: mergedScore,
+    domain: baseDoc.domain,
+    matchedOn: Array.from(allMatchedOn),
+    excerpt: mergedBody.substring(0, 300).trim() + '...',
+    path: baseDoc.path,
+    treatment: baseDoc.treatment,
+    cptCodes: Array.from(allCptCodes),
+    icd10Codes: Array.from(allIcd10Codes),
+    mergedFrom,
+    body: mergedBody,
+  };
+}
+
+/**
  * Score and rank all documents, returning top and related matches
  */
 export function scoreAndRankDocuments(
   docs: CommercialGuidelineDoc[],
-  input: CommercialGuidelineSearchInput
+  input: CommercialGuidelineSearchInput,
+  enableMerging: boolean = true
 ): { topMatches: ScoredResult[]; relatedMatches: ScoredResult[] } {
   console.log(`[ScoreEngine] Scoring ${docs.length} documents against input:`, {
     query: input.query,
@@ -327,7 +454,7 @@ export function scoreAndRankDocuments(
   });
   
   // Score all documents
-  const scoredDocs = docs.map(doc => {
+  const scoredDocs: ScoredResult[] = docs.map(doc => {
     const { score, matchedOn } = scoreCommercialGuideline(doc, input);
     
     return {
@@ -348,9 +475,40 @@ export function scoreAndRankDocuments(
   scoredDocs.sort((a, b) => b.score - a.score);
   
   // Filter out zero-score results
-  const relevantDocs = scoredDocs.filter(doc => doc.score > 0);
+  let relevantDocs = scoredDocs.filter(doc => doc.score > 0);
   
   console.log(`[ScoreEngine] Found ${relevantDocs.length} relevant documents`);
+  
+  // Detect and merge overlapping documents if enabled
+  if (enableMerging && relevantDocs.length > 1) {
+    const overlappingGroups = detectOverlappingDocuments(relevantDocs);
+    
+    if (overlappingGroups.size > 0) {
+      console.log(`[ScoreEngine] Detected ${overlappingGroups.size} groups of overlapping documents`);
+      
+      // Create merged documents
+      const mergedDocs: ScoredResult[] = [];
+      const mergedDocIds = new Set<string>();
+      
+      overlappingGroups.forEach((group) => {
+        console.log(`[ScoreEngine] Merging ${group.length} documents:`, group.map(d => d.title));
+        const merged = mergeDocuments(group, docs);
+        mergedDocs.push(merged);
+        
+        // Track which docs were merged
+        group.forEach(doc => mergedDocIds.add(doc.id));
+      });
+      
+      // Keep non-merged documents and add merged ones
+      const nonMergedDocs = relevantDocs.filter(doc => !mergedDocIds.has(doc.id));
+      relevantDocs = [...mergedDocs, ...nonMergedDocs] as ScoredResult[];
+      
+      // Re-sort by score
+      relevantDocs.sort((a, b) => b.score - a.score);
+      
+      console.log(`[ScoreEngine] After merging: ${relevantDocs.length} documents (${mergedDocs.length} merged, ${nonMergedDocs.length} standalone)`);
+    }
+  }
   
   // Determine maxResults (default 5)
   const maxResults = input.maxResults || 5;

@@ -1,15 +1,15 @@
 "use client";
 
 import { useState, useCallback } from "react";
-import { type Message } from "ai";
 import { AppSidebar, type AppView } from "@/components/AppSidebar";
 import { PriorAuthView } from "@/components/PriorAuthView";
 import { UploadView } from "@/components/UploadView";
 import { FileExportView } from "@/components/FileExportView";
+import { PriorAuthProvider } from "@/components/providers/PriorAuthProvider";
+import { cn } from "@/utils/cn";
 
 export function AppShellClient() {
   const [activeView, setActiveView] = useState<AppView>("auth");
-  const [chatMessages, setChatMessages] = useState<Message[]>([]);
   const [pendingMessage, setPendingMessage] = useState<string | null>(null);
 
   const handleUploadComplete = useCallback((generatedQuery: string) => {
@@ -22,23 +22,35 @@ export function AppShellClient() {
   }, []);
 
   return (
-    <div className="flex h-full">
-      <AppSidebar activeView={activeView} onViewChange={setActiveView} />
-      <main className="flex-1 overflow-hidden bg-[#F8F9FB]">
-        {activeView === "auth" && (
+    <PriorAuthProvider>
+      <div className="flex h-full">
+        <AppSidebar activeView={activeView} onViewChange={setActiveView} />
+
+        {/* Keep all views mounted, toggle visibility with CSS */}
+        <main className={cn(
+          "flex-1 overflow-hidden bg-[#F8F9FB]",
+          activeView !== "auth" && "hidden"
+        )}>
           <PriorAuthView
-            onMessagesChange={setChatMessages}
             pendingMessage={pendingMessage}
             onPendingMessageConsumed={handlePendingMessageConsumed}
           />
-        )}
-        {activeView === "upload" && (
+        </main>
+
+        <main className={cn(
+          "flex-1 overflow-hidden bg-[#F8F9FB]",
+          activeView !== "upload" && "hidden"
+        )}>
           <UploadView onUploadComplete={handleUploadComplete} />
-        )}
-        {activeView === "export" && (
-          <FileExportView messages={chatMessages} />
-        )}
-      </main>
-    </div>
+        </main>
+
+        <main className={cn(
+          "flex-1 overflow-hidden bg-[#F8F9FB]",
+          activeView !== "export" && "hidden"
+        )}>
+          <FileExportView />
+        </main>
+      </div>
+    </PriorAuthProvider>
   );
 }
