@@ -154,6 +154,7 @@ export function PriorAuthView({
 
   // Sync chat messages with context
   useEffect(() => {
+    console.log('PriorAuthView - Syncing messages to context:', chat.messages);
     setChatMessages(chat.messages);
   }, [chat.messages, setChatMessages]);
 
