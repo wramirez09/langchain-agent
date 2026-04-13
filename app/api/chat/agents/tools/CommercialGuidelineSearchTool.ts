@@ -59,7 +59,7 @@ This tool performs deterministic search across commercial guideline documents to
 - query: Main search query (required)
 - treatment: Specific treatment name (optional, e.g., "MRI lumbar spine")
 - diagnosis: Diagnosis description (optional)
-- cpt: CPT code(s) for exact matching (optional, e.g., "72148")
+- cpt: CPT/HCPCS  for exact matching (optional, e.g., "72148")
 - icd10: ICD-10 code(s) for exact matching (optional, e.g., "M54.16")
 - domain: Domain filter (optional, e.g., "cardio", "genetic", "muscle")
 - payer: Payer name (optional, e.g., "commercial", "medicare")
@@ -107,7 +107,15 @@ Use ONLY generic terms like "commercial guidelines", "proprietary criteria", or 
       console.log(`[CommercialGuidelineSearchTool] Found ${topMatches.length} top matches, ${relatedMatches.length} related matches`);
       
       // Return as JSON string for LLM to parse
-      return JSON.stringify(output, null, 2);
+      const jsonOutput = JSON.stringify(output, null, 2);
+      
+      // Safety check: warn if output is extremely large (>50K chars ≈ 12.5K tokens)
+      if (jsonOutput.length > 50000) {
+        console.warn(`[CommercialGuidelineSearchTool] WARNING: Large output size: ${jsonOutput.length} chars (≈${Math.round(jsonOutput.length / 4)} tokens)`);
+        console.warn(`[CommercialGuidelineSearchTool] Consider reducing maxResults or excerpt sizes to prevent context overflow`);
+      }
+      
+      return jsonOutput;
     } catch (error) {
       console.error("[CommercialGuidelineSearchTool] Error during search:", error);
       return JSON.stringify({

@@ -399,18 +399,23 @@ function mergeDocuments(docs: ScoredResult[], fullDocs: CommercialGuidelineDoc[]
   const mergeBonus = (docs.length - 1) * 2; // +2 points per additional source
   const mergedScore = maxScore + mergeBonus;
   
-  // Combine document bodies
-  const mergedBody = docs.map((doc, index) => {
-    // Find the full document to get the complete body
+  // Create merged excerpt from first 500 chars of each document
+  const mergedExcerpt = docs.map((doc, index) => {
+    // Find the full document to get a better excerpt
     const fullDoc = fullDocs.find(fd => fd.id === doc.id);
-    const body = fullDoc ? fullDoc.body : doc.excerpt;
+    const excerpt = fullDoc ? fullDoc.body.substring(0, 500).trim() : doc.excerpt;
     
     if (index === 0) {
-      return body;
+      return excerpt;
     } else {
-      return `\n\n---\n\n${body}`;
+      return `\n\n[Source ${index + 1}]: ${excerpt}`;
     }
   }).join('');
+  
+  // Limit merged excerpt to reasonable size (max 2000 chars)
+  const finalExcerpt = mergedExcerpt.length > 2000 
+    ? mergedExcerpt.substring(0, 2000).trim() + '...' 
+    : mergedExcerpt.trim() + '...';
   
   // Create merged source info
   const mergedFrom: MergedSourceInfo[] = docs.map(doc => ({
@@ -419,20 +424,20 @@ function mergeDocuments(docs: ScoredResult[], fullDocs: CommercialGuidelineDoc[]
     path: doc.path,
   }));
   
-  // Create merged result
+  // Create merged result WITHOUT full body to prevent token overflow
   return {
     id: `merged-${docs.map(d => d.id).join('-')}`,
     title: baseDoc.title + ` (${docs.length} sources)`,
     score: mergedScore,
     domain: baseDoc.domain,
     matchedOn: Array.from(allMatchedOn),
-    excerpt: mergedBody.substring(0, 300).trim() + '...',
+    excerpt: finalExcerpt,
     path: baseDoc.path,
     treatment: baseDoc.treatment,
     cptCodes: Array.from(allCptCodes),
     icd10Codes: Array.from(allIcd10Codes),
     mergedFrom,
-    body: mergedBody,
+    // body field removed to prevent token overflow
   };
 }
 

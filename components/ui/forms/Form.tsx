@@ -77,7 +77,7 @@ const FormInputs: React.FC<Props> = (props: Props) => {
 
   const handleCptChange = React.useCallback(
     (e: React.ChangeEvent<any>) =>
-      props.onStateFormStateChange("CPT code(s)", e.target.value),
+      props.onStateFormStateChange("CPT/HCPCS ", e.target.value),
     [props],
   );
 
@@ -141,7 +141,7 @@ const FormInputs: React.FC<Props> = (props: Props) => {
         <div>
           <label className="flex items-center gap-2 text-md font-medium text-gray-900 mb-1">
             <FileBarChart size={16} color="#4F46E5" />
-            CPT Code(s)
+            CPT/HCPCS 
           </label>
           <Input
             className="w-full h-9 bg-white border-blue-200 text-gray-900 focus-visible:ring-blue-300 focus-visible:border-blue-400"

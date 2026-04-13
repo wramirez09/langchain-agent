@@ -57,7 +57,7 @@ class LocalCoverageArticleSearchTool extends StructuredTool<typeof MedicareSearc
     "- query: Main search query (required) - treatment, diagnosis, or article topic\n" +
     "- treatment: Specific treatment name (optional)\n" +
     "- diagnosis: Diagnosis description (optional)\n" +
-    "- cpt: CPT code(s) (optional)\n" +
+    "- cpt: CPT/HCPCS  (optional)\n" +
     "- icd10: ICD-10 code(s) (optional)\n" +
     "- state: U.S. state for filtering (optional but recommended)\n" +
     "- maxResults: Number of results (optional, default: 10)\n\n" +

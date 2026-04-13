@@ -184,7 +184,7 @@ export function PriorAuthView({
       "Guidelines": "guidelines",
       "State": "state",
       "Treatment": "treatment",
-      "CPT code(s)": "cptCodes",
+      "CPT/HCPCS ": "cptCodes",
       "Diagnosis": "diagnosis",
       "History": "patientHistory",
       "Relevant Medical History": "relevantHistory",
@@ -214,7 +214,7 @@ export function PriorAuthView({
       formFields.guidelines && `Guidelines: ${formFields.guidelines}`,
       formFields.state && `State: ${formFields.state}`,
       formFields.treatment && `Treatment: ${formFields.treatment}`,
-      formFields.cptCodes && `CPT code(s): ${formFields.cptCodes}`,
+      formFields.cptCodes && `CPT/HCPCS : ${formFields.cptCodes}`,
       formFields.diagnosis && `Diagnosis: ${formFields.diagnosis}`,
       formFields.patientHistory && `History: ${formFields.patientHistory}`,
       formFields.relevantHistory && `Relevant Medical History: ${formFields.relevantHistory}`,
@@ -461,7 +461,7 @@ export function PriorAuthView({
                   </div>
                 </div>
 
-                {/* Row: Pre-Auth Request + CPT Code(s) */}
+                {/* Row: Pre-Auth Request + CPT/HCPCS  */}
                 <div className="grid grid-cols-2 gap-3">
                   <div>
                     <label className="flex items-center gap-1.5 text-xs text-gray-600 mb-1.5">
@@ -492,13 +492,13 @@ export function PriorAuthView({
                   <div>
                     <label className="flex items-center gap-1.5 text-xs text-gray-600 mb-1.5">
                       <FileBarChart size={13} color="#4F46E5" />
-                      CPT Code(s)
+                      CPT/HCPCS 
                     </label>
                     <Input
                       placeholder="CPT Codes"
                       value={formFields.cptCodes}
                       className="h-9 bg-white border-blue-200 text-gray-900 focus-visible:ring-blue-300 focus-visible:border-blue-400"
-                      onChange={(e) => handleFormStateChange("CPT code(s)", e.target.value)}
+                      onChange={(e) => handleFormStateChange("CPT/HCPCS ", e.target.value)}
                     />
                   </div>
                 </div>

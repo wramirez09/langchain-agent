@@ -59,7 +59,7 @@ export const CommercialGuidelineSearchInputSchema = z.object({
   cpt: z
     .union([z.string(), z.array(z.string())])
     .optional()
-    .describe("Optional: CPT code(s) to match exactly (e.g., '72148' or ['72148', '72149'])."),
+    .describe("Optional: CPT/HCPCS  to match exactly (e.g., '72148' or ['72148', '72149'])."),
   icd10: z
     .union([z.string(), z.array(z.string())])
     .optional()

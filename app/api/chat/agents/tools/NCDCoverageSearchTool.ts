@@ -24,7 +24,7 @@ export class NCDCoverageSearchTool extends StructuredTool<typeof MedicareSearchI
     "- query: Main search query (required) - treatment, diagnosis, or NCD number\n" +
     "- treatment: Specific treatment name (optional)\n" +
     "- diagnosis: Diagnosis description (optional)\n" +
-    "- cpt: CPT code(s) (optional)\n" +
+    "- cpt: CPT/HCPCS  (optional)\n" +
     "- icd10: ICD-10 code(s) (optional)\n" +
     "- maxResults: Number of results (optional, default: 10)\n\n" +
     "**Output:** Returns structured JSON with topMatches array. Each match includes title, displayId, score, matchedOn signals, and URL.";

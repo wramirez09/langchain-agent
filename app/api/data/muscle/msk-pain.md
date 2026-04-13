@@ -1030,4 +1030,4 @@ Practical coding note
     > Nonspecific or NOC codes may require additional documentation and
     > review.
 
-    > Requests are initiated by submitting the correct CPT code(s).
+    > Requests are initiated by submitting the correct CPT/HCPCS .
