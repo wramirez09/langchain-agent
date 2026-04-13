@@ -143,7 +143,7 @@ const PdfDocument: React.FC<PdfDocumentProps> = ({ name, role, messages, logoBas
     // Track current section as we process lines (mimics sectionTracker from ChatMessageBubble)
     const sectionTracker = { current: null as 'medical-necessity-zone' | 'exclusions' | 'summary' | 'relevant-codes' | null };
     const lines = message.content.split('\n');
-    const renderedLines: JSX.Element[] = [];
+    const renderedLines: React.ReactElement[] = [];
 
     lines.forEach((line, i) => {
       const lineLower = line.toLowerCase();
@@ -285,7 +285,7 @@ const PdfDocument: React.FC<PdfDocumentProps> = ({ name, role, messages, logoBas
     <Document>
       <Page style={styles.page}>
         <View style={styles.header}>
-          <Image src={logoBase64} style={styles.logo} cache={false} alt="NoteDoctor.ai Logo"/>
+          <Image src={logoBase64} style={styles.logo} cache={false} />
           <View>
             <Text style={styles.companyName}>NoteDoctor.ai</Text>
           </View>
