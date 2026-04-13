@@ -145,7 +145,7 @@ type PdfProps = {
   messages: Message[];
 };
 
-const PdfDoc: React.FC<PdfProps> = ({ name, role, messages }) => {
+const PdfDoc: React.FC<PdfProps> = React.memo(({ name, role, messages }) => {
   // Defensive check
   if (!messages || messages.length === 0) {
     return (
@@ -351,6 +351,22 @@ const PdfDoc: React.FC<PdfProps> = ({ name, role, messages }) => {
       </Document>
     </PDFViewer>
   );
-};
+}, (prevProps, nextProps) => {
+  // Custom comparison: only re-render if messages actually changed
+  if (prevProps.messages.length !== nextProps.messages.length) {
+    return false; // Props changed, re-render
+  }
+  
+  // Compare message IDs to detect changes
+  for (let i = 0; i < prevProps.messages.length; i++) {
+    if (prevProps.messages[i].id !== nextProps.messages[i].id) {
+      return false; // Props changed, re-render
+    }
+  }
+  
+  return true; // Props same, skip re-render
+});
+
+PdfDoc.displayName = 'PdfDoc';
 
 export default PdfDoc;

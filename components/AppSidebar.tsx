@@ -21,7 +21,7 @@ interface AppSidebarProps {
 
 const navItems: { id: AppView; icon: React.ElementType; label: string }[] = [
   { id: 'auth',   icon: FileText, label: 'Prior Authorization' },
-  { id: 'upload', icon: Upload,   label: 'Upload File' },
+  // { id: 'upload', icon: Upload,   label: 'Upload File' },
   { id: 'export', icon: FileDown, label: 'File Export' },
 ];
 

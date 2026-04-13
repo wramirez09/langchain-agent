@@ -20,17 +20,32 @@ const TopBar: React.FC = () => {
       const { data: { session } } = await supabase.auth.getSession();
       if (!session?.user) return;
       setIsLoggedIn(true);
-      setDisplayEmail(session.user.email || '');
+      
+      // Get user email (never show user ID)
+      const userEmail = session.user.email || '';
+      setDisplayEmail(userEmail);
+      
+      // Try to get full name from profiles table
       const { data: profile } = await supabase
         .from('profiles')
         .select('full_name, email')
         .eq('id', session.user.id)
         .single();
-      const name = profile?.full_name || session.user.email || 'User';
+      
+      // Use full name if available, otherwise use email, fallback to 'User'
+      // Never display the user ID
+      const name = profile?.full_name || userEmail || 'User';
       setDisplayName(name);
-      setInitials(
-        name.split(' ').map((n: string) => n[0]).slice(0, 2).join('').toUpperCase()
-      );
+      
+      // Generate initials from name
+      const initials = name
+        .split(' ')
+        .map((n: string) => n[0])
+        .filter(Boolean)
+        .slice(0, 2)
+        .join('')
+        .toUpperCase() || 'U';
+      setInitials(initials);
     };
 
     loadUser();

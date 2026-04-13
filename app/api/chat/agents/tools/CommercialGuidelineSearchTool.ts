@@ -6,6 +6,7 @@ import {
   CommercialGuidelineSearchInput,
   CommercialGuidelineSearchOutput,
 } from "./utils/commercialGuidelineTypes";
+import { llmSummarizer } from "@/lib/llm";
 
 /**
  * Commercial Guideline Search Tool
@@ -54,6 +55,7 @@ This tool performs deterministic search across commercial guideline documents to
 - Automatically merges overlapping documents (same CPT/ICD-10 or >70% treatment similarity)
 - Merged documents receive bonus scoring (+2 per additional source)
 - Returns ranked results with match explanations
+- **Automatically summarizes large results (>30K chars) to prevent token overflow**
 
 **Input fields:**
 - query: Main search query (required)
@@ -68,6 +70,7 @@ This tool performs deterministic search across commercial guideline documents to
 **Output:**
 Returns structured JSON with topMatches and relatedMatches, each containing:
 - title, score, domain, matchedOn (signals), excerpt, cptCodes, icd10Codes
+If results are large, returns a summarized version with key authorization requirements.
 
 **CRITICAL CONFIDENTIALITY:**
 Never mention specific data sources, tool names, URLs, file names, folder names, or document references in your response.
@@ -109,10 +112,54 @@ Use ONLY generic terms like "commercial guidelines", "proprietary criteria", or 
       // Return as JSON string for LLM to parse
       const jsonOutput = JSON.stringify(output, null, 2);
       
-      // Safety check: warn if output is extremely large (>50K chars ≈ 12.5K tokens)
-      if (jsonOutput.length > 50000) {
-        console.warn(`[CommercialGuidelineSearchTool] WARNING: Large output size: ${jsonOutput.length} chars (≈${Math.round(jsonOutput.length / 4)} tokens)`);
-        console.warn(`[CommercialGuidelineSearchTool] Consider reducing maxResults or excerpt sizes to prevent context overflow`);
+      // If output is too large (>30K chars ≈ 7.5K tokens), summarize it
+      if (jsonOutput.length > 30000) {
+        console.warn(`[CommercialGuidelineSearchTool] Large output detected: ${jsonOutput.length} chars (≈${Math.round(jsonOutput.length / 4)} tokens). Summarizing...`);
+        
+        try {
+          const summarizationPrompt = `You are analyzing commercial guideline search results for a prior authorization request.
+
+Query: ${input.query}
+${input.treatment ? `Treatment: ${input.treatment}` : ''}
+${input.diagnosis ? `Diagnosis: ${input.diagnosis}` : ''}
+${input.cpt ? `CPT Code: ${input.cpt}` : ''}
+${input.icd10 ? `ICD-10 Code: ${input.icd10}` : ''}
+
+Search Results:
+${jsonOutput}
+
+Please provide a concise summary of the key authorization requirements, focusing on:
+1. Medical necessity criteria
+2. Required documentation
+3. Coverage limitations or exclusions
+4. Relevant CPT/ICD-10 codes
+5. Any special conditions or requirements
+
+Keep the summary under 2000 words while preserving all critical authorization details.`;
+
+          const summaryResponse = await llmSummarizer().invoke([
+            { role: "user", content: summarizationPrompt }
+          ]);
+          
+          const summary = summaryResponse.content?.toString() ?? "";
+          console.log(`[CommercialGuidelineSearchTool] Summarized output: ${summary.length} chars (≈${Math.round(summary.length / 4)} tokens)`);
+          
+          return JSON.stringify({
+            query: input.query,
+            summarized: true,
+            summary,
+            matchCount: {
+              topMatches: topMatches.length,
+              relatedMatches: relatedMatches.length
+            },
+            topMatchTitles: topMatches.map(m => m.title),
+          }, null, 2);
+        } catch (summarizationError) {
+          console.error(`[CommercialGuidelineSearchTool] Summarization failed:`, summarizationError);
+          // Fall back to truncated output
+          console.warn(`[CommercialGuidelineSearchTool] Falling back to truncated output`);
+          return jsonOutput.substring(0, 30000) + '\n\n... [Output truncated due to size]';
+        }
       }
       
       return jsonOutput;
