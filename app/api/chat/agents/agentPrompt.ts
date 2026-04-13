@@ -152,9 +152,9 @@ When PHI is detected and removed:
 * [Documentation Item 2]
 * (etc.)
 
-**Limitations/Exclusions:**
-* [Limitation/Exclusion 1]
-* [Limitation/Exclusion 2]
+**Limitations and Exclusions:**
+* [Limitation and Exclusion 1]
+* [Limitation and Exclusion 2]
 * (etc.)
 
 ## Summary Report

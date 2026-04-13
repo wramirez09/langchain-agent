@@ -21,29 +21,42 @@ import { data as stateData } from "@/app/agents/metaData/states";
 import { ncdOptions } from "@/data/ncdOptions";
 import { getInsuranceProvidersOptions, type SelectOption } from "@/data/selectOptions";
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
+import { usePriorAuthContext } from "@/components/providers/PriorAuthProvider";
 
 const stateOptions = stateData.map((s) => ({ value: s.description, label: s.description }));
 
 interface PriorAuthViewProps {
-  onMessagesChange?: (messages: Message[]) => void;
   pendingMessage?: string | null;
   onPendingMessageConsumed?: () => void;
 }
 
 export function PriorAuthView({
-  onMessagesChange,
   pendingMessage,
   onPendingMessageConsumed,
 }: PriorAuthViewProps) {
-  const [activeTab, setActiveTab] = useState<"pre-auth" | "chat" | "input" | "output">("pre-auth");
+  // Get state from context
+  const {
+    formFields,
+    updateFormField,
+    openAccordions,
+    setOpenAccordions,
+    chatMessages,
+    setChatMessages,
+    chatInput,
+    setChatInput,
+    isLoading,
+    setIsLoading,
+    intermediateStepsLoading,
+    setIntermediateStepsLoading,
+    sourcesForMessages,
+    setSourcesForMessages,
+    activeFormTab,
+    setActiveFormTab,
+    resetForm,
+  } = usePriorAuthContext();
+
+  // Local UI state (not persisted)
   const [isLayoutSwapped, setIsLayoutSwapped] = useState(false);
-  const [sourcesForMessages, setSourcesForMessages] = useState<Record<string, any>>({}); 
-  const [formContent, setFormContent] = useState<Map<string, string>>(new Map());
-  const [intermediateStepsLoading, setIntermediateStepsLoading] = useState(false);
-  const [isLoading, setIsLoading] = useState(false);
-  const [chatInput, setChatInput] = useState("");
-  const [formResetKey, setFormResetKey] = useState(0);
-  const [selectedGuideline, setSelectedGuideline] = useState<string>("");
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const messagesContainerRef = useRef<HTMLDivElement>(null);
   const abortControllerRef = useRef<AbortController | null>(null);
@@ -51,7 +64,6 @@ export function PriorAuthView({
   const loadingToast2Ref = useRef<NodeJS.Timeout | null>(null);
   const patientHistoryRef = useRef<HTMLDivElement>(null);
   const relevantHistoryRef = useRef<HTMLDivElement>(null);
-  const [openAccordions, setOpenAccordions] = useState<string[]>([]);
 
   const [guidelinesOptions, setGuidelinesOptions] = useState<SelectOption[]>([]);
 
@@ -73,6 +85,8 @@ export function PriorAuthView({
     onFinish() {
       setIntermediateStepsLoading(false);
       setIsLoading(false);
+      // Sync with context
+      setChatMessages(chat.messages);
     },
     onError(error) {
       setIntermediateStepsLoading(false);
@@ -140,10 +154,10 @@ export function PriorAuthView({
     },
   });
 
-  // Notify parent of message changes
+  // Sync chat messages with context
   useEffect(() => {
-    onMessagesChange?.(chat.messages);
-  }, [chat.messages, onMessagesChange]);
+    setChatMessages(chat.messages);
+  }, [chat.messages, setChatMessages]);
 
   // Auto-scroll to bottom on new messages - DISABLED to allow manual scrolling
   // useEffect(() => {
@@ -158,7 +172,7 @@ export function PriorAuthView({
     setIsLoading(true);
     setIntermediateStepsLoading(true);
     chat.append({ role: "user", content: pendingMessage });
-    setActiveTab("chat");
+    setActiveFormTab("chat");
   }, [pendingMessage]); // eslint-disable-line react-hooks/exhaustive-deps
 
   const clearTimeouts = useCallback(() => {
@@ -167,30 +181,48 @@ export function PriorAuthView({
   }, []);
 
   const handleFormStateChange = useCallback((key: string, value: string) => {
-    setFormContent((prev) => new Map(prev).set(key, value));
+    // Map old keys to new context field names
+    const fieldMap: Record<string, keyof typeof formFields> = {
+      "Guidelines": "guidelines",
+      "State": "state",
+      "Treatment": "treatment",
+      "CPT code(s)": "cptCodes",
+      "Diagnosis": "diagnosis",
+      "History": "patientHistory",
+      "Relevant Medical History": "relevantHistory",
+    };
     
-    // Track guideline selection and clear state if Commercial is selected
-    if (key === "Guidelines") {
-      setSelectedGuideline(value);
-      if (value === "Commercial") {
-        setFormContent((prev) => {
-          const newMap = new Map(prev);
-          newMap.set("State", "");
-          return newMap;
-        });
-      }
+    const field = fieldMap[key];
+    if (field) {
+      updateFormField(field, value);
     }
-  }, []);
+    
+    // Clear state if Commercial is selected
+    if (key === "Guidelines" && value === "Commercial") {
+      updateFormField("state", "");
+    }
+  }, [updateFormField]);
 
   const handleGenerateAuth = useCallback(async () => {
-    if (formContent.size === 0 && !chatInput.trim()) {
+    // Check if any form field has a value
+    const hasFormData = Object.values(formFields).some(v => v.trim());
+    if (!hasFormData && !chatInput.trim()) {
       toast.error("Please fill in at least one field before generating.");
       return;
     }
-    const formString = Array.from(formContent.entries())
-      .filter(([, v]) => v)
-      .map(([k, v]) => `${k}: ${v}`)
-      .join(". ");
+    
+    // Build form string from context formFields
+    const formEntries = [
+      formFields.guidelines && `Guidelines: ${formFields.guidelines}`,
+      formFields.state && `State: ${formFields.state}`,
+      formFields.treatment && `Treatment: ${formFields.treatment}`,
+      formFields.cptCodes && `CPT code(s): ${formFields.cptCodes}`,
+      formFields.diagnosis && `Diagnosis: ${formFields.diagnosis}`,
+      formFields.patientHistory && `History: ${formFields.patientHistory}`,
+      formFields.relevantHistory && `Relevant Medical History: ${formFields.relevantHistory}`,
+    ].filter(Boolean);
+    
+    const formString = formEntries.join(". ");
     const combined = [formString, chatInput.trim()].filter(Boolean).join(" | ");
     if (!combined) return;
 
@@ -213,7 +245,7 @@ export function PriorAuthView({
       setIntermediateStepsLoading(false);
       setIsLoading(false);
     }
-  }, [formContent, chatInput, chat, clearTimeouts]);
+  }, [formFields, chatInput, chat, clearTimeouts, setIsLoading, setIntermediateStepsLoading, setChatInput]);
 
   const handleChatInputSubmit = useCallback(async (e?: FormEvent) => {
     e?.preventDefault();
@@ -249,25 +281,23 @@ export function PriorAuthView({
     setIsLoading(false);
     setIntermediateStepsLoading(false);
     toast.info("Request stopped");
-  }, [chat, clearTimeouts]);
+  }, [chat, clearTimeouts, setIsLoading, setIntermediateStepsLoading]);
 
   const clearChat = useCallback(() => {
     if (chat.isLoading) {
       chat.stop();
       abortControllerRef.current?.abort();
-      abortControllerRef.current = null;
       clearTimeouts();
-      setIsLoading(false);
       setIntermediateStepsLoading(false);
-      toast.info("LLM request cancelled");
+      setIsLoading(false);
+      toast.info("Request stopped");
+      return;
     }
     chat.setMessages([]);
     setSourcesForMessages({});
-    setFormContent(new Map());
-    setChatInput("");
-    setFormResetKey((k) => k + 1);
+    resetForm();
     toast.success("Chat cleared successfully");
-  }, [chat, clearTimeouts]);
+  }, [chat, clearTimeouts, resetForm, setIntermediateStepsLoading, setIsLoading, setSourcesForMessages]);
 
   const isProcessing = chat.isLoading || intermediateStepsLoading || isLoading;
 
@@ -283,10 +313,10 @@ export function PriorAuthView({
             {(["pre-auth", "chat", "output"] as const).map((tab) => (
               <button
                 key={tab}
-                onClick={() => setActiveTab(tab)}
+                onClick={() => setActiveFormTab(tab)}
                 className={cn(
                   "md:hidden px-3 py-3 text-sm font-medium border-b-2 -mb-px transition-colors",
-                  activeTab === tab
+                  activeFormTab === tab
                     ? "border-blue-600 text-blue-600"
                     : "border-transparent text-gray-500 hover:text-gray-700",
                 )}
@@ -296,10 +326,10 @@ export function PriorAuthView({
             ))}
             {/* Desktop tabs: Input | Output */}
             <button
-              onClick={() => setActiveTab("input")}
+              onClick={() => setActiveFormTab("input")}
               className={cn(
                 "hidden md:block px-4 py-3 text-sm font-medium border-b-2 -mb-px transition-colors",
-                activeTab !== "output"
+                activeFormTab !== "output"
                   ? "border-blue-600 text-blue-600"
                   : "border-transparent text-gray-500 hover:text-gray-700",
               )}
@@ -307,10 +337,10 @@ export function PriorAuthView({
               Input
             </button>
             <button
-              onClick={() => setActiveTab("output")}
+              onClick={() => setActiveFormTab("output")}
               className={cn(
                 "hidden md:block px-4 py-3 text-sm font-medium border-b-2 -mb-px transition-colors",
-                activeTab === "output"
+                activeFormTab === "output"
                   ? "border-blue-600 text-blue-600"
                   : "border-transparent text-gray-500 hover:text-gray-700",
               )}
@@ -350,7 +380,7 @@ export function PriorAuthView({
       {/* Content */}
       <div className="flex-1 overflow-hidden">
         {/* Desktop Input tab and mobile Pre-Auth/Chat tabs all share card layout */}
-        {(activeTab === "pre-auth" || activeTab === "chat" || activeTab === "input") && (
+        {(activeFormTab === "pre-auth" || activeFormTab === "chat" || activeFormTab === "input") && (
           <LayoutGroup>
             <div className="h-full flex flex-col md:grid md:grid-cols-2 gap-4 md:gap-6 p-4 md:p-6 overflow-hidden relative">
 
@@ -360,7 +390,7 @@ export function PriorAuthView({
                 transition={{ duration: 0.3, ease: [0.4, 0, 0.2, 1] }}
                 className={cn(
                   "flex flex-col flex-1 min-h-0 bg-white rounded-lg border border-gray-200 shadow-sm overflow-hidden",
-                  activeTab !== "pre-auth" && "hidden md:flex",
+                  activeFormTab !== "pre-auth" && "hidden md:flex",
                   isLayoutSwapped && "md:order-2"
                 )}
               >
@@ -369,7 +399,7 @@ export function PriorAuthView({
               </div>
 
               {/* Form fields */}
-              <div key={formResetKey} className="flex-1 min-h-0 overflow-y-auto px-6 pb-4 pt-2 space-y-5">
+              <div className="flex-1 min-h-0 overflow-y-auto px-6 pb-4 pt-2 space-y-5">
 
                 {/* Row: Guidelines + State */}
                 <div className="grid grid-cols-2 gap-3">
@@ -381,6 +411,7 @@ export function PriorAuthView({
                     <Select
                       isClearable
                       options={guidelinesOptions}
+                      value={guidelinesOptions.find(opt => opt.value === formFields.guidelines) || null}
                       onChange={(v) => handleFormStateChange("Guidelines", v?.value ?? "")}
                       placeholder="Select..."
                       classNamePrefix="react-select"
@@ -404,8 +435,9 @@ export function PriorAuthView({
                     </label>
                     <Select
                       isClearable
-                      isDisabled={selectedGuideline === "Commercial"}
+                      isDisabled={formFields.guidelines === "Commercial"}
                       options={stateOptions}
+                      value={stateOptions.find(opt => opt.value === formFields.state) || null}
                       onChange={(v) => handleFormStateChange("State", v?.value ?? "")}
                       placeholder="Select..."
                       classNamePrefix="react-select"
@@ -417,13 +449,13 @@ export function PriorAuthView({
                           borderColor: "#e2e8f0",
                           borderRadius: "8px",
                           "&:hover": { borderColor: "#bfdbfe" },
-                          opacity: selectedGuideline === "Commercial" ? 0.5 : 1,
-                          cursor: selectedGuideline === "Commercial" ? "not-allowed" : "default",
+                          opacity: formFields.guidelines === "Commercial" ? 0.5 : 1,
+                          cursor: formFields.guidelines === "Commercial" ? "not-allowed" : "default",
                         }),
                         menu: (base) => ({ ...base, borderRadius: "8px", overflow: "hidden" }),
                       }}
                     />
-                    {selectedGuideline === "Commercial" && (
+                    {formFields.guidelines === "Commercial" && (
                       <p className="text-xs text-gray-500 mt-1">
                         State selection not required for Commercial guidelines
                       </p>
@@ -441,6 +473,7 @@ export function PriorAuthView({
                     <CreatableSelect
                       isClearable
                       options={ncdOptions}
+                      value={formFields.treatment ? { value: formFields.treatment, label: formFields.treatment } : null}
                       onChange={(v) => handleFormStateChange("Treatment", v?.value ?? "")}
                       placeholder="Select..."
                       classNamePrefix="react-select"
@@ -465,6 +498,7 @@ export function PriorAuthView({
                     </label>
                     <Input
                       placeholder="CPT Codes"
+                      value={formFields.cptCodes}
                       className="h-9 bg-white border-blue-200 text-gray-900 focus-visible:ring-blue-300 focus-visible:border-blue-400"
                       onChange={(e) => handleFormStateChange("CPT code(s)", e.target.value)}
                     />
@@ -479,6 +513,7 @@ export function PriorAuthView({
                   </label>
                   <Textarea
                     placeholder="knee pain"
+                    value={formFields.diagnosis}
                     className="min-h-[100px] max-h-[200px] resize-y bg-white border-blue-200 text-gray-900 focus-visible:ring-blue-300"
                     onChange={(e) => handleFormStateChange("Diagnosis", e.target.value)}
                   />
@@ -512,6 +547,7 @@ export function PriorAuthView({
                     <AccordionContent className="pb-3 pt-0">
                       <Textarea
                         placeholder="knee swelling for over 3 weeks."
+                        value={formFields.patientHistory}
                         className="min-h-[100px] max-h-[200px] resize-y bg-white border-blue-200 text-gray-900 focus-visible:ring-blue-300"
                         onChange={(e) => handleFormStateChange("History", e.target.value)}
                       />
@@ -528,6 +564,7 @@ export function PriorAuthView({
                     <AccordionContent className="pb-3 pt-0">
                       <Textarea
                         placeholder="previous knee pain, swelling, etc."
+                        value={formFields.relevantHistory}
                         className="min-h-[100px] max-h-[200px] resize-y bg-white border-blue-200 text-gray-900 focus-visible:ring-blue-300"
                         onChange={(e) => handleFormStateChange("Relevant Medical History", e.target.value)}
                       />
@@ -541,7 +578,7 @@ export function PriorAuthView({
                 <div className="flex items-center gap-3">
                   <Button
                     onClick={handleGenerateAuth}
-                    disabled={isProcessing || !selectedGuideline}
+                    disabled={isProcessing || !formFields.guidelines}
                     className="flex-1 h-11 bg-blue-600 hover:bg-blue-700 text-white font-medium text-sm rounded-lg"
                   >
                     {isProcessing ? (
@@ -574,7 +611,7 @@ export function PriorAuthView({
               transition={{ duration: 0.3, ease: [0.4, 0, 0.2, 1] }}
               className={cn(
                 "flex flex-col flex-1 min-h-0 bg-white rounded-lg border border-gray-200 shadow-sm overflow-hidden",
-                activeTab !== "chat" && "hidden md:flex",
+                activeFormTab !== "chat" && "hidden md:flex",
                 isLayoutSwapped && "md:order-1"
               )}
             >
@@ -679,7 +716,7 @@ export function PriorAuthView({
           </LayoutGroup>
         )}
 
-        {activeTab === "output" && (
+        {activeFormTab === "output" && (
           <div className="h-full overflow-y-auto p-6">
             <div className="max-w-3xl mx-auto">
               {chat.messages.filter((m) => m.role === "assistant" && m.content).length === 0 ? (
