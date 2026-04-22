@@ -69,13 +69,15 @@ const TopBar: React.FC = () => {
     <div className="h-16 bg-white border-b border-gray-200 flex items-center px-4 md:px-6 z-50 flex-shrink-0">
       {/* Left — hamburger on mobile, spacer on desktop */}
       <div className="flex-1 flex items-center">
-        <button
-          onClick={toggleIsOpen}
-          className="md:hidden text-gray-600 hover:text-gray-900 p-1"
-          aria-label="Toggle menu"
-        >
-          <Menu className="size-6" />
-        </button>
+        {isLoggedIn && (
+          <button
+            onClick={toggleIsOpen}
+            className="md:hidden text-gray-600 hover:text-gray-900 p-1"
+            aria-label="Toggle menu"
+          >
+            <Menu className="size-6" />
+          </button>
+        )}
       </div>
 
       {/* Center — logo always centered */}

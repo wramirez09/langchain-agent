@@ -424,6 +424,10 @@ export function PriorAuthView({
                             "&:hover": { borderColor: "#bfdbfe" },
                           }),
                           menu: (base) => ({ ...base, borderRadius: "8px", overflow: "hidden" }),
+                          option: (base, state) => ({
+                            ...base,
+                            color: state.isSelected ? "#fff" : "#111827",
+                          }),
                         }}
                       />
                     </div>
@@ -452,6 +456,10 @@ export function PriorAuthView({
                             cursor: formFields.guidelines === "Commercial" ? "not-allowed" : "default",
                           }),
                           menu: (base) => ({ ...base, borderRadius: "8px", overflow: "hidden" }),
+                          option: (base, state) => ({
+                            ...base,
+                            color: state.isSelected ? "#fff" : "#111827",
+                          }),
                         }}
                       />
                       {formFields.guidelines === "Commercial" && (
@@ -486,6 +494,10 @@ export function PriorAuthView({
                             "&:hover": { borderColor: "#bfdbfe" },
                           }),
                           menu: (base) => ({ ...base, borderRadius: "8px", overflow: "hidden" }),
+                          option: (base, state) => ({
+                            ...base,
+                            color: state.isSelected ? "#fff" : "#111827",
+                          }),
                         }}
                       />
                       <p className="text-xs text-gray-400 mt-1">*Can&apos;t find what you&apos;re looking for? Type to create a new option</p>
