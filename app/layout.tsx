@@ -6,7 +6,6 @@ import "./globals.css";
 
 import * as React from "react";
 import TopBar from "@/components/TopBar";
-import { Footer } from "@/components/Footer";
 import { MobileSidebarProvider } from "@/components/providers/MobileSidebarProvider";
 
 const BASE_URL = "https://app.notedoctor.ai";
@@ -138,7 +137,7 @@ export default async function RootLayout({
 }) {
   return (
     <html lang="en" className={`${inter.variable} ${publicSans.variable} ${outfit.variable} font-sans`}>
-      <body style={{ height: "100dvh" }}>
+      <body style={{ height: "100dvh", overflowX: "hidden" }}>
         <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(webAppSchema) }} />
         <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(howToSchema) }} />
         <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(faqSchema) }} />
@@ -149,7 +148,6 @@ export default async function RootLayout({
               <div className="flex-1 overflow-hidden">
                 {children}
               </div>
-              <Footer />
             </div>
           </MobileSidebarProvider>
           <Toaster />

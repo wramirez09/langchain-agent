@@ -1,10 +1,11 @@
 'use client';
-import { FileText, Upload, FileDown, LogOut, CreditCard } from 'lucide-react';
+import { FileText, FileDown, LogOut, CreditCard, Scale, Shield, Mail } from 'lucide-react';
 import { cn } from '@/utils/cn';
 import { createClient } from '@/utils/client';
 import { useRouter } from 'next/navigation';
 import { useMobileSidebar } from '@/components/providers/MobileSidebarProvider';
 import { useState } from 'react';
+import Link from 'next/link';
 import {
   Tooltip,
   TooltipContent,
@@ -38,12 +39,8 @@ export function AppSidebar({ activeView, onViewChange }: AppSidebarProps) {
   const handleBilling = async () => {
     try {
       setBillingLoading(true);
-      const res = await fetch("/api/stripe/billing", {
-        method: "POST",
-      });
-      
+      const res = await fetch("/api/stripe/billing", { method: "POST" });
       const data = await res.json();
-      
       if (!res.ok) {
         if (res.status === 404) {
           alert("No billing account found. Please complete your subscription first.");
@@ -54,10 +51,7 @@ export function AppSidebar({ activeView, onViewChange }: AppSidebarProps) {
         }
         return;
       }
-      
-      if (data.url) {
-        window.location.href = data.url;
-      }
+      if (data.url) window.location.href = data.url;
     } catch (err) {
       console.error("Portal error:", err);
       alert("Unable to open billing portal. Please try again later.");
@@ -85,26 +79,29 @@ export function AppSidebar({ activeView, onViewChange }: AppSidebarProps) {
 
       <aside
         className={cn(
-          'w-12 bg-white border-r border-gray-200 flex flex-col items-center py-8',
-          'transition-transform duration-300 ease-in-out',
+          'bg-white border-r border-gray-200 flex flex-col py-8',
+          'transition-all duration-300 ease-in-out',
           'fixed left-0 top-16 bottom-0 z-50',
-          'md:relative md:top-0 md:translate-x-0',
-          isOpen ? 'translate-x-0' : '-translate-x-full md:translate-x-0',
+          'md:relative md:top-0 md:translate-x-0 md:w-12 md:items-center md:px-0',
+          isOpen
+            ? 'translate-x-0 w-56 px-3'
+            : '-translate-x-full w-56',
         )}
       >
         {/* Nav items */}
-        <div className="flex flex-col items-center gap-1 flex-1 w-full">
+        <div className="flex flex-col gap-1 flex-1 w-full md:items-center">
           {navItems.map((item, index) => {
             const Icon = item.icon;
             const isActive = activeView === item.id;
             return (
-              <div key={item.id} className="w-full flex flex-col items-center">
+              <div key={item.id} className="w-full flex flex-col md:items-center">
                 <Tooltip>
                   <TooltipTrigger asChild>
                     <button
                       onClick={() => handleNavClick(item.id)}
                       className={cn(
-                        'relative w-10 h-10 flex items-center justify-center rounded-lg transition-colors',
+                        'relative w-full flex items-center gap-3 px-2 h-10 rounded-lg transition-colors',
+                        'md:w-10 md:justify-center md:gap-0',
                         isActive
                           ? 'bg-blue-50 text-blue-600'
                           : 'text-gray-400 hover:bg-gray-50 hover:text-gray-600',
@@ -113,7 +110,8 @@ export function AppSidebar({ activeView, onViewChange }: AppSidebarProps) {
                       {isActive && (
                         <div className="absolute left-0 top-1/2 -translate-y-1/2 w-1 h-8 bg-blue-600 rounded-r" />
                       )}
-                      <Icon className="size-5" />
+                      <Icon className="size-5 shrink-0 ml-1 md:ml-0" />
+                      <span className="text-sm font-medium md:hidden">{item.label}</span>
                     </button>
                   </TooltipTrigger>
                   <TooltipContent side="right">
@@ -121,7 +119,7 @@ export function AppSidebar({ activeView, onViewChange }: AppSidebarProps) {
                   </TooltipContent>
                 </Tooltip>
                 {index < navItems.length - 1 && (
-                  <div className="w-8 h-px bg-gray-200 my-1" />
+                  <div className="w-full h-px bg-gray-100 my-1 md:w-8 md:mx-auto" />
                 )}
               </div>
             );
@@ -129,43 +127,83 @@ export function AppSidebar({ activeView, onViewChange }: AppSidebarProps) {
         </div>
 
         {/* Billing & Logout */}
-        <div className="flex flex-col items-center w-full gap-2">
-          <div className="w-8 h-px bg-gray-200" />
-          <div className="flex flex-col items-center gap-1">
-            <Tooltip>
-              <TooltipTrigger asChild>
-                <button
-                  onClick={handleBilling}
-                  disabled={billingLoading}
-                  className={cn(
-                    "w-10 h-10 flex items-center justify-center rounded-lg transition-colors",
-                    billingLoading 
-                      ? "text-gray-300 cursor-not-allowed"
-                      : "text-green-500 hover:bg-green-50 hover:text-green-600"
-                  )}
-                >
-                  <CreditCard className="size-5" />
-                </button>
-              </TooltipTrigger>
-              <TooltipContent side="right">
-                <p>Manage Billing</p>
-              </TooltipContent>
-            </Tooltip>
-          </div>
-          <div className="w-8 h-px bg-gray-200" />
+        <div className="flex flex-col w-full gap-2 md:items-center">
+          <div className="w-full h-px bg-gray-200 md:w-8" />
+          <Tooltip>
+            <TooltipTrigger asChild>
+              <button
+                onClick={handleBilling}
+                disabled={billingLoading}
+                className={cn(
+                  'w-full flex items-center gap-3 px-2 h-10 rounded-lg transition-colors',
+                  'md:w-10 md:justify-center md:gap-0',
+                  billingLoading
+                    ? 'text-gray-300 cursor-not-allowed'
+                    : 'text-green-500 hover:bg-green-50 hover:text-green-600',
+                )}
+              >
+                <CreditCard className="size-5 shrink-0 ml-1 md:ml-0" />
+                <span className="text-sm font-medium md:hidden">
+                  {billingLoading ? 'Loading…' : 'Manage Billing'}
+                </span>
+              </button>
+            </TooltipTrigger>
+            <TooltipContent side="right">
+              <p>Manage Billing</p>
+            </TooltipContent>
+          </Tooltip>
           <Tooltip>
             <TooltipTrigger asChild>
               <button
                 onClick={handleLogout}
-                className="w-10 h-10 flex items-center justify-center rounded-lg text-red-400 hover:bg-red-50 hover:text-red-600 transition-colors"
+                className="w-full flex items-center gap-3 px-2 h-10 rounded-lg text-red-400 hover:bg-red-50 hover:text-red-600 transition-colors md:w-10 md:justify-center md:gap-0"
               >
-                <LogOut className="size-5" />
+                <LogOut className="size-5 shrink-0 ml-1 md:ml-0" />
+                <span className="text-sm font-medium md:hidden">Logout</span>
               </button>
             </TooltipTrigger>
             <TooltipContent side="right">
               <p>Logout</p>
             </TooltipContent>
           </Tooltip>
+          <div className="w-full h-px bg-gray-200 md:w-8" />
+
+          {/* Legal links */}
+          <div className="flex flex-col gap-1 w-full md:items-center py-1">
+            {([
+              { href: '/legal/terms-of-service', Icon: Scale, label: 'Terms of Service', isLink: true },
+              { href: '/legal/privacy-policy', Icon: Shield, label: 'Privacy Policy', isLink: true },
+              { href: 'mailto:sales@notedoctor.ai', Icon: Mail, label: 'Contact', isLink: false },
+            ] as const).map(({ href, Icon, label, isLink }) => (
+              <Tooltip key={label}>
+                <TooltipTrigger asChild>
+                  {isLink ? (
+                    <Link
+                      href={href}
+                      onClick={() => setIsOpen(false)}
+                      className="w-full flex items-center gap-3 px-2 h-9 rounded-lg text-gray-400 hover:bg-gray-50 hover:text-gray-600 transition-colors md:w-10 md:justify-center md:gap-0"
+                    >
+                      <Icon className="size-4 shrink-0 ml-1 md:ml-0" />
+                      <span className="text-xs md:hidden">{label}</span>
+                    </Link>
+                  ) : (
+                    <a
+                      href={href}
+                      onClick={() => setIsOpen(false)}
+                      className="w-full flex items-center gap-3 px-2 h-9 rounded-lg text-gray-400 hover:bg-gray-50 hover:text-gray-600 transition-colors md:w-10 md:justify-center md:gap-0"
+                    >
+                      <Icon className="size-4 shrink-0 ml-1 md:ml-0" />
+                      <span className="text-xs md:hidden">{label}</span>
+                    </a>
+                  )}
+                </TooltipTrigger>
+                <TooltipContent side="right"><p>{label}</p></TooltipContent>
+              </Tooltip>
+            ))}
+            <p className="text-xs text-gray-300 px-2 mt-1 md:hidden">
+              © {new Date().getFullYear()} NoteDoctor.Ai
+            </p>
+          </div>
         </div>
       </aside>
     </TooltipProvider>

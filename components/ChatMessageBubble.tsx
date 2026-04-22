@@ -51,7 +51,7 @@ const MarkdownRenderer: React.FC<MarkdownRendererProps> = ({ content }) => {
   };
 
   return (
-    <div className="prose max-w-none">
+    <div className="prose max-w-none overflow-x-hidden [overflow-wrap:anywhere]">
       <ReactMarkdown
         components={{
           a: (props) => (
@@ -219,6 +219,7 @@ export function ChatMessageBubble(props: {
   sources?: any[];
   isLastMessage?: boolean;
   isLoading?: boolean;
+  bare?: boolean;
 }) {
   const isUser = props.message.role === "user";
   const displayContent = props.message.content;
@@ -257,13 +258,14 @@ export function ChatMessageBubble(props: {
         </div>
       )}
 
-      <div className="flex-1">
+      <div className="flex-1 min-w-0 overflow-hidden">
         <div
           className={cn(
-            "rounded-2xl px-4 py-2.5 shadow-sm transition-all duration-200",
-            isUser
+            "overflow-hidden",
+            !props.bare && "rounded-2xl px-4 py-2.5 shadow-sm transition-all duration-200",
+            !props.bare && (isUser
               ? "bg-gray-100 text-white rounded-tr-none hover:bg-gray-200"
-              : "bg-white border border-blue-100 rounded-tl-none text-gray-900 hover:bg-blue-50",
+              : "bg-white border border-blue-100 rounded-tl-none text-gray-900 hover:bg-blue-50"),
           )}
         >
           <div className="prose prose-sm max-w-none leading-snug">

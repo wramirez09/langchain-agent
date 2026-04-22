@@ -125,8 +125,9 @@ function StickyToBottomContent(props: {
         }
       }}
       className={cn("bg-gradient-light grid grid-rows-[1fr,auto] bottom-fixed-element mb-3 md:mb-0 max-h-screen", props.className)}
-      style={{ 
+      style={{
         overflowY: 'auto',
+        overflowX: 'hidden',
         WebkitOverflowScrolling: 'touch',
         touchAction: 'pan-y',
         maxHeight: '100vh',

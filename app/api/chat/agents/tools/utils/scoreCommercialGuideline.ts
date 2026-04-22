@@ -321,10 +321,6 @@ function documentsOverlap(doc1: ScoredResult, doc2: ScoredResult): boolean {
     if (overlap > 0.7) return true;
   }
   
-  // Check for high title similarity (>70% keyword overlap)
-  const titleOverlap = keywordOverlap(doc1.title, doc2.title);
-  if (titleOverlap > 0.7) return true;
-  
   return false;
 }
 
@@ -394,10 +390,8 @@ function mergeDocuments(docs: ScoredResult[], fullDocs: CommercialGuidelineDoc[]
     doc.matchedOn.forEach(signal => allMatchedOn.add(signal));
   });
   
-  // Calculate merged score: highest score + bonus for additional sources
-  const maxScore = Math.max(...docs.map(d => d.score));
-  const mergeBonus = (docs.length - 1) * 2; // +2 points per additional source
-  const mergedScore = maxScore + mergeBonus;
+  // Merged score is the max member score — no inflation for group size
+  const mergedScore = Math.max(...docs.map(d => d.score));
   
   // Create merged excerpt from first 500 chars of each document
   const mergedExcerpt = docs.map((doc, index) => {
