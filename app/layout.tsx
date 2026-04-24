@@ -6,6 +6,7 @@ import "./globals.css";
 
 import * as React from "react";
 import TopBar from "@/components/TopBar";
+import { Footer } from "@/components/Footer";
 import { MobileSidebarProvider } from "@/components/providers/MobileSidebarProvider";
 
 const BASE_URL = "https://app.notedoctor.ai";
@@ -148,6 +149,7 @@ export default async function RootLayout({
               <div className="flex-1 overflow-hidden">
                 {children}
               </div>
+              <Footer />
             </div>
           </MobileSidebarProvider>
           <Toaster />

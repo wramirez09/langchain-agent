@@ -4,6 +4,7 @@ import { cn } from '@/utils/cn';
 import { createClient } from '@/utils/client';
 import { useRouter } from 'next/navigation';
 import { useMobileSidebar } from '@/components/providers/MobileSidebarProvider';
+import { usePriorAuthContext } from '@/components/providers/PriorAuthProvider';
 import { useState } from 'react';
 import Link from 'next/link';
 import {
@@ -29,6 +30,8 @@ const navItems: { id: AppView; icon: React.ElementType; label: string }[] = [
 export function AppSidebar({ activeView, onViewChange }: AppSidebarProps) {
   const router = useRouter();
   const { isOpen, setIsOpen } = useMobileSidebar();
+  const { chatIsLoading, chatMessages } = usePriorAuthContext();
+  const hasResponse = chatMessages.some(m => m.role === 'assistant');
   const [billingLoading, setBillingLoading] = useState(false);
 
   const handleNavClick = (view: AppView) => {
@@ -93,18 +96,22 @@ export function AppSidebar({ activeView, onViewChange }: AppSidebarProps) {
           {navItems.map((item, index) => {
             const Icon = item.icon;
             const isActive = activeView === item.id;
+            const isDisabled = item.id === 'export' && (chatIsLoading || !hasResponse);
             return (
               <div key={item.id} className="w-full flex flex-col md:items-center">
                 <Tooltip>
                   <TooltipTrigger asChild>
                     <button
-                      onClick={() => handleNavClick(item.id)}
+                      onClick={() => !isDisabled && handleNavClick(item.id)}
+                      disabled={isDisabled}
                       className={cn(
                         'relative w-full flex items-center gap-3 px-2 h-10 rounded-lg transition-colors',
                         'md:w-10 md:justify-center md:gap-0',
-                        isActive
-                          ? 'bg-blue-50 text-blue-600'
-                          : 'text-gray-400 hover:bg-gray-50 hover:text-gray-600',
+                        isDisabled
+                          ? 'text-gray-300 cursor-not-allowed'
+                          : isActive
+                            ? 'bg-blue-50 text-blue-600'
+                            : 'text-gray-400 hover:bg-gray-50 hover:text-gray-600',
                       )}
                     >
                       {isActive && (
@@ -115,7 +122,7 @@ export function AppSidebar({ activeView, onViewChange }: AppSidebarProps) {
                     </button>
                   </TooltipTrigger>
                   <TooltipContent side="right">
-                    <p>{item.label}</p>
+                    <p>{isDisabled ? 'Waiting for response…' : item.label}</p>
                   </TooltipContent>
                 </Tooltip>
                 {index < navItems.length - 1 && (

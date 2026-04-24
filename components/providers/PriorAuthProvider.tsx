@@ -24,6 +24,7 @@ interface PriorAuthContextState {
   chatMessages: Message[];
   chatInput: string;
   isLoading: boolean;
+  chatIsLoading: boolean;
   intermediateStepsLoading: boolean;
   sourcesForMessages: Record<string, any>;
   
@@ -37,6 +38,7 @@ interface PriorAuthContextState {
   setChatMessages: (messages: Message[]) => void;
   setChatInput: (value: string) => void;
   setIsLoading: (value: boolean) => void;
+  setChatIsLoading: (value: boolean) => void;
   setIntermediateStepsLoading: (value: boolean) => void;
   setSourcesForMessages: (sources: Record<string, any>) => void;
   setActiveFormTab: (tab: "pre-auth" | "chat" | "input" | "output") => void;
@@ -60,6 +62,7 @@ export function PriorAuthProvider({ children }: { children: ReactNode }) {
   const [chatMessages, _setChatMessages] = useState<Message[]>([]);
   const [chatInput, setChatInput] = useState("");
   const [isLoading, setIsLoading] = useState(false);
+  const [chatIsLoading, setChatIsLoading] = useState(false);
   const [intermediateStepsLoading, setIntermediateStepsLoading] = useState(false);
   const [sourcesForMessages, setSourcesForMessages] = useState<Record<string, any>>({});
   const [activeFormTab, setActiveFormTab] = useState<"pre-auth" | "chat" | "input" | "output">("pre-auth");
@@ -87,6 +90,7 @@ export function PriorAuthProvider({ children }: { children: ReactNode }) {
     chatMessages,
     chatInput,
     isLoading,
+    chatIsLoading,
     intermediateStepsLoading,
     sourcesForMessages,
     activeFormTab,
@@ -96,6 +100,7 @@ export function PriorAuthProvider({ children }: { children: ReactNode }) {
     setChatMessages,
     setChatInput,
     setIsLoading,
+    setChatIsLoading,
     setIntermediateStepsLoading,
     setSourcesForMessages,
     setActiveFormTab,

@@ -44,6 +44,7 @@ export function PriorAuthView({
     setChatInput,
     isLoading,
     setIsLoading,
+    setChatIsLoading,
     intermediateStepsLoading,
     setIntermediateStepsLoading,
     sourcesForMessages,
@@ -156,6 +157,11 @@ export function PriorAuthView({
   useEffect(() => {
     setChatMessages(chat.messages);
   }, [chat.messages, setChatMessages]);
+
+  // Keep chatIsLoading in sync with the actual useChat stream state
+  useEffect(() => {
+    setChatIsLoading(chat.isLoading);
+  }, [chat.isLoading, setChatIsLoading]);
 
   // Auto-scroll to bottom on new messages - DISABLED to allow manual scrolling
   // useEffect(() => {
