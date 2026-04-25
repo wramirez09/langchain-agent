@@ -42,7 +42,6 @@ export async function POST(req: NextRequest) {
       success: true,
       message: `Canceled meter event ${eventIdentifier}`,
       adjustment: {
-        id: adjustment.id,
         status: adjustment.status,
         event_name: adjustment.event_name,
         type: adjustment.type,

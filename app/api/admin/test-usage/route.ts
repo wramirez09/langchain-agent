@@ -99,7 +99,6 @@ export async function POST(req: NextRequest) {
         priceId: meteredItem.price.id,
       },
       meterEvent: {
-        id: meterEvent.id,
         event_name: meterEvent.event_name,
         identifier: meterEvent.identifier,
         value: meterEvent.payload?.value,
