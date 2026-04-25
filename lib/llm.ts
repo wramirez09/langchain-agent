@@ -10,9 +10,9 @@ export const llmAgent = () => new ChatOpenAI({
   streaming: true,
 });
 
-// For summarization and structured extraction - gpt-4o-mini is 3-5x faster than gpt-4o for this task
+// For summarization and structured extraction - gpt-4o for accurate code/criteria extraction
 export const llmSummarizer = () => new ChatOpenAI({
-  model: "gpt-4o-mini",
+  model: "gpt-4o",
   temperature: 0.2,
   maxRetries: 2,
   timeout: 60000,
