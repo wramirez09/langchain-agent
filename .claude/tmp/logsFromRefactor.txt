@@ -1,0 +1,186 @@
+Only plain objects can be passed to Client Components from Server Components. Classes or other objects with methods are not supported.
+  <... customers={[...]} subscriptions=... invoices=... charges=... balance={{object: "balance", available: [...], livemode: ..., pending: ..., refund_and_dispute_prefunding: ...}} refunds=... disputes=... events=... meters=... usageRows=...>
+                                                                            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+ GET / 200 in 882ms (compile: 674ms, proxy.ts: 13ms, render: 195ms)
+[MetadataIndex] Scanning directory for metadata: /Users/williamramirez/repos/langchain-agent/app/api/data
+[MetadataIndex] Indexed 58 documents in 0.02s
+[CommercialGuidelineSearchTool] Metadata index loaded at module initialization: 58 documents
+[Agents API] Request started for user 05cf3ee4-0a3f-4fa0-b33e-a5a355ecbec1 at 2026-04-25T17:27:50.380Z
+[Agents API] Starting web streaming for user 05cf3ee4-0a3f-4fa0-b33e-a5a355ecbec1
+[NCDCoverageSearchTool] Searching NCDs: {"query":"Percutaneous Image-Guided Lumbar Decompression for Lumbar Spinal Stenosis (PILD)","treatment":"Percutaneous Image-Guided Lumbar Decompression","diagnosis":"Lumbar spinal stenosis","cptCodes":[],"icd10Codes":[],"maxResults":5}
+[NCDCoverageSearchTool] Fetching NCD list from CMS API...
+[LocalLcdSearchTool] Searching LCDs: {"query":"Percutaneous Image-Guided Lumbar Decompression for Lumbar Spinal Stenosis (PILD)","treatment":"Percutaneous Image-Guided Lumbar Decompression","diagnosis":"Lumbar spinal stenosis","cptCodes":[],"icd10Codes":[],"state":"California","maxResults":10}
+[LocalLcdSearchTool] State ID resolved: "California" → 6
+[LocalLcdSearchTool] Fetching LCDs from CMS API (state_id=6)...
+[LocalCoverageArticleSearchTool] Searching LCAs: {"query":"Percutaneous Image-Guided Lumbar Decompression for Lumbar Spinal Stenosis (PILD)","treatment":"Percutaneous Image-Guided Lumbar Decompression","diagnosis":"Lumbar spinal stenosis","cptCodes":[],"icd10Codes":[],"state":"California","maxResults":10}
+[LocalCoverageArticleSearchTool] State ID resolved: "California" → 6
+[LocalCoverageArticleSearchTool] Fetching LCAs from CMS API (state_id=6)...
+[NCDCoverageSearchTool] Error: fetch failed
+[LocalLcdSearchTool] CMS fetch: 224ms
+[LocalCoverageArticleSearchTool] CMS fetch: 230ms
+[LocalLcdSearchTool] JSON parse: 35ms, 273 records, 123.4KB
+[LocalLcdSearchTool] Scored 273 records: 11ms → 0 matches
+[LocalCoverageArticleSearchTool] JSON parse: 59ms, 646 records, 312.1KB
+[LocalCoverageArticleSearchTool] Scored 646 records: 12ms → 0 matches
+[CommercialGuidelineSearchTool] Received input: {
+  query: 'Percutaneous Image-Guided Lumbar Decompression (PILD) for lumbar spinal stenosis with neurogenic claudication',
+  treatment: 'Percutaneous Image-Guided Lumbar Decompression',
+  diagnosis: 'Lumbar spinal stenosis with neurogenic claudication',
+  domain: 'musculoskeletal',
+  maxResults: 5
+}
+[OptimizedLoader] Starting smart document loading for query: {
+  query: 'Percutaneous Image-Guided Lumbar Decompression (PILD) for lumbar spinal stenosis with neurogenic claudication',
+  treatment: 'Percutaneous Image-Guided Lumbar Decompression',
+  cpt: undefined,
+  icd10: undefined,
+  domain: 'musculoskeletal'
+}
+[OptimizedLoader] Filtered from 58 to 58 candidates based on metadata
+[OptimizedLoader] Loaded 58 full documents in 0.03s
+[CommercialGuidelineSearchTool] Searching 58 relevant documents
+[ScoreEngine] Scoring 58 documents against input: {
+  query: 'Percutaneous Image-Guided Lumbar Decompression (PILD) for lumbar spinal stenosis with neurogenic claudication',
+  treatment: 'Percutaneous Image-Guided Lumbar Decompression',
+  diagnosis: 'Lumbar spinal stenosis with neurogenic claudication',
+  cpt: undefined,
+  icd10: undefined,
+  domain: 'musculoskeletal'
+}
+[ScoreEngine] Found 57 relevant documents
+[ScoreEngine] Detected 9 groups of overlapping documents
+[ScoreEngine] Merging 4 documents: [
+  'Cervical, Thoracic, and Lumbar Spine Surgery',
+  'Cervical Spine Surgery Procedures',
+  'Surgical Level of Care',
+  'Large Joint Surgery'
+]
+[ScoreEngine] Merging 5 documents: [
+  'Spine Imaging',
+  'Brain Imaging',
+  'Thoracic Imaging',
+  'Oncologic Imaging',
+  'Extremity Imaging'
+]
+[ScoreEngine] Merging 2 documents: [ 'Epidural Spine Injections', 'Musculoskeletal Pain Management' ]
+[ScoreEngine] Merging 5 documents: [
+  'Vascular Imaging',
+  'Vascular Imaging',
+  'Head and Neck Imaging',
+  'Brain Functional Mapping and PET',
+  'Abdomen and Pelvis Imaging'
+]
+[ScoreEngine] Merging 2 documents: [ 'Ventricular Tachycardia Ablation', 'Atrial Fibrillation Ablation' ]
+[ScoreEngine] Merging 8 documents: [
+  'Fractional Flow Reserve CT',
+  'Coronary Angiography',
+  'Cardiac Imaging',
+  'Cardiac Imaging',
+  'Inferior Vena Cava Filter',
+  'Cardiac Resynchronization Therapy',
+  'Implantable Cardioverter Defibrillator',
+  'Permanent Pacemaker Implantation'
+]
+[ScoreEngine] Merging 7 documents: [
+  'Reproductive Carrier Screening',
+  'Hereditary Cancer Genetic Testing',
+  'Prenatal Cell-Free DNA Screening',
+  'Cancer Liquid Biopsy Testing',
+  'Inherited Condition Genetic Testing',
+  'Chromosomal Microarray Analysis',
+  'Pharmacogenomic Testing'
+]
+[ScoreEngine] Merging 6 documents: [
+  'Radiation Therapy',
+  'Proton Beam Therapy',
+  'Therapeutic Radiopharmaceuticals',
+  'Proton Beam Radiation Evidence Criteria',
+  'Radiation Treatment Modalities',
+  'Radiation Oncology Coding Standards'
+]
+[ScoreEngine] Merging 2 documents: [ 'Sleep Diagnostic Testing', 'Sleep Medicine Services' ]
+[ScoreEngine] After merging: 25 documents (9 merged, 16 standalone)
+[ScoreEngine] Top matches: [
+  {
+    title: 'Cervical, Thoracic, and Lumbar Spine Surgery (4 sources)',
+    score: 33,
+    matchedOn: [
+      'diagnosis:overlap:100%',
+      'query:body:73%',
+      'procedures:lumbar fusion,spinal decompression',
+      'relatedConditions:spinal stenosis',
+      'priority:high',
+      'query:body:91%',
+      'procedures:posterior cervical decompression',
+      'diagnosis:overlap:33%',
+      'query:body:27%',
+      'priority:medium'
+    ]
+  },
+  {
+    title: 'Spine Imaging (5 sources)',
+    score: 27,
+    matchedOn: [
+      'diagnosis:overlap:100%',
+      'query:body:64%',
+      'procedures:lumbar MRI',
+      'relatedConditions:spinal stenosis',
+      'priority:high',
+      'diagnosis:overlap:33%',
+      'query:body:27%',
+      'query:body:36%',
+      'priority:medium'
+    ]
+  },
+  {
+    title: 'Fractional Flow Reserve CT (8 sources)',
+    score: 24,
+    matchedOn: [
+      'diagnosis:overlap:33%',
+      'query:body:36%',
+      'relatedConditions:intermediate stenosis',
+      'priority:medium',
+      'tags:stenosis',
+      'priority:high',
+      'diagnosis:overlap:50%',
+      'query:body:27%',
+      'diagnosis:overlap:67%',
+      'query:body:55%'
+    ]
+  },
+  {
+    title: 'Epidural Spine Injections (2 sources)',
+    score: 21,
+    matchedOn: [
+      'diagnosis:overlap:67%',
+      'query:body:55%',
+      'procedures:transforaminal injection',
+      'relatedConditions:spinal stenosis',
+      'priority:high',
+      'diagnosis:overlap:100%',
+      'query:body:82%',
+      'relatedConditions:spinal stenosis,neurogenic claudication'
+    ]
+  },
+  {
+    title: 'Vascular Imaging (5 sources)',
+    score: 19,
+    matchedOn: [
+      'diagnosis:overlap:83%',
+      'query:body:55%',
+      'relatedConditions:carotid stenosis',
+      'priority:high',
+      'diagnosis:overlap:67%',
+      'query:body:45%',
+      'diagnosis:overlap:33%',
+      'query:body:27%',
+      'priority:medium'
+    ]
+  }
+]
+[ScoreEngine] Related matches: [
+  { title: 'Reproductive Carrier Screening (7 sources)', score: 19 },
+  { title: 'Radiation Therapy (6 sources)', score: 17 },
+  { title: 'Percutaneous Coronary Intervention', score: 16 }
+]
+[CommercialGuidelineSearchTool] Found 5 top matches, 3 related matches

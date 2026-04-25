@@ -1,4 +1,3 @@
-// policyContentExtractorTool.ts
 import { z } from "zod";
 import { StructuredTool } from "@langchain/core/tools";
 import * as cheerio from "cheerio";
@@ -6,11 +5,7 @@ import { llmSummarizer } from "@/lib/llm";
 import { StructuredOutputParser } from "langchain/output_parsers";
 import { cache, TTL } from "@/lib/cache";
 
-const POLICY_EXTRACT_MAX_CHARS = 10_000;
-
-// ----------------------
-// Types & Schemas
-// ----------------------
+const POLICY_EXTRACT_MAX_CHARS = 25_000;
 
 export interface ExtractedPolicyDetails {
   priorAuthRequired: "YES" | "NO" | "CONDITIONAL" | "UNKNOWN";
@@ -47,7 +42,7 @@ const policyExtractionSchema = z.object({
 const parser = StructuredOutputParser.fromZodSchema(policyExtractionSchema as any);
 
 const toolInputSchema = z.object({
-  policyUrls: z.array(z.string().url()).min(1).max(3).describe(
+  policyUrls: z.array(z.url()).min(1).max(3).describe(
     "One to three policy URLs to fetch in parallel. Always pass all relevant URLs in a single call."
   ),
 });
@@ -59,8 +54,6 @@ const toolInputSchema = z.object({
 export async function getStructuredPolicyDetails(
   content: string,
 ): Promise<ExtractedPolicyDetails | null> {
-
-
   const prompt = `You are an expert healthcare policy analyst. Your task is to analyze the provided policy text and extract structured information according to the following schema:
   
   1. PRIOR AUTHORIZATION REQUIREMENTS:
@@ -123,11 +116,6 @@ export async function getStructuredPolicyDetails(
     return null;
   }
 }
-
-
-// ----------------------
-// Tool Implementation
-// ----------------------
 
 class PolicyContentExtractorTool extends StructuredTool<
   z.infer<typeof toolInputSchema>

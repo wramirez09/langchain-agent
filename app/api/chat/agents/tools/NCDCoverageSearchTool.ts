@@ -1,5 +1,5 @@
 import { StructuredTool } from "@langchain/core/tools";
-import { cache } from "@/lib/cache";
+import { cache, TTL } from "@/lib/cache";
 import {
   MedicareSearchInputSchema,
   MedicareSearchInput,
@@ -8,11 +8,7 @@ import {
 } from "./utils/medicareSearchTypes";
 import { scoreMedicareNCD } from "./utils/scoreMedicareDocument";
 
-
-const CACHE_TTL = 30 * 60 * 1000;
-const RAW_DATA_CACHE_KEY = 'cms-ncd-raw-data';
-const RAW_DATA_CACHE_TTL = 30 * 60 * 1000;
-
+const RAW_DATA_CACHE_KEY = "cms-ncd-raw-data";
 
 export class NCDCoverageSearchTool extends StructuredTool<typeof MedicareSearchInputSchema> {
   name = "ncd_coverage_search";
@@ -32,8 +28,6 @@ export class NCDCoverageSearchTool extends StructuredTool<typeof MedicareSearchI
 
   async _call(input: MedicareSearchInput): Promise<string> {
     const normalized = normalizeInput(input);
-    // Record tool usage
-
 
     const CMS_NCD_API_URL =
       "https://api.coverage.cms.gov/v1/reports/national-coverage-ncd/";
@@ -42,44 +36,27 @@ export class NCDCoverageSearchTool extends StructuredTool<typeof MedicareSearchI
 
     const cacheKey = `ncd-search:${JSON.stringify(normalized)}`;
     const cachedResult: string | null = await cache.get(cacheKey);
-
     if (cachedResult) {
-      console.log(
-        `[NCDCoverageSearchTool] Cache hit for query: "${normalized.query}"`
-      );
+      console.log(`[NCDCoverageSearchTool] Cache hit for query: "${normalized.query}"`);
       return cachedResult;
     }
 
-    console.log(
-      `[NCDCoverageSearchTool] Searching NCDs with input:`,
-      JSON.stringify(normalized, null, 2)
-    );
+    console.log(`[NCDCoverageSearchTool] Searching NCDs:`, JSON.stringify(normalized));
 
     const controller = new AbortController();
     const { signal } = controller;
-
-    // Increase max listeners & ensure cleanup
-    const eventTarget = signal as unknown as EventTarget & {
-      setMaxListeners?: (n: number) => void;
-    };
-    if (eventTarget.setMaxListeners) {
-      eventTarget.setMaxListeners(100);
-    }
-
-    const timeout = setTimeout(() => {
-      if (!signal.aborted) controller.abort();
-    }, 30000);
+    const eventTarget = signal as unknown as EventTarget & { setMaxListeners?: (n: number) => void };
+    if (eventTarget.setMaxListeners) eventTarget.setMaxListeners(100);
+    const timeout = setTimeout(() => { if (!signal.aborted) controller.abort(); }, 30000);
 
     try {
-      // Check raw data cache first (shared across all queries for 30 min)
       let responseData: any = await cache.get(RAW_DATA_CACHE_KEY);
 
       if (responseData) {
-        console.log(`[NCDCoverageSearchTool] Raw data cache hit (${responseData.data?.length ?? 0} records)`);
         clearTimeout(timeout);
+        console.log(`[NCDCoverageSearchTool] Raw data cache hit (${responseData.data?.length ?? 0} records)`);
       } else {
-        console.log("[NCDCoverageSearchTool] Fetching NCD list from CMS Coverage API...");
-
+        console.log("[NCDCoverageSearchTool] Fetching NCD list from CMS API...");
         const fetchStart = Date.now();
         const response = await fetch(CMS_NCD_API_URL, {
           method: "GET",
@@ -87,132 +64,76 @@ export class NCDCoverageSearchTool extends StructuredTool<typeof MedicareSearchI
           cache: "no-store",
           signal,
         });
-
         clearTimeout(timeout);
         console.log(`[NCDCoverageSearchTool] CMS fetch: ${Date.now() - fetchStart}ms`);
 
-        if (!response.ok) {
-          throw new Error(`HTTP error! status: ${response.status}`);
-        }
+        if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
 
         const parseStart = Date.now();
         responseData = await response.json();
-        console.log(`[NCDCoverageSearchTool] JSON parse: ${Date.now() - parseStart}ms, ${responseData?.data?.length ?? 0} records`);
-        if (responseData?.data?.[0]) {
-          console.log(`[NCDCoverageSearchTool] Sample record fields:`, Object.keys(responseData.data[0]));
-        }
-        console.log(`[NCDCoverageSearchTool] Raw payload size: ${JSON.stringify(responseData).length} chars (~${(JSON.stringify(responseData).length / 1024).toFixed(1)}KB)`);
-        await cache.set(RAW_DATA_CACHE_KEY, responseData, RAW_DATA_CACHE_TTL);
+        const rawSize = JSON.stringify(responseData).length;
+        console.log(`[NCDCoverageSearchTool] JSON parse: ${Date.now() - parseStart}ms, ${responseData?.data?.length ?? 0} records, ${(rawSize / 1024).toFixed(1)}KB`);
+        await cache.set(RAW_DATA_CACHE_KEY, responseData, TTL.LONG);
       }
 
-      // Validate API shape
       if (!responseData || !responseData.meta || !Array.isArray(responseData.data)) {
-        console.error("Unexpected API response structure:", responseData);
-        return JSON.stringify({
-          query: normalized,
-          topMatches: [],
-          error: "Unexpected CMS API response format. Please try again later."
-        });
+        console.error("[NCDCoverageSearchTool] Unexpected API response structure");
+        return JSON.stringify({ query: normalized, topMatches: [], error: "Unexpected CMS API response format. Please try again later." });
       }
 
       if (responseData.meta.status && responseData.meta.status.id >= 400) {
-        console.error("CMS API meta status error:", responseData.meta);
-        return JSON.stringify({
-          query: normalized,
-          topMatches: [],
-          error: `CMS Coverage API error: ${responseData.meta.status.message || "Unknown error"}`
-        });
+        console.error("[NCDCoverageSearchTool] CMS API error:", responseData.meta.status);
+        return JSON.stringify({ query: normalized, topMatches: [], error: `CMS Coverage API error: ${responseData.meta.status.message || "Unknown error"}` });
       }
 
       const allNCDs: any[] = responseData.data || [];
       if (allNCDs.length === 0) {
-        return JSON.stringify({
-          query: normalized,
-          topMatches: [],
-          message: "No National Coverage Determinations (NCDs) are currently available from CMS."
-        });
+        return JSON.stringify({ query: normalized, topMatches: [], message: "No NCDs currently available from CMS." });
       }
 
       const scoreStart = Date.now();
       const scored = allNCDs
-        .map((ncd) => {
-          const { score, matchedOn } = scoreMedicareNCD(ncd, input);
-          return { ncd, score, matchedOn };
-        })
+        .map((ncd) => { const { score, matchedOn } = scoreMedicareNCD(ncd, input); return { ncd, score, matchedOn }; })
         .filter((item) => item.score > 0)
         .sort((a, b) => b.score - a.score);
-      console.log(`[NCDCoverageSearchTool] Scoring ${allNCDs.length} records: ${Date.now() - scoreStart}ms → ${scored.length} matches`);
+      console.log(`[NCDCoverageSearchTool] Scored ${allNCDs.length} records: ${Date.now() - scoreStart}ms → ${scored.length} matches`);
 
       if (scored.length === 0) {
         return JSON.stringify({
           query: normalized,
           topMatches: [],
-          message: `No National Coverage Determination (NCD) found for '${normalized.query}'. Try using a simpler phrase, a key word from the NCD title, or the NCD number (e.g., "220.3").`
+          message: `No NCD found for '${normalized.query}'. Try a simpler phrase, a keyword from the NCD title, or the NCD number (e.g., "220.3").`,
         });
       }
 
       const top = scored.slice(0, normalized.maxResults);
       const topMatches: MedicareScoredResult[] = top.map(({ ncd, score, matchedOn }) => {
-        const {
-          document_id: documentId,
-          document_version: documentVersion,
-          document_display_id: documentDisplayId,
-          title,
-          document_status: status,
-          last_updated: lastUpdated,
-        } = ncd;
-
-        let fullHtmlUrl = "";
-        if (documentId != null && documentVersion != null) {
-          fullHtmlUrl = `${CMS_NCD_BASE_HTML_URL}?ncdid=${documentId}&ncdver=${documentVersion}`;
-        }
-
+        const { document_id: documentId, document_version: documentVersion, document_display_id: documentDisplayId, title, document_status: status, last_updated: lastUpdated } = ncd;
+        const url = documentId != null && documentVersion != null
+          ? `${CMS_NCD_BASE_HTML_URL}?ncdid=${documentId}&ncdver=${documentVersion}`
+          : undefined;
         return {
           id: `${documentId}-${documentVersion}`,
           title: title || "N/A",
           displayId: documentDisplayId || undefined,
           score,
-          url: fullHtmlUrl || undefined,
+          url,
           matchedOn,
-          metadata: {
-            status: status || undefined,
-            lastUpdated: lastUpdated || undefined,
-          },
+          metadata: { status: status || undefined, lastUpdated: lastUpdated || undefined },
         };
       });
 
-      const result = JSON.stringify(
-        {
-          query: normalized,
-          topMatches,
-        },
-        null,
-        2
-      );
-
-      console.log(
-        `[NCDCoverageSearchTool] Returning ${topMatches.length} results with scores:`,
-        topMatches.map(m => ({ title: m.title, score: m.score, matchedOn: m.matchedOn }))
-      );
-
+      const result = JSON.stringify({ query: normalized, topMatches }, null, 2);
       console.log(`[NCDCoverageSearchTool] Output to LLM: ${result.length} chars (~${(result.length / 1024).toFixed(1)}KB) for ${topMatches.length} matches`);
-      await cache.set(cacheKey, result, CACHE_TTL);
-
+      await cache.set(cacheKey, result, TTL.LONG);
       return result;
     } catch (error: any) {
-      console.error("[NCDCoverageSearchTool] Error in NCD coverage search:", error);
+      clearTimeout(timeout);
+      console.error("[NCDCoverageSearchTool] Error:", error.message);
       if (error.name === "AbortError") {
-        return JSON.stringify({
-          query: normalized,
-          topMatches: [],
-          error: "Search timed out. Please try again with a more specific query."
-        });
+        return JSON.stringify({ query: normalized, topMatches: [], error: "Search timed out. Please try again with a more specific query." });
       }
-      return JSON.stringify({
-        query: normalized,
-        topMatches: [],
-        error: "Error searching for NCD coverage information. Please try again later."
-      });
+      return JSON.stringify({ query: normalized, topMatches: [], error: "Error searching NCD coverage information. Please try again later." });
     }
   }
 }

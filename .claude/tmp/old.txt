@@ -1,0 +1,74 @@
+No patient-identifying information was detected in your request. Proceeding with Medicare prior authorization guidance.
+
+PRIOR AUTHORIZATION SUMMARY FOR PERCUTANEOUS IMAGE-GUIDED LUMBAR DECOMPRESSION (PILD) FOR LUMBAR SPINAL STENOSIS
+
+Request Overview
+
+Treatment: Percutaneous Image-Guided Lumbar Decompression (PILD) for Lumbar Spinal Stenosis
+CPT: 0275T
+ICD-10: Not specified in the national policy
+Medical History: Not provided
+Prior Authorization Required: CONDITIONAL
+
+Medicare Fee-for-Service coverage is conditional under a national policy and limited to beneficiaries enrolled in a CMS-approved clinical study (Coverage with Evidence Development). Outside of this setting, the service is non-covered.
+Note: Traditional Medicare generally does not operate a separate prior authorization program for this service; however, Medicare Advantage plans commonly require plan-level prior authorization even when an NCD exists.
+Medical Necessity Criteria Coverage is available only under Coverage with Evidence Development (CED) when ALL are met:
+
+
+The procedure is performed as part of a clinical study approved under section 1862(a)(1)(E) of the Social Security Act.
+
+The clinical study meets CMS standards, including:
+
+Prospective, randomized, controlled design
+
+Validated outcome measures (e.g., function, quality of life, pain)
+
+Clinically appropriate comparator treatment
+
+Evaluation of how beneficiary characteristics affect outcomes and duration of benefit
+
+The study is registered on ClinicalTrials.gov and conforms to CMS standards of scientific integrity.
+Relevant Codes
+
+CPT/HCPCS:
+0275T — Percutaneous image-guided lumbar decompression
+ICD-10:
+Not specified in the NCD. MACs may publish related coding/billing articles; confirm with your California MAC.
+Required Documentation
+
+
+Clinical study documentation:
+
+Full study protocol meeting CMS CED requirements
+
+ClinicalTrials.gov registration (NCT number)
+
+Documentation submitted to CMS demonstrating the study meets all standards of scientific integrity
+
+IRB approval and evidence of ongoing oversight (typical for CED studies)
+
+Patient-level documentation:
+
+Evidence the patient is enrolled and eligible for the approved study (consent, screening logs per protocol)
+
+Pre-procedure clinical evaluation consistent with the study protocol
+
+Operative note and imaging guidance documentation per protocol requirements
+Limitations and Exclusions
+
+✗
+Not covered outside a CMS-approved CED clinical study; considered not reasonable and necessary under section 1862(a)(1)(A) when performed outside the CED context.
+✗
+Open or endoscopically assisted lumbar decompression procedures are outside the scope of this NCD; coverage for those is determined under separate policies/contractor discretion.
+✗
+Coding and billing requirements may be supplemented by local contractor articles; verify with the California MAC before submission.
+Summary Report
+
+Determination: Conditionally covered only when performed within a CMS-approved Coverage with Evidence Development clinical study that meets all CMS criteria. If your request is for PILD outside an approved CED trial, Medicare coverage is not available and denial is expected. If performed within an approved trial, ensure all CED documentation (protocol, registration, eligibility, and integrity standards) accompanies the claim and prior plan approvals are obtained when billing Medicare Advantage.
+Medicare Policy Source (NCD)
+
+National Coverage Determination (NCD) 150.13 — Percutaneous Image-Guided Lumbar Decompression for Lumbar Spinal Stenosis: https://www.cms.gov/medicare-coverage-database/view/ncd.aspx?ncdid=358&ncdver=2
+Notes for California
+
+An NCD applies nationally and supersedes local coverage. California providers should still verify any MAC-specific coding or article guidance before billing. California’s Part A/B MAC is Noridian (Jurisdiction E); check for any related billing/coding articles supporting NCD 150.13.
+Disclaimer This summary is for informational guidance and does not guarantee coverage or payment. Final coverage decisions are made by Medicare, the applicable Medicare Administrative Contractor, and/or the patient’s Medicare Advantage plan. Always confirm requirements with the latest CMS publications, your MAC’s articles, and the patient’s specific plan policies. This analysis is based on publicly available information.

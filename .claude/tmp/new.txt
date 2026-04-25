@@ -1,0 +1,68 @@
+Treatment: Percutaneous Image-Guided Lumbar Decompression for Lumbar Spinal Stenosis (PILD)
+CPT: Not specified in Medicare NCD (verify coding with your MAC)
+ICD-10: Not provided
+Diagnosis: Lumbar spinal stenosis (LSS)
+Medical History: Not provided
+
+Prior Authorization Required: CONDITIONAL
+
+Medicare Fee-For-Service covers PILD only when furnished within a CMS-approved Coverage with Evidence Development (CED) clinical study.
+While traditional “prior authorization” is generally not required by Medicare FFS for this service, coverage is conditional on documented enrollment in an approved study and strict adherence to the study protocol. Medicare Advantage plans may have their own prior authorization processes.
+Medical Necessity Criteria:
+
+
+Service must be performed for Medicare beneficiaries with LSS enrolled in a CMS-approved CED clinical study under SSA §1862(a)(1)(E).
+
+The approved study must address clinically meaningful improvement in:
+
+Function and/or quality of life
+
+Pain reduction
+
+Overall clinical management of LSS compared to other treatments
+
+The study protocol must include:
+
+A specified statistical analysis plan
+
+A defined minimum length of patient follow-up
+
+CMS approval of the protocol prior to billing Medicare
+Relevant Codes:
+
+ICD-10:
+M48.06 — Lumbar spinal stenosis (per NCD context; confirm final ICD-10 to the highest specificity based on clinical presentation such as with/without neurogenic claudication)
+CPT/HCPCS:
+Not specified in the NCD. Confirm current procedural coding and any MAC-specific billing guidance.
+Required Documentation:
+
+
+Proof of enrollment in a CMS-approved CED clinical study for PILD
+
+Full study protocol with:
+
+Statistical analysis plan
+
+Minimum follow-up duration
+
+Inclusion and exclusion criteria
+
+Documentation in the medical record supporting LSS diagnosis consistent with the study protocol
+
+Evidence that the service delivered matches the approved study procedures
+Limitations and Exclusions:
+
+✗
+Not covered by Medicare outside of an approved CED clinical study
+✗
+The clinical research study must not unjustifiably duplicate existing studies
+✗
+Claims submitted without documentation of participation in a CMS-approved protocol are not covered
+Summary Report
+Determination: Pending — Coverage is conditional. Based on Medicare’s NCD, PILD for LSS is only covered when the beneficiary is enrolled in a CMS-approved CED clinical study and all study protocol requirements are met. To proceed, confirm and submit documentation of the beneficiary’s enrollment in the approved study and ensure the protocol elements (statistical plan, follow-up duration) are included.
+
+Medicare Policy URL(s):
+
+NCD 150.13 — Percutaneous Image-Guided Lumbar Decompression for Lumbar Spinal Stenosis: https://www.cms.gov/medicare-coverage-database/view/ncd.aspx?ncdid=358&ncdver=2
+Disclaimer: This summary is for guidance only and does not guarantee coverage or approval. Final determinations are made by Medicare, the Medicare Administrative Contractor (MAC), and/or the patient’s Medicare Advantage plan. Always verify requirements with the latest CMS publications and your MAC, and confirm the patient’s specific plan policies. This analysis is based on publicly available information.
+
