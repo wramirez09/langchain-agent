@@ -747,7 +747,7 @@ export function PriorAuthView({
                 <p className="text-sm text-gray-500">No output yet. Fill in the form and click &quot;Generate Authorization&quot; to get started.</p>
               </div>
             ) : (
-              <div className="space-y-2">
+              <div className="space-y-2 max-w-2xl mx-auto">
                 {chat.messages
                   .filter((m) => m.role === "assistant" && m.content)
                   .map((m, i, arr) => (

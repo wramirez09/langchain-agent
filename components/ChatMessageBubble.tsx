@@ -11,11 +11,11 @@ interface MarkdownRendererProps {
 const MarkdownRenderer: React.FC<MarkdownRendererProps> = ({ content }) => {
   // Track current section as we render (using object to allow mutation during render)
   const sectionTracker = { current: null as 'medical-necessity-zone' | 'exclusions' | 'summary' | 'relevant-codes' | null };
-  
+
   // Helper to detect section context from content
   const getSectionContext = (position: number): 'medical-necessity-zone' | 'exclusions' | 'summary' | 'relevant-codes' | null => {
     const beforeText = content.substring(Math.max(0, position - 1500), position).toLowerCase();
-    
+
     // Find the last occurrence of each section marker
     const lastSummaryIndex = Math.max(
       beforeText.lastIndexOf('summary report'),
@@ -30,10 +30,10 @@ const MarkdownRenderer: React.FC<MarkdownRendererProps> = ({ content }) => {
       beforeText.lastIndexOf('limitations:')
     );
     const lastRelevantCodesIndex = beforeText.lastIndexOf('relevant codes');
-    
+
     // Medical Necessity Zone: from "Medical Necessity Criteria" OR "Required Documentation" until "Relevant Codes"
     const medNecZoneStart = Math.max(lastMedNecIndex, lastReqDocIndex);
-    
+
     // Determine which section we're in based on the most recent section header
     const sectionIndices: Array<{ index: number; type: 'medical-necessity-zone' | 'exclusions' | 'summary' | 'relevant-codes' | null }> = [
       { index: lastSummaryIndex, type: 'summary' },
@@ -41,17 +41,17 @@ const MarkdownRenderer: React.FC<MarkdownRendererProps> = ({ content }) => {
       { index: lastExclIndex, type: 'exclusions' },
       { index: lastRelevantCodesIndex, type: 'relevant-codes' },
     ];
-    
+
     // Sort by index descending to find the most recent section
     const mostRecent = sectionIndices
       .filter(s => s.index >= 0)
       .sort((a, b) => b.index - a.index)[0];
-    
+
     return mostRecent?.type ?? null;
   };
 
   return (
-    <div className="prose max-w-none overflow-x-hidden [overflow-wrap:anywhere]">
+    <div className="prose max-w-1600 overflow-x-hidden [overflow-wrap:anywhere] bg-gray-500/5 px-6">
       <ReactMarkdown
         components={{
           a: (props) => (
@@ -64,35 +64,35 @@ const MarkdownRenderer: React.FC<MarkdownRendererProps> = ({ content }) => {
           ),
           strong: ({ children, ...props }) => {
             const text = String(children).toLowerCase();
-            
+
             // Update section tracking and style Medical Necessity Criteria header in green
             if (text.includes('medical necessity criteria')) {
               sectionTracker.current = 'medical-necessity-zone';
               return <strong {...props} className="text-green-700 font-semibold">{children}</strong>;
             }
-            
+
             // Update section tracking and style Required Documentation header in green
             if (text.includes('required documentation')) {
               sectionTracker.current = 'medical-necessity-zone';
               return <strong {...props} className="text-green-700 font-semibold">{children}</strong>;
             }
-            
+
             // Update section tracking for Relevant Codes
             if (text.includes('relevant codes')) {
               sectionTracker.current = 'relevant-codes';
             }
-            
+
             // Update section tracking and style Limitations and Exclusions header in red
             if (text.includes('limitations and exclusions') || text.includes('limitations') && text.includes('exclusions')) {
               sectionTracker.current = 'exclusions';
               return <strong {...props} className="text-red-700 font-semibold">{children}</strong>;
             }
-            
+
             // Update section tracking for Summary
             if (text.includes('summary report') || text.includes('summary')) {
               sectionTracker.current = 'summary';
             }
-            
+
             // Render all other strong/bold text as default markdown
             return <strong {...props}>{children}</strong>;
           },
@@ -118,21 +118,21 @@ const MarkdownRenderer: React.FC<MarkdownRendererProps> = ({ content }) => {
               }
               return '';
             };
-            
+
             const childText = extractText(children).toLowerCase();
             const contentLower = content.toLowerCase();
-            
+
             // Find approximate position of this list item in content
             // Use first meaningful text for matching (minimum 5 chars)
             const meaningfulText = childText.trim();
             let position = -1;
-            
+
             if (meaningfulText.length >= 5) {
               // Try to find the text in content, using progressively shorter search strings
               const searchLength = Math.min(30, meaningfulText.length);
               const searchText = meaningfulText.substring(0, searchLength);
               position = contentLower.indexOf(searchText);
-              
+
               // If not found, try first few words
               if (position === -1) {
                 const firstWords = meaningfulText.split(' ').slice(0, 3).join(' ');
@@ -140,7 +140,7 @@ const MarkdownRenderer: React.FC<MarkdownRendererProps> = ({ content }) => {
                   position = contentLower.indexOf(firstWords);
                 }
               }
-              
+
               // If still not found, try first two words
               if (position === -1) {
                 const firstTwoWords = meaningfulText.split(' ').slice(0, 2).join(' ');
@@ -149,15 +149,15 @@ const MarkdownRenderer: React.FC<MarkdownRendererProps> = ({ content }) => {
                 }
               }
             }
-            
+
             // Try to detect context from position, ALWAYS fallback to sectionTracker.current if position fails
             let context = position >= 0 ? getSectionContext(position) : null;
-            
+
             // If position-based detection failed or returned null, use sectionTracker
             if (!context) {
               context = sectionTracker.current;
             }
-            
+
             // Debug logging for nested bullets
             if (childText.includes('intra-articular') || childText.includes('mechanical symptoms')) {
               console.log('List item debug:', {
@@ -167,14 +167,14 @@ const MarkdownRenderer: React.FC<MarkdownRendererProps> = ({ content }) => {
                 trackerCurrent: sectionTracker.current
               });
             }
-            
+
             // Medical Necessity Zone (Medical Necessity Criteria + Required Documentation until Relevant Codes)
             // Green text with green checkboxes
             if (context === 'medical-necessity-zone') {
               return (
                 <li {...props} className="flex items-start gap-2">
-                  <input 
-                    type="checkbox" 
+                  <input
+                    type="checkbox"
                     className="mt-1 h-4 w-4 flex-shrink-0 rounded border-green-400 text-green-600 focus:ring-green-500"
                     disabled
                   />
@@ -182,7 +182,7 @@ const MarkdownRenderer: React.FC<MarkdownRendererProps> = ({ content }) => {
                 </li>
               );
             }
-            
+
             // Limitations/Exclusions section - red text with red X (until Summary Report)
             if (context === 'exclusions') {
               return (
@@ -192,7 +192,7 @@ const MarkdownRenderer: React.FC<MarkdownRendererProps> = ({ content }) => {
                 </li>
               );
             }
-            
+
             // All other sections - render as default markdown (no modifications)
             return <li {...props}>{children}</li>;
           },
