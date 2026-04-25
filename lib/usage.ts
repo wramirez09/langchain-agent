@@ -96,6 +96,7 @@ export async function reportUsage({
                         quantity,
                         stripe_reported: true,
                         stripe_usage_id: meterEvent.identifier,
+                        metered_item_id: metered_item_id,
                     });
                 },
                 RETRY_CONFIGS.DATABASE

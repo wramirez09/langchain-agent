@@ -4,6 +4,9 @@ import { StructuredTool } from "@langchain/core/tools";
 import * as cheerio from "cheerio";
 import { llmSummarizer } from "@/lib/llm";
 import { StructuredOutputParser } from "langchain/output_parsers";
+import { cache, TTL } from "@/lib/cache";
+
+const POLICY_EXTRACT_MAX_CHARS = 10_000;
 
 // ----------------------
 // Types & Schemas
@@ -43,9 +46,10 @@ const policyExtractionSchema = z.object({
 
 const parser = StructuredOutputParser.fromZodSchema(policyExtractionSchema as any);
 
-// Tool input schema: only needs a URL
 const toolInputSchema = z.object({
-  policyUrl: z.string().url(),
+  policyUrls: z.array(z.string().url()).min(1).max(3).describe(
+    "One to three policy URLs to fetch in parallel. Always pass all relevant URLs in a single call."
+  ),
 });
 
 // ----------------------
@@ -130,113 +134,93 @@ class PolicyContentExtractorTool extends StructuredTool<
 > {
   name = "policy_content_extractor";
   description =
-    "Fetches the full content of a Medicare policy document (NCD, LCD, or Article) from its URL and returns a structured JSON object. The object contains specific details like medical necessity criteria, ICD-10 and CPT codes, required documentation, and limitations. This tool is designed to provide a machine-readable summary for AI analysis.";
+    "Fetches the full content of Medicare policy documents (NCD, LCD, or Articles) from their URLs and returns structured JSON with medical necessity criteria, ICD-10/CPT codes, required documentation, and limitations. " +
+    "Pass all relevant URLs in a single call (up to 3) — they are fetched in parallel. " +
+    "Input: { policyUrls: string[] }. Output: array of extracted policy objects.";
   schema = toolInputSchema as any;
 
-  public async _call(input: z.infer<typeof toolInputSchema>): Promise<string> {
-    const { policyUrl } = input;
-    console.log(`Fetching and extracting content from: ${policyUrl}`);
+  private async extractOne(policyUrl: string): Promise<string> {
+    const urlStart = Date.now();
+    const cacheKey = `policy-extract:${policyUrl}`;
+    const cached = cache.get<string>(cacheKey);
+    if (cached) {
+      console.log(`[PolicyContentExtractorTool] Cache hit for: ${policyUrl}`);
+      return cached;
+    }
 
-    // Set up abort controller with max listeners
+    console.log(`[PolicyContentExtractorTool] Fetching: ${policyUrl}`);
+
     const controller = new AbortController();
     const signal = controller.signal;
-
-    // Type assertion to access EventTarget methods
     const eventTarget = signal as unknown as EventTarget & { setMaxListeners?: (n: number) => void };
-    if (eventTarget.setMaxListeners) {
-      eventTarget.setMaxListeners(1500);
-    }
-
-    const timeout = setTimeout(() => {
-      if (!signal.aborted) {
-        controller.abort();
-      }
-    }, 30000);
+    if (eventTarget.setMaxListeners) eventTarget.setMaxListeners(1500);
+    const timeout = setTimeout(() => { if (!signal.aborted) controller.abort(); }, 30000);
 
     try {
-      // Check if this is a CMS NCD URL and use the direct CMS page
       const ncdMatch = policyUrl.match(/ncdid=([^&]+)/);
-      let fetchUrl = policyUrl;
+      const fetchUrl = ncdMatch
+        ? `https://www.cms.gov/medicare-coverage-database/view/ncd.aspx?ncdid=${ncdMatch[1]}`
+        : policyUrl;
 
-      // If it's a CMS NCD URL, use the direct CMS page instead of the API
-      if (ncdMatch) {
-        const ncdId = ncdMatch[1];
-        fetchUrl = `https://www.cms.gov/medicare-coverage-database/view/ncd.aspx?ncdid=${ncdId}`;
-        console.log(`Fetching NCD content from CMS page: ${fetchUrl}`);
-      }
-
+      const fetchStart = Date.now();
       const response = await fetch(fetchUrl, { signal });
+      if (!response.ok) throw new Error(`HTTP ${response.status} ${response.statusText}`);
 
-      if (!response.ok) {
-        throw new Error(
-          `Failed to fetch policy content: ${response.status} ${response.statusText}`,
-        );
-      }
-
-      // Clear the timeout if the request succeeds
       clearTimeout(timeout);
-      const contentType = response.headers.get('content-type') || '';
+      console.log(`[PolicyContentExtractorTool] URL fetch: ${Date.now() - fetchStart}ms`);
+
       let extractedText: string;
+      const contentType = response.headers.get('content-type') || '';
 
       if (contentType.includes('application/json')) {
-        // Handle CMS API JSON response
         const data = await response.json();
-        if (data && data.data && data.data.content) {
-          // If we have structured content, use it
-          extractedText = data.data.content;
-        } else {
-          // Fallback to stringifying the response
-          extractedText = JSON.stringify(data, null, 2);
-        }
+        extractedText = data?.data?.content ?? JSON.stringify(data, null, 2);
       } else {
-        // Handle regular HTML response
         const html = await response.text();
         const $ = cheerio.load(html);
-
-        // Extract the main content, removing scripts, styles, and other non-content elements
         $('script, style, nav, footer, header, iframe, noscript').remove();
-
-        // Get the text content
-        extractedText = $('body').text()
-          .replace(/\s+/g, ' ') // Replace multiple spaces with single space
-          .trim();
+        extractedText = $('body').text().replace(/\s+/g, ' ').trim();
       }
 
-      // Clean up the extracted text
       extractedText = extractedText.replace(/\s+/g, ' ').trim();
+      const originalLen = extractedText.length;
+      if (extractedText.length > POLICY_EXTRACT_MAX_CHARS) {
+        extractedText = extractedText.slice(0, POLICY_EXTRACT_MAX_CHARS);
+      }
+      console.log(`[PolicyContentExtractorTool] Extracted text: ${originalLen} chars → ${extractedText.length} chars`);
 
       if (extractedText.length < 100) {
-        const warning = `Extracted content too short for ${policyUrl}.`;
-        console.warn(warning);
-        return JSON.stringify({
-          error: warning,
-          details:
-            "HTML structure might have changed or content is minimal. Please review the URL directly.",
-        });
+        return JSON.stringify({ error: `Content too short for ${policyUrl}`, policyUrl });
       }
 
+      const llmStart = Date.now();
       const structuredDetails = await getStructuredPolicyDetails(extractedText);
-      if (structuredDetails) {
-        return JSON.stringify({
-          policyUrl,
-          ...structuredDetails,
-        });
-      } else {
-        const errorMsg = `An error occurred during structured extraction from ${policyUrl}.`;
-        console.error(errorMsg);
-        return JSON.stringify({
-          error: errorMsg,
-          details:
-            "The LLM failed to parse the content into the expected JSON format.",
-        });
+      console.log(`[PolicyContentExtractorTool] LLM extraction: ${Date.now() - llmStart}ms, total: ${Date.now() - urlStart}ms`);
+
+      if (!structuredDetails) {
+        return JSON.stringify({ error: `Extraction failed for ${policyUrl}`, policyUrl });
       }
+
+      const output = JSON.stringify({ policyUrl, ...structuredDetails });
+      console.log(`[PolicyContentExtractorTool] Output: ${output.length} chars (~${(output.length / 1024).toFixed(1)}KB)`);
+      cache.set(cacheKey, output, TTL.LONG);
+      return output;
     } catch (error: any) {
-      console.error("Error in PolicyContentExtractorTool:", error);
-      return JSON.stringify({
-        error: `An error occurred while extracting policy content from ${policyUrl}`,
-        details: error.message,
-      });
+      clearTimeout(timeout);
+      console.error(`[PolicyContentExtractorTool] Error for ${policyUrl}:`, error.message);
+      return JSON.stringify({ error: error.message, policyUrl });
     }
+  }
+
+  public async _call(input: z.infer<typeof toolInputSchema>): Promise<string> {
+    const { policyUrls } = input;
+    const toolStart = Date.now();
+    console.log(`[PolicyContentExtractorTool] Processing ${policyUrls.length} URL(s) in parallel`);
+
+    const results = await Promise.all(policyUrls.map(url => this.extractOne(url)));
+
+    console.log(`[PolicyContentExtractorTool] All extractions done: ${Date.now() - toolStart}ms`);
+    return results.length === 1 ? results[0] : JSON.stringify(results);
   }
 }
 

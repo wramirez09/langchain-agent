@@ -9,8 +9,9 @@ import {
 import { scoreMedicareNCD } from "./utils/scoreMedicareDocument";
 
 
-// Cache TTL in milliseconds (5 minutes)
-const CACHE_TTL = 5 * 60 * 1000;
+const CACHE_TTL = 30 * 60 * 1000;
+const RAW_DATA_CACHE_KEY = 'cms-ncd-raw-data';
+const RAW_DATA_CACHE_TTL = 30 * 60 * 1000;
 
 
 export class NCDCoverageSearchTool extends StructuredTool<typeof MedicareSearchInputSchema> {
@@ -70,24 +71,39 @@ export class NCDCoverageSearchTool extends StructuredTool<typeof MedicareSearchI
     }, 30000);
 
     try {
-      console.log(
-        "[NCDCoverageSearchTool] Fetching NCD list from CMS Coverage API..."
-      );
+      // Check raw data cache first (shared across all queries for 30 min)
+      let responseData: any = await cache.get(RAW_DATA_CACHE_KEY);
 
-      const response = await fetch(CMS_NCD_API_URL, {
-        method: "GET",
-        headers: { "Content-Type": "application/json" },
-        cache: "no-store",
-        signal,
-      });
+      if (responseData) {
+        console.log(`[NCDCoverageSearchTool] Raw data cache hit (${responseData.data?.length ?? 0} records)`);
+        clearTimeout(timeout);
+      } else {
+        console.log("[NCDCoverageSearchTool] Fetching NCD list from CMS Coverage API...");
 
-      clearTimeout(timeout);
+        const fetchStart = Date.now();
+        const response = await fetch(CMS_NCD_API_URL, {
+          method: "GET",
+          headers: { "Content-Type": "application/json" },
+          cache: "no-store",
+          signal,
+        });
 
-      if (!response.ok) {
-        throw new Error(`HTTP error! status: ${response.status}`);
+        clearTimeout(timeout);
+        console.log(`[NCDCoverageSearchTool] CMS fetch: ${Date.now() - fetchStart}ms`);
+
+        if (!response.ok) {
+          throw new Error(`HTTP error! status: ${response.status}`);
+        }
+
+        const parseStart = Date.now();
+        responseData = await response.json();
+        console.log(`[NCDCoverageSearchTool] JSON parse: ${Date.now() - parseStart}ms, ${responseData?.data?.length ?? 0} records`);
+        if (responseData?.data?.[0]) {
+          console.log(`[NCDCoverageSearchTool] Sample record fields:`, Object.keys(responseData.data[0]));
+        }
+        console.log(`[NCDCoverageSearchTool] Raw payload size: ${JSON.stringify(responseData).length} chars (~${(JSON.stringify(responseData).length / 1024).toFixed(1)}KB)`);
+        await cache.set(RAW_DATA_CACHE_KEY, responseData, RAW_DATA_CACHE_TTL);
       }
-
-      const responseData = await response.json();
 
       // Validate API shape
       if (!responseData || !responseData.meta || !Array.isArray(responseData.data)) {
@@ -117,6 +133,7 @@ export class NCDCoverageSearchTool extends StructuredTool<typeof MedicareSearchI
         });
       }
 
+      const scoreStart = Date.now();
       const scored = allNCDs
         .map((ncd) => {
           const { score, matchedOn } = scoreMedicareNCD(ncd, input);
@@ -124,10 +141,7 @@ export class NCDCoverageSearchTool extends StructuredTool<typeof MedicareSearchI
         })
         .filter((item) => item.score > 0)
         .sort((a, b) => b.score - a.score);
-
-      console.log(
-        `[NCDCoverageSearchTool] ${scored.length} scored matches for query "${normalized.query}"`
-      );
+      console.log(`[NCDCoverageSearchTool] Scoring ${allNCDs.length} records: ${Date.now() - scoreStart}ms → ${scored.length} matches`);
 
       if (scored.length === 0) {
         return JSON.stringify({
@@ -181,6 +195,7 @@ export class NCDCoverageSearchTool extends StructuredTool<typeof MedicareSearchI
         topMatches.map(m => ({ title: m.title, score: m.score, matchedOn: m.matchedOn }))
       );
 
+      console.log(`[NCDCoverageSearchTool] Output to LLM: ${result.length} chars (~${(result.length / 1024).toFixed(1)}KB) for ${topMatches.length} matches`);
       await cache.set(cacheKey, result, CACHE_TTL);
 
       return result;

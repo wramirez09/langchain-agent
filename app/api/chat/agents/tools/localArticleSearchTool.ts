@@ -7,43 +7,10 @@ import {
   normalizeInput,
 } from "./utils/medicareSearchTypes";
 import { scoreMedicareLCA } from "./utils/scoreMedicareDocument";
+import { resolveStateId as resolveStateIdFromStatic } from "@/app/agents/metaData/states";
 
-const CACHE_TTL = 5 * 60 * 1000;
-
-interface StateMetadata {
-  data: Array<{
-    state_id: number;
-    description: string;
-  }>;
-}
-
-interface LocalCoverageArticle {
-  meta: {
-    status: {
-      id: 0;
-      message: string;
-    };
-    notes: string;
-    fields: string[];
-    children: string[];
-  };
-  data: [
-    {
-      document_id: string;
-      document_version: 0;
-      document_display_id: string;
-      document_type: string;
-      note: string;
-      title: string;
-      contractor_name_type: string;
-      updated_on: string;
-      updated_on_sort: string;
-      effective_date: string;
-      retirement_date: string;
-      url: string;
-    },
-  ];
-}
+const CACHE_TTL = 30 * 60 * 1000;
+const RAW_DATA_CACHE_TTL = 30 * 60 * 1000;
 
 class LocalCoverageArticleSearchTool extends StructuredTool<typeof MedicareSearchInputSchema> {
   name = "local_coverage_article_search";
@@ -65,35 +32,13 @@ class LocalCoverageArticleSearchTool extends StructuredTool<typeof MedicareSearc
 
   private CMS_LOCAL_ARTICLES_API_URL =
     "https://api.coverage.cms.gov/v1/reports/local-coverage-articles/";
-  private CMS_STATES_API_URL =
-    "https://api.coverage.cms.gov/v1/meta/states";
 
-  private stateCache: Map<string, number> = new Map();
-
-  private async resolveStateId(stateName: string): Promise<number | null> {
-    const normalized = stateName.toLowerCase().trim();
-    
-    if (this.stateCache.has(normalized)) {
-      return this.stateCache.get(normalized)!;
+  private resolveStateId(stateName: string): number | null {
+    const result = resolveStateIdFromStatic(stateName);
+    if (!result) {
+      console.warn(`[LocalCoverageArticleSearchTool] No state_id found for: "${stateName}"`);
     }
-
-    try {
-      const response = await fetch(this.CMS_STATES_API_URL);
-      const statesData: StateMetadata = await response.json();
-      
-      for (const state of statesData.data) {
-        const stateDesc = state.description.toLowerCase();
-        this.stateCache.set(stateDesc, state.state_id);
-        
-        if (stateDesc === normalized || stateDesc.includes(normalized)) {
-          return state.state_id;
-        }
-      }
-    } catch (error) {
-      console.error("[LocalCoverageArticleSearchTool] Error resolving state ID:", error);
-    }
-    
-    return null;
+    return result;
   }
 
   async _call(input: MedicareSearchInput): Promise<string> {
@@ -111,10 +56,13 @@ class LocalCoverageArticleSearchTool extends StructuredTool<typeof MedicareSearc
       JSON.stringify(normalized, null, 2)
     );
     try {
+      const toolStart = Date.now();
       let stateId: number | null = null;
-      
+
       if (normalized.state) {
-        stateId = await this.resolveStateId(normalized.state);
+        const stateStart = Date.now();
+        stateId = this.resolveStateId(normalized.state);
+        console.log(`[LocalCoverageArticleSearchTool] State ID resolution: ${Date.now() - stateStart}ms → stateId=${stateId}`);
         if (!stateId) {
           return JSON.stringify({
             query: normalized,
@@ -124,27 +72,37 @@ class LocalCoverageArticleSearchTool extends StructuredTool<typeof MedicareSearc
         }
       }
 
-      const controller = new AbortController();
-      const timeout = setTimeout(() => controller.abort(), 30000);
-
       const apiUrl = stateId
         ? `${this.CMS_LOCAL_ARTICLES_API_URL}?state_id=${stateId}`
         : this.CMS_LOCAL_ARTICLES_API_URL;
+      const rawCacheKey = `cms-lca-raw-data:${stateId ?? 'all'}`;
 
-      console.log(`[LocalCoverageArticleSearchTool] Fetching LCAs from: ${apiUrl}`);
+      let allArticles: any = await cache.get(rawCacheKey);
+      if (allArticles) {
+        console.log(`[LocalCoverageArticleSearchTool] Raw data cache hit (${allArticles?.data?.length ?? 0} records)`);
+      } else {
+        const controller = new AbortController();
+        const timeout = setTimeout(() => controller.abort(), 30000);
 
-      const response = await fetch(apiUrl, {
-        signal: controller.signal,
-      });
+        console.log(`[LocalCoverageArticleSearchTool] Fetching LCAs from: ${apiUrl}`);
+        const fetchStart = Date.now();
+        const response = await fetch(apiUrl, { signal: controller.signal });
 
-      clearTimeout(timeout);
+        clearTimeout(timeout);
+        console.log(`[LocalCoverageArticleSearchTool] CMS fetch: ${Date.now() - fetchStart}ms`);
 
-      if (!response.ok) {
-        throw new Error(
-          `Failed to fetch local articles: ${response.status} ${response.statusText}`
-        );
+        if (!response.ok) {
+          throw new Error(`Failed to fetch local articles: ${response.status} ${response.statusText}`);
+        }
+        const parseStart = Date.now();
+        allArticles = await response.json();
+        console.log(`[LocalCoverageArticleSearchTool] JSON parse: ${Date.now() - parseStart}ms, ${allArticles?.data?.length ?? 0} records`);
+        if (allArticles?.data?.[0]) {
+          console.log(`[LocalCoverageArticleSearchTool] Sample record fields:`, Object.keys(allArticles.data[0]));
+        }
+        console.log(`[LocalCoverageArticleSearchTool] Raw payload size: ${JSON.stringify(allArticles).length} chars (~${(JSON.stringify(allArticles).length / 1024).toFixed(1)}KB)`);
+        await cache.set(rawCacheKey, allArticles, RAW_DATA_CACHE_TTL);
       }
-      const allArticles = await response.json();
 
       if (!allArticles.data || allArticles.data.length === 0) {
         return JSON.stringify({
@@ -154,6 +112,7 @@ class LocalCoverageArticleSearchTool extends StructuredTool<typeof MedicareSearc
         });
       }
 
+      const scoreStart = Date.now();
       const scored = allArticles.data
         .map((lca: any) => {
           const { score, matchedOn } = scoreMedicareLCA(lca, input);
@@ -161,10 +120,8 @@ class LocalCoverageArticleSearchTool extends StructuredTool<typeof MedicareSearc
         })
         .filter((item: any) => item.score > 0)
         .sort((a: any, b: any) => b.score - a.score);
-
-      console.log(
-        `[LocalCoverageArticleSearchTool] ${scored.length} scored matches for query "${normalized.query}"`
-      );
+      console.log(`[LocalCoverageArticleSearchTool] Scoring ${allArticles.data.length} records: ${Date.now() - scoreStart}ms → ${scored.length} matches`);
+      console.log(`[LocalCoverageArticleSearchTool] Total tool time so far: ${Date.now() - toolStart}ms`);
 
       if (scored.length === 0) {
         return JSON.stringify({
@@ -206,6 +163,7 @@ class LocalCoverageArticleSearchTool extends StructuredTool<typeof MedicareSearc
         `[LocalCoverageArticleSearchTool] Returning ${topMatches.length} results with scores:`,
         topMatches.map(m => ({ title: m.title, score: m.score, matchedOn: m.matchedOn }))
       );
+      console.log(`[LocalCoverageArticleSearchTool] Output to LLM: ${result.length} chars (~${(result.length / 1024).toFixed(1)}KB)`);
 
       await cache.set(cacheKey, result, CACHE_TTL);
       return result;

@@ -56,29 +56,15 @@ When PHI is detected and removed:
     * This tool performs deterministic scoring across commercial guidelines using exact code matching and keyword overlap.
     * The tool returns structured JSON with topMatches and relatedMatches, each containing score and matchedOn signals.
 
-* **If \`Guidelines\` is "Medicare":** 
-    * **Step 1: Search National Coverage Determination (NCD) first**
-        * Use \`ncd_coverage_search\` tool with structured inputs:
-            * \`query\`: The main search query (treatment or diagnosis)
-            * \`treatment\`: The extracted treatment name
-            * \`diagnosis\`: The extracted diagnosis
-            * \`cpt\`: The CPT code (if provided)
-            * \`icd10\`: The ICD-10 code (if provided)
-            * \`maxResults\`: 5-10 (optional)
-        * The tool returns structured JSON with \`topMatches\` array containing scored results
-        * Review the \`matchedOn\` signals to understand why each NCD matched
-    * **Step 2: If no relevant NCD results found, search Local Coverage Determination (LCD) and Local Coverage Article (LCA)**
-        * If NCD search returns NO relevant results (empty \`topMatches\` or all scores below relevance threshold):
-            * Inform the user: "No national Medicare guidelines found. Searching local coverage determinations..."
-            * Use \`local_lcd_search\` tool with:
-                * Same fields as NCD search
-                * \`state\`: The patient's U.S. state (if provided, otherwise search across all states)
-            * Use \`local_coverage_article_search\` tool with:
-                * Same fields as LCD search
-                * \`state\`: The patient's U.S. state (if provided, otherwise search across all states)
-            * Both tools return structured JSON with \`topMatches\` and scoring
-        * If state IS provided initially, you may search LCD/LCA in parallel with NCD for efficiency
-    * **Step 3: Review Medicare results**
+* **If \`Guidelines\` is "Medicare":**
+    * **Step 1: Search NCD + LCD + LCA simultaneously in a single parallel tool call**
+        * In your FIRST response, call ALL THREE tools at the same time (they run in parallel):
+            * \`ncd_coverage_search\` — query, treatment, diagnosis, cpt, icd10, maxResults: 5
+            * \`local_lcd_search\` — same fields + state (if provided)
+            * \`local_coverage_article_search\` — same fields + state (if provided)
+        * Do NOT wait for NCD results before calling LCD/LCA. Call all three together.
+        * The tools return structured JSON with \`topMatches\` and scoring.
+    * **Step 2: Review Medicare results**
         * All Medicare tools return JSON with \`topMatches\` containing:
             * \`title\`: Document title
             * \`score\`: Relevance score
@@ -92,12 +78,13 @@ When PHI is detected and removed:
             * Use \`commercial_guidelines_search\` tool with the same structured inputs
             * Clearly indicate in your response that these are commercial guidelines being used as reference due to lack of Medicare-specific guidance
             * Still maintain commercial confidentiality rules (no source disclosure)
-    * **Step 5: Extract policy details only when needed**
-        * Use \`policy_content_extractor\` tool for the top 1-2 most relevant URLs
-        * Do not extract every result - focus on best candidates only
-        * The extractor fetches full policy text for detailed analysis
+    * **Step 3: Extract policy details — pass ALL relevant URLs in ONE call**
+        * Use \`policy_content_extractor\` with \`policyUrls\` containing up to 3 URLs from the top results
+        * Pass them as an array in a single call — they are fetched and extracted in parallel
+        * Example: \`{ "policyUrls": ["https://lcd-url", "https://lca-url"] }\`
+        * Do NOT call the extractor multiple times with one URL each
 
-* **For any policies, guidelines, or articles found:** Use the \`policy_content_extractor\` tool to fetch its complete text content from the provided URL.
+* **For any policies, guidelines, or articles found:** Use the \`policy_content_extractor\` tool with \`policyUrls\` array containing all relevant URLs at once.
 
 **Commercial Guidelines Confidentiality (CRITICAL):**
 * **If \`Guidelines\` is "Commercial":** You MUST maintain strict confidentiality of all data sources.

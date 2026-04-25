@@ -14,6 +14,13 @@ const noopCookies = {
 
 export async function getUserFromRequest(req: NextRequest) {
     /* =========================
+       0️⃣ LOCAL DEV BYPASS
+       ========================= */
+    if (process.env.NODE_ENV === 'development' && req.headers.get('x-dev-bypass') === 'true') {
+        return { id: 'dev-user-local', email: 'dev@local' } as any;
+    }
+
+    /* =========================
        1️⃣ MOBILE — Bearer token
        ========================= */
     const authHeader = req.headers.get("authorization");

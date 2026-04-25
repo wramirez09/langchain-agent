@@ -44,6 +44,7 @@ export async function updateSession(request: NextRequest) {
     !request.nextUrl.pathname.startsWith('/auth') &&
     !request.nextUrl.pathname.startsWith('/pdf') &&
     !request.nextUrl.pathname.startsWith('/legal') &&
+    !request.nextUrl.pathname.startsWith('/admin') &&
     request.nextUrl.pathname !== '/'
   ) {
     // Redirect unauthenticated users to the home page
