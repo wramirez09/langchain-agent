@@ -33,7 +33,7 @@ class LocalCoverageArticleSearchTool extends StructuredTool<typeof MedicareSearc
   async _call(input: MedicareSearchInput): Promise<string> {
     const normalized = normalizeInput(input);
     const cacheKey = `lca-search:${JSON.stringify(normalized)}`;
-    const cachedResult: string | null = await cache.get(cacheKey);
+    const cachedResult: string | null = cache.get(cacheKey);
     if (cachedResult) {
       console.log(`[LocalCoverageArticleSearchTool] Cache hit for query: "${normalized.query}"`);
       return cachedResult;
@@ -63,7 +63,7 @@ class LocalCoverageArticleSearchTool extends StructuredTool<typeof MedicareSearc
         : this.CMS_LOCAL_ARTICLES_API_URL;
       const rawCacheKey = `cms-lca-raw-data:${stateId ?? "all"}`;
 
-      let allArticles: any = await cache.get(rawCacheKey);
+      let allArticles: any = cache.get(rawCacheKey);
       if (allArticles) {
         console.log(`[LocalCoverageArticleSearchTool] Raw data cache hit (${allArticles.data?.length ?? 0} records)`);
       } else {
@@ -82,7 +82,7 @@ class LocalCoverageArticleSearchTool extends StructuredTool<typeof MedicareSearc
         allArticles = await response.json();
         const rawSize = JSON.stringify(allArticles).length;
         console.log(`[LocalCoverageArticleSearchTool] JSON parse: ${Date.now() - parseStart}ms, ${allArticles?.data?.length ?? 0} records, ${(rawSize / 1024).toFixed(1)}KB`);
-        await cache.set(rawCacheKey, allArticles, TTL.LONG);
+        cache.set(rawCacheKey, allArticles, TTL.LONG);
       }
 
       if (!allArticles.data || allArticles.data.length === 0) {
@@ -119,14 +119,11 @@ class LocalCoverageArticleSearchTool extends StructuredTool<typeof MedicareSearc
         metadata: {
           contractor: lca.contractor_name_type || undefined,
           documentType: lca.document_type || undefined,
-          effectiveDate: lca.effective_date || undefined,
-          lastUpdated: lca.updated_on || undefined,
-          retirementDate: lca.retirement_date || undefined,
         },
       }));
 
       const result = JSON.stringify({ query: normalized, topMatches }, null, 2);
-      await cache.set(cacheKey, result, TTL.LONG);
+      cache.set(cacheKey, result, TTL.LONG);
       console.log(`[LocalCoverageArticleSearchTool] Output to LLM: ${result.length} chars (~${(result.length / 1024).toFixed(1)}KB) for ${topMatches.length} matches, total: ${Date.now() - toolStart}ms`);
       return result;
     } catch (error: any) {

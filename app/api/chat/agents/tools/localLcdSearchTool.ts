@@ -33,7 +33,7 @@ class LocalLcdSearchTool extends StructuredTool<typeof MedicareSearchInputSchema
   async _call(input: MedicareSearchInput): Promise<string> {
     const normalized = normalizeInput(input);
     const cacheKey = `lcd-search:${JSON.stringify(normalized)}`;
-    const cachedResult: string | null = await cache.get(cacheKey);
+    const cachedResult: string | null = cache.get(cacheKey);
     if (cachedResult) {
       console.log(`[LocalLcdSearchTool] Cache hit for query: "${normalized.query}"`);
       return cachedResult;
@@ -63,7 +63,7 @@ class LocalLcdSearchTool extends StructuredTool<typeof MedicareSearchInputSchema
         : `${this.CMS_LOCAL_LCDS_API_URL}?status=A`;
       const rawCacheKey = `cms-lcd-raw-data:${stateId ?? "all"}`;
 
-      let allLcds: any = await cache.get(rawCacheKey);
+      let allLcds: any = cache.get(rawCacheKey);
       if (allLcds) {
         console.log(`[LocalLcdSearchTool] Raw data cache hit (${allLcds.data?.length ?? 0} records)`);
       } else {
@@ -82,7 +82,7 @@ class LocalLcdSearchTool extends StructuredTool<typeof MedicareSearchInputSchema
         allLcds = await lcdsResponse.json();
         const rawSize = JSON.stringify(allLcds).length;
         console.log(`[LocalLcdSearchTool] JSON parse: ${Date.now() - parseStart}ms, ${allLcds?.data?.length ?? 0} records, ${(rawSize / 1024).toFixed(1)}KB`);
-        await cache.set(rawCacheKey, allLcds, TTL.LONG);
+        cache.set(rawCacheKey, allLcds, TTL.LONG);
       }
 
       if (!allLcds.data || allLcds.data.length === 0) {
@@ -118,14 +118,11 @@ class LocalLcdSearchTool extends StructuredTool<typeof MedicareSearchInputSchema
         matchedOn,
         metadata: {
           contractor: lcd.contractor_name_type || undefined,
-          effectiveDate: lcd.effective_date || undefined,
-          lastUpdated: lcd.updated_on || undefined,
-          retirementDate: lcd.retirement_date || undefined,
         },
       }));
 
       const result = JSON.stringify({ query: normalized, topMatches }, null, 2);
-      await cache.set(cacheKey, result, TTL.LONG);
+      cache.set(cacheKey, result, TTL.LONG);
       console.log(`[LocalLcdSearchTool] Output to LLM: ${result.length} chars (~${(result.length / 1024).toFixed(1)}KB) for ${topMatches.length} matches, total: ${Date.now() - toolStart}ms`);
       return result;
     } catch (error: any) {

@@ -35,7 +35,7 @@ export class NCDCoverageSearchTool extends StructuredTool<typeof MedicareSearchI
       "https://www.cms.gov/medicare-coverage-database/view/ncd.aspx";
 
     const cacheKey = `ncd-search:${JSON.stringify(normalized)}`;
-    const cachedResult: string | null = await cache.get(cacheKey);
+    const cachedResult: string | null = cache.get(cacheKey);
     if (cachedResult) {
       console.log(`[NCDCoverageSearchTool] Cache hit for query: "${normalized.query}"`);
       return cachedResult;
@@ -50,7 +50,7 @@ export class NCDCoverageSearchTool extends StructuredTool<typeof MedicareSearchI
     const timeout = setTimeout(() => { if (!signal.aborted) controller.abort(); }, 30000);
 
     try {
-      let responseData: any = await cache.get(RAW_DATA_CACHE_KEY);
+      let responseData: any = cache.get(RAW_DATA_CACHE_KEY);
 
       if (responseData) {
         clearTimeout(timeout);
@@ -73,7 +73,7 @@ export class NCDCoverageSearchTool extends StructuredTool<typeof MedicareSearchI
         responseData = await response.json();
         const rawSize = JSON.stringify(responseData).length;
         console.log(`[NCDCoverageSearchTool] JSON parse: ${Date.now() - parseStart}ms, ${responseData?.data?.length ?? 0} records, ${(rawSize / 1024).toFixed(1)}KB`);
-        await cache.set(RAW_DATA_CACHE_KEY, responseData, TTL.LONG);
+        cache.set(RAW_DATA_CACHE_KEY, responseData, TTL.LONG);
       }
 
       if (!responseData || !responseData.meta || !Array.isArray(responseData.data)) {
@@ -125,7 +125,7 @@ export class NCDCoverageSearchTool extends StructuredTool<typeof MedicareSearchI
 
       const result = JSON.stringify({ query: normalized, topMatches }, null, 2);
       console.log(`[NCDCoverageSearchTool] Output to LLM: ${result.length} chars (~${(result.length / 1024).toFixed(1)}KB) for ${topMatches.length} matches`);
-      await cache.set(cacheKey, result, TTL.LONG);
+      cache.set(cacheKey, result, TTL.LONG);
       return result;
     } catch (error: any) {
       clearTimeout(timeout);

@@ -38,9 +38,12 @@ export class CommercialGuidelineSearchTool extends StructuredTool<typeof Commerc
 This tool performs deterministic search across commercial guideline documents to find relevant authorization criteria with enhanced metadata matching.
 
 **When to use:**
+- Guidelines is "Commercial" (never call this for Medicare queries)
 - User asks about commercial insurance authorization requirements
 - Query mentions treatments, procedures, or diagnoses
 - Need to find coverage criteria for commercial payers
+
+**NEVER call this tool when Guidelines is "Medicare".** Use ncd_coverage_search, local_lcd_search, and local_coverage_article_search instead.
 
 **How it works:**
 - Exact matching on CPT and ICD-10 codes (+10 points each, highest priority)
