@@ -1,8 +1,8 @@
 import { MedicareSearchInput, normalizeInput } from "./medicareSearchTypes";
 
-/**
- * Normalize text for comparison
- */
+// NOTE: normalize/tokenize/keywordOverlap here intentionally diverge from
+// scoreCommercialGuideline.ts (different unicode handling, dedup, and overlap
+// formula). Do not extract to a shared util without re-verifying scores.
 function normalize(str: string): string {
   return str
     .toLowerCase()

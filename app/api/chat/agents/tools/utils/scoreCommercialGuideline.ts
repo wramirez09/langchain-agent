@@ -1,8 +1,8 @@
 import { CommercialGuidelineDoc, CommercialGuidelineSearchInput, ScoredResult, MergedSourceInfo } from "./commercialGuidelineTypes";
 
-/**
- * Normalize a string for comparison: lowercase, trim, remove extra spaces
- */
+// NOTE: normalize/tokenize/keywordOverlap here intentionally diverge from
+// scoreMedicareDocument.ts (different unicode handling, dedup, and overlap
+// formula). Do not extract to a shared util without re-verifying scores.
 function normalize(str: string): string {
   return str.toLowerCase().trim().replace(/\s+/g, " ");
 }
