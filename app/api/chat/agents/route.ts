@@ -22,6 +22,12 @@ import { getUserFromRequest } from "../../../../lib/auth/getUserFromRequest";
 import { withRetry, RETRY_CONFIGS } from "@/lib/retry";
 import { errorTracker, trackRetryError, createClientErrorNotification } from "@/lib/error-tracking";
 import { supabaseAdmin } from "@/lib/supabaseAdmin";
+import { waitUntil } from "@vercel/functions";
+
+// Vercel Pro plan ceiling. Mobile agent runs commonly take 45-65s; web
+// streaming completes faster. Raising the limit prevents the function
+// from being killed mid-tool-call.
+export const maxDuration = 300;
 
 /* -------------------- CORS -------------------- */
 const corsHeaders = {
@@ -233,26 +239,34 @@ export async function POST(req: NextRequest) {
             : "";
 
       if (assistantContent) {
-        try {
-          await supabaseAdmin.from("chat_messages").insert({
-            user_id: userId,
-            thread_id: threadId,
-            role: "assistant",
-            content: assistantContent,
-            status: "complete",
-            is_thread_starter: false,
-          });
-        } catch (persistErr) {
-          console.error("Failed to persist assistant message:", persistErr);
-          errorTracker.trackError(
-            persistErr as Error,
-            "chat_messages assistant persistence (mobile)",
-            undefined,
-            userId,
-            undefined,
-            "agents-persistence",
-          );
-        }
+        // Defer the DB write so it survives client disconnect. Vercel keeps
+        // the function alive until waitUntil's promise resolves, even if the
+        // HTTP response has already been sent or the client has gone away.
+        const persistUserId = userId;
+        waitUntil(
+          (async () => {
+            try {
+              await supabaseAdmin.from("chat_messages").insert({
+                user_id: persistUserId,
+                thread_id: threadId,
+                role: "assistant",
+                content: assistantContent,
+                status: "complete",
+                is_thread_starter: false,
+              });
+            } catch (persistErr) {
+              console.error("Failed to persist assistant message:", persistErr);
+              errorTracker.trackError(
+                persistErr as Error,
+                "chat_messages assistant persistence (mobile, deferred)",
+                undefined,
+                persistUserId,
+                undefined,
+                "agents-persistence-deferred",
+              );
+            }
+          })(),
+        );
       }
 
       return NextResponse.json(
