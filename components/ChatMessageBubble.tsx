@@ -51,7 +51,7 @@ const MarkdownRenderer: React.FC<MarkdownRendererProps> = ({ content }) => {
   };
 
   return (
-    <div className="prose max-w-1600 overflow-x-hidden [overflow-wrap:anywhere] bg-gray-500/5 px-6">
+    <div className="prose max-w-1600 overflow-x-hidden [overflow-wrap:anywhere] px-3 ">
       <ReactMarkdown
         components={{
           a: (props) => (

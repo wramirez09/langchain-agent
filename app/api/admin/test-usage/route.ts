@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { cookies } from 'next/headers'
 import Stripe from 'stripe'
-import { supabaseAdmin } from '@/lib/supabaseAdmin'
+import { insertUsageLog } from '@/lib/db/repositories/usage.repo'
 
 /**
  * Test endpoint to report usage for a customer
@@ -71,7 +71,7 @@ export async function POST(req: NextRequest) {
     let dbLogged = false
     if (userId) {
       try {
-        await supabaseAdmin.from('usage_logs').insert({
+        await insertUsageLog({
           user_id: userId,
           usage_type: eventName,
           quantity,

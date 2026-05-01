@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { createClient } from "@/utils/server";
 import { reportUsageToStripeServer } from "@/lib/reportUsageToStripeServer";
+import { insertUsageLog } from "@/lib/db/repositories/usage.repo";
 
 
 
@@ -14,15 +15,18 @@ export async function POST(req: Request) {
     try {
         const usageRecord = await reportUsageToStripeServer(subscription_item_id, quantity);
 
-        await supabase.from("usage_logs").insert({
-            user_id: user.id,
-            subscription_item_id,
-            usage_type,
-            quantity,
-            stripe_reported: true,
-            stripe_usage_id: usageRecord.id,
-            metadata,
-        });
+        await insertUsageLog(
+            {
+                user_id: user.id,
+                subscription_item_id,
+                usage_type,
+                quantity,
+                stripe_reported: true,
+                stripe_usage_id: usageRecord.id,
+                metadata,
+            },
+            supabase,
+        );
 
         return NextResponse.json({ success: true, usageRecord });
     } catch (err: any) {

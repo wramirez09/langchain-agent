@@ -3,6 +3,8 @@
 import React, { createContext, useContext, useState, ReactNode } from "react";
 import { type Message } from "ai";
 
+// ─── Form ──────────────────────────────────────────────────────────────────
+
 interface FormFields {
   guidelines: string;
   state: string;
@@ -13,35 +15,12 @@ interface FormFields {
   relevantHistory: string;
 }
 
-interface PriorAuthContextState {
-  // Form field values
+interface FormContextState {
   formFields: FormFields;
-  
-  // Form UI state
   openAccordions: string[];
-  
-  // Chat data
-  chatMessages: Message[];
-  chatInput: string;
-  isLoading: boolean;
-  chatIsLoading: boolean;
-  intermediateStepsLoading: boolean;
-  sourcesForMessages: Record<string, any>;
-  
-  // Active tab state
-  activeFormTab: "pre-auth" | "chat" | "input" | "output";
-  
-  // Methods
   updateFormField: (field: keyof FormFields, value: string) => void;
   setOpenAccordions: (value: string[]) => void;
   resetForm: () => void;
-  setChatMessages: (messages: Message[]) => void;
-  setChatInput: (value: string) => void;
-  setIsLoading: (value: boolean) => void;
-  setChatIsLoading: (value: boolean) => void;
-  setIntermediateStepsLoading: (value: boolean) => void;
-  setSourcesForMessages: (sources: Record<string, any>) => void;
-  setActiveFormTab: (tab: "pre-auth" | "chat" | "input" | "output") => void;
 }
 
 const defaultFormFields: FormFields = {
@@ -54,69 +33,143 @@ const defaultFormFields: FormFields = {
   relevantHistory: "",
 };
 
-const PriorAuthContext = createContext<PriorAuthContextState | undefined>(undefined);
+const FormContext = createContext<FormContextState | undefined>(undefined);
 
-export function PriorAuthProvider({ children }: { children: ReactNode }) {
+function FormProvider({ children }: { children: ReactNode }) {
   const [formFields, setFormFields] = useState<FormFields>(defaultFormFields);
   const [openAccordions, setOpenAccordions] = useState<string[]>([]);
-  const [chatMessages, _setChatMessages] = useState<Message[]>([]);
-  const [chatInput, setChatInput] = useState("");
-  const [isLoading, setIsLoading] = useState(false);
-  const [chatIsLoading, setChatIsLoading] = useState(false);
-  const [intermediateStepsLoading, setIntermediateStepsLoading] = useState(false);
-  const [sourcesForMessages, setSourcesForMessages] = useState<Record<string, any>>({});
-  const [activeFormTab, setActiveFormTab] = useState<"pre-auth" | "chat" | "input" | "output">("pre-auth");
-
-  const setChatMessages = (messages: Message[]) => {
-    _setChatMessages(messages);
-  };
 
   const updateFormField = (field: keyof FormFields, value: string) => {
-    setFormFields((prev) => ({
-      ...prev,
-      [field]: value,
-    }));
+    setFormFields((prev) => ({ ...prev, [field]: value }));
   };
 
   const resetForm = () => {
     setFormFields(defaultFormFields);
     setOpenAccordions([]);
-    setChatInput("");
-  };
-
-  const value: PriorAuthContextState = {
-    formFields,
-    openAccordions,
-    chatMessages,
-    chatInput,
-    isLoading,
-    chatIsLoading,
-    intermediateStepsLoading,
-    sourcesForMessages,
-    activeFormTab,
-    updateFormField,
-    setOpenAccordions,
-    resetForm,
-    setChatMessages,
-    setChatInput,
-    setIsLoading,
-    setChatIsLoading,
-    setIntermediateStepsLoading,
-    setSourcesForMessages,
-    setActiveFormTab,
   };
 
   return (
-    <PriorAuthContext.Provider value={value}>
+    <FormContext.Provider
+      value={{ formFields, openAccordions, updateFormField, setOpenAccordions, resetForm }}
+    >
       {children}
-    </PriorAuthContext.Provider>
+    </FormContext.Provider>
   );
 }
 
+export function usePriorAuthForm() {
+  const ctx = useContext(FormContext);
+  if (!ctx) throw new Error("usePriorAuthForm must be used within a PriorAuthProvider");
+  return ctx;
+}
+
+// ─── Chat ──────────────────────────────────────────────────────────────────
+
+interface ChatContextState {
+  chatMessages: Message[];
+  chatInput: string;
+  isLoading: boolean;
+  chatIsLoading: boolean;
+  intermediateStepsLoading: boolean;
+  sourcesForMessages: Record<string, any>;
+  setChatMessages: (messages: Message[]) => void;
+  setChatInput: (value: string) => void;
+  setIsLoading: (value: boolean) => void;
+  setChatIsLoading: (value: boolean) => void;
+  setIntermediateStepsLoading: (value: boolean) => void;
+  setSourcesForMessages: (sources: Record<string, any>) => void;
+}
+
+const ChatContext = createContext<ChatContextState | undefined>(undefined);
+
+function ChatProvider({ children }: { children: ReactNode }) {
+  const [chatMessages, setChatMessages] = useState<Message[]>([]);
+  const [chatInput, setChatInput] = useState("");
+  const [isLoading, setIsLoading] = useState(false);
+  const [chatIsLoading, setChatIsLoading] = useState(false);
+  const [intermediateStepsLoading, setIntermediateStepsLoading] = useState(false);
+  const [sourcesForMessages, setSourcesForMessages] = useState<Record<string, any>>({});
+
+  return (
+    <ChatContext.Provider
+      value={{
+        chatMessages,
+        chatInput,
+        isLoading,
+        chatIsLoading,
+        intermediateStepsLoading,
+        sourcesForMessages,
+        setChatMessages,
+        setChatInput,
+        setIsLoading,
+        setChatIsLoading,
+        setIntermediateStepsLoading,
+        setSourcesForMessages,
+      }}
+    >
+      {children}
+    </ChatContext.Provider>
+  );
+}
+
+export function usePriorAuthChat() {
+  const ctx = useContext(ChatContext);
+  if (!ctx) throw new Error("usePriorAuthChat must be used within a PriorAuthProvider");
+  return ctx;
+}
+
+// ─── UI ────────────────────────────────────────────────────────────────────
+
+type FormTab = "pre-auth" | "chat" | "input" | "output";
+
+interface UiContextState {
+  activeFormTab: FormTab;
+  setActiveFormTab: (tab: FormTab) => void;
+}
+
+const UiContext = createContext<UiContextState | undefined>(undefined);
+
+function UiProvider({ children }: { children: ReactNode }) {
+  const [activeFormTab, setActiveFormTab] = useState<FormTab>("pre-auth");
+  return (
+    <UiContext.Provider value={{ activeFormTab, setActiveFormTab }}>
+      {children}
+    </UiContext.Provider>
+  );
+}
+
+export function usePriorAuthUi() {
+  const ctx = useContext(UiContext);
+  if (!ctx) throw new Error("usePriorAuthUi must be used within a PriorAuthProvider");
+  return ctx;
+}
+
+// ─── Composite ─────────────────────────────────────────────────────────────
+
+export function PriorAuthProvider({ children }: { children: ReactNode }) {
+  return (
+    <FormProvider>
+      <ChatProvider>
+        <UiProvider>{children}</UiProvider>
+      </ChatProvider>
+    </FormProvider>
+  );
+}
+
+/**
+ * Composite hook for callers that still want the unified surface. New code
+ * should prefer the granular hooks (usePriorAuthForm / usePriorAuthChat /
+ * usePriorAuthUi) so components only re-render on the slice they read.
+ */
 export function usePriorAuthContext() {
-  const context = useContext(PriorAuthContext);
-  if (context === undefined) {
-    throw new Error("usePriorAuthContext must be used within a PriorAuthProvider");
-  }
-  return context;
+  const form = usePriorAuthForm();
+  const chat = usePriorAuthChat();
+  const ui = usePriorAuthUi();
+
+  const resetForm = () => {
+    form.resetForm();
+    chat.setChatInput("");
+  };
+
+  return { ...form, ...chat, ...ui, resetForm };
 }

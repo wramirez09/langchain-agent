@@ -1,9 +1,12 @@
 // lib/usage.ts
-import { supabaseAdmin } from "@/lib/supabaseAdmin";
 import { getStripe } from "@/lib/stripe";
 import Stripe from "stripe";
 import { withRetry, RETRY_CONFIGS } from "./retry";
 import { errorTracker, trackRetryError } from "./error-tracking";
+import {
+    getSubscriptionByUserId,
+    insertUsageLog,
+} from "./db/repositories/usage.repo";
 
 export async function reportUsage({
     userId,
@@ -15,11 +18,7 @@ export async function reportUsage({
     usageType: string;
     }): Promise<Stripe.Billing.MeterEvent | null | undefined> {
     const stripe = getStripe();
-    const { data: subscription } = await supabaseAdmin
-        .from("subscriptions")
-        .select("stripe_customer_id, stripe_subscription_id, metered_item_id")
-        .eq("user_id", userId)
-        .maybeSingle();
+    const subscription = await getSubscriptionByUserId(userId);
 
     if (!subscription) return null;
 
@@ -90,7 +89,7 @@ export async function reportUsage({
         try {
             await withRetry(
                 async () => {
-                    await supabaseAdmin.from("usage_logs").insert({
+                    await insertUsageLog({
                         user_id: userId,
                         usage_type: usageType,
                         quantity,

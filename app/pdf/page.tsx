@@ -5,7 +5,7 @@ import dynamic from "next/dynamic";
 import { Message } from "ai/react";
 import { useSearchParams } from "next/navigation";
 import { renderToBuffer } from "@react-pdf/renderer";
-import { default as PdfDocument } from "../../lib/pdf-generator";
+import { default as PdfDocument } from "@/components/pdf/pdf-generator";
 
 // Dynamically import PdfDoc to prevent server-side rendering
 const PdfDoc = dynamic(() => import("@/components/PdfDoc"), {

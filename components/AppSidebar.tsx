@@ -4,7 +4,7 @@ import { cn } from '@/utils/cn';
 import { createClient } from '@/utils/client';
 import { useRouter } from 'next/navigation';
 import { useMobileSidebar } from '@/components/providers/MobileSidebarProvider';
-import { usePriorAuthContext } from '@/components/providers/PriorAuthProvider';
+import { usePriorAuthChat } from '@/components/providers/PriorAuthProvider';
 import { useState } from 'react';
 import Link from 'next/link';
 import {
@@ -30,7 +30,7 @@ const navItems: { id: AppView; icon: React.ElementType; label: string }[] = [
 export function AppSidebar({ activeView, onViewChange }: AppSidebarProps) {
   const router = useRouter();
   const { isOpen, setIsOpen } = useMobileSidebar();
-  const { chatIsLoading, chatMessages } = usePriorAuthContext();
+  const { chatIsLoading, chatMessages } = usePriorAuthChat();
   const hasResponse = chatMessages.some(m => m.role === 'assistant');
   const [billingLoading, setBillingLoading] = useState(false);
 
