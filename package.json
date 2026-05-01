@@ -11,7 +11,8 @@
     "format": "prettier --write \"app\"",
     "test": "jest",
     "test:watch": "jest --watch",
-    "test:coverage": "jest --coverage"
+    "test:coverage": "jest --coverage",
+    "prepare": "husky"
   },
   "engines": {
     "node": ">=20"
@@ -127,6 +128,7 @@
     "eslint": "latest",
     "eslint-config-next": "16.0.7",
     "eslint-plugin-next": "latest",
+    "husky": "^9.1.7",
     "jest": "^30.3.0",
     "jest-environment-jsdom": "^30.3.0",
     "postcss": "^8.5.6",
