@@ -21,6 +21,7 @@ import { reportUsage } from "@/lib/usage";
 import { getUserFromRequest } from "../../../../lib/auth/getUserFromRequest";
 import { withRetry, RETRY_CONFIGS } from "@/lib/retry";
 import { errorTracker, trackRetryError, createClientErrorNotification } from "@/lib/error-tracking";
+import { supabaseAdmin } from "@/lib/supabaseAdmin";
 
 /* -------------------- CORS -------------------- */
 const corsHeaders = {
@@ -74,6 +75,63 @@ export async function POST(req: NextRequest) {
         (m: VercelChatMessage) => m.role === "user" || m.role === "assistant",
       )
       .map(convertVercelMessageToLangChainMessage);
+
+    /* ---------- THREAD ID ---------- */
+    const bodyThreadId =
+      typeof body.threadId === "string" && body.threadId.length > 0
+        ? body.threadId
+        : null;
+    const threadId = bodyThreadId ?? crypto.randomUUID();
+    const isNewThread = bodyThreadId === null;
+
+    /* ---------- PERSIST USER MESSAGE ---------- */
+    const lastUserRaw = [...(body.messages ?? [])]
+      .reverse()
+      .find((m: VercelChatMessage) => m.role === "user");
+    const lastUserContent = (() => {
+      if (!lastUserRaw) return "";
+      let c = lastUserRaw.content;
+      if ((!c || c === "") && Array.isArray((lastUserRaw as any).parts)) {
+        c = (lastUserRaw as any).parts
+          .filter((p: any) => p.type === "text")
+          .map((p: any) => p.text)
+          .join("\n");
+      }
+      return typeof c === "string" ? c : JSON.stringify(c);
+    })();
+
+    if (lastUserContent) {
+      try {
+        let isThreadStarter = isNewThread;
+        if (!isNewThread) {
+          const { data: existing } = await supabaseAdmin
+            .from("chat_messages")
+            .select("id")
+            .eq("user_id", userId)
+            .eq("thread_id", threadId)
+            .limit(1);
+          isThreadStarter = !existing || existing.length === 0;
+        }
+        await supabaseAdmin.from("chat_messages").insert({
+          user_id: userId,
+          thread_id: threadId,
+          role: "user",
+          content: lastUserContent,
+          status: "complete",
+          is_thread_starter: isThreadStarter,
+        });
+      } catch (persistErr) {
+        console.error("Failed to persist user message:", persistErr);
+        errorTracker.trackError(
+          persistErr as Error,
+          "chat_messages user persistence",
+          undefined,
+          userId,
+          undefined,
+          "agents-persistence",
+        );
+      }
+    }
 
     /* ---------- TOOLS ---------- */
     // Initialize commercial guideline search tool (documents pre-loaded at module scope)
@@ -167,8 +225,39 @@ export async function POST(req: NextRequest) {
         .reverse()
         .find((m) => m._getType?.() === "ai");
 
+      const assistantContent =
+        typeof lastAssistant?.content === "string"
+          ? lastAssistant.content
+          : lastAssistant
+            ? JSON.stringify(lastAssistant.content)
+            : "";
+
+      if (assistantContent) {
+        try {
+          await supabaseAdmin.from("chat_messages").insert({
+            user_id: userId,
+            thread_id: threadId,
+            role: "assistant",
+            content: assistantContent,
+            status: "complete",
+            is_thread_starter: false,
+          });
+        } catch (persistErr) {
+          console.error("Failed to persist assistant message:", persistErr);
+          errorTracker.trackError(
+            persistErr as Error,
+            "chat_messages assistant persistence (mobile)",
+            undefined,
+            userId,
+            undefined,
+            "agents-persistence",
+          );
+        }
+      }
+
       return NextResponse.json(
         {
+          threadId,
           messages: [
             ...(lastUser
               ? [
@@ -194,7 +283,7 @@ export async function POST(req: NextRequest) {
               : []),
           ],
         },
-        { headers: corsHeaders },
+        { headers: { ...corsHeaders, "x-thread-id": threadId } },
       );
     }
 
@@ -221,7 +310,8 @@ export async function POST(req: NextRequest) {
         let streamCompleted = false;
         let firstChunkTime: number | null = null;
         let chunkCount = 0;
-        
+        let accumulated = "";
+
         try {
           for await (const { event, data } of eventStream) {
             if (
@@ -235,6 +325,7 @@ export async function POST(req: NextRequest) {
                 console.log(`[Agents API] First chunk received after ${timeToFirstChunk}s for user ${userId}`);
               }
               chunkCount++;
+              accumulated += data.chunk.content;
               controller.enqueue(encoder.encode(data.chunk.content));
             }
           }
@@ -250,6 +341,28 @@ export async function POST(req: NextRequest) {
           if (streamCompleted) {
             void reportUsage({ userId: userId!, usageType: "orchestrator", quantity: 1 }).catch(() => {});
           }
+          if (accumulated) {
+            try {
+              await supabaseAdmin.from("chat_messages").insert({
+                user_id: userId,
+                thread_id: threadId,
+                role: "assistant",
+                content: accumulated,
+                status: streamCompleted ? "complete" : "partial",
+                is_thread_starter: false,
+              });
+            } catch (persistErr) {
+              console.error("Failed to persist assistant message:", persistErr);
+              errorTracker.trackError(
+                persistErr as Error,
+                "chat_messages assistant persistence (web)",
+                undefined,
+                userId,
+                undefined,
+                "agents-persistence",
+              );
+            }
+          }
           controller.close();
         }
       },
@@ -259,6 +372,7 @@ export async function POST(req: NextRequest) {
       headers: {
         ...corsHeaders,
         "Content-Type": "text/plain; charset=utf-8",
+        "x-thread-id": threadId,
       },
     });
   } catch (e: unknown) {

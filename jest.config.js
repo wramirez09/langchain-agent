@@ -1,0 +1,76 @@
+const nextJest = require('next/jest')
+
+const createJestConfig = nextJest({ dir: './' })
+
+/** @type {import('jest').Config} */
+const customJestConfig = {
+  setupFiles: ['<rootDir>/jest.polyfills.ts'],
+  setupFilesAfterEnv: ['<rootDir>/jest.setup.ts'],
+  testEnvironment: 'jsdom',
+  moduleNameMapper: {
+    '^@/(.*)$': '<rootDir>/$1',
+  },
+  testPathIgnorePatterns: ['/node_modules/', '/.next/'],
+  transformIgnorePatterns: [
+    '/node_modules/(?!(cheerio|cheerio-select|css-select|css-what|domelementtype|domhandler|domutils|entities|nth-check|parse5|parse5-htmlparser2-tree-adapter|htmlparser2|boolbase|undici|whatwg-url)/)',
+  ],
+  collectCoverageFrom: [
+    'app/api/chat/agents/tools/**/*.ts',
+    'lib/**/*.ts',
+    'utils/**/*.{ts,tsx}',
+    'components/ErrorNotification.tsx',
+    'components/IntermediateStep.tsx',
+    'components/WelcomeHeader.tsx',
+    'components/Footer.tsx',
+    'components/AgentProgressPanel.tsx',
+    'components/admin/StatCard.tsx',
+    'components/guide/GuideInfoBox.tsx',
+    'components/providers/MobileSidebarProvider.tsx',
+    'components/providers/PriorAuthProvider.tsx',
+    'components/prior-auth/PriorAuthTabs.tsx',
+    'components/prior-auth/PriorAuthOutputPanel.tsx',
+    'components/prior-auth/PriorAuthChatPanel.tsx',
+    'components/prior-auth/PriorAuthFormPanel.tsx',
+    'components/ui/button.tsx',
+    'components/ui/card.tsx',
+    'components/ui/input.tsx',
+    'components/ui/textarea.tsx',
+    'components/ui/label.tsx',
+    'components/ui/alert.tsx',
+    'components/ui/SubscribeButton.tsx',
+    'components/login-form.tsx',
+    'components/sign-up-form.tsx',
+    'components/forgot-password-form.tsx',
+    'components/update-password-form.tsx',
+    'components/logout-button.tsx',
+    'components/TopBar.tsx',
+    'components/LegalDocumentViewer.tsx',
+    'components/LegalDocumentModal.tsx',
+    'components/AppSidebar.tsx',
+    'components/AppShellClient.tsx',
+    'components/admin/CustomerTable.tsx',
+    'components/admin/EventsLog.tsx',
+    'components/admin/PaymentsTable.tsx',
+    '!app/api/chat/agents/tools/**/sample.json',
+    '!app/api/chat/agents/tools/utils.ts',
+    '!app/api/chat/agents/tools/utils/commercialGuidelineLoader.ts',
+    '!lib/auth/**',
+    '!lib/db/**',
+    '!lib/legalDocuments.ts',
+    '!lib/supabaseAdmin.ts',
+    '!utils/server.ts',
+    '!utils/middleware.ts',
+    '!utils/client.ts',
+    '!utils/use-isomorphic-layout-effect.tsx',
+  ],
+  coverageThreshold: {
+    global: {
+      branches: 60,
+      functions: 80,
+      lines: 80,
+      statements: 80,
+    },
+  },
+}
+
+module.exports = createJestConfig(customJestConfig)
