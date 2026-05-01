@@ -4280,6 +4280,27 @@ __metadata:
   languageName: node
   linkType: hard
 
+"@vercel/functions@npm:^3.5.0":
+  version: 3.5.0
+  resolution: "@vercel/functions@npm:3.5.0"
+  dependencies:
+    "@vercel/oidc": 3.4.0
+  peerDependencies:
+    "@aws-sdk/credential-provider-web-identity": "*"
+  peerDependenciesMeta:
+    "@aws-sdk/credential-provider-web-identity":
+      optional: true
+  checksum: 2a322389a1e572cd4edbe0b1dcc791f02ff3b6c70a47a71e88f0237d0b4a84ee7698f607cd236e2791b48672f6f85935baac1319120dcb543e7959c924b84b38
+  languageName: node
+  linkType: hard
+
+"@vercel/oidc@npm:3.4.0":
+  version: 3.4.0
+  resolution: "@vercel/oidc@npm:3.4.0"
+  checksum: 187f5382af78685ff6e889f9574ef28695f57deeb6609343852ee57e8372f253ad140420916ab9009cfe0fac92f61ecffe026e12b36a0d65712a8a9d8b417d5e
+  languageName: node
+  linkType: hard
+
 "abbrev@npm:^4.0.0":
   version: 4.0.0
   resolution: "abbrev@npm:4.0.0"
@@ -8145,6 +8166,7 @@ eslint@latest:
     "@types/react": ^19.2.7
     "@types/react-dom": ^19.2.3
     "@typescript-eslint/eslint-plugin": ^8.38.0
+    "@vercel/functions": ^3.5.0
     add: ^2.0.6
     ai: ^3.1.12
     autoprefixer: 10.4.14

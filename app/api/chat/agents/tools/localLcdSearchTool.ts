@@ -7,15 +7,9 @@ import {
   normalizeInput,
 } from "./utils/medicareSearchTypes";
 import { scoreMedicareLCD } from "./utils/scoreMedicareDocument";
+import { resolveCmsStateId } from "./cmsStateIds";
 
 const CACHE_TTL = 5 * 60 * 1000;
-
-interface StateMetadata {
-  data: Array<{
-    state_id: number;
-    description: string;
-  }>;
-}
 
 interface LocalCoverageDetermination {
   data: Array<{
@@ -54,35 +48,9 @@ class LocalLcdSearchTool extends StructuredTool<typeof MedicareSearchInputSchema
 
   private CMS_LOCAL_LCDS_API_URL =
     "https://api.coverage.cms.gov/v1/reports/local-coverage-final-lcds/";
-  private CMS_STATES_API_URL =
-    "https://api.coverage.cms.gov/v1/meta/states";
 
-  private stateCache: Map<string, number> = new Map();
-
-  private async resolveStateId(stateName: string): Promise<number | null> {
-    const normalized = stateName.toLowerCase().trim();
-    
-    if (this.stateCache.has(normalized)) {
-      return this.stateCache.get(normalized)!;
-    }
-
-    try {
-      const response = await fetch(this.CMS_STATES_API_URL);
-      const statesData: StateMetadata = await response.json();
-      
-      for (const state of statesData.data) {
-        const stateDesc = state.description.toLowerCase();
-        this.stateCache.set(stateDesc, state.state_id);
-        
-        if (stateDesc === normalized || stateDesc.includes(normalized)) {
-          return state.state_id;
-        }
-      }
-    } catch (error) {
-      console.error("[LocalLcdSearchTool] Error resolving state ID:", error);
-    }
-    
-    return null;
+  private resolveStateId(stateName: string): number | null {
+    return resolveCmsStateId(stateName);
   }
 
   async _call(input: MedicareSearchInput): Promise<string> {
@@ -104,7 +72,7 @@ class LocalLcdSearchTool extends StructuredTool<typeof MedicareSearchInputSchema
       let stateId: number | null = null;
       
       if (normalized.state) {
-        stateId = await this.resolveStateId(normalized.state);
+        stateId = this.resolveStateId(normalized.state);
         if (!stateId) {
           return JSON.stringify({
             query: normalized,
@@ -136,7 +104,16 @@ class LocalLcdSearchTool extends StructuredTool<typeof MedicareSearchInputSchema
       }
       const allLcds = await lcdsResponse.json();
 
-      if (!allLcds.data || allLcds.data.length === 0) {
+      if (!Array.isArray(allLcds?.data)) {
+        console.error("[LocalLcdSearchTool] Unexpected response shape", allLcds);
+        return JSON.stringify({
+          query: normalized,
+          topMatches: [],
+          error: "Unexpected CMS API response format. Please try again later."
+        });
+      }
+
+      if (allLcds.data.length === 0) {
         return JSON.stringify({
           query: normalized,
           topMatches: [],
