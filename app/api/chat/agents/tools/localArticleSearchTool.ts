@@ -7,9 +7,6 @@ import {
   normalizeInput,
 } from "./utils/medicareSearchTypes";
 import { scoreMedicareLCA } from "./utils/scoreMedicareDocument";
-<<<<<<< HEAD
-import { resolveStateId } from "@/app/agents/metaData/states";
-=======
 import { resolveCmsStateId } from "./cmsStateIds";
 
 const CACHE_TTL = 5 * 60 * 1000;
@@ -41,7 +38,6 @@ interface LocalCoverageArticle {
     },
   ];
 }
->>>>>>> main
 
 class LocalCoverageArticleSearchTool extends StructuredTool<typeof MedicareSearchInputSchema> {
   name = "local_coverage_article_search";
@@ -63,13 +59,10 @@ class LocalCoverageArticleSearchTool extends StructuredTool<typeof MedicareSearc
 
   private CMS_LOCAL_ARTICLES_API_URL =
     "https://api.coverage.cms.gov/v1/reports/local-coverage-articles/";
-<<<<<<< HEAD
-=======
 
   private resolveStateId(stateName: string): number | null {
     return resolveCmsStateId(stateName);
   }
->>>>>>> main
 
   async _call(input: MedicareSearchInput): Promise<string> {
     const normalized = normalizeInput(input);
@@ -87,11 +80,7 @@ class LocalCoverageArticleSearchTool extends StructuredTool<typeof MedicareSearc
       let stateId: number | null = null;
 
       if (normalized.state) {
-<<<<<<< HEAD
-        stateId = resolveStateId(normalized.state);
-=======
         stateId = this.resolveStateId(normalized.state);
->>>>>>> main
         if (!stateId) {
           console.warn(`[LocalCoverageArticleSearchTool] No state_id found for: "${normalized.state}"`);
           return JSON.stringify({
