@@ -7,7 +7,30 @@ import {
   normalizeInput,
 } from "./utils/medicareSearchTypes";
 import { scoreMedicareLCD } from "./utils/scoreMedicareDocument";
+<<<<<<< HEAD
 import { resolveStateId } from "@/app/agents/metaData/states";
+=======
+import { resolveCmsStateId } from "./cmsStateIds";
+
+const CACHE_TTL = 5 * 60 * 1000;
+
+interface LocalCoverageDetermination {
+  data: Array<{
+    document_id: "string";
+    document_version: 0;
+    document_display_id: "string";
+    document_type: "string";
+    note: "string";
+    title: "string";
+    contractor_name_type: "string";
+    updated_on: "string";
+    updated_on_sort: "string";
+    effective_date: "string";
+    retirement_date: "string";
+    url: "string";
+  }>;
+}
+>>>>>>> main
 
 class LocalLcdSearchTool extends StructuredTool<typeof MedicareSearchInputSchema> {
   name = "local_lcd_search";
@@ -29,6 +52,13 @@ class LocalLcdSearchTool extends StructuredTool<typeof MedicareSearchInputSchema
 
   private CMS_LOCAL_LCDS_API_URL =
     "https://api.coverage.cms.gov/v1/reports/local-coverage-final-lcds/";
+<<<<<<< HEAD
+=======
+
+  private resolveStateId(stateName: string): number | null {
+    return resolveCmsStateId(stateName);
+  }
+>>>>>>> main
 
   async _call(input: MedicareSearchInput): Promise<string> {
     const normalized = normalizeInput(input);
@@ -46,7 +76,11 @@ class LocalLcdSearchTool extends StructuredTool<typeof MedicareSearchInputSchema
       let stateId: number | null = null;
 
       if (normalized.state) {
+<<<<<<< HEAD
         stateId = resolveStateId(normalized.state);
+=======
+        stateId = this.resolveStateId(normalized.state);
+>>>>>>> main
         if (!stateId) {
           console.warn(`[LocalLcdSearchTool] No state_id found for: "${normalized.state}"`);
           return JSON.stringify({
@@ -85,7 +119,16 @@ class LocalLcdSearchTool extends StructuredTool<typeof MedicareSearchInputSchema
         cache.set(rawCacheKey, allLcds, TTL.LONG);
       }
 
-      if (!allLcds.data || allLcds.data.length === 0) {
+      if (!Array.isArray(allLcds?.data)) {
+        console.error("[LocalLcdSearchTool] Unexpected response shape", allLcds);
+        return JSON.stringify({
+          query: normalized,
+          topMatches: [],
+          error: "Unexpected CMS API response format. Please try again later."
+        });
+      }
+
+      if (allLcds.data.length === 0) {
         return JSON.stringify({
           query: normalized,
           topMatches: [],
