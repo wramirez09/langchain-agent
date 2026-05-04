@@ -5,6 +5,23 @@ import { motion } from "framer-motion";
 import ReactMarkdown from "react-markdown";
 import { Loader2 } from "lucide-react";
 
+// Restrict link/image URLs to safe schemes. react-markdown's default
+// already strips javascript:/vbscript:/data:, but we narrow further to
+// the schemes the agent should ever produce.
+const SAFE_URL_SCHEMES = ["http:", "https:", "mailto:"];
+const safeUrlTransform = (url: string): string => {
+  const trimmed = (url ?? "").trim();
+  if (!trimmed) return "";
+  if (trimmed.startsWith("/") || trimmed.startsWith("#")) return trimmed;
+  try {
+    const parsed = new URL(trimmed, "http://_relative_");
+    if (parsed.origin === "http://_relative_") return trimmed;
+    return SAFE_URL_SCHEMES.includes(parsed.protocol) ? trimmed : "";
+  } catch {
+    return "";
+  }
+};
+
 interface MarkdownRendererProps {
   content: string;
 }
@@ -53,6 +70,7 @@ const MarkdownRenderer: React.FC<MarkdownRendererProps> = ({ content }) => {
   return (
     <div className="prose max-w-1600 overflow-x-hidden [overflow-wrap:anywhere] px-3 ">
       <ReactMarkdown
+        urlTransform={safeUrlTransform}
         components={{
           a: (props) => (
             <a

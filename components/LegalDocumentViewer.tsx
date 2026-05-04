@@ -3,6 +3,20 @@
 import ReactMarkdown from 'react-markdown';
 import { cn } from '@/utils/cn';
 
+const SAFE_URL_SCHEMES = ['http:', 'https:', 'mailto:'];
+const safeUrlTransform = (url: string): string => {
+  const trimmed = (url ?? '').trim();
+  if (!trimmed) return '';
+  if (trimmed.startsWith('/') || trimmed.startsWith('#')) return trimmed;
+  try {
+    const parsed = new URL(trimmed, 'http://_relative_');
+    if (parsed.origin === 'http://_relative_') return trimmed;
+    return SAFE_URL_SCHEMES.includes(parsed.protocol) ? trimmed : '';
+  } catch {
+    return '';
+  }
+};
+
 interface LegalDocumentViewerProps {
   content: string;
   className?: string;
@@ -12,6 +26,7 @@ export function LegalDocumentViewer({ content, className }: LegalDocumentViewerP
   return (
     <div className={cn('prose prose-sm max-w-none', className)}>
       <ReactMarkdown
+        urlTransform={safeUrlTransform}
         components={{
           h1: ({ ...props }) => (
             <h1 className="text-3xl font-bold text-gray-900 mb-4" {...props} />
