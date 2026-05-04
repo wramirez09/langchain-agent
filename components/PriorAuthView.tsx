@@ -66,11 +66,13 @@ export function PriorAuthView({
     onFinish() {
       setIntermediateStepsLoading(false);
       setIsLoading(false);
+      setChatIsLoading(false);
       setChatMessages(chat.messages);
     },
     onError(error) {
       setIntermediateStepsLoading(false);
       setIsLoading(false);
+      setChatIsLoading(false);
       try {
         let errorData: any = error;
         if (typeof error === "string") errorData = JSON.parse(error);
@@ -232,8 +234,9 @@ export function PriorAuthView({
     clearTimeouts();
     setIsLoading(false);
     setIntermediateStepsLoading(false);
+    setChatIsLoading(false);
     toast.info("Request stopped");
-  }, [chat, clearTimeouts, setIsLoading, setIntermediateStepsLoading]);
+  }, [chat, clearTimeouts, setIsLoading, setIntermediateStepsLoading, setChatIsLoading]);
 
   const clearChat = useCallback(() => {
     if (chat.isLoading) {

@@ -30,8 +30,20 @@ const navItems: { id: AppView; icon: React.ElementType; label: string }[] = [
 export function AppSidebar({ activeView, onViewChange }: AppSidebarProps) {
   const router = useRouter();
   const { isOpen, setIsOpen } = useMobileSidebar();
-  const { chatIsLoading, chatMessages } = usePriorAuthChat();
-  const hasResponse = chatMessages.some(m => m.role === 'assistant');
+  const { chatMessages } = usePriorAuthChat();
+  // Enable export as soon as an assistant message exists in the conversation,
+  // even mid-stream. The export view reads from the same `chatMessages` array
+  // and renders whatever content is present. Previously we also gated on
+  // `chatIsLoading`, which could remain stuck `true` after stream completion
+  // because nothing explicitly toggled it on the finish/error paths — the
+  // context value only mirrored useChat.isLoading via a useEffect. Removing
+  // that flag from the gate makes the button track the user-observable
+  // condition (an assistant has replied) instead of an internal mirror.
+  const hasResponse = chatMessages.some(
+    (m) =>
+      m.role === 'assistant' &&
+      (typeof m.content === 'string' ? m.content.trim().length > 0 : true),
+  );
   const [billingLoading, setBillingLoading] = useState(false);
 
   const handleNavClick = (view: AppView) => {
@@ -96,7 +108,7 @@ export function AppSidebar({ activeView, onViewChange }: AppSidebarProps) {
           {navItems.map((item, index) => {
             const Icon = item.icon;
             const isActive = activeView === item.id;
-            const isDisabled = item.id === 'export' && (chatIsLoading || !hasResponse);
+            const isDisabled = item.id === 'export' && !hasResponse;
             return (
               <div key={item.id} className="w-full flex flex-col md:items-center">
                 <Tooltip>
