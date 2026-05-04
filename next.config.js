@@ -13,8 +13,14 @@ const cspDirectives = [
   "style-src 'self' 'unsafe-inline'",
   "img-src 'self' data: blob: https:",
   "font-src 'self' data:",
-  "connect-src 'self' https://*.supabase.co wss://*.supabase.co https://api.stripe.com https://m.stripe.com https://m.stripe.network",
-  "frame-src https://js.stripe.com https://hooks.stripe.com https://m.stripe.network",
+  // `data:` is needed by @react-pdf/renderer's PDFViewer to fetch the
+  // yoga-wasm-base64 layout engine, which is shipped as a base64 data URL
+  // and loaded via fetch(). `blob:` covers the rendered PDF being read
+  // back into memory before iframing.
+  "connect-src 'self' data: blob: https://*.supabase.co wss://*.supabase.co https://api.stripe.com https://m.stripe.com https://m.stripe.network",
+  // PDFViewer iframes the rendered PDF as a blob: URL. Stripe hosts kept
+  // for the existing checkout/billing flows.
+  "frame-src 'self' blob: https://js.stripe.com https://hooks.stripe.com https://m.stripe.network",
   "frame-ancestors 'none'",
   "base-uri 'self'",
   "form-action 'self'",
