@@ -37,6 +37,7 @@ export function PriorAuthView({
     intermediateStepsLoading,
     setIntermediateStepsLoading,
     sourcesForMessages,
+    setResponseReady,
     setSourcesForMessages,
   } = usePriorAuthChat();
   const { activeFormTab, setActiveFormTab } = usePriorAuthUi();
@@ -68,6 +69,9 @@ export function PriorAuthView({
       setIsLoading(false);
       setChatIsLoading(false);
       setChatMessages(chat.messages);
+      // Stream completed — flip the export-ready latch true so the sidebar
+      // PDF button can enable. Reset on new query / stop / clear.
+      setResponseReady(true);
     },
     onError(error) {
       setIntermediateStepsLoading(false);
@@ -149,6 +153,7 @@ export function PriorAuthView({
     onPendingMessageConsumed?.();
     setIsLoading(true);
     setIntermediateStepsLoading(true);
+    setResponseReady(false);
     chat.append({ role: "user", content: pendingMessage });
     setActiveFormTab("chat");
   }, [pendingMessage]); // eslint-disable-line react-hooks/exhaustive-deps
@@ -181,6 +186,7 @@ export function PriorAuthView({
 
     setIsLoading(true);
     setIntermediateStepsLoading(true);
+    setResponseReady(false);
     setActiveFormTab("chat");
     toast.info("Sending request to our AI agent");
 
@@ -209,6 +215,7 @@ export function PriorAuthView({
     setChatInput("");
     setIsLoading(true);
     setIntermediateStepsLoading(true);
+    setResponseReady(false);
     toast.info("Sending request to our AI agent");
 
     loadingToast1Ref.current = setTimeout(() => toast.info("Processing your request"), 20000);
@@ -235,8 +242,9 @@ export function PriorAuthView({
     setIsLoading(false);
     setIntermediateStepsLoading(false);
     setChatIsLoading(false);
+    setResponseReady(false);
     toast.info("Request stopped");
-  }, [chat, clearTimeouts, setIsLoading, setIntermediateStepsLoading, setChatIsLoading]);
+  }, [chat, clearTimeouts, setIsLoading, setIntermediateStepsLoading, setChatIsLoading, setResponseReady]);
 
   const clearChat = useCallback(() => {
     if (chat.isLoading) {
@@ -245,6 +253,7 @@ export function PriorAuthView({
       clearTimeouts();
       setIntermediateStepsLoading(false);
       setIsLoading(false);
+      setResponseReady(false);
       toast.info("Request stopped");
       return;
     }
@@ -252,8 +261,9 @@ export function PriorAuthView({
     setSourcesForMessages({});
     resetFormFields();
     setChatInput("");
+    setResponseReady(false);
     toast.success("Chat cleared successfully");
-  }, [chat, clearTimeouts, resetFormFields, setIntermediateStepsLoading, setIsLoading, setSourcesForMessages, setChatInput]);
+  }, [chat, clearTimeouts, resetFormFields, setIntermediateStepsLoading, setIsLoading, setSourcesForMessages, setChatInput, setResponseReady]);
 
   const isProcessing = chat.isLoading || intermediateStepsLoading || isLoading;
 

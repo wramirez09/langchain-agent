@@ -30,14 +30,13 @@ const navItems: { id: AppView; icon: React.ElementType; label: string }[] = [
 export function AppSidebar({ activeView, onViewChange }: AppSidebarProps) {
   const router = useRouter();
   const { isOpen, setIsOpen } = useMobileSidebar();
-  const { chatMessages } = usePriorAuthChat();
-  // Enable export as soon as any assistant message exists. We deliberately
-  // do NOT inspect content/parts — AI SDK shuffles streamed text between
-  // `content` and `parts` across versions, and an over-strict content check
-  // re-disables the button after streaming completes. Once an assistant
-  // message is in the array it stays there until the user resets, which is
-  // exactly the lifecycle this gate should track.
-  const hasResponse = chatMessages.some((m) => m.role === 'assistant');
+  const { responseReady } = usePriorAuthChat();
+  // Export is enabled once `responseReady` flips true (set in the chat
+  // onFinish callback when the BE stream has fully completed). It resets to
+  // false on new query, stop, clear, and page refresh — exactly the desired
+  // lifecycle. Driving the gate from a single explicit latch avoids the
+  // pitfalls of inferring "done" from message contents or useChat.isLoading.
+  const hasResponse = responseReady;
   const [billingLoading, setBillingLoading] = useState(false);
 
   const handleNavClick = (view: AppView) => {

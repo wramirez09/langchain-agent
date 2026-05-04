@@ -31,12 +31,13 @@ import {
 import { MobileSidebarProvider } from '../providers/MobileSidebarProvider'
 
 function Seeder({ withAssistantMsg }: { withAssistantMsg: boolean }) {
-  const { setChatMessages } = usePriorAuthChat()
+  const { setChatMessages, setResponseReady } = usePriorAuthChat()
   React.useEffect(() => {
     if (withAssistantMsg) {
       setChatMessages([{ id: '1', role: 'assistant', content: 'hi' } as any])
+      setResponseReady(true)
     }
-  }, [withAssistantMsg, setChatMessages])
+  }, [withAssistantMsg, setChatMessages, setResponseReady])
   return null
 }
 

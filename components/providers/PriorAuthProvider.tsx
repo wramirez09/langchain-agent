@@ -72,12 +72,18 @@ interface ChatContextState {
   chatIsLoading: boolean;
   intermediateStepsLoading: boolean;
   sourcesForMessages: Record<string, any>;
+  // True only after a backend stream has fully completed (onFinish) for the
+  // most recent query. Resets on new query, stop, clear, and page refresh
+  // (in-memory state). Drives the export-button enable gate so the button
+  // is enabled exactly once "all messages from the BE are in."
+  responseReady: boolean;
   setChatMessages: (messages: Message[]) => void;
   setChatInput: (value: string) => void;
   setIsLoading: (value: boolean) => void;
   setChatIsLoading: (value: boolean) => void;
   setIntermediateStepsLoading: (value: boolean) => void;
   setSourcesForMessages: (sources: Record<string, any>) => void;
+  setResponseReady: (value: boolean) => void;
 }
 
 const ChatContext = createContext<ChatContextState | undefined>(undefined);
@@ -89,6 +95,7 @@ function ChatProvider({ children }: { children: ReactNode }) {
   const [chatIsLoading, setChatIsLoading] = useState(false);
   const [intermediateStepsLoading, setIntermediateStepsLoading] = useState(false);
   const [sourcesForMessages, setSourcesForMessages] = useState<Record<string, any>>({});
+  const [responseReady, setResponseReady] = useState(false);
 
   return (
     <ChatContext.Provider
@@ -99,12 +106,14 @@ function ChatProvider({ children }: { children: ReactNode }) {
         chatIsLoading,
         intermediateStepsLoading,
         sourcesForMessages,
+        responseReady,
         setChatMessages,
         setChatInput,
         setIsLoading,
         setChatIsLoading,
         setIntermediateStepsLoading,
         setSourcesForMessages,
+        setResponseReady,
       }}
     >
       {children}
