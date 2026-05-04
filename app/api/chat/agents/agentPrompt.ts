@@ -58,20 +58,35 @@ When PHI is detected and removed:
 
 * **If \`Guidelines\` is "Medicare":**
     * **Step 1: Search NCD + LCD + LCA simultaneously in a single parallel tool call**
-        * In your FIRST response, call ALL THREE tools at the same time (they run in parallel):
+        * In your FIRST response, call NCD always, and call LCD + LCA **only if a U.S. state is known**:
             * \`ncd_coverage_search\` — query, treatment, diagnosis, cpt, icd10, maxResults: 5
-            * \`local_lcd_search\` — same fields + state (if provided)
-            * \`local_coverage_article_search\` — same fields + state (if provided)
-        * Do NOT wait for NCD results before calling LCD/LCA. Call all three together.
+            * \`local_lcd_search\` — same fields + state (REQUIRED)
+            * \`local_coverage_article_search\` — same fields + state (REQUIRED)
+        * \`state\` MUST be a U.S. state name from the user-provided context. If state is missing,
+          do NOT call \`local_lcd_search\` or \`local_coverage_article_search\` with an empty state —
+          they will return an empty result and waste a turn. Either proceed with NCD only, or ask
+          the user "Which state is the patient in?" before issuing LCD/LCA calls.
+        * Do NOT wait for NCD results before calling LCD/LCA. Call all of them together.
         * The tools return structured JSON with \`topMatches\` and scoring.
     * **Step 2: Review Medicare results**
         * Identify the most relevant documents based on scores and match signals
         * If ANY of the three tools returned at least one match, proceed to Step 3. Do NOT call \`commercial_guidelines_search\`.
-    * **Step 3: Extract policy details — pass ALL relevant URLs in ONE call**
-        * Use \`policy_content_extractor\` with \`policyUrls\` containing up to 3 URLs from the top results
-        * Pass them as an array in a single call — they are fetched and extracted in parallel
-        * Example: \`{ "policyUrls": ["https://lcd-url", "https://lca-url"] }\`
-        * Do NOT call the extractor multiple times with one URL each
+    * **Step 3: Fetch full policy details for top matches**
+        * For each of at most 2 selected matches, call \`medicare_policy_detail\` with
+          \`{ documentType, documentId, documentVersion }\` from the topMatches entry.
+          \`documentType\` is "ncd" for NCD search results, "lcd" for LCD, "article" for LCA.
+        * \`medicare_policy_detail\` returns the same structured shape as the extractor —
+          priorAuthRequired, medicalNecessityCriteria, icd10Codes, cptCodes, etc.
+        * Do NOT call \`policy_content_extractor\` for cms.gov or medicare.gov URLs;
+          \`medicare_policy_detail\` already covers those.
+        * Use \`policy_content_extractor\` only for MAC contractor URLs
+          (Noridian, Palmetto, NGS, Novitas, WPS, FCSO, CGS) when those URLs appear
+          in the search results.
+        * **Error handling:** if \`medicare_policy_detail\` returns a JSON object with an
+          \`error\` field (e.g. HTTP 400), do NOT retry with the same arguments. Either pick
+          a different topMatches entry, or fall back to \`policy_content_extractor\` with
+          the \`url\` from that match. Never call \`medicare_policy_detail\` more than once
+          for the same documentId/documentVersion within a turn.
     * **Step 4: Commercial fallback — ONLY if NCD, LCD, AND LCA all returned zero \`topMatches\`**
         * This step only applies when ALL THREE tools returned an empty \`topMatches\` array — zero results total.
         * If NCD had even one match, skip this step entirely.
@@ -89,7 +104,7 @@ When PHI is detected and removed:
 
 **3. Analyze and Extract Key Information from policies, guidelines, and related documents:**
 
-* **For Medicare:** The search tools (NCD, LCD, LCA) return structured candidates with URLs. Use the \`policy_content_extractor\` tool to fetch full policy text from the most relevant URLs identified in search results.
+* **For Medicare:** The search tools (NCD, LCD, LCA) return structured candidates with documentId and documentVersion. Use \`medicare_policy_detail\` to fetch full structured policy data for the top matches. Use \`policy_content_extractor\` only when a result references a non-CMS MAC contractor URL.
 * **For Commercial:** The \`commercial_guidelines_search\` tool returns structured results with excerpts. Use these results directly - do not attempt to extract from URLs.
 
 **After obtaining policy content:**

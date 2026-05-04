@@ -16,6 +16,7 @@ import { NCDCoverageSearchTool } from "./tools/NCDCoverageSearchTool";
 import { localLcdSearchTool } from "./tools/localLcdSearchTool";
 import { localCoverageArticleSearchTool } from "./tools/localArticleSearchTool";
 import { policyContentExtractorTool } from "./tools/policyContentExtractorTool";
+import { medicarePolicyDetailTool } from "./tools/medicarePolicyDetailTool";
 import { createCommercialGuidelineSearchTool } from "./tools/CommercialGuidelineSearchTool";
 import { reportUsage } from "@/lib/usage";
 import { getUserFromRequest } from "../../../../lib/auth/getUserFromRequest";
@@ -49,10 +50,25 @@ function buildCorsHeaders(req: NextRequest): Record<string, string> {
 }
 
 /* -------------------- VALIDATION -------------------- */
-const ChatMessageSchema = z.object({
-  role: z.enum(["user", "assistant", "system"]),
-  content: z.string().min(1).max(10_000),
+// Vercel AI SDK `useChat` sends messages with a `parts` array and an empty
+// `content` string. Accept either shape so the web client isn't rejected.
+const MessagePartSchema = z.object({
+  type: z.string(),
+  text: z.string().max(10_000).optional(),
 });
+
+const ChatMessageSchema = z
+  .object({
+    role: z.enum(["user", "assistant", "system"]),
+    content: z.string().max(10_000).optional(),
+    parts: z.array(MessagePartSchema).max(50).optional(),
+  })
+  .refine(
+    (m) =>
+      (typeof m.content === "string" && m.content.length > 0) ||
+      (Array.isArray(m.parts) && m.parts.length > 0),
+    { message: "message must have content or parts" },
+  );
 
 const RequestBodySchema = z.object({
   messages: z.array(ChatMessageSchema).min(1).max(50),
@@ -65,11 +81,21 @@ export async function OPTIONS(req: NextRequest) {
 }
 
 /* -------------------- MESSAGE CONVERSION -------------------- */
+const extractText = (message: any): string => {
+  let content = message.content;
+  if ((!content || content === "") && Array.isArray(message.parts)) {
+    content = message.parts
+      .filter((p: any) => p?.type === "text")
+      .map((p: any) => p?.text ?? "")
+      .join("\n");
+  }
+  return typeof content === "string" ? content : "";
+};
+
 const convertVercelMessageToLangChainMessage = (
   message: VercelChatMessage | any,
 ) => {
-  const text = typeof message.content === "string" ? message.content : "";
-
+  const text = extractText(message);
   if (message.role === "user") return new HumanMessage(text);
   if (message.role === "assistant") return new AIMessage(text);
   return new ChatMessage(text, message.role);
@@ -218,6 +244,10 @@ export async function POST(req: NextRequest) {
       new NCDCoverageSearchTool(),
       localLcdSearchTool,
       localCoverageArticleSearchTool,
+      // medicarePolicyDetailTool is placed before policyContentExtractorTool
+      // so the agent reaches for the structured CMS API path first; the
+      // extractor only handles MAC-contractor URLs as a fallback.
+      medicarePolicyDetailTool,
       policyContentExtractorTool,
     ];
 
@@ -229,11 +259,11 @@ export async function POST(req: NextRequest) {
     });
 
     const agentConfig = {
-      // recursionLimit caps the number of agent steps (LLM calls + tool
-      // calls). Production runs typically take 8-12 steps. 50 was too
-      // generous and created a cost-runaway surface — pathological loops
-      // past 15 are not legitimate reasoning, they're stuck states.
-      recursionLimit: 15,
+      // recursionLimit caps agent steps. Lowering this caused real
+      // production runs to terminate early and the web client to retry,
+      // adding minutes of latency. Keep at 50 until we have telemetry
+      // on actual step distribution.
+      recursionLimit: 50,
       configurable: {
         thread_id: `user-${userId}-${Date.now()}`,
       },
@@ -387,6 +417,16 @@ export async function POST(req: NextRequest) {
     // aborted, navigation away). Without it the LangChain run keeps going,
     // burning OpenAI tokens until recursionLimit — a real cost-leak vector.
     const streamAbort = new AbortController();
+    // langgraph forwards this signal to every internal tool fetch, so the
+    // listener count climbs past Node's default 10 on multi-tool runs.
+    // Raise the cap to silence MaxListenersExceededWarning without losing
+    // the abort semantics we want.
+    {
+      const signalAsTarget = streamAbort.signal as unknown as EventTarget & {
+        setMaxListeners?: (n: number) => void;
+      };
+      if (signalAsTarget.setMaxListeners) signalAsTarget.setMaxListeners(100);
+    }
     const eventStream = agent.streamEvents(
       { messages },
       {

@@ -4,6 +4,9 @@ import * as cheerio from "cheerio";
 import { llmSummarizer } from "@/lib/llm";
 import { StructuredOutputParser } from "langchain/output_parsers";
 import { cache, TTL } from "@/lib/cache";
+import { ExtractedPolicyDetails } from "./utils/policyDetailTypes";
+
+export type { ExtractedPolicyDetails } from "./utils/policyDetailTypes";
 
 const POLICY_EXTRACT_MAX_CHARS = 25_000;
 
@@ -36,16 +39,6 @@ function isAllowedPolicyUrl(rawUrl: string): boolean {
   return ALLOWED_POLICY_HOST_SUFFIXES.some(
     (suffix) => host === suffix || host.endsWith("." + suffix),
   );
-}
-
-export interface ExtractedPolicyDetails {
-  priorAuthRequired: "YES" | "NO" | "CONDITIONAL" | "UNKNOWN";
-  medicalNecessityCriteria: string[];
-  icd10Codes: { code: string; description: string; context: string }[];
-  cptCodes: { code: string; description: string; context: string }[];
-  requiredDocumentation: string[];
-  limitationsExclusions: string[];
-  summary: string;
 }
 
 const policyExtractionSchema = z.object({

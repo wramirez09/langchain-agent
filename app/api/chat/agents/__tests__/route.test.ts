@@ -315,7 +315,7 @@ describe('error response shape', () => {
 })
 
 describe('recursionLimit and retry', () => {
-  it('invokes agent with recursionLimit 15 (mobile)', async () => {
+  it('invokes agent with recursionLimit 50 (mobile)', async () => {
     invokeMock.mockResolvedValue({
       messages: [
         { _getType: () => 'human', content: 'hi' },
@@ -329,7 +329,7 @@ describe('recursionLimit and retry', () => {
       ),
     )
     const cfg = invokeMock.mock.calls[0][1]
-    expect(cfg.recursionLimit).toBe(15)
+    expect(cfg.recursionLimit).toBe(50)
   })
 
   it('does not call withRetry on the mobile branch', async () => {

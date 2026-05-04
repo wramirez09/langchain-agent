@@ -22,6 +22,18 @@ describe('localCoverageArticleSearchTool', () => {
     } as any) as any
   }
 
+  it('returns state-required message and skips fetch when state is missing', async () => {
+    const fetchSpy = jest.fn()
+    global.fetch = fetchSpy as any
+    const out = await localCoverageArticleSearchTool._call({
+      query: 'q',
+      maxResults: 10,
+    })
+    const parsed = JSON.parse(out)
+    expect(parsed.message).toMatch(/requires a U\.S\. state/)
+    expect(fetchSpy).not.toHaveBeenCalled()
+  })
+
   it('returns invalid-state message', async () => {
     const out = await localCoverageArticleSearchTool._call({
       query: 'q',
@@ -48,6 +60,7 @@ describe('localCoverageArticleSearchTool', () => {
     })
     const out = await localCoverageArticleSearchTool._call({
       query: 'cardiac mri article',
+      state: 'Illinois',
       maxResults: 10,
     })
     const parsed = JSON.parse(out)
@@ -57,14 +70,14 @@ describe('localCoverageArticleSearchTool', () => {
 
   it('handles network errors', async () => {
     global.fetch = jest.fn().mockRejectedValue(new Error('fail')) as any
-    const out = await localCoverageArticleSearchTool._call({ query: 'q', maxResults: 10 })
+    const out = await localCoverageArticleSearchTool._call({ query: 'q', state: 'Illinois', maxResults: 10 })
     const parsed = JSON.parse(out)
     expect(parsed.error).toMatch(/Error searching LCA/)
   })
 
   it('handles unexpected response shape', async () => {
     mockFetch({ shape: 'wrong' })
-    const out = await localCoverageArticleSearchTool._call({ query: 'q', maxResults: 10 })
+    const out = await localCoverageArticleSearchTool._call({ query: 'q', state: 'Illinois', maxResults: 10 })
     const parsed = JSON.parse(out)
     expect(parsed.error).toMatch(/Unexpected CMS API response/)
   })

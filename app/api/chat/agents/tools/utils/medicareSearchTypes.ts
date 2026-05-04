@@ -45,6 +45,10 @@ export interface MedicareScoredResult {
   id: string;
   title: string;
   displayId?: string;
+  // documentId/documentVersion are exposed as top-level fields so the agent
+  // can call medicare_policy_detail without parsing the combined `id`.
+  documentId?: string;
+  documentVersion?: number;
   score: number;
   url?: string;
   matchedOn: string[];

@@ -42,9 +42,12 @@ class LocalLcdSearchTool extends StructuredTool<typeof MedicareSearchInputSchema
     "- diagnosis: Diagnosis description (optional)\n" +
     "- cpt: CPT/HCPCS  (optional)\n" +
     "- icd10: ICD-10 code(s) (optional)\n" +
-    "- state: U.S. state for filtering (optional but recommended)\n" +
+    "- state: U.S. state (REQUIRED — LCDs are scoped to MAC regions; the tool returns an empty result if state is missing)\n" +
     "- maxResults: Number of results (optional, default: 10)\n\n" +
-    "**Output:** Returns structured JSON with topMatches array. Each match includes title, displayId, score, matchedOn signals, URL, and MAC contractor info.";
+    "**Output:** Returns structured JSON with topMatches array. Each match includes title, displayId, documentId, documentVersion, score, matchedOn signals, URL, and MAC contractor info.\n\n" +
+    "**Next step:** For full policy content, call `medicare_policy_detail` with " +
+    "`{ documentType: \"lcd\", documentId, documentVersion }` from a top match. " +
+    "Do NOT call `policy_content_extractor` for cms.gov/medicare.gov URLs.";
 
   private CMS_LOCAL_LCDS_API_URL =
     "https://api.coverage.cms.gov/v1/reports/local-coverage-final-lcds/";
@@ -64,11 +67,24 @@ class LocalLcdSearchTool extends StructuredTool<typeof MedicareSearchInputSchema
 
     console.log(`[LocalLcdSearchTool] Searching LCDs:`, JSON.stringify(normalized));
 
+    // LCDs are state-scoped by definition (each MAC region covers specific
+    // states). Without a state, the tool would fetch ~840 records (~370KB,
+    // 8s cold) and score all of them, almost always producing noise.
+    // Require state explicitly so the agent asks the user when missing.
+    if (!normalized.state) {
+      return JSON.stringify({
+        query: normalized,
+        topMatches: [],
+        message:
+          "LCD search requires a U.S. state. Ask the user which state the patient is in (or which MAC region the provider bills under), then call this tool again with the `state` field set.",
+      });
+    }
+
     try {
       const toolStart = Date.now();
       let stateId: number | null = null;
 
-      if (normalized.state) {
+      {
         stateId = this.resolveStateId(normalized.state);
         if (!stateId) {
           console.warn(`[LocalLcdSearchTool] No state_id found for: "${normalized.state}"`);
@@ -145,6 +161,10 @@ class LocalLcdSearchTool extends StructuredTool<typeof MedicareSearchInputSchema
         id: `${lcd.document_id}-${lcd.document_version}`,
         title: lcd.title || "N/A",
         displayId: lcd.document_display_id || undefined,
+        documentId: lcd.document_id != null ? String(lcd.document_id) : undefined,
+        documentVersion: typeof lcd.document_version === "number"
+          ? lcd.document_version
+          : lcd.document_version != null ? Number(lcd.document_version) : undefined,
         score,
         url: lcd.url || undefined,
         matchedOn,

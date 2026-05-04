@@ -53,9 +53,12 @@ class LocalCoverageArticleSearchTool extends StructuredTool<typeof MedicareSearc
     "- diagnosis: Diagnosis description (optional)\n" +
     "- cpt: CPT/HCPCS  (optional)\n" +
     "- icd10: ICD-10 code(s) (optional)\n" +
-    "- state: U.S. state for filtering (optional but recommended)\n" +
+    "- state: U.S. state (REQUIRED — LCAs are scoped to MAC regions; the tool returns an empty result if state is missing)\n" +
     "- maxResults: Number of results (optional, default: 10)\n\n" +
-    "**Output:** Returns structured JSON with topMatches array. Each match includes title, score, matchedOn signals, URL, and contractor info.";
+    "**Output:** Returns structured JSON with topMatches array. Each match includes title, displayId, documentId, documentVersion, score, matchedOn signals, URL, and contractor info.\n\n" +
+    "**Next step:** For full policy content, call `medicare_policy_detail` with " +
+    "`{ documentType: \"article\", documentId, documentVersion }` from a top match. " +
+    "Do NOT call `policy_content_extractor` for cms.gov/medicare.gov URLs.";
 
   private CMS_LOCAL_ARTICLES_API_URL =
     "https://api.coverage.cms.gov/v1/reports/local-coverage-articles/";
@@ -75,11 +78,23 @@ class LocalCoverageArticleSearchTool extends StructuredTool<typeof MedicareSearc
 
     console.log(`[LocalCoverageArticleSearchTool] Searching LCAs:`, JSON.stringify(normalized));
 
+    // LCAs are state-scoped (MAC-region-scoped) like LCDs. Without a state,
+    // the tool fetches the full nationwide dataset (~2150 records, ~1MB,
+    // 14s cold) and scoring is noisy. Require state explicitly.
+    if (!normalized.state) {
+      return JSON.stringify({
+        query: normalized,
+        topMatches: [],
+        message:
+          "Local Coverage Article search requires a U.S. state. Ask the user which state the patient is in (or which MAC region the provider bills under), then call this tool again with the `state` field set.",
+      });
+    }
+
     try {
       const toolStart = Date.now();
       let stateId: number | null = null;
 
-      if (normalized.state) {
+      {
         stateId = this.resolveStateId(normalized.state);
         if (!stateId) {
           console.warn(`[LocalCoverageArticleSearchTool] No state_id found for: "${normalized.state}"`);
@@ -156,6 +171,10 @@ class LocalCoverageArticleSearchTool extends StructuredTool<typeof MedicareSearc
         id: `${lca.document_id}-${lca.document_version}`,
         title: lca.title || "N/A",
         displayId: lca.document_display_id || undefined,
+        documentId: lca.document_id != null ? String(lca.document_id) : undefined,
+        documentVersion: typeof lca.document_version === "number"
+          ? lca.document_version
+          : lca.document_version != null ? Number(lca.document_version) : undefined,
         score,
         url: lca.url || undefined,
         matchedOn,

@@ -24,7 +24,10 @@ export class NCDCoverageSearchTool extends StructuredTool<typeof MedicareSearchI
     "- cpt: CPT/HCPCS  (optional)\n" +
     "- icd10: ICD-10 code(s) (optional)\n" +
     "- maxResults: Number of results (optional, default: 10)\n\n" +
-    "**Output:** Returns structured JSON with topMatches array. Each match includes title, displayId, score, matchedOn signals, and URL.";
+    "**Output:** Returns structured JSON with topMatches array. Each match includes title, displayId, documentId, documentVersion, score, matchedOn signals, and URL.\n\n" +
+    "**Next step:** For full policy content, call `medicare_policy_detail` with " +
+    "`{ documentType: \"ncd\", documentId, documentVersion }` from a top match. " +
+    "Do NOT call `policy_content_extractor` for cms.gov/medicare.gov URLs.";
 
   async _call(input: MedicareSearchInput): Promise<string> {
     const normalized = normalizeInput(input);
@@ -116,6 +119,10 @@ export class NCDCoverageSearchTool extends StructuredTool<typeof MedicareSearchI
           id: `${documentId}-${documentVersion}`,
           title: title || "N/A",
           displayId: documentDisplayId || undefined,
+          documentId: documentId != null ? String(documentId) : undefined,
+          documentVersion: typeof documentVersion === "number"
+            ? documentVersion
+            : documentVersion != null ? Number(documentVersion) : undefined,
           score,
           url,
           matchedOn,
