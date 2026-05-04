@@ -77,7 +77,7 @@ interface ChatContextState {
   // (in-memory state). Drives the export-button enable gate so the button
   // is enabled exactly once "all messages from the BE are in."
   responseReady: boolean;
-  setChatMessages: (messages: Message[]) => void;
+  setChatMessages: React.Dispatch<React.SetStateAction<Message[]>>;
   setChatInput: (value: string) => void;
   setIsLoading: (value: boolean) => void;
   setChatIsLoading: (value: boolean) => void;

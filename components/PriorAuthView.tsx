@@ -64,11 +64,21 @@ export function PriorAuthView({
   const chat = useChat({
     api: "/api/chat/agents",
     streamMode: "text",
-    onFinish() {
+    onFinish(assistantMessage) {
       setIntermediateStepsLoading(false);
       setIsLoading(false);
       setChatIsLoading(false);
-      setChatMessages(chat.messages);
+      // Append the assistant message via a functional setter rather than
+      // copying `chat.messages`. The `chat` reference in this closure is
+      // captured from a render that may predate the streamed-in message,
+      // so `chat.messages` here can be empty even after a successful run —
+      // which is what was leaving FileExportView with an empty array and
+      // showing "No report generated yet". Using the message argument
+      // bypasses the closure entirely.
+      setChatMessages((prev) => {
+        if (prev.some((m) => m.id === assistantMessage.id)) return prev;
+        return [...prev, assistantMessage];
+      });
       // Stream completed — flip the export-ready latch true so the sidebar
       // PDF button can enable. Reset on new query / stop / clear.
       setResponseReady(true);
