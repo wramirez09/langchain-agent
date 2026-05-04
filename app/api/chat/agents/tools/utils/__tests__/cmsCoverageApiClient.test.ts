@@ -107,7 +107,7 @@ describe('cmsCoverageApiClient', () => {
           data: [
             {
               title: 'Article-1',
-              article_text:
+              description:
                 '<p>Article body paragraph that is long enough to retain after parsing.</p>',
             },
           ],

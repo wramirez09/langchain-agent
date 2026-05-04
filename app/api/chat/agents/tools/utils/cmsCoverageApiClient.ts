@@ -12,9 +12,11 @@ import { ExtractedPolicyDetails } from "./policyDetailTypes";
  *   - Article:       /v1/data/article?articleid={id}&ver={ver}   — Bearer
  *
  * NCD responses are text-heavy and HTML-encoded (`&lt;p&gt;…`); they don't
- * carry structured code lists. LCD/Article responses have richer structured
- * fields (diagnoses_support, doc_reqs, etc.). The mapper produces the shared
- * ExtractedPolicyDetails wire shape regardless of source.
+ * carry structured code lists. LCD responses are richer (diagnoses_support,
+ * doc_reqs, etc.). Article responses carry coverage text in `description`
+ * and `cms_cov_policy` only — no separate code-list endpoint exists, so
+ * codes are regex-extracted from the body text. The mapper produces the
+ * shared ExtractedPolicyDetails wire shape regardless of source.
  */
 
 const CMS_API_BASE = "https://api.coverage.cms.gov/v1";
@@ -264,25 +266,29 @@ function mapLcd(payload: any): ExtractedPolicyDetails {
 function mapArticle(payload: any): ExtractedPolicyDetails {
   const data = payload?.data?.[0] ?? payload?.data ?? payload;
 
-  const articleText = stripHtml(data?.article_text ?? data?.text ?? "");
-  const codingInfo = stripHtml(
-    data?.coding_information ?? data?.cpt_hcpcs_codes_group ?? "",
-  );
-  const icd10Section = stripHtml(
-    data?.icd10_codes_that_support ?? data?.icd_10_codes ?? "",
-  );
+  // Verified live against /v1/data/article: the response carries `description`,
+  // `cms_cov_policy`, `add_icd10_info`, `other_comments`, `revenue_para` —
+  // there is no `article_text`/`text`/`coding_information` field. The earlier
+  // mapper read fields that don't exist and silently produced empty arrays.
+  const description = stripHtml(data?.description ?? "");
+  const covPolicy = stripHtml(data?.cms_cov_policy ?? "");
+  const addIcd10 = stripHtml(data?.add_icd10_info ?? "");
+  const otherComments = stripHtml(data?.other_comments ?? "");
+  const revenue = stripHtml(data?.revenue_para ?? "");
 
-  const criteria = splitParagraphs(data?.article_text ?? data?.text ?? "");
-  const limitations = splitParagraphs(
-    data?.limitations ?? data?.exclusions ?? "",
-  );
+  const criteria = [
+    ...splitParagraphs(data?.description ?? ""),
+    ...splitParagraphs(data?.cms_cov_policy ?? ""),
+  ];
+  const limitations = splitParagraphs(data?.other_comments ?? "");
 
-  const haystack = `${articleText} ${codingInfo} ${icd10Section}`;
+  const haystack = `${description} ${covPolicy} ${addIcd10} ${otherComments} ${revenue}`;
   const icd10 = extractCodesFromText(haystack, "from article", ICD10_REGEX);
   const cpt = extractCodesFromText(haystack, "from article", CPT_REGEX);
 
   const summary =
-    [data?.title, articleText.slice(0, 400)].filter(Boolean).join(" — ") ||
+    [data?.title, description.slice(0, 400)].filter(Boolean).join(" — ") ||
+    covPolicy.slice(0, 400) ||
     "No summary available from CMS API.";
 
   return {
