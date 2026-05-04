@@ -87,7 +87,11 @@ export type CommercialGuidelineSearchInput = z.infer<typeof CommercialGuidelineS
 export interface MergedSourceInfo {
   id: string;
   title: string;
-  path: string;
+  // Internal-only: filesystem path of the source document. Stripped before
+  // the tool returns results to the agent (see redactResult in
+  // CommercialGuidelineSearchTool) so source paths never leak into LLM
+  // context. Optional in the type to allow constructing redacted projections.
+  path?: string;
 }
 
 /**

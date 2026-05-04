@@ -3,12 +3,6 @@ jest.mock('../utils/commercialGuidelineLoaderOptimized', () => ({
   loadRelevantDocuments: jest.fn(),
 }))
 
-jest.mock('@/lib/llm', () => ({
-  llmSummarizer: () => ({
-    invoke: jest.fn().mockResolvedValue({ content: 'short summary' }),
-  }),
-}))
-
 import {
   CommercialGuidelineSearchTool,
   createCommercialGuidelineSearchTool,
@@ -56,16 +50,41 @@ describe('CommercialGuidelineSearchTool', () => {
     expect(parsed.topMatches.length).toBeGreaterThan(0)
   })
 
-  it('summarizes large output', async () => {
+  it('shrinks oversized output while preserving structured shape', async () => {
+    // Distinct enough that the merge step (treatment overlap >70% or shared
+    // CPT/ICD-10) does NOT fold them into one merged result.
+    const adjectives = [
+      'Alpha',
+      'Beta',
+      'Gamma',
+      'Delta',
+      'Epsilon',
+      'Zeta',
+      'Eta',
+      'Theta',
+      'Iota',
+      'Kappa',
+    ]
+    const nouns = [
+      'Imaging',
+      'Surgery',
+      'Biopsy',
+      'Ablation',
+      'Resection',
+      'Reconstruction',
+      'Mapping',
+      'Catheterization',
+      'Stimulation',
+      'Embolization',
+    ]
     const docs = Array.from({ length: 200 }, (_, i) =>
       baseDoc({
         id: `id-${i}`,
         path: `/p/${i}.md`,
-        title: `Unique Procedure Title Number ${i}`,
-        treatment: `Unique Treatment Number ${i}`,
+        title: `${adjectives[i % 10]} ${nouns[Math.floor(i / 10) % 10]} Variant ${i}`,
+        treatment: `${adjectives[i % 10]} ${nouns[Math.floor(i / 10) % 10]} Variant ${i}`,
         cptCodes: [String(70000 + i)],
         icd10Codes: [`Z${(i % 90) + 10}.${i % 10}`],
-        // Use 'mri' so query 'mri' matches via keyword overlap on body
         body: 'mri ' + 'matching content '.repeat(200),
       })
     )
@@ -76,8 +95,15 @@ describe('CommercialGuidelineSearchTool', () => {
       maxResults: 200,
     })
     const parsed = JSON.parse(out)
-    expect(parsed.summarized).toBe(true)
-    expect(parsed.summary).toBe('short summary')
+    expect(out.length).toBeLessThanOrEqual(30_000)
+    expect(Array.isArray(parsed.topMatches)).toBe(true)
+    expect(parsed.topMatches.length).toBeGreaterThan(0)
+    expect(parsed.truncated).toBeDefined()
+    expect(parsed.truncated.originalTopMatches).toBeGreaterThan(parsed.topMatches.length)
+    // Filesystem paths must never be returned to the agent.
+    for (const m of parsed.topMatches) {
+      expect(m.path).toBeUndefined()
+    }
   })
 
   it('handles loader exceptions', async () => {

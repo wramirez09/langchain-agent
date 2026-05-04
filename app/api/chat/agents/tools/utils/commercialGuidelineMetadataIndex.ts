@@ -20,6 +20,7 @@ export interface DocumentMetadata {
   icd10Codes?: string[];
   keywords?: string[];
   priority?: string;
+  payerNotes?: Record<string, string>;
   sourceGroup: string;
 }
 
@@ -112,7 +113,13 @@ function scanDirectoryForMetadata(dir: string): DocumentMetadata[] {
         if (frontMatter.priority) {
           metadata.priority = frontMatter.priority as string;
         }
-        
+        const payerNotesRaw =
+          (frontMatter.payerNotes as unknown) ??
+          (frontMatter.payer_notes as unknown);
+        if (payerNotesRaw && typeof payerNotesRaw === "object" && !Array.isArray(payerNotesRaw)) {
+          metadata.payerNotes = payerNotesRaw as Record<string, string>;
+        }
+
         results.push(metadata);
       } catch (error) {
         console.error(`[MetadataIndex] Error reading ${fullPath}:`, error);

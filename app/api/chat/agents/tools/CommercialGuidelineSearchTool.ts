@@ -5,8 +5,76 @@ import {
   CommercialGuidelineSearchInputSchema,
   CommercialGuidelineSearchInput,
   CommercialGuidelineSearchOutput,
+  ScoredResult,
 } from "./utils/commercialGuidelineTypes";
-import { llmSummarizer } from "@/lib/llm";
+
+// Output budget. Beyond this we shrink excerpts and trim arrays rather than
+// invoking an LLM summarizer (which doubled latency and dropped the
+// structured topMatches/relatedMatches shape the agent relies on).
+const OUTPUT_BUDGET_CHARS = 30_000;
+const MIN_EXCERPT_CHARS = 200;
+
+// Strip filesystem paths from tool output. The agent prompt forbids citing
+// file/folder names; relying on the LLM to redact a field we hand it is a
+// confidentiality footgun. Drop `path` and `mergedFrom[].path` at the
+// serialization boundary so they cannot be leaked even on hallucination.
+function redactResult(r: ScoredResult): Omit<ScoredResult, "path" | "body"> & {
+  mergedFrom?: { id: string; title: string }[];
+} {
+  const { path: _path, body: _body, mergedFrom, ...rest } = r;
+  return {
+    ...rest,
+    ...(mergedFrom
+      ? { mergedFrom: mergedFrom.map(({ id, title }) => ({ id, title })) }
+      : {}),
+  };
+}
+
+function shrinkToFit(
+  output: CommercialGuidelineSearchOutput,
+): CommercialGuidelineSearchOutput {
+  const project = (results: ScoredResult[]) => results.map(redactResult);
+
+  const measure = (top: ScoredResult[], related: ScoredResult[]): string =>
+    JSON.stringify(
+      {
+        query: output.query,
+        topMatches: project(top),
+        relatedMatches: project(related),
+      },
+      null,
+      2,
+    );
+
+  let top = [...output.topMatches];
+  let related = [...output.relatedMatches];
+  let json = measure(top, related);
+  if (json.length <= OUTPUT_BUDGET_CHARS) return { ...output, topMatches: top, relatedMatches: related };
+
+  // 1) Drop relatedMatches entirely.
+  related = [];
+  json = measure(top, related);
+
+  // 2) Shrink each excerpt to MIN_EXCERPT_CHARS.
+  if (json.length > OUTPUT_BUDGET_CHARS) {
+    top = top.map((r) => ({
+      ...r,
+      excerpt:
+        r.excerpt.length > MIN_EXCERPT_CHARS
+          ? r.excerpt.slice(0, MIN_EXCERPT_CHARS).trim() + "…"
+          : r.excerpt,
+    }));
+    json = measure(top, related);
+  }
+
+  // 3) Pop low-scoring topMatches until we fit (keep at least 1).
+  while (json.length > OUTPUT_BUDGET_CHARS && top.length > 1) {
+    top.pop();
+    json = measure(top, related);
+  }
+
+  return { ...output, topMatches: top, relatedMatches: related };
+}
 
 /**
  * Commercial Guideline Search Tool
@@ -111,60 +179,32 @@ Use ONLY generic terms like "commercial guidelines", "proprietary criteria", or 
       };
       
       console.log(`[CommercialGuidelineSearchTool] Found ${topMatches.length} top matches, ${relatedMatches.length} related matches`);
-      
-      // Return as JSON string for LLM to parse
-      const jsonOutput = JSON.stringify(output, null, 2);
-      
-      // If output is too large (>30K chars ≈ 7.5K tokens), summarize it
-      if (jsonOutput.length > 30000) {
-        console.warn(`[CommercialGuidelineSearchTool] Large output detected: ${jsonOutput.length} chars (≈${Math.round(jsonOutput.length / 4)} tokens). Summarizing...`);
-        
-        try {
-          const summarizationPrompt = `You are analyzing commercial guideline search results for a prior authorization request.
 
-Query: ${input.query}
-${input.treatment ? `Treatment: ${input.treatment}` : ''}
-${input.diagnosis ? `Diagnosis: ${input.diagnosis}` : ''}
-${input.cpt ? `CPT Code: ${input.cpt}` : ''}
-${input.icd10 ? `ICD-10 Code: ${input.icd10}` : ''}
+      const fitted = shrinkToFit(output);
+      const jsonOutput = JSON.stringify(
+        {
+          query: fitted.query,
+          topMatches: fitted.topMatches.map(redactResult),
+          relatedMatches: fitted.relatedMatches.map(redactResult),
+          ...(fitted.topMatches.length < topMatches.length ||
+          fitted.relatedMatches.length < relatedMatches.length
+            ? {
+                truncated: {
+                  originalTopMatches: topMatches.length,
+                  originalRelatedMatches: relatedMatches.length,
+                },
+              }
+            : {}),
+        },
+        null,
+        2,
+      );
 
-Search Results:
-${jsonOutput}
-
-Please provide a concise summary of the key authorization requirements, focusing on:
-1. Medical necessity criteria
-2. Required documentation
-3. Coverage limitations or exclusions
-4. Relevant CPT/ICD-10 codes
-5. Any special conditions or requirements
-
-Keep the summary under 2000 words while preserving all critical authorization details.`;
-
-          const summaryResponse = await llmSummarizer().invoke([
-            { role: "user", content: summarizationPrompt }
-          ]);
-          
-          const summary = summaryResponse.content?.toString() ?? "";
-          console.log(`[CommercialGuidelineSearchTool] Summarized output: ${summary.length} chars (≈${Math.round(summary.length / 4)} tokens)`);
-          
-          return JSON.stringify({
-            query: input.query,
-            summarized: true,
-            summary,
-            matchCount: {
-              topMatches: topMatches.length,
-              relatedMatches: relatedMatches.length
-            },
-            topMatchTitles: topMatches.map(m => m.title),
-          }, null, 2);
-        } catch (summarizationError) {
-          console.error(`[CommercialGuidelineSearchTool] Summarization failed:`, summarizationError);
-          // Fall back to truncated output
-          console.warn(`[CommercialGuidelineSearchTool] Falling back to truncated output`);
-          return jsonOutput.substring(0, 30000) + '\n\n... [Output truncated due to size]';
-        }
+      if (fitted.topMatches.length < topMatches.length) {
+        console.warn(
+          `[CommercialGuidelineSearchTool] Output trimmed: ${topMatches.length}→${fitted.topMatches.length} top, ${relatedMatches.length}→${fitted.relatedMatches.length} related (final ${jsonOutput.length} chars)`,
+        );
       }
-      
       return jsonOutput;
     } catch (error) {
       console.error("[CommercialGuidelineSearchTool] Error during search:", error);

@@ -57,6 +57,7 @@ function loadFullDocument(metadata: DocumentMetadata): CommercialGuidelineDoc {
     aliases: metadata.aliases,
     relatedConditions: metadata.relatedConditions,
     priority: metadata.priority as "high" | "medium" | "low" | undefined,
+    payerNotes: metadata.payerNotes,
   };
 }
 

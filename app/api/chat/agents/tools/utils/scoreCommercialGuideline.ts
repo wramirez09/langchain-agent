@@ -199,73 +199,69 @@ export function scoreCommercialGuideline(
     }
   }
   
-  // +5 for specialty match (from front matter)
+  // Whole-word overlap: at least one token of `phrase` appears as a token
+  // in any of the input token sets. Replaces bidirectional substring
+  // `includes`, which gave 3-char query tokens (e.g. "mri") false-positive
+  // hits on unrelated procedures via `token.includes(procNorm)`.
+  // Per-category point award is capped at 2 hits to prevent a doc with many
+  // fuzzy matches from outscoring an exact CPT/ICD-10 match.
+  const phraseTokensIn = (phrase: string, ...inputs: Set<string>[]): boolean => {
+    const phraseTokens = tokenize(phrase);
+    if (phraseTokens.length === 0) return false;
+    return phraseTokens.some((t) => inputs.some((s) => s.has(t)));
+  };
+
+  const queryTokenSet = new Set(tokenize(input.query));
+  const treatmentTokenSet = input.treatment
+    ? new Set(tokenize(input.treatment))
+    : new Set<string>();
+
+  // +5 per specialty (capped at 2)
   if (doc.specialty && doc.specialty.length > 0) {
-    const queryTokens = tokenize(input.query);
-    const treatmentTokens = input.treatment ? tokenize(input.treatment) : [];
-    const allInputTokens = [...queryTokens, ...treatmentTokens];
-    
-    const matchingSpecialties = doc.specialty.filter(spec =>
-      allInputTokens.some(token => normalize(spec).includes(token) || token.includes(normalize(spec)))
+    const matchingSpecialties = doc.specialty.filter((spec) =>
+      phraseTokensIn(spec, queryTokenSet, treatmentTokenSet),
     );
-    
     if (matchingSpecialties.length > 0) {
-      score += matchingSpecialties.length * 5;
+      score += Math.min(matchingSpecialties.length, 2) * 5;
       matchedOn.push(`specialty:${matchingSpecialties.join(",")}`);
     }
   }
-  
-  // +8 for procedure match (from front matter)
+
+  // +8 per procedure (capped at 2)
   if (doc.procedures && doc.procedures.length > 0) {
-    const queryTokens = tokenize(input.query);
-    const treatmentTokens = input.treatment ? tokenize(input.treatment) : [];
-    const allInputTokens = [...queryTokens, ...treatmentTokens];
-    
-    const matchingProcedures = doc.procedures.filter(proc => {
-      const procNorm = normalize(proc);
-      return allInputTokens.some(token => procNorm.includes(token) || token.includes(procNorm)) ||
-             (input.treatment && keywordOverlap(proc, input.treatment) > 0.5);
-    });
-    
+    const matchingProcedures = doc.procedures.filter(
+      (proc) =>
+        phraseTokensIn(proc, queryTokenSet, treatmentTokenSet) ||
+        (input.treatment && keywordOverlap(proc, input.treatment) > 0.5),
+    );
     if (matchingProcedures.length > 0) {
-      score += matchingProcedures.length * 8;
+      score += Math.min(matchingProcedures.length, 2) * 8;
       matchedOn.push(`procedures:${matchingProcedures.join(",")}`);
     }
   }
-  
-  // +6 for alias match (from front matter)
+
+  // +6 per alias (capped at 2)
   if (doc.aliases && doc.aliases.length > 0) {
-    const treatmentNorm = input.treatment ? normalize(input.treatment) : "";
-    const queryNorm = normalize(input.query);
-    
-    const matchingAliases = doc.aliases.filter(alias => {
-      const aliasNorm = normalize(alias);
-      return (treatmentNorm && aliasNorm.includes(treatmentNorm)) ||
-             (treatmentNorm && treatmentNorm.includes(aliasNorm)) ||
-             queryNorm.includes(aliasNorm) ||
-             aliasNorm.includes(queryNorm);
-    });
-    
+    const matchingAliases = doc.aliases.filter((alias) =>
+      phraseTokensIn(alias, queryTokenSet, treatmentTokenSet),
+    );
     if (matchingAliases.length > 0) {
-      score += matchingAliases.length * 6;
+      score += Math.min(matchingAliases.length, 2) * 6;
       matchedOn.push(`aliases:${matchingAliases.join(",")}`);
     }
   }
-  
-  // +4 for related condition match (from front matter)
+
+  // +4 per related condition (capped at 2)
   if (doc.relatedConditions && doc.relatedConditions.length > 0 && input.diagnosis) {
-    const diagnosisNorm = normalize(input.diagnosis);
-    const diagnosis = input.diagnosis; // Type guard for closure
-    
-    const matchingConditions = doc.relatedConditions.filter(condition => {
-      const conditionNorm = normalize(condition);
-      return diagnosisNorm.includes(conditionNorm) ||
-             conditionNorm.includes(diagnosisNorm) ||
-             keywordOverlap(condition, diagnosis) > 0.4;
-    });
-    
+    const diagnosisTokenSet = new Set(tokenize(input.diagnosis));
+    const diagnosis = input.diagnosis;
+    const matchingConditions = doc.relatedConditions.filter(
+      (condition) =>
+        phraseTokensIn(condition, diagnosisTokenSet) ||
+        keywordOverlap(condition, diagnosis) > 0.4,
+    );
     if (matchingConditions.length > 0) {
-      score += matchingConditions.length * 4;
+      score += Math.min(matchingConditions.length, 2) * 4;
       matchedOn.push(`relatedConditions:${matchingConditions.join(",")}`);
     }
   }
