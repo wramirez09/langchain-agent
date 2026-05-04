@@ -9,6 +9,7 @@ import {
   HumanMessage,
   SystemMessage,
 } from "@langchain/core/messages";
+import { z } from "zod";
 
 import { AGENT_SYSTEM_CONTENT } from "./agentPrompt";
 import { NCDCoverageSearchTool } from "./tools/NCDCoverageSearchTool";
@@ -19,8 +20,7 @@ import { createCommercialGuidelineSearchTool } from "./tools/CommercialGuideline
 import { FileUploadTool } from "./tools/fileUploadTool";
 import { reportUsage } from "@/lib/usage";
 import { getUserFromRequest } from "../../../../lib/auth/getUserFromRequest";
-import { withRetry, RETRY_CONFIGS } from "@/lib/retry";
-import { errorTracker, trackRetryError, createClientErrorNotification } from "@/lib/error-tracking";
+import { errorTracker } from "@/lib/error-tracking";
 import { supabaseAdmin } from "@/lib/supabaseAdmin";
 import { waitUntil } from "@vercel/functions";
 
@@ -30,30 +30,46 @@ import { waitUntil } from "@vercel/functions";
 export const maxDuration = 300;
 
 /* -------------------- CORS -------------------- */
-const corsHeaders = {
-  "Access-Control-Allow-Origin": "*",
-  "Access-Control-Allow-Headers": "authorization, content-type",
-};
+const ALLOWED_ORIGINS = new Set<string>([
+  "https://app.notedoctor.ai",
+  "https://preauthproduction-git-dev-center-point-digital.vercel.app",
+  ...(process.env.NODE_ENV !== "production"
+    ? ["http://localhost:3000", "http://localhost:8081"]
+    : []),
+]);
+
+function buildCorsHeaders(req: NextRequest): Record<string, string> {
+  const origin = req.headers.get("origin") ?? "";
+  const allowed = ALLOWED_ORIGINS.has(origin) ? origin : "";
+  return {
+    "Access-Control-Allow-Origin": allowed,
+    "Access-Control-Allow-Headers": "authorization, content-type, x-client",
+    "Access-Control-Allow-Methods": "POST, OPTIONS",
+    Vary: "Origin",
+  };
+}
+
+/* -------------------- VALIDATION -------------------- */
+const ChatMessageSchema = z.object({
+  role: z.enum(["user", "assistant", "system"]),
+  content: z.string().min(1).max(10_000),
+});
+
+const RequestBodySchema = z.object({
+  messages: z.array(ChatMessageSchema).min(1).max(50),
+  threadId: z.string().uuid().optional(),
+});
 
 /* -------------------- OPTIONS -------------------- */
-export async function OPTIONS() {
-  return new Response(null, { headers: corsHeaders });
+export async function OPTIONS(req: NextRequest) {
+  return new Response(null, { headers: buildCorsHeaders(req) });
 }
 
 /* -------------------- MESSAGE CONVERSION -------------------- */
 const convertVercelMessageToLangChainMessage = (
   message: VercelChatMessage | any,
 ) => {
-  let content = message.content;
-
-  if ((!content || content === "") && Array.isArray(message.parts)) {
-    content = message.parts
-      .filter((p: any) => p.type === "text")
-      .map((p: any) => p.text)
-      .join("\n");
-  }
-
-  const text = content ? String(content) : "";
+  const text = typeof message.content === "string" ? message.content : "";
 
   if (message.role === "user") return new HumanMessage(text);
   if (message.role === "assistant") return new AIMessage(text);
@@ -64,47 +80,56 @@ const convertVercelMessageToLangChainMessage = (
 export async function POST(req: NextRequest) {
   let userId: string | undefined;
   const requestStartTime = Date.now();
-  
+
   try {
     /* ---------- AUTH ---------- */
     const user = await getUserFromRequest(req);
     userId = user.id;
-    
-    console.log(`[Agents API] Request started for user ${userId} at ${new Date().toISOString()}`);
 
-    /* ---------- REQUEST ---------- */
-    const body = await req.json();
+    console.log(
+      `[Agents API] Request started for user ${userId} at ${new Date().toISOString()}`,
+    );
+
+    /* ---------- REQUEST VALIDATION ---------- */
+    let rawBody: unknown;
+    try {
+      rawBody = await req.json();
+    } catch {
+      return NextResponse.json(
+        { error: "INVALID_JSON", requestId: null },
+        { status: 400, headers: buildCorsHeaders(req) },
+      );
+    }
+
+    const parsed = RequestBodySchema.safeParse(rawBody);
+    if (!parsed.success) {
+      console.warn(
+        `[Agents API] Invalid request body for user ${userId}:`,
+        parsed.error.flatten(),
+      );
+      return NextResponse.json(
+        { error: "INVALID_REQUEST_BODY", requestId: null },
+        { status: 400, headers: buildCorsHeaders(req) },
+      );
+    }
+
+    const body = parsed.data;
     const clientType = req.headers.get("x-client") ?? "web";
 
-    const messages = (body.messages ?? [])
-      .filter(
-        (m: VercelChatMessage) => m.role === "user" || m.role === "assistant",
-      )
+    const messages = body.messages
+      .filter((m) => m.role === "user" || m.role === "assistant")
       .map(convertVercelMessageToLangChainMessage);
 
     /* ---------- THREAD ID ---------- */
-    const bodyThreadId =
-      typeof body.threadId === "string" && body.threadId.length > 0
-        ? body.threadId
-        : null;
+    const bodyThreadId = body.threadId ?? null;
     const threadId = bodyThreadId ?? crypto.randomUUID();
     const isNewThread = bodyThreadId === null;
 
     /* ---------- PERSIST USER MESSAGE ---------- */
-    const lastUserRaw = [...(body.messages ?? [])]
+    const lastUserMsg = [...body.messages]
       .reverse()
-      .find((m: VercelChatMessage) => m.role === "user");
-    const lastUserContent = (() => {
-      if (!lastUserRaw) return "";
-      let c = lastUserRaw.content;
-      if ((!c || c === "") && Array.isArray((lastUserRaw as any).parts)) {
-        c = (lastUserRaw as any).parts
-          .filter((p: any) => p.type === "text")
-          .map((p: any) => p.text)
-          .join("\n");
-      }
-      return typeof c === "string" ? c : JSON.stringify(c);
-    })();
+      .find((m) => m.role === "user");
+    const lastUserContent = lastUserMsg?.content ?? "";
 
     if (lastUserContent) {
       try {
@@ -142,7 +167,7 @@ export async function POST(req: NextRequest) {
     /* ---------- TOOLS ---------- */
     // Initialize commercial guideline search tool (documents pre-loaded at module scope)
     const commercialGuidelineTool = createCommercialGuidelineSearchTool();
-    
+
     const tools = [
       new SerpAPI(),
       commercialGuidelineTool,
@@ -160,9 +185,12 @@ export async function POST(req: NextRequest) {
       messageModifier: new SystemMessage(AGENT_SYSTEM_CONTENT),
     });
 
-    // Configure agent execution with extended timeout
     const agentConfig = {
-      recursionLimit: 50, // Increase from default 25 to allow more tool calls
+      // recursionLimit caps the number of agent steps (LLM calls + tool
+      // calls). Production runs typically take 8-12 steps. 50 was too
+      // generous and created a cost-runaway surface — pathological loops
+      // past 15 are not legitimate reasoning, they're stuck states.
+      recursionLimit: 15,
       configurable: {
         thread_id: `user-${userId}-${Date.now()}`,
       },
@@ -173,54 +201,49 @@ export async function POST(req: NextRequest) {
      ====================================================== */
     if (clientType === "mobile") {
       const mobileStartTime = Date.now();
-      console.log(`[Agents API] Starting mobile agent execution for user ${userId}`);
-      
-      const agentResult = await withRetry(
-        async () => {
-          const result = await agent.invoke({ messages }, agentConfig);
-          return result;
-        },
-        {
-          ...RETRY_CONFIGS.LLM_API,
-          maxAttempts: 5, // Increase retries for mobile
-          initialDelay: 2000, // Longer initial delay
-          context: "Agent execution (mobile)",
-          onRetry: (attempt, error) => {
-            const elapsed = ((Date.now() - mobileStartTime) / 1000).toFixed(2);
-            console.warn(`⚠️ [Agents API] Mobile retry ${attempt} for user ${userId} after ${elapsed}s:`, error.message);
-          }
-        }
+      console.log(
+        `[Agents API] Starting mobile agent execution for user ${userId}`,
       );
 
-      if (!agentResult.success || !agentResult.data) {
-        const errorInfo = trackRetryError(
-          agentResult.error || new Error("Failed to execute agent"),
+      // Agent calls are expensive and non-idempotent — retrying replays
+      // SerpAPI and other side-effecting tools. Invoke directly and
+      // surface failures as a single opaque error code.
+      let result: Awaited<ReturnType<typeof agent.invoke>>;
+      try {
+        result = await agent.invoke({ messages }, agentConfig);
+      } catch (e) {
+        const error = e as Error;
+        const errorInfo = errorTracker.trackError(
+          error,
           "Agent execution (mobile)",
-          agentResult.attempts,
+          undefined,
           userId,
-          "agents-mobile-execution"
+          undefined,
+          "agents-mobile-execution",
         );
-        
-        const clientNotification = createClientErrorNotification(errorInfo);
-        
         return NextResponse.json(
-          { 
-            error: clientNotification.userMessage,
-            technicalError: clientNotification.technicalMessage,
-            retryAttempts: clientNotification.retryAttempts,
-            canRetry: clientNotification.canRetry
+          {
+            error: "AGENT_EXECUTION_FAILED",
+            requestId: errorInfo?.id ?? null,
           },
-          { status: 500, headers: corsHeaders }
+          { status: 500, headers: buildCorsHeaders(req) },
         );
       }
 
-      const result = agentResult.data;
-      const mobileElapsed = ((Date.now() - mobileStartTime) / 1000).toFixed(2);
-      console.log(`✅ [Agents API] Mobile agent completed in ${mobileElapsed}s for user ${userId}`);
-      console.log({ result });
+      const mobileElapsed = (
+        (Date.now() - mobileStartTime) /
+        1000
+      ).toFixed(2);
+      console.log(
+        `✅ [Agents API] Mobile agent completed in ${mobileElapsed}s for user ${userId}`,
+      );
 
       // Report usage only after successful agent completion
-      void reportUsage({ userId: userId!, usageType: "orchestrator", quantity: 1 }).catch(() => {});
+      void reportUsage({
+        userId: userId!,
+        usageType: "orchestrator",
+        quantity: 1,
+      }).catch(() => {});
 
       // Get last user + last assistant messages
       const lastUser = [...result.messages]
@@ -255,7 +278,10 @@ export async function POST(req: NextRequest) {
                 is_thread_starter: false,
               });
             } catch (persistErr) {
-              console.error("Failed to persist assistant message:", persistErr);
+              console.error(
+                "Failed to persist assistant message:",
+                persistErr,
+              );
               errorTracker.trackError(
                 persistErr as Error,
                 "chat_messages assistant persistence (mobile, deferred)",
@@ -297,7 +323,9 @@ export async function POST(req: NextRequest) {
               : []),
           ],
         },
-        { headers: { ...corsHeaders, "x-thread-id": threadId } },
+        {
+          headers: { ...buildCorsHeaders(req), "x-thread-id": threadId },
+        },
       );
     }
 
@@ -312,11 +340,11 @@ export async function POST(req: NextRequest) {
     // through controller.error(), not as rejected promises, so retry wrappers are
     // ineffective on streaming paths. Errors are caught by the outer try/catch.
     const eventStream = agent.streamEvents(
-      { messages }, 
-      { 
+      { messages },
+      {
         version: "v2",
-        ...agentConfig
-      }
+        ...agentConfig,
+      },
     );
 
     const readable = new ReadableStream({
@@ -335,8 +363,13 @@ export async function POST(req: NextRequest) {
             ) {
               if (!firstChunkTime) {
                 firstChunkTime = Date.now();
-                const timeToFirstChunk = ((firstChunkTime - streamStartTime) / 1000).toFixed(2);
-                console.log(`[Agents API] First chunk received after ${timeToFirstChunk}s for user ${userId}`);
+                const timeToFirstChunk = (
+                  (firstChunkTime - streamStartTime) /
+                  1000
+                ).toFixed(2);
+                console.log(
+                  `[Agents API] First chunk received after ${timeToFirstChunk}s for user ${userId}`,
+                );
               }
               chunkCount++;
               accumulated += data.chunk.content;
@@ -344,16 +377,31 @@ export async function POST(req: NextRequest) {
             }
           }
           streamCompleted = true;
-          const totalElapsed = ((Date.now() - streamStartTime) / 1000).toFixed(2);
-          console.log(`✅ [Agents API] Stream completed in ${totalElapsed}s (${chunkCount} chunks) for user ${userId}`);
+          const totalElapsed = (
+            (Date.now() - streamStartTime) /
+            1000
+          ).toFixed(2);
+          console.log(
+            `✅ [Agents API] Stream completed in ${totalElapsed}s (${chunkCount} chunks) for user ${userId}`,
+          );
         } catch (err) {
-          const errorElapsed = ((Date.now() - streamStartTime) / 1000).toFixed(2);
-          console.error(`❌ [Agents API] Stream error after ${errorElapsed}s for user ${userId}:`, err);
+          const errorElapsed = (
+            (Date.now() - streamStartTime) /
+            1000
+          ).toFixed(2);
+          console.error(
+            `❌ [Agents API] Stream error after ${errorElapsed}s for user ${userId}:`,
+            err,
+          );
           controller.error(err);
         } finally {
           // Report usage only after a full successful stream
           if (streamCompleted) {
-            void reportUsage({ userId: userId!, usageType: "orchestrator", quantity: 1 }).catch(() => {});
+            void reportUsage({
+              userId: userId!,
+              usageType: "orchestrator",
+              quantity: 1,
+            }).catch(() => {});
           }
           if (accumulated) {
             try {
@@ -366,7 +414,10 @@ export async function POST(req: NextRequest) {
                 is_thread_starter: false,
               });
             } catch (persistErr) {
-              console.error("Failed to persist assistant message:", persistErr);
+              console.error(
+                "Failed to persist assistant message:",
+                persistErr,
+              );
               errorTracker.trackError(
                 persistErr as Error,
                 "chat_messages assistant persistence (web)",
@@ -384,7 +435,7 @@ export async function POST(req: NextRequest) {
 
     return new StreamingTextResponse(readable, {
       headers: {
-        ...corsHeaders,
+        ...buildCorsHeaders(req),
         "Content-Type": "text/plain; charset=utf-8",
         "x-thread-id": threadId,
       },
@@ -392,27 +443,29 @@ export async function POST(req: NextRequest) {
   } catch (e: unknown) {
     const error = e as Error;
     const requestElapsed = ((Date.now() - requestStartTime) / 1000).toFixed(2);
-    console.error(`❌ [Agents API] Request failed after ${requestElapsed}s for user ${userId}:`, error.message);
-    
+    console.error(
+      `❌ [Agents API] Request failed after ${requestElapsed}s for user ${userId}:`,
+      error.message,
+    );
+
     const errorInfo = errorTracker.trackError(
       error,
       "Agents API request",
       undefined,
       userId,
       undefined,
-      "agents-api-request"
+      "agents-api-request",
     );
-    
-    const clientNotification = createClientErrorNotification(errorInfo);
-    
+
     return NextResponse.json(
-      { 
-        error: clientNotification.userMessage,
-        technicalError: clientNotification.technicalMessage,
-        retryAttempts: clientNotification.retryAttempts,
-        canRetry: clientNotification.canRetry
+      {
+        error: "INTERNAL_ERROR",
+        requestId: errorInfo?.id ?? null,
       },
-      { status: (error as any).status ?? 500, headers: corsHeaders }
+      {
+        status: (error as { status?: number }).status ?? 500,
+        headers: buildCorsHeaders(req),
+      },
     );
   }
 }

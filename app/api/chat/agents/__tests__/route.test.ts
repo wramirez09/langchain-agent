@@ -16,38 +16,46 @@ jest.mock('@/lib/usage', () => ({
   reportUsage: jest.fn().mockResolvedValue(undefined),
 }))
 
-jest.mock('@/lib/error-tracking', () => ({
-  errorTracker: {
-    trackError: jest.fn(() => ({
+jest.mock('@/lib/error-tracking', () => {
+  const trackError = jest.fn(() => ({
+    id: 'err_test_123',
+    userMessage: 'err',
+    technicalMessage: 'tech',
+    retryAttempts: 0,
+    canRetry: false,
+  }))
+  return {
+    errorTracker: { trackError },
+    trackRetryError: jest.fn(() => ({
+      id: 'err_test_123',
       userMessage: 'err',
       technicalMessage: 'tech',
       retryAttempts: 0,
       canRetry: false,
     })),
-  },
-  trackRetryError: jest.fn(() => ({
-    userMessage: 'err',
-    technicalMessage: 'tech',
-    retryAttempts: 0,
-    canRetry: false,
-  })),
-  createClientErrorNotification: jest.fn((info: any) => info),
-}))
+    createClientErrorNotification: jest.fn((info: any) => info),
+  }
+})
+
+const { errorTracker } = require('@/lib/error-tracking')
+const trackErrorMock = errorTracker.trackError as jest.Mock
 
 jest.mock('@/lib/retry', () => ({
-  withRetry: async (fn: any) => {
-    try {
-      const data = await fn()
-      return { success: true, data, attempts: 1 }
-    } catch (error) {
-      return { success: false, error, attempts: 1 }
-    }
-  },
+  withRetry: jest.fn(),
   RETRY_CONFIGS: { LLM_API: {} },
 }))
 
+const { withRetry } = require('@/lib/retry')
+const withRetryMock = withRetry as jest.Mock
+
 jest.mock('../../../../../lib/auth/getUserFromRequest', () => ({
   getUserFromRequest: jest.fn().mockResolvedValue({ id: 'user-123', email: 'u@x' }),
+}))
+
+jest.mock('@vercel/functions', () => ({
+  waitUntil: (p: Promise<any>) => {
+    void p.catch(() => {})
+  },
 }))
 
 const streamEventsMock = jest.fn()
@@ -83,7 +91,7 @@ jest.mock('ai', () => ({
   },
 }))
 
-import { POST } from '../route'
+import { POST, OPTIONS } from '../route'
 
 type Row = Record<string, any>
 
@@ -105,6 +113,13 @@ function setupSupabase() {
 function makeReq(body: any, headers: Record<string, string> = {}) {
   return {
     json: async () => body,
+    headers: { get: (k: string) => headers[k.toLowerCase()] ?? null },
+  } as any
+}
+
+function makeReqRawJson(jsonImpl: () => Promise<any>, headers: Record<string, string> = {}) {
+  return {
+    json: jsonImpl,
     headers: { get: (k: string) => headers[k.toLowerCase()] ?? null },
   } as any
 }
@@ -131,6 +146,203 @@ beforeEach(() => {
   setupSupabase()
   streamEventsMock.mockReset()
   invokeMock.mockReset()
+  withRetryMock.mockReset()
+  trackErrorMock.mockClear()
+})
+
+describe('CORS', () => {
+  it('echoes allowed origin on POST', async () => {
+    streamEventsMock.mockReturnValue(eventsFromContent(['x']))
+    const res = await POST(
+      makeReq(
+        { messages: [{ role: 'user', content: 'hi' }] },
+        { origin: 'https://app.notedoctor.ai' },
+      ),
+    )
+    expect(res.headers.get('Access-Control-Allow-Origin')).toBe(
+      'https://app.notedoctor.ai',
+    )
+    expect(res.headers.get('Vary')).toBe('Origin')
+    await consumeStream((res as any).body)
+  })
+
+  it('returns empty allow-origin for disallowed origin', async () => {
+    streamEventsMock.mockReturnValue(eventsFromContent(['x']))
+    const res = await POST(
+      makeReq(
+        { messages: [{ role: 'user', content: 'hi' }] },
+        { origin: 'https://attacker.com' },
+      ),
+    )
+    expect(res.headers.get('Access-Control-Allow-Origin')).toBe('')
+    await consumeStream((res as any).body)
+  })
+
+  it('mobile request with no Origin header succeeds end-to-end', async () => {
+    invokeMock.mockResolvedValue({
+      messages: [
+        { _getType: () => 'human', content: 'hi' },
+        { _getType: () => 'ai', content: 'reply' },
+      ],
+    })
+    const res: any = await POST(
+      makeReq(
+        { messages: [{ role: 'user', content: 'hi' }] },
+        { 'x-client': 'mobile' },
+      ),
+    )
+    expect(res.headers.get('Access-Control-Allow-Origin')).toBe('')
+    const json = await res.json()
+    expect(json.threadId).toMatch(/[0-9a-f-]{36}/i)
+  })
+
+  it('OPTIONS from allowed origin returns 200 with matching CORS', async () => {
+    const res = await OPTIONS(
+      makeReq(null, { origin: 'https://app.notedoctor.ai' }),
+    )
+    expect(res.status).toBe(200)
+    expect(res.headers.get('Access-Control-Allow-Origin')).toBe(
+      'https://app.notedoctor.ai',
+    )
+    expect(res.headers.get('Access-Control-Allow-Methods')).toBe(
+      'POST, OPTIONS',
+    )
+  })
+})
+
+describe('input validation', () => {
+  it('returns 400 INVALID_JSON when body is unparseable', async () => {
+    const res: any = await POST(
+      makeReqRawJson(async () => {
+        throw new Error('bad')
+      }),
+    )
+    expect(res.status).toBe(400)
+    expect(await res.json()).toEqual({ error: 'INVALID_JSON', requestId: null })
+  })
+
+  it('returns 400 INVALID_REQUEST_BODY for empty messages array', async () => {
+    const res: any = await POST(makeReq({ messages: [] }))
+    expect(res.status).toBe(400)
+    expect((await res.json()).error).toBe('INVALID_REQUEST_BODY')
+  })
+
+  it('rejects more than 50 messages', async () => {
+    const messages = Array.from({ length: 51 }, () => ({
+      role: 'user',
+      content: 'x',
+    }))
+    const res: any = await POST(makeReq({ messages }))
+    expect(res.status).toBe(400)
+    expect((await res.json()).error).toBe('INVALID_REQUEST_BODY')
+  })
+
+  it('rejects content > 10,000 chars', async () => {
+    const big = 'x'.repeat(10_001)
+    const res: any = await POST(
+      makeReq({ messages: [{ role: 'user', content: big }] }),
+    )
+    expect(res.status).toBe(400)
+    expect((await res.json()).error).toBe('INVALID_REQUEST_BODY')
+  })
+
+  it('rejects non-uuid threadId', async () => {
+    const res: any = await POST(
+      makeReq({
+        messages: [{ role: 'user', content: 'hi' }],
+        threadId: 'not-a-uuid',
+      }),
+    )
+    expect(res.status).toBe(400)
+    expect((await res.json()).error).toBe('INVALID_REQUEST_BODY')
+  })
+
+  it('accepts undefined threadId and generates server-side UUID', async () => {
+    streamEventsMock.mockReturnValue(eventsFromContent(['x']))
+    const res = await POST(makeReq({ messages: [{ role: 'user', content: 'hi' }] }))
+    expect(res.headers.get('x-thread-id')).toMatch(/[0-9a-f-]{36}/i)
+    await consumeStream((res as any).body)
+  })
+
+  it('valid body proceeds to agent invocation', async () => {
+    streamEventsMock.mockReturnValue(eventsFromContent(['ok']))
+    const res = await POST(
+      makeReq({
+        messages: [{ role: 'user', content: 'hi' }],
+        threadId: 'aaaaaaaa-bbbb-4ccc-8ddd-eeeeeeeeeee1',
+      }),
+    )
+    expect(streamEventsMock).toHaveBeenCalled()
+    await consumeStream((res as any).body)
+  })
+})
+
+describe('error response shape', () => {
+  it('mobile agent failure returns AGENT_EXECUTION_FAILED with requestId only', async () => {
+    invokeMock.mockRejectedValue(new Error('boom'))
+    const res: any = await POST(
+      makeReq(
+        { messages: [{ role: 'user', content: 'hi' }] },
+        { 'x-client': 'mobile' },
+      ),
+    )
+    expect(res.status).toBe(500)
+    const json = await res.json()
+    expect(json).toEqual({
+      error: 'AGENT_EXECUTION_FAILED',
+      requestId: 'err_test_123',
+    })
+    expect(json.technicalError).toBeUndefined()
+    expect(json.userMessage).toBeUndefined()
+    expect(json.retryAttempts).toBeUndefined()
+    expect(json.canRetry).toBeUndefined()
+  })
+
+  it('outer exception returns INTERNAL_ERROR with requestId only', async () => {
+    const { getUserFromRequest } = require('../../../../../lib/auth/getUserFromRequest')
+    ;(getUserFromRequest as jest.Mock).mockRejectedValueOnce(new Error('auth fail'))
+
+    const res: any = await POST(makeReq({ messages: [{ role: 'user', content: 'hi' }] }))
+    const json = await res.json()
+    expect(json.error).toBe('INTERNAL_ERROR')
+    expect(json.requestId).toBe('err_test_123')
+    expect(json.technicalError).toBeUndefined()
+  })
+})
+
+describe('recursionLimit and retry', () => {
+  it('invokes agent with recursionLimit 15 (mobile)', async () => {
+    invokeMock.mockResolvedValue({
+      messages: [
+        { _getType: () => 'human', content: 'hi' },
+        { _getType: () => 'ai', content: 'r' },
+      ],
+    })
+    await POST(
+      makeReq(
+        { messages: [{ role: 'user', content: 'hi' }] },
+        { 'x-client': 'mobile' },
+      ),
+    )
+    const cfg = invokeMock.mock.calls[0][1]
+    expect(cfg.recursionLimit).toBe(15)
+  })
+
+  it('does not call withRetry on the mobile branch', async () => {
+    invokeMock.mockResolvedValue({
+      messages: [
+        { _getType: () => 'human', content: 'hi' },
+        { _getType: () => 'ai', content: 'r' },
+      ],
+    })
+    await POST(
+      makeReq(
+        { messages: [{ role: 'user', content: 'hi' }] },
+        { 'x-client': 'mobile' },
+      ),
+    )
+    expect(withRetryMock).not.toHaveBeenCalled()
+  })
 })
 
 describe('POST /api/chat/agents — web (streaming)', () => {
@@ -139,12 +351,16 @@ describe('POST /api/chat/agents — web (streaming)', () => {
     streamEventsMock.mockReturnValue(eventsFromContent(chunks))
 
     const res = await POST(
-      makeReq({ messages: [{ role: 'user', content: 'hi' }] }),
+      makeReq(
+        { messages: [{ role: 'user', content: 'hi' }] },
+        { origin: 'https://app.notedoctor.ai' },
+      ),
     )
 
     expect(res.headers.get('Content-Type')).toBe('text/plain; charset=utf-8')
-    expect(res.headers.get('Access-Control-Allow-Origin')).toBe('*')
-    expect(res.headers.get('Access-Control-Allow-Headers')).toBe('authorization, content-type')
+    expect(res.headers.get('Access-Control-Allow-Origin')).toBe(
+      'https://app.notedoctor.ai',
+    )
     expect(res.headers.get('x-thread-id')).toMatch(/[0-9a-f-]{36}/i)
 
     const body = await consumeStream((res as any).body)
@@ -172,7 +388,7 @@ describe('POST /api/chat/agents — web (streaming)', () => {
     const res = await POST(
       makeReq({
         messages: [{ role: 'user', content: 'hi' }],
-        threadId: '00000000-0000-0000-0000-000000000001',
+        threadId: 'aaaaaaaa-bbbb-4ccc-8ddd-eeeeeeeeeee1',
       }),
     )
     await consumeStream((res as any).body)
@@ -184,7 +400,7 @@ describe('POST /api/chat/agents — web (streaming)', () => {
     const assistantCall = insertMock.mock.calls.find((c) => c[0].role === 'assistant')!
     expect(assistantCall[0].content).toBe('AB')
     expect(assistantCall[0].status).toBe('complete')
-    expect(assistantCall[0].thread_id).toBe('00000000-0000-0000-0000-000000000001')
+    expect(assistantCall[0].thread_id).toBe('aaaaaaaa-bbbb-4ccc-8ddd-eeeeeeeeeee1')
     expect(assistantCall[0].is_thread_starter).toBe(false)
   })
 
@@ -254,7 +470,7 @@ describe('POST /api/chat/agents — web (streaming)', () => {
     const res = await POST(
       makeReq({
         messages: [{ role: 'user', content: 'hi' }],
-        threadId: '00000000-0000-0000-0000-000000000002',
+        threadId: 'aaaaaaaa-bbbb-4ccc-8ddd-eeeeeeeeeee2',
       }),
     )
     await consumeStream((res as any).body)
@@ -287,6 +503,7 @@ describe('POST /api/chat/agents — mobile (JSON)', () => {
       { role: 'user', content: 'hi' },
       { role: 'assistant', content: 'hello back' },
     ])
+    expect(json.technicalError).toBeUndefined()
   })
 
   it('persists assistant message; returns JSON even if persistence fails', async () => {
@@ -311,6 +528,7 @@ describe('POST /api/chat/agents — mobile (JSON)', () => {
     const json = await res.json()
     expect(json.messages[1].content).toBe('reply')
 
+    await new Promise((r) => setTimeout(r, 0))
     const assistantCall = insertMock.mock.calls.find((c) => c[0].role === 'assistant')
     expect(assistantCall).toBeDefined()
   })

@@ -1,35 +1,32 @@
 #!/usr/bin/env sh
 
-# Run tests + build before pushing to protected branches (main, dev).
-# Pushes to other branches skip this gate.
+# Tests gate every push. Build only runs for protected branches (main, dev).
 
 protected="refs/heads/main refs/heads/dev"
-should_run=0
+should_build=0
 target=""
 
 while read -r local_ref local_sha remote_ref remote_sha; do
   for b in $protected; do
     if [ "$remote_ref" = "$b" ]; then
-      should_run=1
+      should_build=1
       target="$remote_ref"
     fi
   done
 done
 
-if [ "$should_run" -eq 0 ]; then
-  exit 0
-fi
-
-echo "[pre-push] Pushing to $target — running jest and next build..."
-
+echo "[pre-push] Running jest..."
 yarn jest --no-coverage --passWithNoTests || {
   echo "[pre-push] Tests failed. Push aborted."
   exit 1
 }
 
-yarn build || {
-  echo "[pre-push] Build failed. Push aborted."
-  exit 1
-}
+if [ "$should_build" -eq 1 ]; then
+  echo "[pre-push] Pushing to $target — running next build..."
+  yarn build || {
+    echo "[pre-push] Build failed. Push aborted."
+    exit 1
+  }
+fi
 
 echo "[pre-push] OK."

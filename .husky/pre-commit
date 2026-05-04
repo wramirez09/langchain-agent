@@ -1,0 +1,12 @@
+#!/usr/bin/env sh
+
+# Block commits when unit tests fail.
+
+echo "[pre-commit] Running jest..."
+
+yarn jest --no-coverage --passWithNoTests --silent || {
+  echo "[pre-commit] Tests failed. Commit aborted."
+  exit 1
+}
+
+echo "[pre-commit] OK."
