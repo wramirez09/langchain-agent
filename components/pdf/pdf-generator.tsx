@@ -142,7 +142,7 @@ const PdfDocument: React.FC<PdfDocumentProps> = ({ name, role, messages, logoBas
     console.log({message})
     // Track current section as we process lines (mimics sectionTracker from ChatMessageBubble)
     const sectionTracker = { current: null as 'medical-necessity-zone' | 'exclusions' | 'summary' | 'relevant-codes' | null };
-    const lines = message.content.split('\n');
+    const lines = (typeof message.content === 'string' ? message.content : '').split('\n');
     const renderedLines: React.ReactElement[] = [];
 
     lines.forEach((line, i) => {

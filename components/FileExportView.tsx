@@ -22,11 +22,38 @@ const PdfDoc = dynamic(() => import("@/components/PdfDoc"), {
   ),
 });
 
+// AI SDK 3 sometimes stores streamed text in `message.parts` while leaving
+// `message.content` as an empty string. The PDF generator (and the filter
+// below) read `message.content` directly, which yields an empty PDF or
+// throws on `.split('\n')`. Normalize once at the boundary so downstream
+// code can keep treating content as a string.
+function normalizeContent(message: Message): Message {
+  const hasContent =
+    typeof message.content === 'string' && message.content.length > 0;
+  if (hasContent) return message;
+
+  const parts = (message as Message & { parts?: Array<{ type: string; text?: string }> }).parts;
+  if (Array.isArray(parts)) {
+    const text = parts
+      .filter((p) => p && p.type === 'text' && typeof p.text === 'string')
+      .map((p) => p.text!)
+      .join('\n');
+    if (text) return { ...message, content: text };
+  }
+  return { ...message, content: '' };
+}
+
 function filterMessages(messages: Message[]): Message[] {
-  return messages.filter((message) => {
+  return messages.map(normalizeContent).filter((message) => {
     // Filter out system messages
     if (message.role === "system") return false;
     
+    // Drop messages with no extractable text (after normalizeContent merged
+    // any `parts`). Without this they render as empty PDF blocks.
+    if (typeof message.content !== 'string' || message.content.trim().length === 0) {
+      return false;
+    }
+
     // Filter out tool call messages - be specific to avoid filtering legitimate content
     if (message.content && typeof message.content === "string") {
       const content = message.content.trim();
