@@ -22,25 +22,26 @@ const PdfDoc = dynamic(() => import("@/components/PdfDoc"), {
   ),
 });
 
-// AI SDK 3 sometimes stores streamed text in `message.parts` while leaving
-// `message.content` as an empty string. The PDF generator (and the filter
-// below) read `message.content` directly, which yields an empty PDF or
-// throws on `.split('\n')`. Normalize once at the boundary so downstream
-// code can keep treating content as a string.
+// AI SDK 3 spreads streamed text across `message.content` (often only the
+// first chunk) and `message.parts` (the full accumulated stream as one or
+// more text parts). The PDF generator reads `message.content` directly,
+// which produced a truncated PDF where only the heading rendered. Take the
+// longer of the two so we always pick up the complete text regardless of
+// which field the SDK chose to populate fully.
 function normalizeContent(message: Message): Message {
-  const hasContent =
-    typeof message.content === 'string' && message.content.length > 0;
-  if (hasContent) return message;
+  const contentText =
+    typeof message.content === 'string' ? message.content : '';
 
   const parts = (message as Message & { parts?: Array<{ type: string; text?: string }> }).parts;
-  if (Array.isArray(parts)) {
-    const text = parts
-      .filter((p) => p && p.type === 'text' && typeof p.text === 'string')
-      .map((p) => p.text!)
-      .join('\n');
-    if (text) return { ...message, content: text };
-  }
-  return { ...message, content: '' };
+  const partsText = Array.isArray(parts)
+    ? parts
+        .filter((p) => p && p.type === 'text' && typeof p.text === 'string')
+        .map((p) => p.text!)
+        .join('\n')
+    : '';
+
+  const text = partsText.length > contentText.length ? partsText : contentText;
+  return { ...message, content: text };
 }
 
 function filterMessages(messages: Message[]): Message[] {
