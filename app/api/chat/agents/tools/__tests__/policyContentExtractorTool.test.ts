@@ -52,7 +52,7 @@ describe('policyContentExtractorTool', () => {
     } as any) as any
 
     const out = await policyContentExtractorTool._call({
-      policyUrls: ['https://example.com/policy'],
+      policyUrls: ['https://www.cms.gov/policy'],
     } as any)
     const parsed = JSON.parse(out)
     expect(parsed.priorAuthRequired).toBe('YES')
@@ -67,7 +67,7 @@ describe('policyContentExtractorTool', () => {
     } as any) as any
 
     const out = await policyContentExtractorTool._call({
-      policyUrls: ['https://example.com/policy'],
+      policyUrls: ['https://www.cms.gov/policy'],
     } as any)
     const parsed = JSON.parse(out)
     expect(parsed.error).toMatch(/Content too short/)
@@ -81,10 +81,21 @@ describe('policyContentExtractorTool', () => {
       headers: { get: () => 'text/html' },
     } as any) as any
     const out = await policyContentExtractorTool._call({
-      policyUrls: ['https://example.com/policy'],
+      policyUrls: ['https://www.cms.gov/policy'],
     } as any)
     const parsed = JSON.parse(out)
     expect(parsed.error).toMatch(/HTTP 500/)
+  })
+
+  it('rejects non-allowlisted hosts (SSRF guard)', async () => {
+    const fetchSpy = jest.fn()
+    global.fetch = fetchSpy as any
+    const out = await policyContentExtractorTool._call({
+      policyUrls: ['http://169.254.169.254/latest/meta-data'],
+    } as any)
+    const parsed = JSON.parse(out)
+    expect(parsed.error).toMatch(/not in allowlist/)
+    expect(fetchSpy).not.toHaveBeenCalled()
   })
 
   it('returns array when multiple URLs', async () => {
@@ -96,7 +107,7 @@ describe('policyContentExtractorTool', () => {
     } as any) as any
 
     const out = await policyContentExtractorTool._call({
-      policyUrls: ['https://a.com/p', 'https://b.com/p'],
+      policyUrls: ['https://www.cms.gov/a', 'https://www.hhs.gov/b'],
     } as any)
     const parsed = JSON.parse(out)
     expect(Array.isArray(parsed)).toBe(true)

@@ -7,6 +7,37 @@ import { cache, TTL } from "@/lib/cache";
 
 const POLICY_EXTRACT_MAX_CHARS = 25_000;
 
+// SECURITY: SSRF allowlist. policyUrls is LLM-controlled and prompt-
+// injectable; without this guard the agent can fetch cloud-metadata
+// endpoints (169.254.169.254), internal services, or file:// URLs.
+// Hosts are matched as exact suffix on the URL hostname.
+const ALLOWED_POLICY_HOST_SUFFIXES = [
+  "cms.gov",
+  "hhs.gov",
+  "medicare.gov",
+  "noridianmedicare.com",
+  "palmettogba.com",
+  "ngsmedicare.com",
+  "novitas-solutions.com",
+  "wpsgha.com",
+  "fcso.com",
+  "cgsmedicare.com",
+];
+
+function isAllowedPolicyUrl(rawUrl: string): boolean {
+  let parsed: URL;
+  try {
+    parsed = new URL(rawUrl);
+  } catch {
+    return false;
+  }
+  if (parsed.protocol !== "https:" && parsed.protocol !== "http:") return false;
+  const host = parsed.hostname.toLowerCase();
+  return ALLOWED_POLICY_HOST_SUFFIXES.some(
+    (suffix) => host === suffix || host.endsWith("." + suffix),
+  );
+}
+
 export interface ExtractedPolicyDetails {
   priorAuthRequired: "YES" | "NO" | "CONDITIONAL" | "UNKNOWN";
   medicalNecessityCriteria: string[];
@@ -150,8 +181,33 @@ class PolicyContentExtractorTool extends StructuredTool<
         ? `https://www.cms.gov/medicare-coverage-database/view/ncd.aspx?ncdid=${ncdMatch[1]}`
         : policyUrl;
 
+      if (!isAllowedPolicyUrl(fetchUrl)) {
+        clearTimeout(timeout);
+        console.warn(
+          `[PolicyContentExtractorTool] Rejecting non-allowlisted host: ${fetchUrl}`,
+        );
+        return JSON.stringify({
+          error: `URL host not in allowlist: ${policyUrl}`,
+          policyUrl,
+        });
+      }
+
       const fetchStart = Date.now();
-      const response = await fetch(fetchUrl, { signal });
+      // redirect: 'manual' so the allowlisted host can't bounce us into an
+      // internal one. Any 3xx Location is re-validated against the allowlist.
+      let response = await fetch(fetchUrl, { signal, redirect: "manual" });
+      if (response.status >= 300 && response.status < 400) {
+        const location = response.headers.get("location") ?? "";
+        const next = new URL(location, fetchUrl).toString();
+        if (!isAllowedPolicyUrl(next)) {
+          clearTimeout(timeout);
+          return JSON.stringify({
+            error: `Redirect target not in allowlist: ${policyUrl}`,
+            policyUrl,
+          });
+        }
+        response = await fetch(next, { signal, redirect: "manual" });
+      }
       if (!response.ok) throw new Error(`HTTP ${response.status} ${response.statusText}`);
 
       clearTimeout(timeout);

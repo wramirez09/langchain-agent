@@ -7,11 +7,14 @@ jest.mock('fs', () => ({
 jest.mock('cross-fetch', () => jest.fn())
 
 import { promises as fs } from 'fs'
+import * as os from 'os'
+import * as path from 'path'
 import fetch from 'cross-fetch'
 import { FileUploadTool } from '../fileUploadTool'
 
 const mockedReadFile = fs.readFile as jest.Mock
 const mockedFetch = fetch as unknown as jest.Mock
+const TMP_FILE = path.join(os.tmpdir(), 'file.pdf')
 
 describe('FileUploadTool', () => {
   let tool: FileUploadTool
@@ -33,7 +36,7 @@ describe('FileUploadTool', () => {
       ok: true,
       json: async () => ({ docs: [] }),
     })
-    const out = await tool._call({ input: '/x/file.pdf::what is this' })
+    const out = await tool._call({ input: `${TMP_FILE}::what is this` })
     expect(out).toMatch(/No relevant information found/)
   })
 
@@ -44,7 +47,7 @@ describe('FileUploadTool', () => {
       status: 500,
       text: async () => 'server error',
     })
-    const out = await tool._call({ input: '/x/file.pdf::q' })
+    const out = await tool._call({ input: `${TMP_FILE}::q` })
     expect(out).toMatch(/Failed to process file/)
   })
 
@@ -64,7 +67,7 @@ describe('FileUploadTool', () => {
           candidates: [{ content: { parts: [{ text: '## Analysis Result' }] } }],
         }),
       })
-    const out = await tool._call({ input: '/x/file.pdf::what is this' })
+    const out = await tool._call({ input: `${TMP_FILE}::what is this` })
     expect(out).toContain('## Analysis Result')
   })
 
@@ -79,7 +82,7 @@ describe('FileUploadTool', () => {
         ok: true,
         json: async () => ({}),
       })
-    const out = await tool._call({ input: '/x/file.pdf::q' })
+    const out = await tool._call({ input: `${TMP_FILE}::q` })
     expect(out).toContain('Failed to generate a summary')
   })
 
@@ -91,13 +94,13 @@ describe('FileUploadTool', () => {
         json: async () => ({ docs: [{ pageContent: 'text' }] }),
       })
       .mockRejectedValueOnce(new Error('llm offline'))
-    const out = await tool._call({ input: '/x/file.pdf::q' })
+    const out = await tool._call({ input: `${TMP_FILE}::q` })
     expect(out).toContain('error occurred during summarization')
   })
 
   it('returns error if read fails', async () => {
     mockedReadFile.mockRejectedValue(new Error('disk gone'))
-    const out = await tool._call({ input: '/x/file.pdf::q' })
+    const out = await tool._call({ input: `${TMP_FILE}::q` })
     expect(out).toMatch(/Failed to process file/)
     expect(out).toMatch(/disk gone/)
   })

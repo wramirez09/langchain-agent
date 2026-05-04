@@ -97,16 +97,20 @@ type Row = Record<string, any>
 
 function setupSupabase() {
   insertMock.mockReset().mockResolvedValue({ data: null, error: null })
-  selectMock.mockReset().mockReturnValue({
+  // Supports two chains used by the route:
+  //   .select('id').eq().eq().limit()                        — thread-starter probe
+  //   .select('id', {count:'exact',head:true}).eq().eq().gte() — rate-limit count
+  selectMock.mockReset().mockImplementation(() => ({
     eq: () => ({
       eq: () => ({
         limit: () => Promise.resolve({ data: [], error: null }),
+        gte: () => Promise.resolve({ count: 0, error: null }),
       }),
     }),
-  })
+  }))
   fromMock.mockReset().mockImplementation(() => ({
     insert: (row: Row) => insertMock(row),
-    select: (cols: string) => selectMock(cols),
+    select: (cols: string, opts?: any) => selectMock(cols, opts),
   }))
 }
 
@@ -376,7 +380,10 @@ describe('POST /api/chat/agents — web (streaming)', () => {
       },
       select: () => ({
         eq: () => ({
-          eq: () => ({ limit: () => Promise.resolve({ data: [], error: null }) }),
+          eq: () => ({
+            limit: () => Promise.resolve({ data: [], error: null }),
+            gte: () => Promise.resolve({ count: 0, error: null }),
+          }),
         }),
       }),
     }))
@@ -454,6 +461,34 @@ describe('POST /api/chat/agents — web (streaming)', () => {
     expect(userCall[0].is_thread_starter).toBe(true)
   })
 
+  it('returns 429 RATE_LIMIT_EXCEEDED when daily count is at cap', async () => {
+    const prev = process.env.AGENT_RATE_LIMIT_PER_DAY
+    process.env.AGENT_RATE_LIMIT_PER_DAY = '5'
+    try {
+      fromMock.mockImplementation(() => ({
+        insert: (row: Row) => insertMock(row),
+        select: () => ({
+          eq: () => ({
+            eq: () => ({
+              limit: () => Promise.resolve({ data: [], error: null }),
+              gte: () => Promise.resolve({ count: 5, error: null }),
+            }),
+          }),
+        }),
+      }))
+      const res: any = await POST(
+        makeReq({ messages: [{ role: 'user', content: 'hi' }] }),
+      )
+      expect(res.status).toBe(429)
+      const json = await res.json()
+      expect(json.error).toBe('RATE_LIMIT_EXCEEDED')
+      expect(res.headers.get('Retry-After')).toBe('3600')
+      expect(insertMock).not.toHaveBeenCalled()
+    } finally {
+      process.env.AGENT_RATE_LIMIT_PER_DAY = prev
+    }
+  })
+
   it('marks user message as non-starter when threadId already has rows', async () => {
     fromMock.mockImplementation(() => ({
       insert: (row: Row) => insertMock(row),
@@ -461,6 +496,7 @@ describe('POST /api/chat/agents — web (streaming)', () => {
         eq: () => ({
           eq: () => ({
             limit: () => Promise.resolve({ data: [{ id: 'existing' }], error: null }),
+            gte: () => Promise.resolve({ count: 0, error: null }),
           }),
         }),
       }),

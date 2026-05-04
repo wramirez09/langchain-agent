@@ -17,7 +17,6 @@ import { localLcdSearchTool } from "./tools/localLcdSearchTool";
 import { localCoverageArticleSearchTool } from "./tools/localArticleSearchTool";
 import { policyContentExtractorTool } from "./tools/policyContentExtractorTool";
 import { createCommercialGuidelineSearchTool } from "./tools/CommercialGuidelineSearchTool";
-import { FileUploadTool } from "./tools/fileUploadTool";
 import { reportUsage } from "@/lib/usage";
 import { getUserFromRequest } from "../../../../lib/auth/getUserFromRequest";
 import { errorTracker } from "@/lib/error-tracking";
@@ -116,6 +115,47 @@ export async function POST(req: NextRequest) {
     const body = parsed.data;
     const clientType = req.headers.get("x-client") ?? "web";
 
+    /* ---------- RATE LIMIT ---------- */
+    // Per-user daily cap on agent runs. Counts the user's "user"-role rows
+    // in chat_messages over the last 24h. This is a cost-runaway guard,
+    // not anti-abuse — a real rate limiter would use Redis/KV. The cap
+    // is generous; legitimate clinical workflows do not approach it.
+    const RATE_LIMIT_PER_DAY = Number(
+      process.env.AGENT_RATE_LIMIT_PER_DAY ?? 200,
+    );
+    if (RATE_LIMIT_PER_DAY > 0) {
+      const since = new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString();
+      const { count, error: rateErr } = await supabaseAdmin
+        .from("chat_messages")
+        .select("id", { count: "exact", head: true })
+        .eq("user_id", userId)
+        .eq("role", "user")
+        .gte("created_at", since);
+      if (rateErr) {
+        console.error(
+          `[Agents API] Rate-limit query failed for ${userId}:`,
+          rateErr,
+        );
+        // Fail open: a database hiccup must not lock users out of a
+        // healthcare workflow. The cost-runaway risk over a single
+        // request is bounded by recursionLimit.
+      } else if ((count ?? 0) >= RATE_LIMIT_PER_DAY) {
+        console.warn(
+          `[Agents API] Rate limit exceeded for ${userId}: ${count}/${RATE_LIMIT_PER_DAY}`,
+        );
+        return NextResponse.json(
+          { error: "RATE_LIMIT_EXCEEDED", requestId: null },
+          {
+            status: 429,
+            headers: {
+              ...buildCorsHeaders(req),
+              "Retry-After": "3600",
+            },
+          },
+        );
+      }
+    }
+
     const messages = body.messages
       .filter((m) => m.role === "user" || m.role === "assistant")
       .map(convertVercelMessageToLangChainMessage);
@@ -168,6 +208,10 @@ export async function POST(req: NextRequest) {
     // Initialize commercial guideline search tool (documents pre-loaded at module scope)
     const commercialGuidelineTool = createCommercialGuidelineSearchTool();
 
+    // FileUploadTool removed: response parser expects Gemini shape but
+    // calls OpenAI, so it always returned "Failed to generate a summary."
+    // It also reads arbitrary file paths from LLM input. Files reach the
+    // agent via /api/retrieval/ingest → vector store, not this tool.
     const tools = [
       new SerpAPI(),
       commercialGuidelineTool,
@@ -175,7 +219,6 @@ export async function POST(req: NextRequest) {
       localLcdSearchTool,
       localCoverageArticleSearchTool,
       policyContentExtractorTool,
-      new FileUploadTool(),
     ];
 
     /* ---------- AGENT ---------- */
@@ -339,13 +382,21 @@ export async function POST(req: NextRequest) {
     // Note: withRetry is intentionally not used here. ReadableStream errors propagate
     // through controller.error(), not as rejected promises, so retry wrappers are
     // ineffective on streaming paths. Errors are caught by the outer try/catch.
+    //
+    // streamAbort fires when the client cancels (browser tab closed, fetch
+    // aborted, navigation away). Without it the LangChain run keeps going,
+    // burning OpenAI tokens until recursionLimit — a real cost-leak vector.
+    const streamAbort = new AbortController();
     const eventStream = agent.streamEvents(
       { messages },
       {
         version: "v2",
+        signal: streamAbort.signal,
         ...agentConfig,
       },
     );
+
+    let clientCancelled = false;
 
     const readable = new ReadableStream({
       async start(controller) {
@@ -410,7 +461,8 @@ export async function POST(req: NextRequest) {
                 thread_id: threadId,
                 role: "assistant",
                 content: accumulated,
-                status: streamCompleted ? "complete" : "partial",
+                status:
+                  streamCompleted && !clientCancelled ? "complete" : "partial",
                 is_thread_starter: false,
               });
             } catch (persistErr) {
@@ -430,6 +482,14 @@ export async function POST(req: NextRequest) {
           }
           controller.close();
         }
+      },
+      cancel(reason) {
+        clientCancelled = true;
+        console.log(
+          `[Agents API] Client cancelled stream for user ${userId}:`,
+          reason,
+        );
+        streamAbort.abort();
       },
     });
 

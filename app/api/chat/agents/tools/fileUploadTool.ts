@@ -143,13 +143,25 @@ export class FileUploadTool extends StructuredTool<
         );
       }
 
+      // SECURITY: filePath comes from the LLM, which can be prompt-injected.
+      // Restrict to the system tmp directory and reject path traversal.
+      // Without this, the agent can read arbitrary files (.env, /etc/passwd).
+      const TMP_PREFIX = path.resolve(require("os").tmpdir());
+      const resolvedPath = path.resolve(filePath);
+      if (
+        !resolvedPath.startsWith(TMP_PREFIX + path.sep) ||
+        resolvedPath.includes("\0")
+      ) {
+        return `Failed to process file. Error: file path must be inside ${TMP_PREFIX}.`;
+      }
+
       // 2. Read the file into a buffer.
-      const fileBuffer = await fs.readFile(filePath);
+      const fileBuffer = await fs.readFile(resolvedPath);
 
       // 3. Create a FormData object, adding both the file and the query.
       const formData = new FormData();
       formData.append("file", fileBuffer, {
-        filename: path.basename(filePath),
+        filename: path.basename(resolvedPath),
         contentType: "application/pdf",
       });
       formData.append("query", query); // Add the query to the form data
