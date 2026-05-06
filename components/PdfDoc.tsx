@@ -356,14 +356,17 @@ const PdfDoc: React.FC<PdfProps> = React.memo(({ name, role, messages }) => {
   if (prevProps.messages.length !== nextProps.messages.length) {
     return false; // Props changed, re-render
   }
-  
-  // Compare message IDs to detect changes
+
+  // Compare id AND content. During streaming, AI SDK keeps the same message
+  // id while content grows; comparing by id alone froze the preview at the
+  // first chunk and it never updated when the stream finished.
   for (let i = 0; i < prevProps.messages.length; i++) {
-    if (prevProps.messages[i].id !== nextProps.messages[i].id) {
-      return false; // Props changed, re-render
-    }
+    const prev = prevProps.messages[i];
+    const next = nextProps.messages[i];
+    if (prev.id !== next.id) return false;
+    if (prev.content !== next.content) return false;
   }
-  
+
   return true; // Props same, skip re-render
 });
 
