@@ -16,6 +16,7 @@ import { PriorAuthTabs } from "@/components/prior-auth/PriorAuthTabs";
 import { PriorAuthFormPanel } from "@/components/prior-auth/PriorAuthFormPanel";
 import { PriorAuthChatPanel } from "@/components/prior-auth/PriorAuthChatPanel";
 import { PriorAuthOutputPanel } from "@/components/prior-auth/PriorAuthOutputPanel";
+import { createChatFetchWithRetry } from "@/lib/priorAuth/chatFetchWithRetry";
 
 interface PriorAuthViewProps {
   pendingMessage?: string | null;
@@ -59,11 +60,34 @@ export function PriorAuthView({
     load();
   }, []);
 
+  // Warm up the agent lambda so the user's first submission hits a hot
+  // container instead of paying cold-start latency. Best-effort — failures
+  // are silently ignored; chatFetchWithRetry handles the actual retry.
+  useEffect(() => {
+    const controller = new AbortController();
+    fetch("/api/chat/agents", {
+      method: "GET",
+      signal: controller.signal,
+      cache: "no-store",
+    }).catch(() => { /* ignore */ });
+    return () => controller.abort();
+  }, []);
+
   const { errors, addError, dismissError, retryError } = useErrorNotifications();
+
+  const chatFetchRef = useRef<typeof fetch | null>(null);
+  if (!chatFetchRef.current) {
+    chatFetchRef.current = createChatFetchWithRetry({
+      onRetry: (attempt, reason) => {
+        console.warn(`[chat] retry ${attempt} — ${reason}`);
+      },
+    });
+  }
 
   const chat = useChat({
     api: "/api/chat/agents",
     streamMode: "text",
+    fetch: chatFetchRef.current,
     onFinish(assistantMessage) {
       setIntermediateStepsLoading(false);
       setIsLoading(false);

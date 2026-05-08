@@ -80,6 +80,20 @@ export async function OPTIONS(req: NextRequest) {
   return new Response(null, { headers: buildCorsHeaders(req) });
 }
 
+/* -------------------- GET (warm-up ping) --------------------
+ * Cheap no-op so the client can pre-warm this lambda while the
+ * user is still filling out the form. Runs no LLM calls. */
+export async function GET(req: NextRequest) {
+  return new Response(JSON.stringify({ ok: true, ts: Date.now() }), {
+    status: 200,
+    headers: {
+      ...buildCorsHeaders(req),
+      "content-type": "application/json",
+      "cache-control": "no-store",
+    },
+  });
+}
+
 /* -------------------- MESSAGE CONVERSION -------------------- */
 const extractText = (message: any): string => {
   let content = message.content;
