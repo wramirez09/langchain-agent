@@ -6816,10 +6816,10 @@ __metadata:
   languageName: node
   linkType: hard
 
-"depd@npm:~1.1.2":
-  version: 1.1.2
-  resolution: "depd@npm:1.1.2"
-  checksum: 6b406620d269619852885ce15965272b829df6f409724415e0002c8632ab6a8c0a08ec1f0bd2add05dc7bd7507606f7e2cc034fa24224ab829580040b835ecd9
+"depd@npm:2.0.0":
+  version: 2.0.0
+  resolution: "depd@npm:2.0.0"
+  checksum: abbe19c768c97ee2eed6282d8ce3031126662252c58d711f646921c9623f9052e3e1906443066beec1095832f534e57c523b7333f8e7e0d93051ab6baef5ab3a
   languageName: node
   linkType: hard
 
@@ -8638,16 +8638,16 @@ eslint@latest:
   languageName: node
   linkType: hard
 
-"http-errors@npm:~1.8.1":
-  version: 1.8.1
-  resolution: "http-errors@npm:1.8.1"
+"http-errors@npm:2.0.0":
+  version: 2.0.0
+  resolution: "http-errors@npm:2.0.0"
   dependencies:
-    depd: ~1.1.2
+    depd: 2.0.0
     inherits: 2.0.4
     setprototypeof: 1.2.0
-    statuses: ">= 1.5.0 < 2"
+    statuses: 2.0.1
     toidentifier: 1.0.1
-  checksum: d3c7e7e776fd51c0a812baff570bdf06fe49a5dc448b700ab6171b1250e4cf7db8b8f4c0b133e4bfe2451022a5790c1ca6c2cae4094dedd6ac8304a1267f91d2
+  checksum: 9b0a3782665c52ce9dc658a0d1560bcb0214ba5699e4ea15aefb2a496e2ca83db03ebc42e1cce4ac1f413e4e0d2d736a3fd755772c556a9a06853ba2a0b7d920
   languageName: node
   linkType: hard
 
@@ -10072,7 +10072,7 @@ eslint@latest:
     lodash: ^4.17.21
     lucide-react: ^0.564.0
     markdown-to-txt: ^2.0.1
-    multiparty: ^4.2.3
+    multiparty: ^4.3.0
     next: 16.0.7
     next-themes: ^0.4.4
     nuqs: ^2.3.2
@@ -11322,14 +11322,14 @@ eslint@latest:
   languageName: node
   linkType: hard
 
-"multiparty@npm:^4.2.3":
-  version: 4.2.3
-  resolution: "multiparty@npm:4.2.3"
+"multiparty@npm:^4.3.0":
+  version: 4.3.0
+  resolution: "multiparty@npm:4.3.0"
   dependencies:
-    http-errors: ~1.8.1
+    http-errors: 2.0.0
     safe-buffer: 5.2.1
     uid-safe: 2.1.5
-  checksum: 16be1f14280a78a220864e9209196ce3d9bc5e3342a5e14465e8664c8a3f0e217b370d70f0dfba953ae7f17c720f87573b7b3b01a6e9eb04330c19f547ec157a
+  checksum: 33d2765e9d745a4829fb17a6909d7ef12258f2495a40287a72b9ea6b1c263424a1b30cfcce98cca8d3a9bc079fa1b6492a19c06b626be2d8ada76b46ea510d56
   languageName: node
   linkType: hard
 
@@ -13999,10 +13999,10 @@ react@latest:
   languageName: node
   linkType: hard
 
-"statuses@npm:>= 1.5.0 < 2":
-  version: 1.5.0
-  resolution: "statuses@npm:1.5.0"
-  checksum: c469b9519de16a4bb19600205cffb39ee471a5f17b82589757ca7bd40a8d92ebb6ed9f98b5a540c5d302ccbc78f15dc03cc0280dd6e00df1335568a5d5758a5c
+"statuses@npm:2.0.1":
+  version: 2.0.1
+  resolution: "statuses@npm:2.0.1"
+  checksum: 18c7623fdb8f646fb213ca4051be4df7efb3484d4ab662937ca6fbef7ced9b9e12842709872eb3020cc3504b93bde88935c9f6417489627a7786f24f8031cbcb
   languageName: node
   linkType: hard
 
