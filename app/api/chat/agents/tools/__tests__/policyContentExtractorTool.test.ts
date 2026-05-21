@@ -52,7 +52,7 @@ describe('policyContentExtractorTool', () => {
     } as any) as any
 
     const out = await policyContentExtractorTool._call({
-      policyUrls: ['https://www.cms.gov/policy'],
+      policyUrls: ['https://www.palmettogba.com/policy'],
     } as any)
     const parsed = JSON.parse(out)
     expect(parsed.priorAuthRequired).toBe('YES')
@@ -67,7 +67,7 @@ describe('policyContentExtractorTool', () => {
     } as any) as any
 
     const out = await policyContentExtractorTool._call({
-      policyUrls: ['https://www.cms.gov/policy'],
+      policyUrls: ['https://www.palmettogba.com/policy'],
     } as any)
     const parsed = JSON.parse(out)
     expect(parsed.error).toMatch(/Content too short/)
@@ -81,10 +81,21 @@ describe('policyContentExtractorTool', () => {
       headers: { get: () => 'text/html' },
     } as any) as any
     const out = await policyContentExtractorTool._call({
-      policyUrls: ['https://www.cms.gov/policy'],
+      policyUrls: ['https://www.palmettogba.com/policy'],
     } as any)
     const parsed = JSON.parse(out)
     expect(parsed.error).toMatch(/HTTP 500/)
+  })
+
+  it('rejects CMS URLs and directs to medicare_policy_detail', async () => {
+    const fetchSpy = jest.fn()
+    global.fetch = fetchSpy as any
+    const out = await policyContentExtractorTool._call({
+      policyUrls: ['https://www.cms.gov/policy'],
+    } as any)
+    const parsed = JSON.parse(out)
+    expect(parsed.error).toMatch(/medicare_policy_detail/)
+    expect(fetchSpy).not.toHaveBeenCalled()
   })
 
   it('rejects non-allowlisted hosts (SSRF guard)', async () => {
@@ -107,7 +118,10 @@ describe('policyContentExtractorTool', () => {
     } as any) as any
 
     const out = await policyContentExtractorTool._call({
-      policyUrls: ['https://www.cms.gov/a', 'https://www.hhs.gov/b'],
+      policyUrls: [
+        'https://www.palmettogba.com/a',
+        'https://www.noridianmedicare.com/b',
+      ],
     } as any)
     const parsed = JSON.parse(out)
     expect(Array.isArray(parsed)).toBe(true)

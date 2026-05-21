@@ -107,9 +107,11 @@ class LocalCoverageArticleSearchTool extends StructuredTool<typeof MedicareSearc
         console.log(`[LocalCoverageArticleSearchTool] State ID resolved: "${normalized.state}" → ${stateId}`);
       }
 
+      // status=A filters retired articles server-side, roughly halving the
+      // payload before we parse + score it.
       const apiUrl = stateId
-        ? `${this.CMS_LOCAL_ARTICLES_API_URL}?state_id=${stateId}`
-        : this.CMS_LOCAL_ARTICLES_API_URL;
+        ? `${this.CMS_LOCAL_ARTICLES_API_URL}?state_id=${stateId}&status=A`
+        : `${this.CMS_LOCAL_ARTICLES_API_URL}?status=A`;
       const rawCacheKey = `cms-lca-raw-data:${stateId ?? "all"}`;
 
       let allArticles: any = cache.get(rawCacheKey);
@@ -129,8 +131,7 @@ class LocalCoverageArticleSearchTool extends StructuredTool<typeof MedicareSearc
 
         const parseStart = Date.now();
         allArticles = await response.json();
-        const rawSize = JSON.stringify(allArticles).length;
-        console.log(`[LocalCoverageArticleSearchTool] JSON parse: ${Date.now() - parseStart}ms, ${allArticles?.data?.length ?? 0} records, ${(rawSize / 1024).toFixed(1)}KB`);
+        console.log(`[LocalCoverageArticleSearchTool] JSON parse: ${Date.now() - parseStart}ms, ${allArticles?.data?.length ?? 0} records`);
         cache.set(rawCacheKey, allArticles, TTL.LONG);
       }
 
@@ -184,7 +185,7 @@ class LocalCoverageArticleSearchTool extends StructuredTool<typeof MedicareSearc
         },
       }));
 
-      const result = JSON.stringify({ query: normalized, topMatches }, null, 2);
+      const result = JSON.stringify({ query: normalized, topMatches });
       cache.set(cacheKey, result, TTL.LONG);
       console.log(`[LocalCoverageArticleSearchTool] Output to LLM: ${result.length} chars (~${(result.length / 1024).toFixed(1)}KB) for ${topMatches.length} matches, total: ${Date.now() - toolStart}ms`);
       return result;

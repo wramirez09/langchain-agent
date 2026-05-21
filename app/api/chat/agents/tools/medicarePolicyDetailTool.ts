@@ -1,6 +1,6 @@
 import { z } from "zod";
 import { StructuredTool } from "@langchain/core/tools";
-import { cache } from "@/lib/cache";
+import { cache, TTL } from "@/lib/cache";
 import { cmsCoverageApiClient } from "./utils/cmsCoverageApiClient";
 
 const inputSchema = z.object({
@@ -24,6 +24,20 @@ function negativeCacheKey(
 ): string {
   return `cms-detail-error:${type}:${id}:${version}`;
 }
+
+function positiveCacheKey(
+  type: string,
+  id: string,
+  version: number,
+): string {
+  return `cms-detail:${type}:${id}:${version}`;
+}
+
+// In-flight dedupe: when two concurrent agent turns ask for the same
+// (type, id, version), the second one waits on the first's promise instead
+// of firing a duplicate CMS request. Entries are cleared on settle, so the
+// positive cache becomes the long-term lookup.
+const inflight = new Map<string, Promise<string>>();
 
 class MedicarePolicyDetailTool extends StructuredTool<typeof inputSchema> {
   name = "medicare_policy_detail";
@@ -53,40 +67,74 @@ class MedicarePolicyDetailTool extends StructuredTool<typeof inputSchema> {
       return cachedError;
     }
 
-    try {
-      const details =
-        documentType === "ncd"
-          ? await cmsCoverageApiClient.fetchNcd(documentId, documentVersion)
-          : documentType === "lcd"
-            ? await cmsCoverageApiClient.fetchLcd(documentId, documentVersion)
-            : await cmsCoverageApiClient.fetchArticle(documentId, documentVersion);
-
-      const out = JSON.stringify({
-        documentType,
-        documentId,
-        documentVersion,
-        ...details,
-      });
+    // Positive cache: (documentId, documentVersion) is immutable — CMS mints a
+    // new version when a policy changes — so a hit can safely replay without
+    // a network round-trip. Saves the full CMS API fetch (~300-900ms) per
+    // repeat lookup, including across distinct user requests.
+    const posKey = positiveCacheKey(documentType, documentId, documentVersion);
+    const cachedDetail = cache.get<string>(posKey);
+    if (cachedDetail) {
       console.log(
-        `[MedicarePolicyDetailTool] ${documentType} ${documentId} v${documentVersion}: ${out.length} chars (~${(
-          out.length / 1024
-        ).toFixed(1)}KB) in ${Date.now() - start}ms`,
+        `[MedicarePolicyDetailTool] Cache hit for ${documentType} ${documentId} v${documentVersion}`,
       );
-      return out;
-    } catch (err: any) {
-      console.error(
-        `[MedicarePolicyDetailTool] Error for ${documentType} ${documentId}:`,
-        err?.message ?? err,
-      );
-      const errOut = JSON.stringify({
-        error: err?.message ?? "Unknown CMS Coverage API error",
-        documentType,
-        documentId,
-        documentVersion,
-      });
-      cache.set(negKey, errOut, NEGATIVE_CACHE_TTL_MS);
-      return errOut;
+      return cachedDetail;
     }
+
+    // In-flight dedupe: piggyback on any concurrent fetch for the same key.
+    const pending = inflight.get(posKey);
+    if (pending) {
+      console.log(
+        `[MedicarePolicyDetailTool] In-flight hit for ${documentType} ${documentId} v${documentVersion}`,
+      );
+      return pending;
+    }
+
+    // The in-flight promise resolves with the final string (success or
+    // structured error). Folding the error path inside guarantees the
+    // primary caller and any concurrent piggybackers receive identical
+    // output — and the negative cache is set exactly once.
+    const fetchPromise = (async () => {
+      try {
+        const details =
+          documentType === "ncd"
+            ? await cmsCoverageApiClient.fetchNcd(documentId, documentVersion)
+            : documentType === "lcd"
+              ? await cmsCoverageApiClient.fetchLcd(documentId, documentVersion)
+              : await cmsCoverageApiClient.fetchArticle(documentId, documentVersion);
+
+        const out = JSON.stringify({
+          documentType,
+          documentId,
+          documentVersion,
+          ...details,
+        });
+        console.log(
+          `[MedicarePolicyDetailTool] ${documentType} ${documentId} v${documentVersion}: ${out.length} chars (~${(
+            out.length / 1024
+          ).toFixed(1)}KB) in ${Date.now() - start}ms`,
+        );
+        cache.set(posKey, out, TTL.VERY_LONG);
+        return out;
+      } catch (err: any) {
+        console.error(
+          `[MedicarePolicyDetailTool] Error for ${documentType} ${documentId}:`,
+          err?.message ?? err,
+        );
+        const errOut = JSON.stringify({
+          error: err?.message ?? "Unknown CMS Coverage API error",
+          documentType,
+          documentId,
+          documentVersion,
+        });
+        cache.set(negKey, errOut, NEGATIVE_CACHE_TTL_MS);
+        return errOut;
+      } finally {
+        inflight.delete(posKey);
+      }
+    })();
+
+    inflight.set(posKey, fetchPromise);
+    return fetchPromise;
   }
 }
 

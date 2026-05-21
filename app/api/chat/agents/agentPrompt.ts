@@ -57,21 +57,22 @@ When PHI is detected and removed:
     * The tool returns structured JSON with topMatches and relatedMatches, each containing score and matchedOn signals.
 
 * **If \`Guidelines\` is "Medicare":**
-    * **Step 1: Search NCD + LCD + LCA simultaneously in a single parallel tool call**
-        * In your FIRST response, call NCD always, and call LCD + LCA **only if a U.S. state is known**:
-            * \`ncd_coverage_search\` — query, treatment, diagnosis, cpt, icd10, maxResults: 5
-            * \`local_lcd_search\` — same fields + state (REQUIRED)
-            * \`local_coverage_article_search\` — same fields + state (REQUIRED)
+    * **Step 1: Run a single \`medicare_multi_search\` call**
+        * Issue ONE call to \`medicare_multi_search\` with: query, treatment, diagnosis, cpt, icd10, state, maxResults: 5.
+        * This tool runs NCD + LCD + LCA in parallel internally and returns one combined JSON
+          \`{ ncd, lcd, lca }\`. Each section matches the shape of the individual search tools
+          (\`topMatches\` with score and matchedOn signals).
         * \`state\` MUST be a U.S. state name from the user-provided context. If state is missing,
-          do NOT call \`local_lcd_search\` or \`local_coverage_article_search\` with an empty state —
-          they will return an empty result and waste a turn. Either proceed with NCD only, or ask
-          the user "Which state is the patient in?" before issuing LCD/LCA calls.
-        * Do NOT wait for NCD results before calling LCD/LCA. Call all of them together.
-        * The tools return structured JSON with \`topMatches\` and scoring.
+          the tool will run NCD-only and skip LCD/LCA. Either proceed with NCD-only results, or
+          ask the user "Which state is the patient in?" and re-run with the state set.
+        * Do NOT issue separate \`ncd_coverage_search\`, \`local_lcd_search\`, or
+          \`local_coverage_article_search\` calls — \`medicare_multi_search\` covers all three in
+          one turn. Only fall back to the individual tools if \`medicare_multi_search\` fails.
     * **Step 2: Review Medicare results**
-        * Identify the most relevant documents based on scores and match signals
-        * If ANY of the three tools returned at least one match, proceed to Step 3. Do NOT call \`commercial_guidelines_search\`.
+        * Inspect each section of the \`medicare_multi_search\` output (\`ncd\`, \`lcd\`, \`lca\`) and identify the most relevant documents based on scores and match signals.
+        * If ANY of the three sections returned at least one match, proceed to Step 3. Do NOT call \`commercial_guidelines_search\`.
     * **Step 3: Fetch full policy details for top matches**
+        * Each topMatches entry lives at \`output.<section>.topMatches[]\` where \`<section>\` is \`ncd\`, \`lcd\`, or \`lca\`.
         * For each of at most 2 selected matches, call \`medicare_policy_detail\` with
           \`{ documentType, documentId, documentVersion }\` from the topMatches entry.
           \`documentType\` is "ncd" for NCD search results, "lcd" for LCD, "article" for LCA.
@@ -88,8 +89,8 @@ When PHI is detected and removed:
           the \`url\` from that match. Never call \`medicare_policy_detail\` more than once
           for the same documentId/documentVersion within a turn.
     * **Step 4: Commercial fallback — ONLY if NCD, LCD, AND LCA all returned zero \`topMatches\`**
-        * This step only applies when ALL THREE tools returned an empty \`topMatches\` array — zero results total.
-        * If NCD had even one match, skip this step entirely.
+        * This step only applies when ALL THREE sections of \`medicare_multi_search\` returned an empty \`topMatches\` array — zero results total.
+        * If the \`ncd\` section had even one match, skip this step entirely.
         * If triggering fallback: inform the user, use \`commercial_guidelines_search\`, and clearly label results as commercial reference only.
 
 * **For any policies, guidelines, or articles found:** Use the \`policy_content_extractor\` tool with \`policyUrls\` array containing all relevant URLs at once.

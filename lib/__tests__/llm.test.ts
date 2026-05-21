@@ -8,10 +8,10 @@ import { ChatOpenAI } from '@langchain/openai'
 describe('llm factory', () => {
   beforeEach(() => (ChatOpenAI as unknown as jest.Mock).mockClear())
 
-  it('llmAgent uses gpt-5 with streaming', () => {
+  it('llmAgent uses gpt-5.5 with streaming', () => {
     llmAgent()
     expect(ChatOpenAI).toHaveBeenCalledWith(
-      expect.objectContaining({ model: 'gpt-5', streaming: true })
+      expect.objectContaining({ model: 'gpt-5.5', streaming: true })
     )
   })
 

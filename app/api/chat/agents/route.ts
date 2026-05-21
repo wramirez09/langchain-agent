@@ -15,6 +15,7 @@ import { AGENT_SYSTEM_CONTENT } from "./agentPrompt";
 import { NCDCoverageSearchTool } from "./tools/NCDCoverageSearchTool";
 import { localLcdSearchTool } from "./tools/localLcdSearchTool";
 import { localCoverageArticleSearchTool } from "./tools/localArticleSearchTool";
+import { medicareMultiSearchTool } from "./tools/medicareMultiSearchTool";
 import { policyContentExtractorTool } from "./tools/policyContentExtractorTool";
 import { medicarePolicyDetailTool } from "./tools/medicarePolicyDetailTool";
 import { createCommercialGuidelineSearchTool } from "./tools/CommercialGuidelineSearchTool";
@@ -241,6 +242,11 @@ export async function POST(req: NextRequest) {
     const tools = [
       new SerpAPI(),
       commercialGuidelineTool,
+      // medicareMultiSearchTool runs NCD+LCD+LCA in a single parallel call.
+      // The individual tools remain registered so the agent can still issue
+      // a targeted single-source lookup if it needs to, but the prompt
+      // steers it toward the multi-search to save 2-3 round-trips.
+      medicareMultiSearchTool,
       new NCDCoverageSearchTool(),
       localLcdSearchTool,
       localCoverageArticleSearchTool,
