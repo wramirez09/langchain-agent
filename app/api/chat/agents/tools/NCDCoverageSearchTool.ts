@@ -74,8 +74,7 @@ export class NCDCoverageSearchTool extends StructuredTool<typeof MedicareSearchI
 
         const parseStart = Date.now();
         responseData = await response.json();
-        const rawSize = JSON.stringify(responseData).length;
-        console.log(`[NCDCoverageSearchTool] JSON parse: ${Date.now() - parseStart}ms, ${responseData?.data?.length ?? 0} records, ${(rawSize / 1024).toFixed(1)}KB`);
+        console.log(`[NCDCoverageSearchTool] JSON parse: ${Date.now() - parseStart}ms, ${responseData?.data?.length ?? 0} records`);
         cache.set(RAW_DATA_CACHE_KEY, responseData, TTL.LONG);
       }
 
@@ -130,7 +129,7 @@ export class NCDCoverageSearchTool extends StructuredTool<typeof MedicareSearchI
         };
       });
 
-      const result = JSON.stringify({ query: normalized, topMatches }, null, 2);
+      const result = JSON.stringify({ query: normalized, topMatches });
       console.log(`[NCDCoverageSearchTool] Output to LLM: ${result.length} chars (~${(result.length / 1024).toFixed(1)}KB) for ${topMatches.length} matches`);
       cache.set(cacheKey, result, TTL.LONG);
       return result;

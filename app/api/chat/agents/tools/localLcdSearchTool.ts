@@ -119,8 +119,7 @@ class LocalLcdSearchTool extends StructuredTool<typeof MedicareSearchInputSchema
 
         const parseStart = Date.now();
         allLcds = await lcdsResponse.json();
-        const rawSize = JSON.stringify(allLcds).length;
-        console.log(`[LocalLcdSearchTool] JSON parse: ${Date.now() - parseStart}ms, ${allLcds?.data?.length ?? 0} records, ${(rawSize / 1024).toFixed(1)}KB`);
+        console.log(`[LocalLcdSearchTool] JSON parse: ${Date.now() - parseStart}ms, ${allLcds?.data?.length ?? 0} records`);
         cache.set(rawCacheKey, allLcds, TTL.LONG);
       }
 
@@ -173,7 +172,7 @@ class LocalLcdSearchTool extends StructuredTool<typeof MedicareSearchInputSchema
         },
       }));
 
-      const result = JSON.stringify({ query: normalized, topMatches }, null, 2);
+      const result = JSON.stringify({ query: normalized, topMatches });
       cache.set(cacheKey, result, TTL.LONG);
       console.log(`[LocalLcdSearchTool] Output to LLM: ${result.length} chars (~${(result.length / 1024).toFixed(1)}KB) for ${topMatches.length} matches, total: ${Date.now() - toolStart}ms`);
       return result;

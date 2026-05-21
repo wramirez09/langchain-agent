@@ -174,6 +174,31 @@ class PolicyContentExtractorTool extends StructuredTool<
         ? `https://www.cms.gov/medicare-coverage-database/view/ncd.aspx?ncdid=${ncdMatch[1]}`
         : policyUrl;
 
+      // Reject cms.gov / medicare.gov / hhs.gov URLs at the tool boundary so
+      // the agent can't quietly bypass `medicare_policy_detail` (the
+      // structured-API path is ~10x faster than scraping + LLM-extracting the
+      // public HTML). The prompt forbids this route but prompt-only
+      // enforcement has been ignored in practice.
+      try {
+        const host = new URL(fetchUrl).hostname.toLowerCase();
+        const CMS_HOSTS = ["cms.gov", "medicare.gov", "hhs.gov"];
+        if (CMS_HOSTS.some((h) => host === h || host.endsWith("." + h))) {
+          clearTimeout(timeout);
+          console.warn(
+            `[PolicyContentExtractorTool] Rejecting CMS URL: ${policyUrl} (use medicare_policy_detail instead)`,
+          );
+          return JSON.stringify({
+            error:
+              "Do not use policy_content_extractor for cms.gov / medicare.gov / hhs.gov URLs. " +
+              "Call medicare_policy_detail with { documentType, documentId, documentVersion } " +
+              "from the corresponding topMatches entry instead.",
+            policyUrl,
+          });
+        }
+      } catch {
+        // URL parse failure falls through to the existing allowlist check.
+      }
+
       if (!isAllowedPolicyUrl(fetchUrl)) {
         clearTimeout(timeout);
         console.warn(
