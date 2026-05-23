@@ -9,6 +9,7 @@
     "start": "next start",
     "lint": "next lint",
     "format": "prettier --write \"app\"",
+    "ingest:commercial": "ts-node --transpile-only -P scripts/tsconfig.json scripts/ingestCommercialGuidelines.ts",
     "test": "jest",
     "test:watch": "jest --watch",
     "test:coverage": "jest --coverage",

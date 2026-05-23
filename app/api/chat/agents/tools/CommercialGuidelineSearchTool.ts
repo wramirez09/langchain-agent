@@ -1,6 +1,8 @@
 import { StructuredTool } from "@langchain/core/tools";
-import { loadRelevantDocuments, getMetadataIndex } from "./utils/commercialGuidelineLoaderOptimized";
-import { scoreAndRankDocuments } from "./utils/scoreCommercialGuideline";
+import { supabaseAdmin } from "@/lib/supabaseAdmin";
+import { cache, TTL } from "@/lib/cache";
+import { embedQuery } from "@/lib/embeddings";
+import { sha256Hex } from "@/lib/text";
 import {
   CommercialGuidelineSearchInputSchema,
   CommercialGuidelineSearchInput,
@@ -76,109 +78,162 @@ function shrinkToFit(
   return { ...output, topMatches: top, relatedMatches: related };
 }
 
+interface RpcRow {
+  id: string;
+  title: string;
+  domain: string | null;
+  treatment: string | null;
+  cpt_codes: string[] | null;
+  icd10_codes: string[] | null;
+  excerpt: string | null;
+  body: string | null;
+  score: number;
+  signals: Record<string, number>;
+}
+
+function normCodes(v?: string | string[]): string[] {
+  if (!v) return [];
+  const arr = Array.isArray(v) ? v : [v];
+  return arr.map((c) => c.trim()).filter(Boolean);
+}
+
+function rowToScoredResult(row: RpcRow): ScoredResult {
+  const matchedOn: string[] = [];
+  for (const [k, v] of Object.entries(row.signals || {})) {
+    if (typeof v === "number" && v > 0) {
+      matchedOn.push(`${k}:${typeof v === "number" ? v.toFixed(2) : v}`);
+    }
+  }
+  return {
+    id: row.id,
+    title: row.title,
+    score: row.score,
+    domain: row.domain ?? "",
+    matchedOn,
+    excerpt: (row.excerpt ?? "").trim(),
+    // Internal-only — stripped by redactResult before serialization. We
+    // still need a string here to satisfy the type.
+    path: "",
+    treatment: row.treatment ?? undefined,
+    cptCodes: row.cpt_codes ?? [],
+    icd10Codes: row.icd10_codes ?? [],
+  };
+}
+
 /**
  * Commercial Guideline Search Tool
- * 
- * A structured tool that uses deterministic scoring to search commercial guidelines
- * for prior authorization requirements.
- * 
- * Features:
- * - Deterministic weighted scoring (no embeddings, no LLM calls)
- * - Exact CPT/ICD-10 code matching (+10 points each)
- * - Treatment/diagnosis keyword overlap scoring
- * - Automatic merging of overlapping documents (same CPT/ICD-10 codes or similar treatments)
- * - Domain and metadata filtering
- * - Fast, cached document loading
- * - Structured input/output
- * 
- * Architecture:
- * - Load full documents (no chunking)
- * - Score using weighted signals (CPT, ICD-10, keywords, fuzzy matching)
- * - Detect and merge overlapping documents for comprehensive results
- * - Return top matches + related matches
- * - LLM synthesizes final answer from structured results
+ *
+ * Hybrid retrieval over the Supabase-backed commercial guideline corpus:
+ *   - Postgres FTS (ts_rank_cd over a weighted tsvector)
+ *   - pgvector cosine similarity (text-embedding-3-small, HNSW index)
+ *   - Exact-match boosts for CPT / ICD-10 / domain
+ *
+ * Everything runs in a single `search_commercial_guidelines` RPC call;
+ * the only network hop besides Supabase is a (cached) embedding for the
+ * query string.
  */
 export class CommercialGuidelineSearchTool extends StructuredTool<typeof CommercialGuidelineSearchInputSchema> {
   name = "commercial_guidelines_search";
-  
+
   description = `Search commercial guidelines for prior authorization requirements using structured inputs.
 
-This tool performs deterministic search across commercial guideline documents to find relevant authorization criteria with enhanced metadata matching.
+This tool performs hybrid (lexical + semantic) search across commercial guideline documents to find relevant authorization criteria.
 
 **When to use:**
 - Guidelines is "Commercial" (never call this for Medicare queries)
 - User asks about commercial insurance authorization requirements
 - Query mentions treatments, procedures, or diagnoses
-- Need to find coverage criteria for commercial payers
 
 **NEVER call this tool when Guidelines is "Medicare".** Use ncd_coverage_search, local_lcd_search, and local_coverage_article_search instead.
 
-**How it works:**
-- Exact matching on CPT and ICD-10 codes (+10 points each, highest priority)
-- Procedure name matching (+8 points per match)
-- Alias/alternative name matching (+6 points per match)
-- Specialty matching (+5 points per match)
-- Related condition matching (+4 points per match)
-- Payer-specific notes matching (+3 points)
-- Priority document boosting (+1-2 points)
-- Keyword overlap scoring for treatment and diagnosis
-- Domain filtering (cardio, genetic, musculoskeletal, etc.)
-- Automatically merges overlapping documents (same CPT/ICD-10 or >70% treatment similarity)
-- Merged documents receive bonus scoring (+2 per additional source)
-- Returns ranked results with match explanations
-- **Automatically summarizes large results (>30K chars) to prevent token overflow**
-
 **Input fields:**
 - query: Main search query (required)
-- treatment: Specific treatment name (optional, e.g., "MRI lumbar spine")
+- treatment: Specific treatment name (optional)
 - diagnosis: Diagnosis description (optional)
-- cpt: CPT/HCPCS  for exact matching (optional, e.g., "72148")
-- icd10: ICD-10 code(s) for exact matching (optional, e.g., "M54.16")
+- cpt: CPT/HCPCS for exact-match boost (optional)
+- icd10: ICD-10 code(s) for exact-match boost (optional)
 - domain: Domain filter (optional, e.g., "cardio", "genetic", "muscle")
-- payer: Payer name (optional, e.g., "commercial", "medicare")
+- payer: Payer name (optional)
 - maxResults: Number of results (optional, default: 5)
 
-**Output:**
-Returns structured JSON with topMatches and relatedMatches, each containing:
-- title, score, domain, matchedOn (signals), excerpt, cptCodes, icd10Codes
-If results are large, returns a summarized version with key authorization requirements.
+**Output:** JSON with topMatches and relatedMatches; each item has title, score, domain, matchedOn (lex/sem/cpt/icd/dom signals), excerpt, cptCodes, icd10Codes.
 
 **CRITICAL CONFIDENTIALITY:**
-Never mention specific data sources, tool names, URLs, file names, folder names, or document references in your response.
-Use ONLY generic terms like "commercial guidelines", "proprietary criteria", or "industry standards".`;
+Never mention specific data sources, tool names, URLs, file names, folder names, or document references in your response. Use ONLY generic terms like "commercial guidelines", "proprietary criteria", or "industry standards".`;
 
   schema = CommercialGuidelineSearchInputSchema;
 
   async _call(input: CommercialGuidelineSearchInput): Promise<string> {
+    const toolStart = Date.now();
     console.log("[CommercialGuidelineSearchTool] Received input:", input);
-    
+
+    const cptArr = normCodes(input.cpt);
+    const icdArr = normCodes(input.icd10).map((c) => c.toUpperCase());
+    const maxResults = input.maxResults ?? 5;
+
+    // Use the structured fields when present so the embedding reflects the
+    // full clinical context (synonyms in `treatment`, codes routed through
+    // the boost path rather than the vector).
+    const queryText = [input.query, input.treatment, input.diagnosis]
+      .filter(Boolean)
+      .join(" \n ");
+
+    // Cache the entire RPC payload keyed on a hash of the normalized
+    // input. Same query → same cache hit, no embedding or RPC call.
+    const cacheKey = `commercial-search:v1:${sha256Hex(
+      JSON.stringify({
+        q: queryText,
+        cpt: cptArr,
+        icd: icdArr,
+        d: input.domain ?? null,
+        n: maxResults,
+      }),
+    )}`;
+    const cached = cache.get<string>(cacheKey);
+    if (cached) {
+      console.log(`[CommercialGuidelineSearchTool] Cache hit (${Date.now() - toolStart}ms)`);
+      return cached;
+    }
+
     try {
-      // Load only relevant documents based on metadata filtering
-      // This is much faster than loading all 58 documents
-      const docs = loadRelevantDocuments(input);
-      
-      if (docs.length === 0) {
+      const embedStart = Date.now();
+      const queryVec = await embedQuery(queryText);
+      console.log(`[CommercialGuidelineSearchTool] Embed: ${Date.now() - embedStart}ms`);
+
+      const rpcStart = Date.now();
+      const { data, error } = await supabaseAdmin.rpc("search_commercial_guidelines", {
+        q_text: queryText,
+        // supabase-js serializes number[] for vector columns; convert
+        // Float32Array → number[].
+        q_embedding: Array.from(queryVec),
+        q_cpt: cptArr,
+        q_icd10: icdArr,
+        q_domain: input.domain ?? null,
+        // Fetch a few extra to populate relatedMatches.
+        max_results: maxResults + 3,
+      });
+      console.log(`[CommercialGuidelineSearchTool] RPC: ${Date.now() - rpcStart}ms`);
+
+      if (error) {
+        console.error("[CommercialGuidelineSearchTool] RPC error:", error);
         return JSON.stringify({
           query: input.query,
           topMatches: [],
           relatedMatches: [],
-          error: "No matching commercial guideline documents found for the query criteria.",
+          error: error.message,
         });
       }
-      
-      console.log(`[CommercialGuidelineSearchTool] Searching ${docs.length} relevant documents`);
-      
-      // Score and rank documents using deterministic scoring
-      const { topMatches, relatedMatches } = scoreAndRankDocuments(docs, input);
-      
-      // Build structured output
+
+      const rows = (data ?? []) as RpcRow[];
+      const scored = rows.map(rowToScoredResult);
+      const topMatches = scored.slice(0, maxResults);
+      const relatedMatches = scored.slice(maxResults, maxResults + 3);
+
       const output: CommercialGuidelineSearchOutput = {
         query: input.query,
         topMatches,
         relatedMatches,
       };
-      
-      console.log(`[CommercialGuidelineSearchTool] Found ${topMatches.length} top matches, ${relatedMatches.length} related matches`);
 
       const fitted = shrinkToFit(output);
       const jsonOutput = JSON.stringify(
@@ -200,11 +255,10 @@ Use ONLY generic terms like "commercial guidelines", "proprietary criteria", or 
         2,
       );
 
-      if (fitted.topMatches.length < topMatches.length) {
-        console.warn(
-          `[CommercialGuidelineSearchTool] Output trimmed: ${topMatches.length}→${fitted.topMatches.length} top, ${relatedMatches.length}→${fitted.relatedMatches.length} related (final ${jsonOutput.length} chars)`,
-        );
-      }
+      cache.set(cacheKey, jsonOutput, TTL.LONG);
+      console.log(
+        `[CommercialGuidelineSearchTool] Done in ${Date.now() - toolStart}ms: ${topMatches.length} top, ${relatedMatches.length} related, ${jsonOutput.length} chars`,
+      );
       return jsonOutput;
     } catch (error) {
       console.error("[CommercialGuidelineSearchTool] Error during search:", error);
@@ -218,18 +272,6 @@ Use ONLY generic terms like "commercial guidelines", "proprietary criteria", or 
   }
 }
 
-/**
- * Pre-load metadata index at module initialization time (singleton pattern)
- * This is very fast (~0.02-0.05s) and only loads YAML front matter, not full content
- * Full documents are loaded on-demand based on query criteria
- */
-const metadataIndex = getMetadataIndex();
-console.log(`[CommercialGuidelineSearchTool] Metadata index loaded at module initialization: ${metadataIndex.length} documents`);
-
-/**
- * Factory function to create the tool instance
- * Metadata is already indexed at module scope, so this returns immediately
- */
 export function createCommercialGuidelineSearchTool(): CommercialGuidelineSearchTool {
   return new CommercialGuidelineSearchTool();
 }

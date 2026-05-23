@@ -1,6 +1,18 @@
 import { NCDCoverageSearchTool } from '../NCDCoverageSearchTool'
 import { cache } from '@/lib/cache'
 
+jest.mock('@/lib/embeddings', () => {
+  const EMBEDDING_DIMS = 1536
+  const zeros = () => new Float32Array(EMBEDDING_DIMS)
+  return {
+    EMBEDDING_DIMS,
+    EMBEDDING_MODEL: 'text-embedding-3-small',
+    embedQuery: jest.fn(async () => zeros()),
+    embedMany: jest.fn(async (texts: string[]) => texts.map(() => zeros())),
+    cosine: () => 0,
+  }
+})
+
 describe('NCDCoverageSearchTool', () => {
   let tool: NCDCoverageSearchTool
   let originalFetch: typeof fetch

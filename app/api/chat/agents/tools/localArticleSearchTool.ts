@@ -6,37 +6,41 @@ import {
   MedicareScoredResult,
   normalizeInput,
 } from "./utils/medicareSearchTypes";
-import { scoreMedicareLCA } from "./utils/scoreMedicareDocument";
+import {
+  getOrBuildHybridIndex,
+  scoreHybrid,
+  MedicareDoc,
+} from "./utils/medicareHybridIndex";
 import { resolveCmsStateId } from "./cmsStateIds";
 
-const CACHE_TTL = 5 * 60 * 1000;
+const CMS_LOCAL_ARTICLES_API_URL =
+  "https://api.coverage.cms.gov/v1/reports/local-coverage-articles/";
 
-interface LocalCoverageArticle {
-  meta: {
-    status: {
-      id: 0;
-      message: string;
-    };
-    notes: string;
-    fields: string[];
-    children: string[];
-  };
-  data: [
-    {
-      document_id: string;
-      document_version: 0;
-      document_display_id: string;
-      document_type: string;
-      note: string;
-      title: string;
-      contractor_name_type: string;
-      updated_on: string;
-      updated_on_sort: string;
-      effective_date: string;
-      retirement_date: string;
-      url: string;
-    },
-  ];
+async function fetchLcaList(stateId: number): Promise<any> {
+  const rawCacheKey = `cms-lca-raw-data:${stateId}`;
+  const cached = cache.get<any>(rawCacheKey);
+  if (cached) {
+    console.log(`[LocalCoverageArticleSearchTool] Raw data cache hit (${cached.data?.length ?? 0} records)`);
+    return cached;
+  }
+
+  const controller = new AbortController();
+  const timeout = setTimeout(() => controller.abort(), 30000);
+  try {
+    // status=A filters retired articles server-side, roughly halving the
+    // payload before we parse + score it.
+    const url = `${CMS_LOCAL_ARTICLES_API_URL}?state_id=${stateId}&status=A`;
+    console.log(`[LocalCoverageArticleSearchTool] Fetching LCAs (state_id=${stateId})...`);
+    const fetchStart = Date.now();
+    const response = await fetch(url, { signal: controller.signal });
+    console.log(`[LocalCoverageArticleSearchTool] CMS fetch: ${Date.now() - fetchStart}ms`);
+    if (!response.ok) throw new Error(`Failed to fetch LCAs: ${response.status} ${response.statusText}`);
+    const data = await response.json();
+    cache.set(rawCacheKey, data, TTL.LONG);
+    return data;
+  } finally {
+    clearTimeout(timeout);
+  }
 }
 
 class LocalCoverageArticleSearchTool extends StructuredTool<typeof MedicareSearchInputSchema> {
@@ -45,7 +49,7 @@ class LocalCoverageArticleSearchTool extends StructuredTool<typeof MedicareSearc
   description =
     "Searches Local Coverage Articles (LCAs) for Medicare billing and coding guidance specific to a state. " +
     "LCAs provide detailed billing, coding (ICD-10/CPT), and documentation requirements that support LCDs. " +
-    "Uses deterministic scoring to rank LCAs by relevance. " +
+    "Uses hybrid (semantic + lexical) scoring with state + exact-ID boosts. " +
     "Returns structured JSON with topMatches containing scored results.\n\n" +
     "**Input fields:**\n" +
     "- query: Main search query (required) - treatment, diagnosis, or article topic\n" +
@@ -60,16 +64,9 @@ class LocalCoverageArticleSearchTool extends StructuredTool<typeof MedicareSearc
     "`{ documentType: \"article\", documentId, documentVersion }` from a top match. " +
     "Do NOT call `policy_content_extractor` for cms.gov/medicare.gov URLs.";
 
-  private CMS_LOCAL_ARTICLES_API_URL =
-    "https://api.coverage.cms.gov/v1/reports/local-coverage-articles/";
-
-  private resolveStateId(stateName: string): number | null {
-    return resolveCmsStateId(stateName);
-  }
-
   async _call(input: MedicareSearchInput): Promise<string> {
     const normalized = normalizeInput(input);
-    const cacheKey = `lca-search:${JSON.stringify(normalized)}`;
+    const cacheKey = `lca-search:v2:${JSON.stringify(normalized)}`;
     const cachedResult: string | null = cache.get(cacheKey);
     if (cachedResult) {
       console.log(`[LocalCoverageArticleSearchTool] Cache hit for query: "${normalized.query}"`);
@@ -92,55 +89,25 @@ class LocalCoverageArticleSearchTool extends StructuredTool<typeof MedicareSearc
 
     try {
       const toolStart = Date.now();
-      let stateId: number | null = null;
-
-      {
-        stateId = this.resolveStateId(normalized.state);
-        if (!stateId) {
-          console.warn(`[LocalCoverageArticleSearchTool] No state_id found for: "${normalized.state}"`);
-          return JSON.stringify({
-            query: normalized,
-            topMatches: [],
-            message: `Could not find a valid state ID for '${normalized.state}'. Please provide a valid U.S. state name.`,
-          });
-        }
-        console.log(`[LocalCoverageArticleSearchTool] State ID resolved: "${normalized.state}" → ${stateId}`);
+      const stateId = resolveCmsStateId(normalized.state);
+      if (!stateId) {
+        console.warn(`[LocalCoverageArticleSearchTool] No state_id found for: "${normalized.state}"`);
+        return JSON.stringify({
+          query: normalized,
+          topMatches: [],
+          message: `Could not find a valid state ID for '${normalized.state}'. Please provide a valid U.S. state name.`,
+        });
       }
+      console.log(`[LocalCoverageArticleSearchTool] State ID resolved: "${normalized.state}" → ${stateId}`);
 
-      // status=A filters retired articles server-side, roughly halving the
-      // payload before we parse + score it.
-      const apiUrl = stateId
-        ? `${this.CMS_LOCAL_ARTICLES_API_URL}?state_id=${stateId}&status=A`
-        : `${this.CMS_LOCAL_ARTICLES_API_URL}?status=A`;
-      const rawCacheKey = `cms-lca-raw-data:${stateId ?? "all"}`;
-
-      let allArticles: any = cache.get(rawCacheKey);
-      if (allArticles) {
-        console.log(`[LocalCoverageArticleSearchTool] Raw data cache hit (${allArticles.data?.length ?? 0} records)`);
-      } else {
-        const controller = new AbortController();
-        const timeout = setTimeout(() => controller.abort(), 30000);
-
-        console.log(`[LocalCoverageArticleSearchTool] Fetching LCAs from CMS API (state_id=${stateId ?? "all"})...`);
-        const fetchStart = Date.now();
-        const response = await fetch(apiUrl, { signal: controller.signal });
-        clearTimeout(timeout);
-        console.log(`[LocalCoverageArticleSearchTool] CMS fetch: ${Date.now() - fetchStart}ms`);
-
-        if (!response.ok) throw new Error(`Failed to fetch LCAs: ${response.status} ${response.statusText}`);
-
-        const parseStart = Date.now();
-        allArticles = await response.json();
-        console.log(`[LocalCoverageArticleSearchTool] JSON parse: ${Date.now() - parseStart}ms, ${allArticles?.data?.length ?? 0} records`);
-        cache.set(rawCacheKey, allArticles, TTL.LONG);
-      }
+      const allArticles = await fetchLcaList(stateId);
 
       if (!Array.isArray(allArticles?.data)) {
         console.error("[LocalCoverageArticleSearchTool] Unexpected response shape", allArticles);
         return JSON.stringify({
           query: normalized,
           topMatches: [],
-          error: "Unexpected CMS API response format. Please try again later."
+          error: "Unexpected CMS API response format. Please try again later.",
         });
       }
 
@@ -148,42 +115,61 @@ class LocalCoverageArticleSearchTool extends StructuredTool<typeof MedicareSearc
         return JSON.stringify({
           query: normalized,
           topMatches: [],
-          message: `No LCAs found${normalized.state ? ` for state: ${normalized.state}` : ""}.`,
+          message: `No LCAs found for state: ${normalized.state}.`,
         });
       }
 
+      const docs: MedicareDoc[] = allArticles.data.map((lca: any) => ({
+        id: `${lca.document_id}-${lca.document_version}`,
+        title: lca.title || "",
+        displayId: lca.document_display_id || undefined,
+        raw: lca,
+      }));
+
+      const indexStart = Date.now();
+      const index = await getOrBuildHybridIndex(`lca:${stateId}`, docs);
+      console.log(`[LocalCoverageArticleSearchTool] Index ready: ${Date.now() - indexStart}ms`);
+
       const scoreStart = Date.now();
-      const scored = allArticles.data
-        .map((lca: any) => { const { score, matchedOn } = scoreMedicareLCA(lca, input); return { lca, score, matchedOn }; })
-        .filter((item: any) => item.score > 0)
-        .sort((a: any, b: any) => b.score - a.score);
+      const scored = await scoreHybrid(index, {
+        query: normalized.query,
+        treatment: normalized.treatment,
+        diagnosis: normalized.diagnosis,
+        cptCodes: normalized.cptCodes,
+        icd10Codes: normalized.icd10Codes,
+        state: String(stateId),
+        stateName: normalized.state,
+      });
       console.log(`[LocalCoverageArticleSearchTool] Scored ${allArticles.data.length} records: ${Date.now() - scoreStart}ms → ${scored.length} matches`);
 
       if (scored.length === 0) {
         return JSON.stringify({
           query: normalized,
           topMatches: [],
-          message: `No LCA found for '${normalized.query}'${normalized.state ? ` in ${normalized.state}` : ""}.`,
+          message: `No LCA found for '${normalized.query}' in ${normalized.state}.`,
         });
       }
 
       const top = scored.slice(0, normalized.maxResults);
-      const topMatches: MedicareScoredResult[] = top.map(({ lca, score, matchedOn }: any) => ({
-        id: `${lca.document_id}-${lca.document_version}`,
-        title: lca.title || "N/A",
-        displayId: lca.document_display_id || undefined,
-        documentId: lca.document_id != null ? String(lca.document_id) : undefined,
-        documentVersion: typeof lca.document_version === "number"
-          ? lca.document_version
-          : lca.document_version != null ? Number(lca.document_version) : undefined,
-        score,
-        url: lca.url || undefined,
-        matchedOn,
-        metadata: {
-          contractor: lca.contractor_name_type || undefined,
-          documentType: lca.document_type || undefined,
-        },
-      }));
+      const topMatches: MedicareScoredResult[] = top.map(({ doc, score, matchedOn }) => {
+        const lca = doc.raw as Record<string, any>;
+        return {
+          id: doc.id,
+          title: doc.title || "N/A",
+          displayId: doc.displayId,
+          documentId: lca.document_id != null ? String(lca.document_id) : undefined,
+          documentVersion: typeof lca.document_version === "number"
+            ? lca.document_version
+            : lca.document_version != null ? Number(lca.document_version) : undefined,
+          score,
+          url: lca.url || undefined,
+          matchedOn,
+          metadata: {
+            contractor: lca.contractor_name_type || undefined,
+            documentType: lca.document_type || undefined,
+          },
+        };
+      });
 
       const result = JSON.stringify({ query: normalized, topMatches });
       cache.set(cacheKey, result, TTL.LONG);

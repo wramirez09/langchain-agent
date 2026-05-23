@@ -19,6 +19,11 @@ import { medicareMultiSearchTool } from "./tools/medicareMultiSearchTool";
 import { policyContentExtractorTool } from "./tools/policyContentExtractorTool";
 import { medicarePolicyDetailTool } from "./tools/medicarePolicyDetailTool";
 import { createCommercialGuidelineSearchTool } from "./tools/CommercialGuidelineSearchTool";
+import { startCmsWarmup } from "./tools/warmup";
+
+// Kick off CMS fetch + embedding preload at module init so the first
+// real request finds the hybrid index hot. Idempotent.
+startCmsWarmup();
 import { reportUsage } from "@/lib/usage";
 import { getUserFromRequest } from "../../../../lib/auth/getUserFromRequest";
 import { errorTracker } from "@/lib/error-tracking";

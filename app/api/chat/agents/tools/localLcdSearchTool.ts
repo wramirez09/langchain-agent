@@ -6,26 +6,39 @@ import {
   MedicareScoredResult,
   normalizeInput,
 } from "./utils/medicareSearchTypes";
-import { scoreMedicareLCD } from "./utils/scoreMedicareDocument";
+import {
+  getOrBuildHybridIndex,
+  scoreHybrid,
+  MedicareDoc,
+} from "./utils/medicareHybridIndex";
 import { resolveCmsStateId } from "./cmsStateIds";
 
-const CACHE_TTL = 5 * 60 * 1000;
+const CMS_LOCAL_LCDS_API_URL =
+  "https://api.coverage.cms.gov/v1/reports/local-coverage-final-lcds/";
 
-interface LocalCoverageDetermination {
-  data: Array<{
-    document_id: "string";
-    document_version: 0;
-    document_display_id: "string";
-    document_type: "string";
-    note: "string";
-    title: "string";
-    contractor_name_type: "string";
-    updated_on: "string";
-    updated_on_sort: "string";
-    effective_date: "string";
-    retirement_date: "string";
-    url: "string";
-  }>;
+async function fetchLcdList(stateId: number): Promise<any> {
+  const rawCacheKey = `cms-lcd-raw-data:${stateId}`;
+  const cached = cache.get<any>(rawCacheKey);
+  if (cached) {
+    console.log(`[LocalLcdSearchTool] Raw data cache hit (${cached.data?.length ?? 0} records)`);
+    return cached;
+  }
+
+  const controller = new AbortController();
+  const timeout = setTimeout(() => controller.abort(), 30000);
+  try {
+    const url = `${CMS_LOCAL_LCDS_API_URL}?state_id=${stateId}&status=A`;
+    console.log(`[LocalLcdSearchTool] Fetching LCDs (state_id=${stateId})...`);
+    const fetchStart = Date.now();
+    const response = await fetch(url, { signal: controller.signal });
+    console.log(`[LocalLcdSearchTool] CMS fetch: ${Date.now() - fetchStart}ms`);
+    if (!response.ok) throw new Error(`Failed to fetch LCDs: ${response.status} ${response.statusText}`);
+    const data = await response.json();
+    cache.set(rawCacheKey, data, TTL.LONG);
+    return data;
+  } finally {
+    clearTimeout(timeout);
+  }
 }
 
 class LocalLcdSearchTool extends StructuredTool<typeof MedicareSearchInputSchema> {
@@ -34,7 +47,7 @@ class LocalLcdSearchTool extends StructuredTool<typeof MedicareSearchInputSchema
   description =
     "Searches Local Coverage Determinations (LCDs) for Medicare coverage policies specific to a state. " +
     "LCDs define coverage criteria for Medicare Administrative Contractor (MAC) regions. " +
-    "Uses deterministic scoring to rank LCDs by relevance. " +
+    "Uses hybrid (semantic + lexical) scoring with state + exact-ID boosts. " +
     "Returns structured JSON with topMatches containing scored results.\n\n" +
     "**Input fields:**\n" +
     "- query: Main search query (required) - treatment, diagnosis, or LCD number\n" +
@@ -49,16 +62,9 @@ class LocalLcdSearchTool extends StructuredTool<typeof MedicareSearchInputSchema
     "`{ documentType: \"lcd\", documentId, documentVersion }` from a top match. " +
     "Do NOT call `policy_content_extractor` for cms.gov/medicare.gov URLs.";
 
-  private CMS_LOCAL_LCDS_API_URL =
-    "https://api.coverage.cms.gov/v1/reports/local-coverage-final-lcds/";
-
-  private resolveStateId(stateName: string): number | null {
-    return resolveCmsStateId(stateName);
-  }
-
   async _call(input: MedicareSearchInput): Promise<string> {
     const normalized = normalizeInput(input);
-    const cacheKey = `lcd-search:${JSON.stringify(normalized)}`;
+    const cacheKey = `lcd-search:v2:${JSON.stringify(normalized)}`;
     const cachedResult: string | null = cache.get(cacheKey);
     if (cachedResult) {
       console.log(`[LocalLcdSearchTool] Cache hit for query: "${normalized.query}"`);
@@ -68,9 +74,9 @@ class LocalLcdSearchTool extends StructuredTool<typeof MedicareSearchInputSchema
     console.log(`[LocalLcdSearchTool] Searching LCDs:`, JSON.stringify(normalized));
 
     // LCDs are state-scoped by definition (each MAC region covers specific
-    // states). Without a state, the tool would fetch ~840 records (~370KB,
-    // 8s cold) and score all of them, almost always producing noise.
-    // Require state explicitly so the agent asks the user when missing.
+    // states). Without a state, the tool would fetch ~840 records and
+    // produce mostly noise. Require state explicitly so the agent asks the
+    // user when missing.
     if (!normalized.state) {
       return JSON.stringify({
         query: normalized,
@@ -82,53 +88,25 @@ class LocalLcdSearchTool extends StructuredTool<typeof MedicareSearchInputSchema
 
     try {
       const toolStart = Date.now();
-      let stateId: number | null = null;
-
-      {
-        stateId = this.resolveStateId(normalized.state);
-        if (!stateId) {
-          console.warn(`[LocalLcdSearchTool] No state_id found for: "${normalized.state}"`);
-          return JSON.stringify({
-            query: normalized,
-            topMatches: [],
-            message: `Could not find a valid state ID for '${normalized.state}'. Please provide a valid U.S. state name.`,
-          });
-        }
-        console.log(`[LocalLcdSearchTool] State ID resolved: "${normalized.state}" → ${stateId}`);
+      const stateId = resolveCmsStateId(normalized.state);
+      if (!stateId) {
+        console.warn(`[LocalLcdSearchTool] No state_id found for: "${normalized.state}"`);
+        return JSON.stringify({
+          query: normalized,
+          topMatches: [],
+          message: `Could not find a valid state ID for '${normalized.state}'. Please provide a valid U.S. state name.`,
+        });
       }
+      console.log(`[LocalLcdSearchTool] State ID resolved: "${normalized.state}" → ${stateId}`);
 
-      const apiUrl = stateId
-        ? `${this.CMS_LOCAL_LCDS_API_URL}?state_id=${stateId}&status=A`
-        : `${this.CMS_LOCAL_LCDS_API_URL}?status=A`;
-      const rawCacheKey = `cms-lcd-raw-data:${stateId ?? "all"}`;
-
-      let allLcds: any = cache.get(rawCacheKey);
-      if (allLcds) {
-        console.log(`[LocalLcdSearchTool] Raw data cache hit (${allLcds.data?.length ?? 0} records)`);
-      } else {
-        const controller = new AbortController();
-        const timeout = setTimeout(() => controller.abort(), 30000);
-
-        console.log(`[LocalLcdSearchTool] Fetching LCDs from CMS API (state_id=${stateId ?? "all"})...`);
-        const fetchStart = Date.now();
-        const lcdsResponse = await fetch(apiUrl, { signal: controller.signal });
-        clearTimeout(timeout);
-        console.log(`[LocalLcdSearchTool] CMS fetch: ${Date.now() - fetchStart}ms`);
-
-        if (!lcdsResponse.ok) throw new Error(`Failed to fetch LCDs: ${lcdsResponse.status} ${lcdsResponse.statusText}`);
-
-        const parseStart = Date.now();
-        allLcds = await lcdsResponse.json();
-        console.log(`[LocalLcdSearchTool] JSON parse: ${Date.now() - parseStart}ms, ${allLcds?.data?.length ?? 0} records`);
-        cache.set(rawCacheKey, allLcds, TTL.LONG);
-      }
+      const allLcds = await fetchLcdList(stateId);
 
       if (!Array.isArray(allLcds?.data)) {
         console.error("[LocalLcdSearchTool] Unexpected response shape", allLcds);
         return JSON.stringify({
           query: normalized,
           topMatches: [],
-          error: "Unexpected CMS API response format. Please try again later."
+          error: "Unexpected CMS API response format. Please try again later.",
         });
       }
 
@@ -136,41 +114,60 @@ class LocalLcdSearchTool extends StructuredTool<typeof MedicareSearchInputSchema
         return JSON.stringify({
           query: normalized,
           topMatches: [],
-          message: `No LCDs found${normalized.state ? ` for state: ${normalized.state}` : ""}.`,
+          message: `No LCDs found for state: ${normalized.state}.`,
         });
       }
 
+      const docs: MedicareDoc[] = allLcds.data.map((lcd: any) => ({
+        id: `${lcd.document_id}-${lcd.document_version}`,
+        title: lcd.title || "",
+        displayId: lcd.document_display_id || undefined,
+        raw: lcd,
+      }));
+
+      const indexStart = Date.now();
+      const index = await getOrBuildHybridIndex(`lcd:${stateId}`, docs);
+      console.log(`[LocalLcdSearchTool] Index ready: ${Date.now() - indexStart}ms`);
+
       const scoreStart = Date.now();
-      const scored = allLcds.data
-        .map((lcd: any) => { const { score, matchedOn } = scoreMedicareLCD(lcd, input); return { lcd, score, matchedOn }; })
-        .filter((item: any) => item.score > 0)
-        .sort((a: any, b: any) => b.score - a.score);
+      const scored = await scoreHybrid(index, {
+        query: normalized.query,
+        treatment: normalized.treatment,
+        diagnosis: normalized.diagnosis,
+        cptCodes: normalized.cptCodes,
+        icd10Codes: normalized.icd10Codes,
+        state: String(stateId),
+        stateName: normalized.state,
+      });
       console.log(`[LocalLcdSearchTool] Scored ${allLcds.data.length} records: ${Date.now() - scoreStart}ms → ${scored.length} matches`);
 
       if (scored.length === 0) {
         return JSON.stringify({
           query: normalized,
           topMatches: [],
-          message: `No LCD found for '${normalized.query}'${normalized.state ? ` in ${normalized.state}` : ""}.`,
+          message: `No LCD found for '${normalized.query}' in ${normalized.state}.`,
         });
       }
 
       const top = scored.slice(0, normalized.maxResults);
-      const topMatches: MedicareScoredResult[] = top.map(({ lcd, score, matchedOn }: any) => ({
-        id: `${lcd.document_id}-${lcd.document_version}`,
-        title: lcd.title || "N/A",
-        displayId: lcd.document_display_id || undefined,
-        documentId: lcd.document_id != null ? String(lcd.document_id) : undefined,
-        documentVersion: typeof lcd.document_version === "number"
-          ? lcd.document_version
-          : lcd.document_version != null ? Number(lcd.document_version) : undefined,
-        score,
-        url: lcd.url || undefined,
-        matchedOn,
-        metadata: {
-          contractor: lcd.contractor_name_type || undefined,
-        },
-      }));
+      const topMatches: MedicareScoredResult[] = top.map(({ doc, score, matchedOn }) => {
+        const lcd = doc.raw as Record<string, any>;
+        return {
+          id: doc.id,
+          title: doc.title || "N/A",
+          displayId: doc.displayId,
+          documentId: lcd.document_id != null ? String(lcd.document_id) : undefined,
+          documentVersion: typeof lcd.document_version === "number"
+            ? lcd.document_version
+            : lcd.document_version != null ? Number(lcd.document_version) : undefined,
+          score,
+          url: lcd.url || undefined,
+          matchedOn,
+          metadata: {
+            contractor: lcd.contractor_name_type || undefined,
+          },
+        };
+      });
 
       const result = JSON.stringify({ query: normalized, topMatches });
       cache.set(cacheKey, result, TTL.LONG);

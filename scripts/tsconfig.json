@@ -1,0 +1,20 @@
+{
+  "extends": "../tsconfig.json",
+  "compilerOptions": {
+    "module": "commonjs",
+    "moduleResolution": "node",
+    "esModuleInterop": true,
+    "jsx": "preserve",
+    "isolatedModules": false,
+    "noEmit": false,
+    "incremental": false
+  },
+  "ts-node": {
+    "transpileOnly": true,
+    "compilerOptions": {
+      "module": "commonjs",
+      "moduleResolution": "node"
+    }
+  },
+  "include": ["**/*.ts", "../lib/**/*.ts", "../app/api/chat/agents/tools/utils/commercialGuidelineTypes.ts"]
+}

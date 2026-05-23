@@ -6,16 +6,52 @@ import {
   MedicareScoredResult,
   normalizeInput,
 } from "./utils/medicareSearchTypes";
-import { scoreMedicareNCD } from "./utils/scoreMedicareDocument";
+import {
+  getOrBuildHybridIndex,
+  scoreHybrid,
+  MedicareDoc,
+} from "./utils/medicareHybridIndex";
 
 const RAW_DATA_CACHE_KEY = "cms-ncd-raw-data";
+const CMS_NCD_API_URL =
+  "https://api.coverage.cms.gov/v1/reports/national-coverage-ncd/";
+const CMS_NCD_BASE_HTML_URL =
+  "https://www.cms.gov/medicare-coverage-database/view/ncd.aspx";
+
+async function fetchNcdList(): Promise<any> {
+  const cached = cache.get<any>(RAW_DATA_CACHE_KEY);
+  if (cached) {
+    console.log(`[NCDCoverageSearchTool] Raw data cache hit (${cached.data?.length ?? 0} records)`);
+    return cached;
+  }
+
+  const controller = new AbortController();
+  const timeout = setTimeout(() => controller.abort(), 30000);
+  try {
+    console.log("[NCDCoverageSearchTool] Fetching NCD list from CMS API...");
+    const fetchStart = Date.now();
+    const response = await fetch(CMS_NCD_API_URL, {
+      method: "GET",
+      headers: { "Content-Type": "application/json" },
+      cache: "no-store",
+      signal: controller.signal,
+    });
+    console.log(`[NCDCoverageSearchTool] CMS fetch: ${Date.now() - fetchStart}ms`);
+    if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
+    const data = await response.json();
+    cache.set(RAW_DATA_CACHE_KEY, data, TTL.LONG);
+    return data;
+  } finally {
+    clearTimeout(timeout);
+  }
+}
 
 export class NCDCoverageSearchTool extends StructuredTool<typeof MedicareSearchInputSchema> {
   name = "ncd_coverage_search";
   schema = MedicareSearchInputSchema;
   description =
     "Searches National Coverage Determinations (NCDs) for Medicare coverage policies. " +
-    "Uses deterministic scoring to rank NCDs by relevance. " +
+    "Uses hybrid (semantic + lexical) scoring with exact-ID boost. " +
     "Returns structured JSON with topMatches containing scored results.\n\n" +
     "**Input fields:**\n" +
     "- query: Main search query (required) - treatment, diagnosis, or NCD number\n" +
@@ -32,12 +68,7 @@ export class NCDCoverageSearchTool extends StructuredTool<typeof MedicareSearchI
   async _call(input: MedicareSearchInput): Promise<string> {
     const normalized = normalizeInput(input);
 
-    const CMS_NCD_API_URL =
-      "https://api.coverage.cms.gov/v1/reports/national-coverage-ncd/";
-    const CMS_NCD_BASE_HTML_URL =
-      "https://www.cms.gov/medicare-coverage-database/view/ncd.aspx";
-
-    const cacheKey = `ncd-search:${JSON.stringify(normalized)}`;
+    const cacheKey = `ncd-search:v2:${JSON.stringify(normalized)}`;
     const cachedResult: string | null = cache.get(cacheKey);
     if (cachedResult) {
       console.log(`[NCDCoverageSearchTool] Cache hit for query: "${normalized.query}"`);
@@ -46,37 +77,8 @@ export class NCDCoverageSearchTool extends StructuredTool<typeof MedicareSearchI
 
     console.log(`[NCDCoverageSearchTool] Searching NCDs:`, JSON.stringify(normalized));
 
-    const controller = new AbortController();
-    const { signal } = controller;
-    const eventTarget = signal as unknown as EventTarget & { setMaxListeners?: (n: number) => void };
-    if (eventTarget.setMaxListeners) eventTarget.setMaxListeners(100);
-    const timeout = setTimeout(() => { if (!signal.aborted) controller.abort(); }, 30000);
-
     try {
-      let responseData: any = cache.get(RAW_DATA_CACHE_KEY);
-
-      if (responseData) {
-        clearTimeout(timeout);
-        console.log(`[NCDCoverageSearchTool] Raw data cache hit (${responseData.data?.length ?? 0} records)`);
-      } else {
-        console.log("[NCDCoverageSearchTool] Fetching NCD list from CMS API...");
-        const fetchStart = Date.now();
-        const response = await fetch(CMS_NCD_API_URL, {
-          method: "GET",
-          headers: { "Content-Type": "application/json" },
-          cache: "no-store",
-          signal,
-        });
-        clearTimeout(timeout);
-        console.log(`[NCDCoverageSearchTool] CMS fetch: ${Date.now() - fetchStart}ms`);
-
-        if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
-
-        const parseStart = Date.now();
-        responseData = await response.json();
-        console.log(`[NCDCoverageSearchTool] JSON parse: ${Date.now() - parseStart}ms, ${responseData?.data?.length ?? 0} records`);
-        cache.set(RAW_DATA_CACHE_KEY, responseData, TTL.LONG);
-      }
+      const responseData = await fetchNcdList();
 
       if (!responseData || !responseData.meta || !Array.isArray(responseData.data)) {
         console.error("[NCDCoverageSearchTool] Unexpected API response structure");
@@ -93,11 +95,25 @@ export class NCDCoverageSearchTool extends StructuredTool<typeof MedicareSearchI
         return JSON.stringify({ query: normalized, topMatches: [], message: "No NCDs currently available from CMS." });
       }
 
+      const docs: MedicareDoc[] = allNCDs.map((ncd) => ({
+        id: `${ncd.document_id}-${ncd.document_version}`,
+        title: ncd.title || "",
+        displayId: ncd.document_display_id || undefined,
+        raw: ncd,
+      }));
+
+      const indexStart = Date.now();
+      const index = await getOrBuildHybridIndex("ncd", docs);
+      console.log(`[NCDCoverageSearchTool] Index ready: ${Date.now() - indexStart}ms`);
+
       const scoreStart = Date.now();
-      const scored = allNCDs
-        .map((ncd) => { const { score, matchedOn } = scoreMedicareNCD(ncd, input); return { ncd, score, matchedOn }; })
-        .filter((item) => item.score > 0)
-        .sort((a, b) => b.score - a.score);
+      const scored = await scoreHybrid(index, {
+        query: normalized.query,
+        treatment: normalized.treatment,
+        diagnosis: normalized.diagnosis,
+        cptCodes: normalized.cptCodes,
+        icd10Codes: normalized.icd10Codes,
+      });
       console.log(`[NCDCoverageSearchTool] Scored ${allNCDs.length} records: ${Date.now() - scoreStart}ms → ${scored.length} matches`);
 
       if (scored.length === 0) {
@@ -109,15 +125,17 @@ export class NCDCoverageSearchTool extends StructuredTool<typeof MedicareSearchI
       }
 
       const top = scored.slice(0, normalized.maxResults);
-      const topMatches: MedicareScoredResult[] = top.map(({ ncd, score, matchedOn }) => {
-        const { document_id: documentId, document_version: documentVersion, document_display_id: documentDisplayId, title, document_status: status, last_updated: lastUpdated } = ncd;
+      const topMatches: MedicareScoredResult[] = top.map(({ doc, score, matchedOn }) => {
+        const ncd = doc.raw as Record<string, any>;
+        const documentId = ncd.document_id;
+        const documentVersion = ncd.document_version;
         const url = documentId != null && documentVersion != null
           ? `${CMS_NCD_BASE_HTML_URL}?ncdid=${documentId}&ncdver=${documentVersion}`
           : undefined;
         return {
-          id: `${documentId}-${documentVersion}`,
-          title: title || "N/A",
-          displayId: documentDisplayId || undefined,
+          id: doc.id,
+          title: doc.title || "N/A",
+          displayId: doc.displayId,
           documentId: documentId != null ? String(documentId) : undefined,
           documentVersion: typeof documentVersion === "number"
             ? documentVersion
@@ -125,7 +143,10 @@ export class NCDCoverageSearchTool extends StructuredTool<typeof MedicareSearchI
           score,
           url,
           matchedOn,
-          metadata: { status: status || undefined, lastUpdated: lastUpdated || undefined },
+          metadata: {
+            status: ncd.document_status || undefined,
+            lastUpdated: ncd.last_updated || undefined,
+          },
         };
       });
 
@@ -134,7 +155,6 @@ export class NCDCoverageSearchTool extends StructuredTool<typeof MedicareSearchI
       cache.set(cacheKey, result, TTL.LONG);
       return result;
     } catch (error: any) {
-      clearTimeout(timeout);
       console.error("[NCDCoverageSearchTool] Error:", error.message);
       if (error.name === "AbortError") {
         return JSON.stringify({ query: normalized, topMatches: [], error: "Search timed out. Please try again with a more specific query." });
