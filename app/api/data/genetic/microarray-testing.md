@@ -1,15 +1,22 @@
 ---
 title: "Chromosomal Microarray Analysis"
 domain: "genetic"
-specialty: ["genetics", "maternal-fetal medicine", "pediatrics"]
+specialty: ["genetics", "maternal-fetal medicine", "pediatrics", "medical genetics", "obstetrics", "neonatology"]
 procedures:
   - "chromosomal microarray analysis"
   - "CMA"
   - "array CGH"
-aliases: ["microarray testing", "chromosomal microarray", "genetic microarray"]
-relatedConditions: ["developmental delay", "autism spectrum disorder", "intellectual disability", "congenital anomalies", "fetal anomaly"]
+  - "comparative genomic hybridization"
+  - "SNP array"
+  - "copy number variant analysis"
+  - "prenatal diagnostic testing"
+  - "postnatal genetic testing"
+aliases: ["microarray testing", "chromosomal microarray", "genetic microarray", "array comparative genomic hybridization", "aCGH", "cytogenomic microarray", "molecular karyotyping", "chromosomal microarray analysis"]
+relatedConditions: ["developmental delay", "autism spectrum disorder", "intellectual disability", "congenital anomalies", "fetal anomaly", "multiple congenital anomalies", "recurrent pregnancy loss", "recurrent miscarriage", "fetal demise", "stillbirth", "early onset epilepsy", "neonatal death", "structural fetal anomaly"]
 priority: "medium"
-keywords: ["copy number variant", "CNV", "prenatal diagnosis", "genetic counseling"]
+keywords: ["copy number variant", "CNV", "prenatal diagnosis", "genetic counseling", "advanced maternal age", "ultrasound", "structural fetal anomaly", "variant of uncertain significance", "VUS", "incidental findings", "inheritance patterns", "pretest likelihood", "first-line test", "postnatal evaluation", "prenatal evaluation", "invasive diagnostic testing", "optical genome mapping", "balanced chromosomal rearrangement", "pathogenic variant", "once per fetus per pregnancy", "peer-to-peer review", "reclassification"]
+cpt_codes: ["81228", "81229", "81349", "81405", "0209U", "0252U", "0318U", "0469U", "S3870", "81195", "81354", "0260U", "0264U", "0299U", "0331U", "0454U"]
+icd10_codes: ["R62.50", "F84.0", "F79", "G40.909", "N96", "Q89.7"]
 ---
 
 Medical Necessity Criteria

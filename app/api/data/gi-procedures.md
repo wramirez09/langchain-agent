@@ -1,15 +1,30 @@
 ---
 title: "Upper Endoscopy Procedures"
 domain: "mixed"
-specialty: ["gastroenterology"]
+specialty: ["gastroenterology", "internal medicine", "surgery", "hepatology", "oncology"]
 procedures:
   - "upper endoscopy"
   - "EGD"
   - "esophagogastroduodenoscopy"
-aliases: ["upper GI endoscopy", "gastroscopy"]
-relatedConditions: ["dysphagia", "GERD", "dyspepsia", "GI bleeding", "Barrett's esophagus"]
+  - "esophageal dilation"
+  - "endoscopic mucosal resection"
+  - "radiofrequency ablation"
+  - "cryoablation"
+  - "endoscopic band ligation"
+  - "endoscopic sclerotherapy"
+  - "endoscopic stent placement"
+  - "percutaneous endoscopic gastrostomy"
+  - "foreign body removal"
+  - "endoscopic biopsy"
+  - "botulinum toxin injection"
+  - "control of bleeding"
+  - "transnasal EGD"
+aliases: ["upper GI endoscopy", "gastroscopy", "EGD with biopsy", "diagnostic EGD", "therapeutic EGD", "PEG placement", "EMR", "RFA", "variceal banding", "transnasal EGD", "TNE"]
+relatedConditions: ["dysphagia", "GERD", "dyspepsia", "GI bleeding", "Barrett's esophagus", "odynophagia", "achalasia", "eosinophilic esophagitis", "esophageal varices", "iron deficiency anemia", "pernicious anemia", "celiac disease", "Crohn's disease", "peptic ulcer disease", "esophageal cancer", "gastric cancer", "gastric intestinal metaplasia", "MALT lymphoma", "GIST", "gastric polyps", "duodenal adenoma", "caustic ingestion", "erosive esophagitis", "hiatal hernia", "portal hypertension", "cirrhosis", "FAP", "Lynch syndrome", "Peutz-Jeghers syndrome", "juvenile polyposis syndrome", "Li-Fraumeni syndrome", "hereditary diffuse gastric cancer", "tylosis", "neuroendocrine tumor"]
 priority: "medium"
-keywords: ["alarm features", "weight loss", "anemia"]
+keywords: ["alarm features", "weight loss", "anemia", "dysphagia", "odynophagia", "hematemesis", "coffee-ground emesis", "melena", "early satiety", "anorexia", "nausea", "vomiting", "epigastric discomfort", "H. pylori", "PPI", "proton pump inhibitor", "gluten-free diet", "hemoglobin", "ferritin", "transferrin saturation", "fecal occult blood", "FOBT", "dysplasia", "low-grade dysplasia", "high-grade dysplasia", "intestinal metaplasia", "esophagitis", "Los Angeles classification", "esophageal stricture", "Spigelman stage", "surveillance", "screening", "biopsy", "mapping biopsy", "ablation", "dilation", "first-degree relative", "central obesity", "carcinoma in situ", "T1a adenocarcinoma", "bariatric surgery", "sleeve gastrectomy", "Roux-en-Y gastric bypass", "conservative therapy", "medical therapy failure"]
+cpt_codes: ["43233", "43235", "43236", "43239", "43241", "43243", "43244", "43245", "43246", "43247", "43248", "43249", "43250", "43251", "43254", "43255", "43266", "43270", "0652T", "0653T", "0654T", "43231", "43232", "43237", "43238", "43242", "43259", "91034", "91035", "91038"]
+icd10_codes: ["R13.10", "K21.9", "K30", "K92.2", "K22.70", "K22.0", "K22.10", "K20.0", "I85.00", "I85.10", "D50.0", "D51.0", "K90.0", "K50.90", "K27.9", "C15.9", "C16.9", "D00.2", "C88.4", "T28.6XXA", "K31.A", "D13.2", "D3A.090", "C7A.092"]
 ---
 
 \## General Medical Necessity Requirements

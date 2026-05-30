@@ -1,15 +1,21 @@
 ---
 title: "Perirectal Hydrogel Spacer for Prostate Radiotherapy"
 domain: "oncology"
-specialty: ["radiation oncology", "urology"]
+specialty: ["radiation oncology", "urology", "medical oncology"]
 procedures:
   - "perirectal hydrogel spacer placement"
   - "prostate radiation therapy"
-aliases: ["hydrogel spacer", "rectal spacer", "SpaceOAR"]
-relatedConditions: ["prostate cancer"]
+  - "transperineal placement of biodegradable material"
+  - "external beam radiation therapy"
+  - "intensity-modulated radiation therapy"
+  - "stereotactic body radiation therapy"
+  - "3d conformal radiation therapy"
+aliases: ["hydrogel spacer", "rectal spacer", "SpaceOAR", "peri-prostatic spacer", "biodegradable rectal spacer", "perirectal spacer", "EBRT", "IMRT", "SBRT", "3DCRT"]
+relatedConditions: ["prostate cancer", "localized prostate cancer", "locally advanced prostate cancer", "prostate adenocarcinoma"]
 cpt_codes: ["55874"]
+icd10_codes: ["C61"]
 priority: "medium"
-keywords: ["IMRT", "SBRT", "external beam radiation", "3D conformal radiation"]
+keywords: ["IMRT", "SBRT", "external beam radiation", "3D conformal radiation", "hydrogel spacer", "prostate", "rectum", "rectal sparing", "primary definitive radiation therapy", "Gleason score", "PSA", "risk of recurrence", "low risk", "intermediate risk", "high risk", "localized disease", "locally advanced disease", "distant metastatic disease", "brachytherapy", "TNM staging", "transperineal", "image guidance", "medical necessity"]
 ---
 
 \# Perirectal Hydrogel Spacer for Prostate Radiotherapy - Summary

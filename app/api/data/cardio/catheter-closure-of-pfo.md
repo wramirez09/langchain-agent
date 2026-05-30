@@ -1,14 +1,18 @@
 ---
 title: "Patent Foramen Ovale Closure"
 domain: "cardio"
-specialty: ["cardiology", "interventional cardiology", "structural heart"]
+specialty: ["cardiology", "interventional cardiology", "structural heart", "neurology"]
 procedures:
   - "PFO closure"
   - "transcatheter PFO closure"
-aliases: ["patent foramen ovale closure", "PFO device closure"]
-relatedConditions: ["cryptogenic stroke", "embolic stroke", "patent foramen ovale", "atrial septal aneurysm"]
+  - "percutaneous transcatheter closure of patent foramen ovale"
+  - "percutaneous transcatheter closure of congenital interatrial communication"
+aliases: ["patent foramen ovale closure", "PFO device closure", "PFO", "patent foramen ovale", "percutaneous PFO closure", "transcatheter closure of PFO", "PFO occlusion", "interatrial communication closure"]
+relatedConditions: ["cryptogenic stroke", "embolic stroke", "patent foramen ovale", "atrial septal aneurysm", "embolic stroke of undetermined source", "paradoxical embolism", "atrial fibrillation", "pulmonary embolism", "deep vein thrombosis", "hypercoagulable state"]
 priority: "medium"
-keywords: ["RoPE score", "paradoxical embolism", "anticoagulation"]
+keywords: ["RoPE score", "paradoxical embolism", "anticoagulation", "embolic stroke of unknown cause", "agitated saline contrast", "Valsalva maneuver", "right-to-left shunt", "straddling thrombus", "large-shunt PFO", "microbubbles", "rhythm monitoring", "high-risk echocardiogram", "neurovascular imaging", "comprehensive stroke evaluation", "mechanical heart valve", "peer-to-peer review"]
+cpt_codes: ["93580"]
+icd10_codes: ["Q21.1", "I63.9", "I48.91", "I26.99", "I82.40"]
 ageRestrictions: "60 years or younger"
 ---
 

@@ -1,16 +1,26 @@
 ---
 title: "Sleep Medicine Services"
 domain: "mixed"
-specialty: ["sleep medicine", "pulmonology"]
+specialty: ["sleep medicine", "pulmonology", "neurology", "otolaryngology", "pediatrics"]
 procedures:
   - "PAP therapy"
   - "home sleep test"
   - "sleep study"
-aliases: ["sleep apnea treatment", "CPAP therapy", "sleep testing"]
-relatedConditions: ["obstructive sleep apnea", "sleep-disordered breathing"]
-cpt_codes: ["94660"]
+  - "polysomnography"
+  - "attended in-lab polysomnography"
+  - "unattended home sleep test"
+  - "PAP titration"
+  - "split-night study"
+  - "CPAP titration"
+  - "BiPAP titration"
+  - "multiple sleep latency test"
+  - "upper-airway stimulation therapy"
+  - "PAP-only office visit"
+aliases: ["sleep apnea treatment", "CPAP therapy", "sleep testing", "HSAT", "home sleep apnea test", "PSG", "in-lab sleep study", "MSLT", "BiPAP", "positive airway pressure titration", "split-night polysomnography", "hypoglossal nerve stimulation", "Inspire therapy"]
+relatedConditions: ["obstructive sleep apnea", "sleep-disordered breathing", "central sleep apnea", "complex sleep apnea", "narcolepsy", "idiopathic hypersomnia", "periodic limb movement disorder", "restless leg syndrome", "parasomnia", "REM behavior disorder", "nocturnal seizures", "obesity hypoventilation syndrome", "sleep-related hypoventilation", "sleep-related hypoxemia", "cataplexy", "primary snoring", "obstructive sleep apnea syndrome", "congenital central alveolar hypoventilation syndrome"]
+cpt_codes: ["94660", "95800", "95801", "95805", "95806", "95807", "95808", "95810", "95811", "G0398", "G0399", "G0400"]
 priority: "medium"
-keywords: ["positive airway pressure", "OSA", "unattended home sleep test"]
+keywords: ["positive airway pressure", "OSA", "unattended home sleep test", "excessive daytime sleepiness", "habitual snoring", "witnessed apneas", "gasping", "choking", "BMI", "neck circumference", "AHI", "apnea-hypopnea index", "PAP adherence", "split-night study", "PAP titration", "multiple sleep latency test", "cataplexy", "hypnagogic hallucinations", "sleep paralysis", "comprehensive sleep evaluation", "adenotonsillectomy", "tonsillar hypertrophy", "rapid maxillary expansion", "EEG", "EOG", "chin EMG", "oxygen saturation", "respiratory effort", "treatment-refractory hypertension", "nocturnal dysrhythmias", "pulmonary hypertension", "obesity hypoventilation"]
 ---
 
 \## 1) PAP-Only Office Visit Service

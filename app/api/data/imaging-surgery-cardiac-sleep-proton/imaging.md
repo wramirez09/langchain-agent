@@ -1,16 +1,31 @@
 ---
 title: "Brain Functional Mapping and PET"
 domain: "mixed"
-specialty: ["radiology", "neurosurgery", "nuclear medicine"]
+specialty: ["radiology", "neurosurgery", "nuclear medicine", "cardiology", "neurology", "oncology", "obstetrics", "gastroenterology", "orthopedic surgery", "rheumatology", "vascular surgery", "breast surgery"]
 procedures:
   - "functional MRI"
   - "brain PET"
   - "resting-state fMRI"
-aliases: ["fMRI", "brain functional imaging", "brain PET scan"]
-relatedConditions: ["brain tumor", "epilepsy", "vascular malformation", "glioma"]
-cpt_codes: ["70554", "70555"]
+  - "brain MR spectroscopy"
+  - "breast MRI"
+  - "fetal MRI"
+  - "pelvic CT angiography"
+  - "CT colonography"
+  - "upper extremity MRI"
+  - "cardiac MRI"
+  - "stress cardiac MRI"
+  - "cardiac PET"
+  - "CT-guided needle placement"
+  - "MRI-guided needle placement"
+  - "CT 3D rendering"
+  - "low-field MRI"
+  - "FDG PET"
+aliases: ["fMRI", "brain functional imaging", "brain PET scan", "MRS", "MR spectroscopy", "FDG-PET", "MR arthrogram", "virtual colonoscopy", "CTC", "CTA pelvis", "cardiac MR", "CMR", "stress CMR", "CMRA", "DIEP imaging", "MPI", "myocardial perfusion imaging", "MR enterography"]
+relatedConditions: ["brain tumor", "epilepsy", "vascular malformation", "glioma", "radiation necrosis", "primary brain lymphoma", "Alzheimer disease", "dementia with Lewy bodies", "frontotemporal degeneration", "mild cognitive impairment", "Canavan disease", "primary mitochondrial disorders", "brain abscess", "breast cancer", "ductal carcinoma in situ", "lobular carcinoma in situ", "atypical ductal hyperplasia", "Paget disease of the nipple", "phyllodes tumor", "BRCA1 mutation", "BRCA2 mutation", "silicone implant rupture", "fetal abnormality", "pelvic congestion syndrome", "May-Thurner syndrome", "inferior vena cava thrombosis", "aortic aneurysm", "aortic dissection", "arteriovenous malformation", "vasculitis", "colorectal cancer", "colonic polyp", "rotator cuff tear", "labral tear", "peripheral nerve entrapment", "brachial plexopathy", "rheumatoid arthritis", "inflammatory myopathy", "osteonecrosis", "chronic recurrent multifocal osteomyelitis", "cardiomyopathy", "heart failure", "myocarditis", "hypertrophic cardiomyopathy", "cardiac amyloidosis", "cardiac sarcoidosis", "hemochromatosis", "endomyocardial fibrosis", "bicuspid aortic valve", "Turner syndrome", "Marfan syndrome", "patent ductus arteriosus", "Eisenmenger syndrome", "pulmonary hypertension", "aortic coarctation", "tetralogy of Fallot", "double outlet right ventricle", "transposition of the great arteries", "coronary artery disease", "ischemic cardiomyopathy", "ventricular tachycardia", "ventricular fibrillation", "infective endocarditis", "aortitis", "anomalous coronary artery", "coronary aneurysm", "melanoma"]
+cpt_codes: ["70554", "70555", "78608", "76390", "0698T", "77046", "77047", "77048", "77049", "74712", "74713", "72191", "74261", "74262", "73218", "73219", "73220", "73221", "73222", "73223", "75557", "75559", "75561", "75563", "75565", "78459", "78491", "78492", "78434", "77011", "77012", "77013", "77014", "77021", "77022", "76376", "76377", "S8042", "G0235", "G0252", "G0219"]
+icd10_codes: ["C71.9", "G40.909", "Q28.2", "C70.0", "G31.84", "G30.9", "G31.83", "G31.09", "E75.29", "G31.81", "G06.0", "C50.919", "D05.10", "D05.00", "N60.41", "C50.011", "N64.51", "Z15.01", "Z15.02", "T85.43XA", "Q89.9", "N94.89", "I87.1", "I71.4", "Q27.30", "I77.6", "C18.9", "K63.5", "M75.100", "M24.119", "G56.90", "G54.0", "M06.9", "M60.9", "M87.9", "M86.39", "I42.9", "I50.9", "I40.9", "I42.1", "E83.119", "I42.3", "Q23.1", "Q96.9", "Q87.40", "Q25.0", "I27.83", "I27.20", "Q25.1", "Q21.3", "Q20.1", "Q20.3", "I25.10", "I25.5", "I47.20", "I49.01", "I33.0", "Q24.5", "C43.9"]
 priority: "medium"
-keywords: ["presurgical mapping", "eloquent cortex", "radiation necrosis"]
+keywords: ["presurgical mapping", "eloquent cortex", "radiation necrosis", "FDG PET", "MMSE", "MoCA", "neuropsychological testing", "dense breast tissue", "BI-RADS", "lifetime breast cancer risk", "neoadjuvant chemotherapy", "silicone implant rupture", "conservative treatment", "physical therapy", "home exercise program", "provocative exam", "rotator cuff", "EMG", "nerve conduction study", "Duke treadmill score", "coronary artery calcium score", "pretest probability", "myocardial perfusion imaging", "stress echocardiography", "myocardial viability", "LVEF", "troponin", "left bundle branch block", "aortic root", "connective tissue disorder", "congenital heart disease", "pulmonary regurgitation", "incomplete colonoscopy", "colorectal polyp", "May-Thurner syndrome", "endovascular aneurysm repair", "uterine artery embolization"]
 ---
 
 \# Brain Functional Mapping MRI

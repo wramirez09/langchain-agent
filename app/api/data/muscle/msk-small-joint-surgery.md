@@ -1,17 +1,30 @@
 ---
 title: "Foot and Ankle Surgery"
 domain: "muscle"
-specialty: ["orthopedic surgery", "podiatry"]
+specialty: ["orthopedic surgery", "podiatry", "foot and ankle surgery"]
 procedures:
   - "hallux rigidus surgery"
   - "hallux valgus correction"
   - "bunionectomy"
   - "first MTP arthrodesis"
   - "cheilectomy"
-aliases: ["foot surgery", "ankle surgery", "bunion surgery", "toe surgery"]
-relatedConditions: ["hallux rigidus", "hallux valgus", "bunion", "arthritis", "foot deformity"]
+  - "first MTP arthroplasty"
+  - "first MTP hemiarthroplasty"
+  - "bunionette surgery"
+  - "metatarsal osteotomy"
+  - "lesser toe deformity surgery"
+  - "hammertoe correction"
+  - "ankle arthrodesis"
+  - "total ankle arthroplasty"
+  - "revision total ankle arthroplasty"
+  - "sesamoidectomy"
+  - "exostectomy"
+aliases: ["foot surgery", "ankle surgery", "bunion surgery", "toe surgery", "foot and ankle surgery", "bunionectomy", "bunionette surgery", "tailor's bunion surgery", "cheilectomy", "metatarsal osteotomy", "first MTP fusion", "great toe fusion", "hammertoe surgery", "ankle fusion", "tibiotalar arthrodesis", "total ankle replacement", "TAR", "TAA", "first MTP joint replacement", "silastic implant arthroplasty", "metatarsal head resection"]
+relatedConditions: ["hallux rigidus", "hallux valgus", "bunion", "bunionette", "tailor's bunion", "arthritis", "foot deformity", "first MTP osteoarthritis", "metatarsalgia", "hammertoe", "lesser toe deformity", "metatarsal deformity", "ankle osteoarthritis", "tibiotalar arthritis", "avascular necrosis of the talus", "diabetic foot ulcer", "nonhealing ulcer", "Charcot neuroarthropathy", "periprosthetic joint infection", "aseptic loosening"]
 priority: "medium"
-keywords: ["conservative management", "weight-bearing radiographs", "footwear modification", "skeletal maturity"]
+keywords: ["conservative management", "weight-bearing radiographs", "footwear modification", "skeletal maturity", "first MTP joint", "range of motion", "functional impairment", "VAS pain score", "hallux valgus angle", "intermetatarsal angle", "Kellgren-Lawrence grade", "joint-space narrowing", "subchondral cysts", "subchondral sclerosis", "periarticular osteophytes", "joint subluxation", "vascular perfusion", "foot orthoses", "corticosteroid injection", "activity modification", "anti-inflammatory medication", "nonhealing ulcer", "pre-ulcer", "tobacco cessation", "HbA1c", "BMI", "shared decision-making", "FDA-approved device", "silastic implant", "hemiarthroplasty", "aseptic loosening", "synovial fluid analysis", "leukocyte esterase", "alpha defensin", "serologic testing", "12 weeks conservative treatment"]
+cpt_codes: ["27702", "27703", "27704", "27870", "28110", "28285", "28286", "28289", "28291", "28292", "28295", "28296", "28297", "28298", "28299", "28306", "28307", "28308", "28310", "28312", "28315", "28750"]
+icd10_codes: ["M20.20", "M20.21", "M20.22", "M20.10", "M20.11", "M20.12", "M20.40", "M20.41", "M20.42", "M20.5X1", "M20.5X2", "M19.071", "M19.072", "M87.071", "M87.072", "M14.871", "M14.872"]
 ---
 
 1.  GENERAL MEDICAL NECESSITY FRAMEWORK

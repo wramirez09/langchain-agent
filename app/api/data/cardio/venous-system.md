@@ -1,16 +1,28 @@
 ---
 title: "Venous System Procedures"
 domain: "cardio"
-specialty: ["vascular surgery", "interventional radiology", "phlebology"]
+specialty: ["vascular surgery", "interventional radiology", "phlebology", "general surgery", "vascular medicine"]
 procedures:
   - "endovenous ablation"
   - "sclerotherapy"
   - "varicose vein treatment"
   - "venous stenting"
-aliases: ["vein ablation", "varicose vein surgery", "venous insufficiency treatment"]
-relatedConditions: ["varicose veins", "chronic venous insufficiency", "venous reflux", "venous ulcer", "deep vein thrombosis"]
+  - "endovenous laser ablation"
+  - "radiofrequency ablation"
+  - "cyanoacrylate ablation"
+  - "mechanochemical ablation"
+  - "ultrasound-guided foam sclerotherapy"
+  - "liquid sclerotherapy"
+  - "high ligation and stripping"
+  - "ambulatory phlebectomy"
+  - "perforator vein ablation"
+  - "duplex ultrasound"
+aliases: ["vein ablation", "varicose vein surgery", "venous insufficiency treatment", "EVLA", "EVLT", "RFA", "ClariVein", "VenaSeal", "saphenous vein ablation", "vein stripping", "stab phlebectomy", "microphlebectomy", "venaseal closure"]
+relatedConditions: ["varicose veins", "chronic venous insufficiency", "venous reflux", "venous ulcer", "deep vein thrombosis", "saphenous vein reflux", "superficial phlebitis", "venous stasis dermatitis", "perforator vein incompetence"]
 priority: "medium"
-keywords: ["saphenous vein", "thermal ablation", "cyanoacrylate", "foam sclerotherapy"]
+cpt_codes: ["36465", "36466", "36468", "36470", "36471", "S2202", "36473", "36474", "36475", "36476", "36478", "36479", "36482", "36483", "0524T", "37700", "37718", "37722", "37735", "37765", "37766", "37780", "37785"]
+icd10_codes: ["I83.10", "I83.20", "I83.811", "I83.812", "I83.819", "I83.001", "I83.002", "I83.009", "I87.2", "I87.309", "I80.00", "I80.10", "L97.909"]
+keywords: ["saphenous vein", "thermal ablation", "cyanoacrylate", "foam sclerotherapy", "great saphenous vein", "small saphenous vein", "anterior accessory saphenous vein", "posterior accessory saphenous vein", "axial reflux", "reflux greater than 500 msec", "perforator vein", "truncal vein", "tributary vein", "venous stasis skin changes", "leg swelling", "leg pain", "heaviness", "tumescent anesthesia", "high ligation", "vein stripping", "phlebectomy", "venous ulcer", "duplex ultrasound", "vein diameter", "outward flow", "reticular veins", "telangiectasias", "conservative therapy"]
 ---
 
 MEDICAL NECESSITY CRITERIA

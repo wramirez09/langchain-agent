@@ -1,15 +1,25 @@
 ---
 title: "Reproductive Carrier Screening"
 domain: "genetic"
-specialty: ["genetics", "obstetrics", "reproductive medicine"]
+specialty: ["genetics", "obstetrics", "reproductive medicine", "maternal-fetal medicine", "medical genetics", "prenatal care", "genetic counseling"]
 procedures:
   - "carrier screening"
   - "expanded carrier screening"
   - "preconception genetic testing"
-aliases: ["reproductive genetic screening", "carrier testing", "preconception screening"]
-relatedConditions: ["cystic fibrosis", "spinal muscular atrophy", "hemoglobinopathies", "sickle cell disease", "thalassemia"]
+  - "standard carrier screening"
+  - "condition-specific carrier testing"
+  - "fragile x premutation carrier testing"
+  - "hemoglobinopathy screening"
+  - "prenatal diagnostic confirmation"
+  - "hemoglobin electrophoresis"
+  - "single-gene carrier screening"
+  - "multigene panel carrier screening"
+aliases: ["reproductive genetic screening", "carrier testing", "preconception screening", "expanded carrier screening", "ecs", "pan-ethnic carrier screening", "cystic fibrosis carrier screening", "cf carrier screening", "smn1 carrier testing", "spinal muscular atrophy carrier screening", "sma carrier screening", "fragile x carrier testing", "fmr1 testing", "hemoglobinopathy carrier screening", "preconception carrier screening", "prenatal carrier screening"]
+relatedConditions: ["cystic fibrosis", "spinal muscular atrophy", "hemoglobinopathies", "sickle cell disease", "thalassemia", "fragile x syndrome", "fragile x premutation", "primary ovarian insufficiency", "fragile x-related disorders", "autosomal recessive disorders"]
 priority: "high"
-keywords: ["autosomal recessive", "carrier frequency", "genetic counseling", "consanguinity"]
+keywords: ["autosomal recessive", "carrier frequency", "genetic counseling", "consanguinity", "preconception", "pregnancy", "considering reproduction", "ancestry", "inheritance patterns", "pathogenic variant", "likely pathogenic variant", "shared decision-making", "pretest counseling", "post-test counseling", "family history", "previously affected child", "first-degree relative", "second-degree relative", "third-degree relative", "reproductive partner", "partner testing", "hemoglobin electrophoresis", "hba1", "hba2", "hbb", "fragile x premutation", "fmr1", "fsh", "ovarian insufficiency", "ovarian failure", "incidental findings", "gene-disease clinical validity", "sensitivity and specificity", "mthfr", "hereditary hemochromatosis", "cell-free dna", "whole exome", "whole genome", "1 in 100 carrier frequency", "once per lifetime", "peer-to-peer review"]
+cpt_codes: ["81161", "81171", "81172", "81173", "81174", "81188", "81189", "81190", "81200", "81205", "81209", "81220", "81221", "81222", "81223", "81224", "81238", "81242", "81243", "81244", "81250", "81251", "81252", "81253", "81254", "81255", "81256", "81257", "81258", "81259", "81260", "81269", "81286", "81289", "81290", "81291", "81303", "81304", "81329", "81330", "81332", "81336", "81337", "81361", "81362", "81363", "81364", "81400", "81401", "81402", "81403", "81404", "81405", "81406", "81407", "81408", "81412", "81443", "81479", "0400U", "0449U", "S3844"]
+icd10_codes: ["Z31.430", "Z31.440", "Z13.79", "Z14.0", "Z14.1", "Z84.81", "E84.9", "G12.9", "D57.1", "D57.3", "D56.9", "D56.1", "Q99.2", "E28.310"]
 ---
 
 MEDICAL NECESSITY CRITERIA

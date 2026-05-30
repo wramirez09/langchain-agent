@@ -9,10 +9,32 @@ procedures:
   - "ACL reconstruction"
   - "total knee replacement"
   - "total hip replacement"
-aliases: ["knee surgery", "hip surgery", "joint replacement", "arthroscopic surgery"]
-relatedConditions: ["meniscal tear", "osteoarthritis", "ACL tear", "cartilage damage", "joint degeneration"]
+  - "diagnostic arthroscopy"
+  - "partial meniscectomy"
+  - "loose body removal"
+  - "chondroplasty"
+  - "debridement"
+  - "posterolateral corner reconstruction"
+  - "collateral ligament reconstruction"
+  - "lateral retinacular release"
+  - "quadricepsplasty"
+  - "distal realignment"
+  - "medial patellofemoral ligament reconstruction"
+  - "plica resection"
+  - "popliteal cyst excision"
+  - "synovectomy"
+  - "limited synovectomy"
+  - "major synovectomy"
+  - "meniscal allograft transplantation"
+  - "osteochondral allograft transplantation"
+  - "osteochondral autograft transplantation"
+  - "autologous chondrocyte implantation"
+aliases: ["knee surgery", "hip surgery", "joint replacement", "arthroscopic surgery", "knee scope", "knee arthroscopy", "MPFL reconstruction", "OATS", "mosaicplasty", "ACI", "MACI", "meniscus transplant", "meniscal transplant", "synovectomy", "lateral release", "tibial tubercle osteotomy", "meniscus repair", "menisectomy"]
+relatedConditions: ["meniscal tear", "osteoarthritis", "ACL tear", "cartilage damage", "joint degeneration", "acute traumatic meniscal tear", "chronic degenerative meniscal tear", "osteochondritis dissecans", "patellar instability", "patellofemoral instability", "patellar compression syndrome", "popliteal cyst", "Baker cyst", "loose body", "chondral defect", "focal cartilage lesion", "synovial plica", "pigmented villonodular synovitis", "synovial chondromatosis", "rheumatoid arthritis", "inflammatory arthropathy", "hemophilic joint disease", "posterolateral corner injury", "collateral ligament tear", "knee extension contracture"]
 priority: "high"
-keywords: ["conservative management", "physical therapy", "Kellgren-Lawrence grade", "chondroplasty"]
+cpt_codes: ["27331", "27332", "27333", "27334", "27335", "27345", "27403", "27405", "27407", "27409", "27412", "27415", "27416", "27418", "27420", "27422", "27424", "27425", "27427", "27428", "27429", "27430", "27570", "28446", "20932", "20933", "20934", "29866", "29867", "29868", "29870", "29871", "29873", "29874", "29875", "29876", "29877", "29879", "29880", "29881", "29882", "29883", "G0428", "J7330", "S2112"]
+icd10_codes: ["M23.205", "M23.309", "M17.9", "M17.10", "M93.269", "M22.8X9", "M71.20", "M67.50", "M12.20", "M67.20"]
+keywords: ["conservative management", "physical therapy", "Kellgren-Lawrence grade", "chondroplasty", "supervised home program", "corticosteroid injection", "anti-inflammatory medication", "activity modification", "medical necessity", "synovial biopsy", "chondrocyte tissue harvest", "range of motion", "joint swelling", "instability", "giving way", "catching", "locking", "clicking", "mechanical symptoms", "loose body", "modified Outerbridge grade", "joint space preservation", "full-thickness cartilage defect", "weight-bearing femoral condyle", "trochlear region", "patella", "tibial tubercle-trochlear groove distance", "patella alta", "skeletal maturity", "kissing lesion", "marrow stimulation", "varus deformity", "valgus deformity", "alignment", "ligamentous stability", "plan of care", "reevaluation", "MRI", "advanced imaging"]
 ---
 
 COMMON REQUIRED DOCUMENTATION / CONSERVATIVE TREATMENT ELEMENTS

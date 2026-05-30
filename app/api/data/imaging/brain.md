@@ -1,15 +1,27 @@
 ---
 title: "Brain Imaging"
 domain: "imaging"
-specialty: ["radiology", "neurology", "neurosurgery"]
+specialty: ["radiology", "neurology", "neurosurgery", "neuroradiology", "otolaryngology", "pediatrics", "neuro-oncology"]
 procedures:
   - "brain MRI"
   - "brain CT"
   - "head CT"
-aliases: ["neuroimaging", "brain scan", "head imaging"]
-relatedConditions: ["developmental delay", "cerebral palsy", "Chiari malformation", "craniosynostosis", "headache", "seizure", "stroke"]
+  - "MRI brain/brain stem"
+  - "CT cerebral perfusion"
+  - "functional MRI brain"
+  - "MR spectroscopy"
+  - "FDG brain PET"
+  - "amyloid brain PET"
+  - "PET/CT"
+  - "CT orbit/sella/posterior fossa/temporal bone"
+  - "magnetoencephalography"
+  - "magnetic source imaging"
+aliases: ["neuroimaging", "brain scan", "head imaging", "MRI head", "CT head", "head CT", "brain MRI", "fMRI", "MEG", "MSI", "brain PET", "FDG-PET", "amyloid PET", "CTP", "MRS", "temporal bone CT", "IAC MRI"]
+relatedConditions: ["developmental delay", "cerebral palsy", "Chiari malformation", "craniosynostosis", "headache", "seizure", "stroke", "macrocephaly", "microcephaly", "sickle cell disease", "multiple sclerosis", "clinically isolated syndrome", "Parkinson's disease", "Huntington's disease", "progressive supranuclear palsy", "multiple system atrophy", "dystonia", "essential tremor", "mild cognitive impairment", "dementia", "Alzheimer's disease", "vascular dementia", "frontotemporal degeneration", "Lewy body dementia", "head trauma", "post-concussive syndrome", "acoustic neuroma", "meningioma", "pituitary adenoma", "neurofibromatosis", "tuberous sclerosis", "Sturge-Weber syndrome", "von Hippel-Lindau disease", "Bell's palsy", "intracranial hemorrhage", "Horner's syndrome", "hydrocephalus", "normal pressure hydrocephalus", "epilepsy", "spontaneous intracranial hypotension", "transient ischemic attack", "trigeminal neuralgia", "ataxia", "vertigo", "dizziness", "hearing loss", "sensorineural hearing loss", "papilledema", "syncope", "tinnitus", "visual disturbance", "cranial nerve palsy", "nystagmus"]
 priority: "high"
-keywords: ["congenital anomalies", "neurologic deficit", "advanced imaging"]
+keywords: ["congenital anomalies", "neurologic deficit", "advanced imaging", "medical necessity", "with contrast", "without contrast", "gadolinium", "Glasgow Coma Scale", "focal neurologic findings", "altered mental status", "thunderclap headache", "orthostatic headache", "papilledema", "demyelinating disease", "white matter disease", "natalizumab", "amyloid therapy", "deep brain stimulation", "focused ultrasound", "silent cerebral infarct", "posterior fossa", "skull base", "vasogenic edema", "WHO grade", "macroadenoma", "microadenoma", "pulsatile tinnitus", "retrocochlear", "audiogram", "EEG", "Wada testing", "eloquent cortex", "surveillance", "peer-to-peer", "lumbar puncture", "increased intracranial pressure", "non-accidental injury", "basilar skull fracture", "conservative care"]
+cpt_codes: ["70450", "70460", "70470", "70473", "70480", "70481", "70482", "70551", "70552", "70553", "70554", "70555", "76390", "78608", "78609", "78811", "78814", "95965", "95966"]
+icd10_codes: ["G80.9", "Q07.00", "Q75.0", "Q75.3", "Q87.0", "R51.9", "R56.9", "I63.9", "G35", "G20", "G10", "G23.1", "G90.3", "G24.9", "G25.0", "G31.84", "F03.90", "F01.50", "G30.9", "G31.09", "G31.83", "S06.9X0A", "F07.81", "D33.3", "D32.0", "D35.2", "Q85.00", "Q85.1", "Q85.8", "G51.0", "I62.9", "G90.2", "G91.9", "G91.2", "G40.909", "G96.0", "G45.9", "G50.0", "R27.0", "R42", "H90.5", "H90.2", "H90.6", "H47.10", "R55", "H93.19"]
 ---
 
 \## General Medical Necessity Framework

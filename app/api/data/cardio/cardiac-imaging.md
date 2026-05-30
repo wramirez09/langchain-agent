@@ -1,7 +1,7 @@
 ---
 title: "Cardiac Imaging"
 domain: "cardio"
-specialty: ["cardiology", "radiology", "nuclear medicine"]
+specialty: ["cardiology", "radiology", "nuclear medicine", "cardiac imaging"]
 procedures:
   - "coronary artery calcium scoring"
   - "cardiac CT angiography"
@@ -9,11 +9,20 @@ procedures:
   - "PET myocardial imaging"
   - "myocardial perfusion imaging"
   - "echocardiography"
-aliases: ["CCTA", "cardiac CT", "FFR-CT", "CAC scoring", "stress test imaging"]
-relatedConditions: ["coronary artery disease", "chest pain", "ischemia", "hypercholesterolemia", "heart failure"]
-cpt_codes: ["75571", "75572", "75573", "75574", "75580", "78429", "78430", "78431", "78432", "78433", "78451", "78452", "78453", "78454"]
+  - "FFR-CT"
+  - "stress cardiac MRI"
+  - "metabolic PET"
+  - "cardiac blood pool imaging"
+  - "MUGA scan"
+  - "first-pass radionuclide ventriculography"
+  - "infarct imaging"
+  - "transthoracic echocardiography"
+aliases: ["CCTA", "cardiac CT", "FFR-CT", "CAC scoring", "stress test imaging", "coronary CTA", "fractional flow reserve CT", "calcium score", "cardiac PET", "PET perfusion", "MPI", "SPECT MPI", "stress MRI", "MUGA", "RNA", "radionuclide angiography", "TTE", "resting echo", "cardiac sarcoid PET", "viability PET"]
+relatedConditions: ["coronary artery disease", "chest pain", "ischemia", "hypercholesterolemia", "heart failure", "myocarditis", "cardiomyopathy", "Kawasaki disease", "atrial fibrillation", "atrial flutter", "ventricular tachycardia", "cardiac sarcoidosis", "arrhythmogenic right ventricular dysplasia", "Fabry disease", "infective endocarditis", "valvular heart disease", "congenital heart disease", "pulmonary hypertension", "dyspnea", "syncope", "premature ventricular contractions", "left bundle branch block", "left ventricular systolic dysfunction", "aortic regurgitation", "myocardial infarction", "pericardial effusion", "acute coronary syndrome", "anomalous coronary artery"]
+cpt_codes: ["75557", "75559", "75561", "75563", "75571", "75572", "75573", "75574", "75580", "78429", "78430", "78431", "78432", "78433", "78451", "78452", "78453", "78454", "78459", "78466", "78468", "78469", "78472", "78473", "78481", "78483", "78491", "78492", "78494", "78496", "93321", "93325", "S8085", "S8092"]
+icd10_codes: ["I25.10", "R07.9", "I24.8", "E78.0", "I50.9", "I40.9", "I42.9", "M30.3", "I48.91", "I47.2", "D86.85", "I42.8", "E75.21", "I33.0", "I38", "Q24.9", "I27.20", "R06.00", "R55", "I49.3", "I44.7", "I35.9", "I21.9", "I31.3", "I24.9", "Q24.5"]
 priority: "high"
-keywords: ["CAD", "ASCVD", "atherosclerosis", "cardiac risk assessment"]
+keywords: ["CAD", "ASCVD", "atherosclerosis", "cardiac risk assessment", "coronary artery calcium", "pretest probability", "myocardial ischemia", "ASCVD risk", "LDL", "risk-enhancing factors", "guideline-directed medical therapy", "anti-ischemic therapy", "viability assessment", "ejection fraction", "LV systolic dysfunction", "pharmacologic stress", "attenuation artifact", "resting EKG", "ST depression", "LVH", "WPW", "pre-excitation", "ventricular paced rhythm", "digoxin effect", "preoperative cardiac evaluation", "functional capacity", "revascularization", "CABG", "post-transplant surveillance", "iodinated contrast", "morbid obesity", "troponin", "regurgitant volume", "iron quantification", "cardiotoxic therapy monitoring", "CRT", "ICD", "VAD"]
 ---
 
 RELEVANT CODES

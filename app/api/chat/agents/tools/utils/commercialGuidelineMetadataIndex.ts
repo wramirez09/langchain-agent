@@ -53,14 +53,12 @@ function scanDirectoryForMetadata(dir: string): DocumentMetadata[] {
       results.push(...scanDirectoryForMetadata(fullPath));
     } else if (item.isFile() && (item.name.endsWith('.md') || item.name.endsWith('.txt'))) {
       try {
-        // Read only the first 2KB to extract front matter (much faster than full file)
-        const fd = fs.openSync(fullPath, 'r');
-        const buffer = Buffer.alloc(2048);
-        const bytesRead = fs.readSync(fd, buffer, 0, 2048, 0);
-        fs.closeSync(fd);
-        
-        const content = buffer.toString('utf8', 0, bytesRead);
-        
+        // Read the full file so large front matter isn't truncated. A prior
+        // fixed 2KB read silently dropped title/codes once enrichment grew the
+        // front matter past the buffer (closing `---` fell outside the window).
+        // The index is built once and cached, so the read cost is paid once.
+        const content = fs.readFileSync(fullPath, 'utf8');
+
         // Parse YAML front matter
         let frontMatter: Record<string, unknown> = {};
         if (item.name.endsWith('.md')) {
@@ -193,7 +191,7 @@ const DOMAIN_SYNONYMS: Record<string, string[]> = {
 
 // Expand a query domain into every accepted synonym so matching works against
 // the corpus's vocabulary. Unknown domains pass through as-is.
-function expandDomain(domain: string): string[] {
+export function expandDomain(domain: string): string[] {
   const d = domain.toLowerCase().trim()
   for (const [canonical, syns] of Object.entries(DOMAIN_SYNONYMS)) {
     if (canonical === d || syns.some((s) => s === d || d.includes(s) || s.includes(d))) {

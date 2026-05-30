@@ -1,15 +1,21 @@
 ---
 title: "Cardiac Monitoring"
 domain: "cardio"
-specialty: ["cardiology", "electrophysiology"]
+specialty: ["cardiology", "electrophysiology", "neurology"]
 procedures:
   - "implantable loop recorder"
   - "cardiac event monitor"
   - "ambulatory ECG monitoring"
-aliases: ["ILR", "insertable cardiac monitor", "Holter monitor", "event recorder"]
-relatedConditions: ["syncope", "atrial fibrillation", "cryptogenic stroke", "palpitations", "arrhythmia"]
+  - "mobile cardiac telemetry"
+  - "mobile cardiac outpatient telemetry"
+  - "subcutaneous cardiac rhythm monitor insertion"
+  - "implantable recording device"
+aliases: ["ILR", "insertable cardiac monitor", "Holter monitor", "event recorder", "MCT", "MCOT", "mobile cardiac outpatient telemetry", "subcutaneous cardiac rhythm monitor", "implantable cardiac monitor", "ambulatory event monitor"]
+relatedConditions: ["syncope", "atrial fibrillation", "cryptogenic stroke", "palpitations", "arrhythmia", "atrial flutter", "recurrent syncope"]
 priority: "medium"
-keywords: ["rhythm monitoring", "AF detection", "recurrent syncope"]
+keywords: ["rhythm monitoring", "AF detection", "recurrent syncope", "cryptogenic stroke", "anticoagulation", "pulmonary vein isolation", "ambulatory monitoring", "ambulatory event monitoring", "orthostatic blood pressure", "post-conversion pause", "non-diagnostic monitoring", "14 days", "symptom frequency", "pacemaker", "CRT device", "ICD", "electrocardiogram", "echocardiogram", "atrial fibrillation/flutter"]
+cpt_codes: ["33285", "93228", "93229", "C1764", "E0616"]
+icd10_codes: ["R55", "I48.91", "I48.92", "R00.2", "I63.9"]
 ---
 
 Medical Necessity Criteria

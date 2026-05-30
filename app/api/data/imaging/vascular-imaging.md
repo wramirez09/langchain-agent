@@ -1,16 +1,36 @@
 ---
 title: "Vascular Imaging"
 domain: "imaging"
-specialty: ["radiology", "vascular surgery", "interventional radiology"]
+specialty: ["radiology", "vascular surgery", "interventional radiology", "neurology", "cardiology", "neurosurgery", "nephrology"]
 procedures:
   - "CTA"
   - "MRA"
   - "duplex ultrasound"
   - "vascular ultrasound"
-aliases: ["CT angiography", "MR angiography", "vascular CT", "vascular MRI"]
-relatedConditions: ["aneurysm", "carotid stenosis", "peripheral artery disease", "aortic dissection", "vasculitis"]
+  - "carotid duplex ultrasound"
+  - "arterial duplex ultrasound"
+  - "venous duplex ultrasound"
+  - "physiologic studies"
+  - "ankle-brachial index"
+  - "CT angiography head"
+  - "MR angiography head"
+  - "CTA neck"
+  - "MRA neck"
+  - "CTA chest"
+  - "MRA chest"
+  - "CTA abdomen/pelvis"
+  - "MRA abdomen/pelvis"
+  - "CTA upper extremity"
+  - "MRA upper extremity"
+  - "CTA lower extremity"
+  - "MRA lower extremity"
+  - "CTA runoff"
+aliases: ["CT angiography", "MR angiography", "vascular CT", "vascular MRI", "CTA", "MRA", "angiography", "arteriography", "venography", "carotid duplex", "arterial doppler", "ABI", "vascular doppler", "runoff study", "vascular mapping"]
+relatedConditions: ["aneurysm", "carotid stenosis", "peripheral artery disease", "aortic dissection", "vasculitis", "intracranial aneurysm", "abdominal aortic aneurysm", "thoracic aortic aneurysm", "popliteal artery aneurysm", "visceral artery aneurysm", "fibromuscular dysplasia", "arteriovenous malformation", "arteriovenous fistula", "arterial dissection", "Horner syndrome", "pulsatile tinnitus", "trigeminal neuralgia", "intracranial stenosis", "vertebral artery stenosis", "subclavian steal syndrome", "stroke", "transient ischemic attack", "intracranial hemorrhage", "subarachnoid hemorrhage", "cerebral venous sinus thrombosis", "Moyamoya disease", "acute aortic syndrome", "intramural hematoma", "penetrating aortic ulcer", "pseudoaneurysm", "pulmonary embolism", "pulmonary hypertension", "chronic thromboembolic pulmonary hypertension", "pulmonary arteriovenous malformation", "superior vena cava syndrome", "thoracic outlet syndrome", "mesenteric ischemia", "portal hypertension", "renal artery stenosis", "renovascular hypertension", "aortoiliac occlusive disease", "Leriche syndrome", "critical limb ischemia", "acute limb ischemia", "deep vein thrombosis", "venous thrombosis", "traumatic vascular injury", "endoleak"]
 priority: "high"
-keywords: ["duplex ultrasound first", "revascularization", "vascular anomalies"]
+keywords: ["duplex ultrasound first", "revascularization", "vascular anomalies", "claudication", "rest pain", "nonhealing ulcer", "gangrene", "intermittent claudication", "diminished pulses", "abdominal bruit", "carotid bruit", "pulsatile mass", "thrill", "Wells score", "D-dimer", "conservative therapy", "surveillance", "endograft", "endovascular repair", "bypass graft", "AV fistula", "AV graft", "vascular access", "pre-TAVR", "TAVI", "preoperative vascular assessment", "vascular mapping", "tandem disease", "retinal embolic findings", "posterior circulation symptoms", "anterior circulation symptoms", "neck irradiation", "resistant hypertension", "flash pulmonary edema", "atrophic kidney", "aortic source emboli", "runoff", "inflow disease", "gadolinium", "iodinated contrast", "nondiagnostic ultrasound"]
+cpt_codes: ["70450", "70460", "70470", "70471", "70496", "70498", "70544", "70545", "70546", "70547", "70548", "70549", "70551", "70552", "70553", "71250", "71260", "71270", "71275", "71550", "71551", "71552", "71555", "72159", "72191", "72192", "72193", "72194", "72195", "72196", "72197", "72198", "73206", "73225", "73706", "73725", "74150", "74160", "74170", "74174", "74175", "74176", "74177", "74178", "74181", "74182", "74183", "74185", "75635", "93880", "93882", "93922", "93923", "93924", "93925", "93926", "93930", "93931", "93978", "93979", "C8900", "C8901", "C8902", "C8909", "C8910", "C8911", "C8912", "C8913", "C8914", "C8918", "C8919", "C8920", "C8931", "C8932", "C8933", "C8934", "C8935", "C8936"]
+icd10_codes: ["I72.9", "I65.21", "I65.22", "I65.23", "I65.29", "I70.90", "I70.209", "I71.00", "I71.4", "I71.40", "I77.3", "I77.6", "I77.0", "G90.2", "H93.A9", "G50.0", "I63.9", "G45.9", "I60.9", "I61.9", "I67.6", "I67.5", "I71.9", "I31.8", "I26.99", "I27.20", "I27.24", "I28.0", "I87.1", "G54.0", "K55.1", "K76.6", "I70.1", "I74.9", "I82.90"]
 ---
 
 \## General Clinical Appropriateness Framework

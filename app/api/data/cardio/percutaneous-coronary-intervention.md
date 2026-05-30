@@ -1,15 +1,21 @@
 ---
 title: "Percutaneous Coronary Intervention"
 domain: "cardio"
-specialty: ["cardiology", "interventional cardiology"]
+specialty: ["cardiology", "interventional cardiology", "cardiovascular disease"]
 procedures:
   - "percutaneous coronary intervention"
   - "coronary stenting"
   - "balloon angioplasty"
-aliases: ["PCI", "coronary angioplasty", "stent placement"]
-relatedConditions: ["coronary artery disease", "myocardial infarction", "angina", "acute coronary syndrome"]
+  - "coronary atherectomy"
+  - "left main pci"
+  - "pci of bypass graft"
+  - "drug-eluting stent placement"
+aliases: ["PCI", "coronary angioplasty", "stent placement", "PTCA", "percutaneous transluminal coronary angioplasty", "coronary revascularization", "drug-eluting stent", "bare-metal stent", "coronary stent", "unprotected left main PCI"]
+relatedConditions: ["coronary artery disease", "myocardial infarction", "angina", "acute coronary syndrome", "stable ischemic heart disease", "unstable angina", "STEMI", "left main coronary artery disease", "multivessel coronary artery disease", "left ventricular systolic dysfunction", "heart failure", "ventricular tachycardia", "ventricular fibrillation", "sudden cardiac death", "chronic kidney disease"]
 priority: "high"
-keywords: ["FFR", "iFR", "SYNTAX score", "GDMT", "stenosis", "revascularization"]
+keywords: ["FFR", "iFR", "SYNTAX score", "GDMT", "stenosis", "revascularization", "FFR-CT", "CCTA", "coronary angiography", "CABG", "LVEF", "NYHA class", "guideline-directed medical therapy", "antianginal therapy", "beta blocker", "high-intensity statin", "coronary artery calcium score", "myocardial perfusion", "stress testing", "left main stenosis", "proximal LAD", "three-vessel disease", "TAVR", "renal transplantation", "coronary lithotripsy"]
+cpt_codes: ["0913T", "0914T", "92920", "92921", "92924", "92925", "92928", "92929", "92933", "92934", "92937", "92938", "92943", "92944", "92972", "92975", "C1714", "C1724", "C1725", "C1753", "C1760", "C1761", "C1769", "C1874", "C1875", "C1876", "C1877", "C1885", "C1887", "C9600", "C9601", "C9602", "C9603", "C9604", "C9605", "C9607", "C9608"]
+icd10_codes: ["I25.10", "I21.9", "I20.9", "I20.0", "I24.9", "I21.3", "I50.9", "I47.2", "I49.01", "I46.9", "N18.9"]
 ---
 
 MEDICAL NECESSITY CRITERIA

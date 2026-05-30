@@ -6,11 +6,12 @@ procedures:
   - "electrophysiology study"
   - "EP study"
   - "cardiac electrophysiology testing"
-aliases: ["EPS", "EP testing", "invasive cardiac electrophysiology"]
-relatedConditions: ["syncope", "arrhythmia", "sudden cardiac death", "ventricular tachycardia", "preexcitation", "WPW syndrome", "cardiac sarcoidosis", "myotonic dystrophy"]
+aliases: ["EPS", "EP testing", "invasive cardiac electrophysiology", "EP study", "electrophysiologic study", "cardiac EP study", "intracardiac electrophysiology study"]
+relatedConditions: ["syncope", "arrhythmia", "sudden cardiac death", "ventricular tachycardia", "preexcitation", "WPW syndrome", "cardiac sarcoidosis", "myotonic dystrophy", "presyncope", "nonsustained ventricular tachycardia", "supraventricular tachycardia", "sinus bradycardia", "bifascicular block", "congenital heart disease", "Ebstein anomaly", "tetralogy of Fallot", "prior myocardial infarction", "left ventricular dysfunction"]
 cpt_codes: ["93600", "93602", "93603", "93609", "93610", "93612", "93613", "93618", "93619", "93620", "93621", "93622", "93623", "93624", "93642", "93644", "93662"]
+icd10_codes: ["R55", "I49.9", "I46.9", "I47.2", "I45.6", "I42.8", "G71.11", "Q22.5", "Q21.3", "I45.2", "I47.1", "I25.2", "R00.1"]
 priority: "medium"
-keywords: ["ICD candidacy", "LVEF", "bifascicular block", "congenital heart disease"]
+keywords: ["ICD candidacy", "LVEF", "bifascicular block", "congenital heart disease", "ICD", "implantable cardioverter-defibrillator", "syncope evaluation", "ambulatory monitoring", "preexcitation pattern", "surface EKG", "myocardial scar", "NSVT", "SVT", "PR interval", "QRS duration", "late gadolinium enhancement", "cardiac MRI", "tricuspid valve surgery", "catheter ablation", "peer-to-peer review", "noninvasive testing", "rhythm record"]
 ---
 
 MEDICAL NECESSITY CRITERIA

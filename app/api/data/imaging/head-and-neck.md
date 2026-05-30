@@ -1,16 +1,25 @@
 ---
 title: "Head and Neck Imaging"
 domain: "imaging"
-specialty: ["radiology", "otolaryngology", "head and neck surgery"]
+specialty: ["radiology", "otolaryngology", "head and neck surgery", "neuroradiology", "ophthalmology", "oral and maxillofacial surgery", "endocrinology", "neurology", "audiology"]
 procedures:
   - "neck CT"
   - "neck MRI"
   - "sinus CT"
   - "temporal bone CT"
-aliases: ["ENT imaging", "sinus imaging", "neck imaging"]
-relatedConditions: ["sinusitis", "thyroid nodule", "neck mass", "salivary gland disease", "hearing loss"]
+  - "CT soft tissue neck"
+  - "CT orbit/sella/posterior fossa"
+  - "CT paranasal sinuses/maxillofacial area"
+  - "MRI orbit/face/neck"
+  - "MRI brain"
+  - "MRI temporomandibular joint"
+  - "CT cisternography"
+aliases: ["ENT imaging", "sinus imaging", "neck imaging", "head and neck imaging", "neck CT", "neck MRI", "sinus CT", "temporal bone CT", "maxillofacial CT", "orbit MRI", "TMJ MRI", "soft tissue neck CT", "CT sinuses", "facial CT"]
+relatedConditions: ["sinusitis", "rhinosinusitis", "chronic rhinosinusitis", "acute recurrent rhinosinusitis", "barosinusitis", "nasal polyposis", "thyroid nodule", "thyromegaly", "goiter", "neck mass", "lymphadenopathy", "salivary gland disease", "salivary gland ductal calculi", "hearing loss", "sensorineural hearing loss", "conductive hearing loss", "acoustic neuroma", "neurofibromatosis type 2", "cholesteatoma", "parathyroid adenoma", "hyperparathyroidism", "tinnitus", "vertigo", "dizziness", "Tullio phenomenon", "hoarseness", "dysphonia", "vocal cord paralysis", "Horner syndrome", "trigeminal neuralgia", "facial pain", "stridor", "laryngeal edema", "tracheal stenosis", "upper airway obstruction", "torticollis", "congenital muscular torticollis", "osteonecrosis of the jaw", "fibrous dysplasia", "Paget disease", "otosclerosis", "cerebrospinal fluid leak", "CSF rhinorrhea", "temporomandibular joint dysfunction", "internal derangement", "disc displacement", "epistaxis", "anosmia", "proptosis", "exophthalmos", "optic neuritis", "orbital pseudotumor", "papilledema", "strabismus", "thyroid ophthalmopathy", "granulomatosis with polyangiitis", "neuromyelitis optica", "juvenile idiopathic arthritis", "mandibular fracture", "foreign body"]
 priority: "medium"
-keywords: ["congenital anomalies", "repeat imaging", "prior treatment"]
+cpt_codes: ["70336", "70450", "70460", "70470", "70480", "70481", "70482", "70486", "70487", "70488", "70490", "70491", "70492", "70540", "70542", "70543", "70551", "70552", "70553"]
+icd10_codes: ["J01.90", "J32.9", "J33.9", "E21.0", "E21.3", "E04.1", "E04.9", "R22.1", "R59.0", "R59.1", "H93.11", "H93.13", "D33.3", "Q85.02", "H90.2", "H90.5", "H90.6", "H91.90", "G50.0", "K07.60", "G24.3", "M85.00", "M88.9", "K10.20", "Q07.00", "R09.89", "J38.6", "J39.8", "R49.0", "R49.21", "H49.00", "H05.20", "H46.9", "H47.10", "H05.10", "H53.40"]
+keywords: ["congenital anomalies", "repeat imaging", "prior treatment", "medical necessity", "conservative treatment", "intranasal steroids", "nasal saline irrigation", "functional endoscopic sinus surgery", "FESS", "beta-2 transferrin", "cisternography", "Panorex", "audiogram", "audiometry", "laryngoscopy", "ultrasound", "parathyroid scintigraphy", "SPECT-CT", "retrosternal goiter", "mass effect", "preoperative planning", "perioperative evaluation", "cochlear implant", "orthognathic surgery", "facial feminization surgery", "skull base", "pulsatile tinnitus", "retrocochlear pathology", "with contrast", "without contrast", "radiographs", "neck mass fixation", "ulceration", "supraclavicular", "posterior triangle", "exophthalmos", "proptosis", "anosmia", "epistaxis"]
 ---
 
 \## General Medical Necessity Framework

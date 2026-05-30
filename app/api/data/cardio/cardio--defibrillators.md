@@ -1,15 +1,20 @@
 ---
 title: "Implantable Cardioverter Defibrillator"
 domain: "cardio"
-specialty: ["cardiology", "electrophysiology", "cardiac surgery"]
+specialty: ["cardiology", "electrophysiology", "cardiac surgery", "heart failure cardiology"]
 procedures:
   - "ICD implantation"
   - "transvenous ICD"
   - "subcutaneous ICD"
-aliases: ["ICD", "implantable defibrillator", "AICD"]
-relatedConditions: ["ventricular fibrillation", "ventricular tachycardia", "sudden cardiac death", "cardiomyopathy", "heart failure", "long QT syndrome", "Brugada syndrome", "hypertrophic cardiomyopathy"]
+  - "ICD generator replacement"
+  - "substernal ICD"
+  - "defibrillation threshold testing"
+aliases: ["ICD", "implantable defibrillator", "AICD", "automatic implantable cardioverter defibrillator", "implantable cardioverter-defibrillator", "S-ICD", "subcutaneous implantable defibrillator", "transvenous defibrillator", "TV-ICD", "EV-ICD", "extravascular ICD", "substernal ICD"]
+relatedConditions: ["ventricular fibrillation", "ventricular tachycardia", "sudden cardiac death", "cardiomyopathy", "heart failure", "long QT syndrome", "Brugada syndrome", "hypertrophic cardiomyopathy", "nonischemic dilated cardiomyopathy", "ischemic cardiomyopathy", "myocardial infarction", "arrhythmogenic right ventricular dysplasia", "short QT syndrome", "catecholaminergic polymorphic ventricular tachycardia", "cardiac sarcoidosis", "congenital heart disease", "syncope", "cardiac arrest"]
 priority: "high"
-keywords: ["LVEF", "cardiac arrest", "syncope", "NYHA class", "primary prevention"]
+keywords: ["LVEF", "cardiac arrest", "syncope", "NYHA class", "primary prevention", "secondary prevention", "guideline-directed medical therapy", "GDMT", "electrophysiology study", "EP study", "nonsustained VT", "sustained VT", "monomorphic VT", "structural heart disease", "ejection fraction", "beta blocker", "late gadolinium enhancement", "LV wall thickness", "LV apical aneurysm", "revascularization", "generator end-of-life", "device replacement", "ventricular assist device", "heart transplant", "ambulatory ECG monitoring", "phospholamban cardiomyopathy", "FLNC cardiomyopathy", "lamin A/C cardiomyopathy"]
+cpt_codes: ["00534", "33202", "33203", "33215", "33216", "33217", "33218", "33220", "33223", "33230", "33231", "33240", "33241", "33244", "33249", "33262", "33263", "33264", "33270", "33271", "33272", "33273", "93640", "93641", "C1721", "C1722", "C1777", "C1882", "C1895", "C1896", "C1899", "0571T", "0572T", "0573T", "0574T", "0580T", "0614T"]
+icd10_codes: ["I49.01", "I47.20", "I46.9", "I46.2", "I42.0", "I42.2", "I42.1", "I42.9", "I50.9", "I25.5", "I25.2", "I45.81", "I49.8", "I42.8", "R55", "I46.8", "Q24.9", "D86.85"]
 ---
 
 MEDICAL NECESSITY CRITERIA

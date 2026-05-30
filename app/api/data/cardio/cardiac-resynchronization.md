@@ -7,10 +7,15 @@ procedures:
   - "CRT-D"
   - "CRT-P"
   - "biventricular pacemaker"
-aliases: ["CRT", "biventricular pacing", "cardiac resynchronization"]
-relatedConditions: ["heart failure", "left bundle branch block", "cardiomyopathy", "atrial fibrillation"]
+  - "generator replacement"
+  - "AV node ablation"
+  - "permanent pacemaker implantation"
+aliases: ["CRT", "biventricular pacing", "cardiac resynchronization", "CRT-D", "CRT-P", "biventricular pacemaker", "biventricular defibrillator", "biventricular ICD"]
+relatedConditions: ["heart failure", "left bundle branch block", "cardiomyopathy", "atrial fibrillation", "tachycardia-mediated cardiomyopathy", "ischemic cardiomyopathy", "myocardial infarction", "ischemia"]
 priority: "high"
-keywords: ["LVEF", "QRS duration", "NYHA class", "LBBB", "GDMT", "biventricular capture"]
+keywords: ["LVEF", "QRS duration", "NYHA class", "LBBB", "GDMT", "biventricular capture", "guideline-directed medical therapy", "sinus rhythm", "ejection fraction", "ECG", "QRS morphology", "AV node ablation", "ventricular pacing burden", "generator end-of-life", "myocardial infarction", "reversible causes", "rate control", "ambulatory IV symptoms"]
+icd10_codes: ["I50.9", "I44.7", "I42.9", "I42.8", "I48.91", "I25.9"]
+cpt_codes: ["00530", "00534", "33208", "33214", "33221", "33224", "33225", "33226", "33229", "33241", "33244", "33249", "33263", "33264", "93641", "0515T", "0516T", "0517T", "0518T", "0519T", "0520T", "0521T", "0522T", "0861T", "0862T", "0863T", "C7537", "C7538", "C7539", "C7540", "G0448"]
 ---
 
 MEDICAL NECESSITY: BASIC SCREEN

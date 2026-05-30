@@ -1,15 +1,20 @@
 ---
 title: "Pharmacogenomic Testing"
 domain: "genetic"
-specialty: ["genetics", "pharmacology", "precision medicine"]
+specialty: ["genetics", "pharmacology", "precision medicine", "oncology", "psychiatry", "neurology", "clinical pharmacogenetics"]
 procedures:
   - "pharmacogenetic testing"
   - "pharmacogenomic testing"
   - "drug-gene interaction testing"
-aliases: ["PGx testing", "drug metabolism testing", "genotype-guided therapy"]
-relatedConditions: ["adverse drug reactions", "drug efficacy", "medication management"]
+  - "genotyping"
+  - "drug metabolizing enzyme genotyping"
+  - "single-gene pharmacogenetic testing"
+aliases: ["PGx testing", "drug metabolism testing", "genotype-guided therapy", "PGx", "pharmacogenetics", "pharmacogenomics", "genotype-guided dosing", "drug-gene testing", "DPYD testing", "TPMT testing", "G6PD testing", "HLA-B testing", "CYP genotyping", "psychiatric pharmacogenomic panel"]
+relatedConditions: ["adverse drug reactions", "drug efficacy", "medication management", "drug toxicity", "fluoropyrimidine toxicity", "cystic fibrosis", "Alzheimer's disease", "cognitive impairment", "Gaucher disease", "multiple sclerosis", "epilepsy", "seizures", "gout", "tumor lysis syndrome", "malaria", "Huntington's disease", "N-acetylglutamate synthase deficiency", "hyperammonemia"]
 priority: "medium"
-keywords: ["CYP2C19", "CYP2D6", "DPYD", "HLA-B", "G6PD", "CFTR", "clopidogrel", "fluorouracil"]
+keywords: ["CYP2C19", "CYP2D6", "CYP2C9", "DPYD", "HLA-B", "HLA-B*1502", "HLA-B*5701", "HLA-B*58:01", "G6PD", "CFTR", "TPMT", "NUDT15", "POLG", "NAGS", "ApoE", "ApoE ε4", "clopidogrel", "fluorouracil", "capecitabine", "abacavir", "allopurinol", "carbamazepine", "oxcarbazepine", "ivacaftor", "lecanemab", "donanemab", "siponimod", "deuruxolitinib", "eliglustat", "tetrabenazine", "rasburicase", "tafenoquine", "primaquine", "mercaptopurine", "thioguanine", "carglumic acid", "divalproex sodium", "valproic acid", "analytical validity", "clinical validity", "clinical utility", "FDA drug labeling", "NCCN guidelines", "polymorphisms", "fluoropyrimidine", "drug toxicity", "dose reduction", "multigene panel", "psychiatric pharmacogenetic panel"]
+cpt_codes: ["81225", "81226", "81227", "81232", "81247", "81248", "81249", "81306", "81335", "81380", "81381", "81401", "81479", "0034U", "0070U", "0071U", "0072U", "0073U", "0074U", "0075U", "0076U", "0169U", "S3852", "81230", "81231", "81240", "81241", "81283", "81291", "81328", "81346", "81350", "81355", "81418", "0029U", "0030U", "0031U", "0032U", "0173U", "0175U", "0205U", "0286U", "0345U", "0347U", "0348U", "0349U", "0350U", "0392U", "0411U", "0419U", "0423U", "0434U", "0438U", "0460U", "0461U", "0476U", "0477U", "0516U", "0533U", "G9143"]
+icd10_codes: []
 ---
 
 1.  MEDICAL NECESSITY CRITERIA

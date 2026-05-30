@@ -1,16 +1,30 @@
 ---
 title: "Vascular Imaging"
 domain: "cardio"
-specialty: ["radiology", "vascular surgery", "interventional radiology"]
+specialty: ["radiology", "vascular surgery", "interventional radiology", "cardiology", "interventional cardiology", "neurology", "neurosurgery", "cardiac surgery", "nephrology", "vascular medicine"]
 procedures:
   - "CTA"
   - "MRA"
   - "duplex ultrasound"
   - "vascular ultrasound"
-aliases: ["CT angiography", "MR angiography", "vascular CT", "vascular MRI"]
-relatedConditions: ["aneurysm", "carotid stenosis", "peripheral artery disease", "aortic dissection", "vasculitis"]
+  - "duplex arterial ultrasound"
+  - "carotid duplex ultrasound"
+  - "physiologic vascular testing"
+  - "CTA chest"
+  - "CTA abdomen and pelvis"
+  - "CTA neck"
+  - "CTA abdominal aorta with bilateral runoff"
+  - "MRA chest"
+  - "MRA abdomen and pelvis"
+  - "MRA neck"
+  - "MR angiography of the spinal canal"
+  - "venous ultrasound"
+aliases: ["CT angiography", "MR angiography", "vascular CT", "vascular MRI", "CTA", "MRA", "computed tomography angiography", "magnetic resonance angiography", "vascular duplex", "arterial duplex", "carotid duplex", "transcatheter aortic valve implantation", "transcatheter aortic valve replacement", "TAVI", "TAVR", "CT runoff", "aortic runoff"]
+relatedConditions: ["aneurysm", "carotid stenosis", "peripheral artery disease", "aortic dissection", "vasculitis", "intracranial aneurysm", "aortic aneurysm", "thoracic aortic aneurysm", "abdominal aortic aneurysm", "acute aortic syndrome", "fibromuscular dysplasia", "arteriovenous malformation", "arteriovenous fistula", "arterial dissection", "intracranial hemorrhage", "subarachnoid hemorrhage", "Horner's syndrome", "pulsatile tinnitus", "intracranial stenosis", "Moya Moya disease", "vertebrobasilar insufficiency", "subclavian steal syndrome", "stroke", "transient ischemic attack", "cerebral venous sinus thrombosis", "pulmonary embolism", "pulmonary hypertension", "chronic thromboembolic pulmonary hypertension", "pulmonary arteriovenous malformation", "superior vena cava syndrome", "thoracic outlet syndrome", "mesenteric ischemia", "portal hypertension", "renal artery stenosis", "renovascular hypertension", "aortoiliac occlusive disease", "Leriche syndrome", "popliteal artery aneurysm", "visceral artery aneurysm", "deep vein thrombosis", "venous thrombosis", "traumatic vascular injury", "carotid occlusion"]
 priority: "high"
-keywords: ["TAVI", "TAVR", "intracranial aneurysm", "fibromuscular dysplasia"]
+keywords: ["TAVI", "TAVR", "intracranial aneurysm", "fibromuscular dysplasia", "medical necessity", "pretest probability", "duplex ultrasound", "carotid stenosis", "Hollenhorst plaques", "subarachnoid hemorrhage", "thunderclap headache", "cranial nerve deficit", "Moya Moya", "subclavian steal", "Wells score", "D-dimer", "YEARS algorithm", "endoleak", "connective tissue disease", "polycystic kidney disease", "Ehlers-Danlos", "claudication", "Leriche syndrome", "ankle-brachial index", "revascularization", "endovascular repair", "surveillance", "IVC filter", "renal artery stenosis", "refractory hypertension", "flash pulmonary edema", "gadolinium", "iodinated contrast", "ionizing radiation", "CTEPH", "papilledema", "venous sinus thrombosis", "runoff", "atheroembolism", "livedo reticularis", "neck irradiation", "stroke", "TIA"]
+cpt_codes: ["70450", "70460", "70470", "70471", "70496", "70498", "70544", "70545", "70546", "70547", "70548", "70549", "70551", "70552", "70553", "93880", "93882", "71250", "71260", "71270", "71275", "71550", "71551", "71552", "71555", "72159", "72191", "72192", "72193", "72194", "72195", "72196", "72197", "72198", "73206", "73225", "73706", "73725", "74150", "74160", "74170", "74174", "74175", "74176", "74177", "74178", "74181", "74182", "74183", "74185", "75635", "93922", "93923", "93924", "93925", "93926", "93930", "93931", "93978", "93979", "C8900", "C8901", "C8902", "C8909", "C8910", "C8911", "C8912", "C8913", "C8914", "C8918", "C8919", "C8920", "C8931", "C8932", "C8933", "C8934", "C8935", "C8936"]
+icd10_codes: ["I71.9", "I71.00", "I71.4", "I77.6", "I65.21", "I65.22", "I65.23", "I65.29", "I63.9", "G45.9", "I60.9", "I67.1", "I60.7", "Q28.2", "Q27.30", "I77.3", "I67.5", "G46.3", "I65.01", "I65.02", "I65.03", "I65.09", "H93.A9", "I26.99", "I27.24", "I27.20", "Q25.72", "K55.1", "K55.069", "K76.6", "I70.1", "I73.9", "I70.92", "I72.4", "I72.8", "I82.90", "G93.5", "I87.1"]
 ---
 
 MEDICAL NECESSITY CRITERIA

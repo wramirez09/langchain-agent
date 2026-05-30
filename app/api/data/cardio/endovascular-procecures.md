@@ -1,15 +1,27 @@
 ---
 title: "Endovascular Procedures"
 domain: "cardio"
-specialty: ["vascular surgery", "interventional radiology"]
+specialty: ["vascular surgery", "interventional radiology", "interventional cardiology", "cardiology", "vascular medicine"]
 procedures:
   - "peripheral angioplasty"
   - "peripheral stenting"
   - "atherectomy"
-aliases: ["peripheral vascular intervention", "lower extremity revascularization"]
-relatedConditions: ["peripheral artery disease", "claudication", "critical limb ischemia", "chronic limb-threatening ischemia"]
+  - "balloon angioplasty"
+  - "stent placement"
+  - "iliac angioplasty"
+  - "femoropopliteal angioplasty"
+  - "tibial angioplasty"
+  - "iliac stenting"
+  - "femoropopliteal atherectomy"
+  - "tibial atherectomy"
+  - "endovascular venous arterialization"
+  - "lower extremity revascularization"
+aliases: ["peripheral vascular intervention", "lower extremity revascularization", "PVI", "peripheral revascularization", "endovascular revascularization", "percutaneous transluminal angioplasty", "PTA", "peripheral artery stenting", "atherectomy of lower extremity", "iliac stent", "femoropopliteal intervention", "tibial intervention", "limb salvage revascularization"]
+relatedConditions: ["peripheral artery disease", "claudication", "critical limb ischemia", "chronic limb-threatening ischemia", "intermittent claudication", "ischemic rest pain", "nonhealing ulcer", "ischemic skin ulcer", "gangrene", "in-stent restenosis", "bypass graft stenosis", "iliac artery stenosis", "femoropopliteal disease"]
 priority: "high"
-keywords: ["PAD", "CLI", "CLTI", "optimal medical therapy", "structured exercise"]
+keywords: ["PAD", "CLI", "CLTI", "optimal medical therapy", "structured exercise", "antiplatelet therapy", "high-intensity statin", "ACE inhibitor", "ARB", "tobacco cessation", "supervised exercise program", "conservative therapy", "rest pain", "nonhealing wound", "gangrene", "restenosis", "bypass graft", "flow-limiting dissection", "residual stenosis", "hemodynamically significant stenosis", "ABI", "TBI", "TcPO2", "PVR", "Doppler", "iliac", "femoropopliteal", "tibial", "aortoiliac", "lifestyle limitation", "vascular access", "intravascular lithotripsy"]
+cpt_codes: ["0238T", "0505T", "0620T", "37254-37262", "37263-37279", "37280-37299", "C7531", "C7534", "C7535", "C9764-C9767", "C9772-C9775", "37220", "37221", "37222", "37223", "37224", "37225", "37226", "37227", "37228", "37229", "37230", "37231", "37232", "37233", "37234", "37235"]
+icd10_codes: ["I70.211", "I70.212", "I70.213", "I70.218", "I70.221", "I70.222", "I70.223", "I70.228", "I70.231", "I70.232", "I70.233", "I70.234", "I70.235", "I70.238", "I70.241", "I70.242", "I70.243", "I70.244", "I70.245", "I70.248", "I70.261", "I70.262", "I70.263", "I70.268", "I70.25", "I73.9", "I96"]
 ---
 
 MEDICAL NECESSITY CRITERIA

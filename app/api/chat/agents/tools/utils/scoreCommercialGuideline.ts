@@ -1,4 +1,5 @@
 import { CommercialGuidelineDoc, CommercialGuidelineSearchInput, ScoredResult, MergedSourceInfo } from "./commercialGuidelineTypes";
+import { expandDomain } from "./commercialGuidelineMetadataIndex";
 
 // NOTE: normalize/tokenize/keywordOverlap here intentionally diverge from
 // scoreMedicareDocument.ts (different unicode handling, dedup, and overlap
@@ -160,9 +161,12 @@ export function scoreCommercialGuideline(
     }
   }
   
-  // +2 for domain match
+  // +2 for domain match (normalized: "musculoskeletal" must match the corpus's
+  // "muscle", etc. — without this an in-domain surgery doc misses its bonus).
   if (input.domain && doc.domain) {
-    if (normalize(input.domain) === normalize(doc.domain)) {
+    const accepted = expandDomain(normalize(input.domain));
+    const docDomain = normalize(doc.domain);
+    if (accepted.some((d) => docDomain.includes(d) || d.includes(docDomain))) {
       score += 2;
       matchedOn.push(`domain:${doc.domain}`);
     }
@@ -216,10 +220,22 @@ export function scoreCommercialGuideline(
     ? new Set(tokenize(input.treatment))
     : new Set<string>();
 
+  // Procedure/specialty/alias fields describe the PROCEDURE the user wants, so
+  // they must be matched on treatment intent — NOT on diagnosis words. The
+  // query string folds the diagnosis in, so without removing diagnosis tokens a
+  // symptom word like "neck" (from diagnosis "neck pain") matches an imaging
+  // doc's "neck MRI"/"neck imaging" and lets imaging outrank the actual surgery
+  // guideline. relatedConditions (below) is the field that legitimately matches
+  // the diagnosis.
+  const diagnosisTokenSet = new Set(tokenize(input.diagnosis ?? ""));
+  const procedureIntentTokens = new Set(
+    [...queryTokenSet, ...treatmentTokenSet].filter((t) => !diagnosisTokenSet.has(t)),
+  );
+
   // +5 per specialty (capped at 2)
   if (doc.specialty && doc.specialty.length > 0) {
     const matchingSpecialties = doc.specialty.filter((spec) =>
-      phraseTokensIn(spec, queryTokenSet, treatmentTokenSet),
+      phraseTokensIn(spec, procedureIntentTokens),
     );
     if (matchingSpecialties.length > 0) {
       score += Math.min(matchingSpecialties.length, 2) * 5;
@@ -231,7 +247,7 @@ export function scoreCommercialGuideline(
   if (doc.procedures && doc.procedures.length > 0) {
     const matchingProcedures = doc.procedures.filter(
       (proc) =>
-        phraseTokensIn(proc, queryTokenSet, treatmentTokenSet) ||
+        phraseTokensIn(proc, procedureIntentTokens) ||
         (input.treatment && keywordOverlap(proc, input.treatment) > 0.5),
     );
     if (matchingProcedures.length > 0) {
@@ -243,7 +259,7 @@ export function scoreCommercialGuideline(
   // +6 per alias (capped at 2)
   if (doc.aliases && doc.aliases.length > 0) {
     const matchingAliases = doc.aliases.filter((alias) =>
-      phraseTokensIn(alias, queryTokenSet, treatmentTokenSet),
+      phraseTokensIn(alias, procedureIntentTokens),
     );
     if (matchingAliases.length > 0) {
       score += Math.min(matchingAliases.length, 2) * 6;
@@ -253,7 +269,6 @@ export function scoreCommercialGuideline(
 
   // +4 per related condition (capped at 2)
   if (doc.relatedConditions && doc.relatedConditions.length > 0 && input.diagnosis) {
-    const diagnosisTokenSet = new Set(tokenize(input.diagnosis));
     const diagnosis = input.diagnosis;
     const matchingConditions = doc.relatedConditions.filter(
       (condition) =>
@@ -293,10 +308,25 @@ export function scoreCommercialGuideline(
   return { score, matchedOn };
 }
 
+/** True if two domains belong to the same clinical family (muscle≈orthopedics
+ * ≈spine≈physical-medicine, etc.), via the shared domain-synonym map. */
+function sameDomainFamily(d1?: string, d2?: string): boolean {
+  if (!d1 || !d2) return false;
+  if (normalize(d1) === normalize(d2)) return true;
+  const fam1 = new Set(expandDomain(normalize(d1)));
+  return expandDomain(normalize(d2)).some((x) => fam1.has(x));
+}
+
 /**
  * Check if two documents overlap based on shared codes or treatment similarity
  */
 function documentsOverlap(doc1: ScoredResult, doc2: ScoredResult): boolean {
+  // Only merge within the same clinical domain family. Enriched docs carry
+  // many codes, so a single incidental shared code (e.g. a common imaging CPT)
+  // must not chain unrelated specialties — e.g. SPECT/nuclear imaging or
+  // radiation oncology getting merged into a musculoskeletal surgery result.
+  if (!sameDomainFamily(doc1.domain, doc2.domain)) return false;
+
   // Check for shared CPT codes
   if (doc1.cptCodes && doc2.cptCodes && doc1.cptCodes.length > 0 && doc2.cptCodes.length > 0) {
     const sharedCpt = doc1.cptCodes.some(code => doc2.cptCodes!.includes(code));

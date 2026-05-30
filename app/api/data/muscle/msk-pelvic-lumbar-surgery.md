@@ -1,15 +1,20 @@
 ---
 title: "Sacroiliac Joint Fusion"
 domain: "muscle"
-specialty: ["orthopedic surgery", "neurosurgery", "pain management"]
+specialty: ["orthopedic surgery", "neurosurgery", "pain management", "spine surgery"]
 procedures:
   - "SI joint fusion"
   - "percutaneous SI joint fusion"
   - "open SI joint fusion"
-aliases: ["sacroiliac fusion", "SI fusion", "minimally invasive SI fusion"]
-relatedConditions: ["sacroiliac joint pain", "pelvic ring fracture", "SI joint dysfunction", "low back pain"]
+  - "revision SI joint fusion"
+  - "sacrectomy"
+  - "lumbar fusion"
+aliases: ["sacroiliac fusion", "SI fusion", "minimally invasive SI fusion", "sacroiliac joint arthrodesis", "SI joint arthrodesis", "transiliac SI fusion", "lateral SI fusion", "percutaneous SI joint arthrodesis"]
+relatedConditions: ["sacroiliac joint pain", "pelvic ring fracture", "SI joint dysfunction", "low back pain", "sacroiliitis", "pyogenic sacroiliitis", "osteomyelitis", "sacral tumor", "acetabular fracture", "spinopelvic dissociation", "nonunion", "pseudarthrosis"]
 priority: "medium"
-keywords: ["conservative management", "VAS score", "ODI score", "intra-articular injection"]
+keywords: ["conservative management", "VAS score", "ODI score", "intra-articular injection", "Oswestry Disability Index", "Fortin finger test", "provocative tests", "FABER/Patrick test", "thigh thrust test", "Gaenslen test", "distraction test", "compression test", "active straight leg raise", "long ligament test", "diagnostic block", "image-guided injection", "physical therapy", "nonunion", "pseudarthrosis", "implant malposition", "pelvic ring disruption", "FDA-cleared device"]
+cpt_codes: ["27278", "27279", "27280", "C1737"]
+icd10_codes: ["M53.3", "M46.1", "M54.50"]
 ---
 
 MEDICAL NECESSITY CRITERIA
