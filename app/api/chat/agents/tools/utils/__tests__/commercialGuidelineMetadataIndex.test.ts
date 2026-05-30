@@ -75,6 +75,64 @@ describe('filterMetadataByQuery', () => {
     const r = filterMetadataByQuery(all, { cpt: '   ', icd10: '' })
     expect(r).toHaveLength(2)
   })
+
+  // --- Regression: retrieval-quality fixes ---
+
+  const spineCorpus = [
+    meta({
+      id: 'spine',
+      title: 'Cervical, Thoracic, and Lumbar Spine Surgery',
+      domain: 'muscle',
+      sourceGroup: 'muscle',
+      procedures: ['laminectomy', 'spinal decompression', 'cervical disc arthroplasty'],
+      aliases: ['spine surgery', 'spinal fusion'],
+      relatedConditions: ['radiculopathy', 'myelopathy', 'spinal stenosis'],
+      cptCodes: ['63045', '63048'],
+    }),
+    meta({
+      id: 'ffr',
+      title: 'Fractional Flow Reserve CT',
+      domain: 'cardio',
+      sourceGroup: 'cardio',
+      procedures: ['ffr-ct'],
+      aliases: [],
+      relatedConditions: ['intermediate stenosis', 'coronary artery disease'],
+      cptCodes: ['0501T'],
+    }),
+  ]
+
+  it('normalizes domain vocabulary (agent "musculoskeletal" → corpus "muscle")', () => {
+    const r = filterMetadataByQuery(spineCorpus, { domain: 'musculoskeletal' })
+    expect(r.map((m) => m.id)).toContain('spine')
+    expect(r.map((m) => m.id)).not.toContain('ffr')
+  })
+
+  it('matches a multi-word, level-laden treatment phrase to a procedure keyword', () => {
+    // "C2 to C3 and C4 to C5 laminectomy" must reduce to "laminectomy"
+    const r = filterMetadataByQuery(spineCorpus, {
+      treatment: 'C2 to C3 and C4 to C5 laminectomy',
+    })
+    expect(r.map((m) => m.id)).toEqual(['spine'])
+  })
+
+  it('does not surface cross-specialty docs for a spine query (no "stenosis" contamination)', () => {
+    const r = filterMetadataByQuery(spineCorpus, {
+      domain: 'musculoskeletal',
+      treatment: 'cervical laminectomy',
+      diagnosis: 'neck pain',
+    })
+    expect(r.map((m) => m.id)).toContain('spine')
+    expect(r.map((m) => m.id)).not.toContain('ffr')
+  })
+
+  it('ranks the strongest signal match first', () => {
+    const r = filterMetadataByQuery(spineCorpus, {
+      domain: 'musculoskeletal',
+      treatment: 'laminectomy',
+      cpt: '63045',
+    })
+    expect(r[0].id).toBe('spine')
+  })
 })
 
 describe('loadDocumentContent', () => {

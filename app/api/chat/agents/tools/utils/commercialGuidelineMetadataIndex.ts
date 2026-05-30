@@ -173,8 +173,80 @@ export function loadDocumentContent(filePath: string): string {
   }
 }
 
+// Maps the agent's loose domain vocabulary onto the corpus's actual domain /
+// folder values. The agent emits e.g. "musculoskeletal" / "msk" / "ortho",
+// but the corpus uses "muscle", "orthopedics", "physical-medicine", etc. —
+// without this the domain filter silently matches nothing and the correct
+// docs get excluded. Each canonical key lists every synonym we accept.
+const DOMAIN_SYNONYMS: Record<string, string[]> = {
+  muscle: [
+    'muscle', 'musculoskeletal', 'msk', 'ortho', 'orthopedic', 'orthopedics',
+    'spine', 'spinal', 'physical-medicine', 'physical medicine',
+    'pain-management', 'pain management',
+  ],
+  cardio: ['cardio', 'cardiac', 'cardiology', 'cardiovascular', 'heart'],
+  imaging: ['imaging', 'radiology', 'radiologic'],
+  genetic: ['genetic', 'genetics', 'genomic', 'genomics'],
+  oncology: ['oncology', 'cancer', 'radiation-oncology', 'radiation oncology'],
+  sleep: ['sleep', 'sleep-medicine', 'sleep medicine'],
+}
+
+// Expand a query domain into every accepted synonym so matching works against
+// the corpus's vocabulary. Unknown domains pass through as-is.
+function expandDomain(domain: string): string[] {
+  const d = domain.toLowerCase().trim()
+  for (const [canonical, syns] of Object.entries(DOMAIN_SYNONYMS)) {
+    if (canonical === d || syns.some((s) => s === d || d.includes(s) || s.includes(d))) {
+      return [canonical, ...syns]
+    }
+  }
+  return [d]
+}
+
+// English + clinical filler words, plus spinal-level designators (c2, c4-c5,
+// l4-l5, s1) that carry no document-matching signal. A multi-word treatment
+// like "C2 to C3 and C4 to C5 laminectomy" must reduce to the keyword
+// "laminectomy" so it matches a doc whose procedures list "laminectomy".
+const STOPWORDS = new Set([
+  'the', 'and', 'for', 'with', 'without', 'of', 'to', 'in', 'on', 'at', 'or',
+  'a', 'an', 'pain', 'disorder', 'disease', 'syndrome', 'chronic', 'acute',
+  'level', 'levels', 'procedure', 'surgery', 'left', 'right', 'bilateral',
+])
+const LEVEL_RE = /^[clts]\d+$/i // c2, c5, l4, t12, s1
+
+function tokenize(...parts: (string | undefined)[]): Set<string> {
+  return new Set(
+    parts
+      .filter(Boolean)
+      .join(' ')
+      .toLowerCase()
+      .split(/[^a-z0-9]+/)
+      .filter((t) => t.length > 2 && !STOPWORDS.has(t) && !LEVEL_RE.test(t)),
+  )
+}
+
+const overlaps = (a: Set<string>, b: Set<string>): number => {
+  let n = 0
+  for (const t of a) if (b.has(t)) n++
+  return n
+}
+
 /**
- * Filter metadata by query criteria (fast pre-filtering)
+ * Filter metadata by query criteria (fast pre-filtering).
+ *
+ * Recall-oriented: returns every doc that shares any signal with the query
+ * (domain, exact code, or a shared treatment/diagnosis token), ranked by how
+ * many signals matched. The downstream ScoreEngine does the precise ranking.
+ *
+ * Two deliberate behaviors:
+ *  - No criteria at all → return everything (nothing to narrow on).
+ *  - Criteria provided but nothing matches → return empty (let the caller
+ *    decide whether to fall back), rather than silently matching all.
+ *
+ * This replaces the previous AND-chained, whole-phrase `includes()` filter
+ * which zeroed out on any over-specific term (e.g. a full "C2 to C3..."
+ * treatment string never substring-matched a doc title), forcing a fallback
+ * to all 58 docs and letting unrelated specialties contaminate results.
  */
 export function filterMetadataByQuery(
   metadata: DocumentMetadata[],
@@ -187,53 +259,65 @@ export function filterMetadataByQuery(
     diagnosis?: string;
   }
 ): DocumentMetadata[] {
-  let filtered = metadata;
-  
-  // Domain filter
-  if (query.domain) {
-    const domainLower = query.domain.toLowerCase();
-    filtered = filtered.filter(m => 
-      m.domain.toLowerCase().includes(domainLower) ||
-      m.sourceGroup.toLowerCase().includes(domainLower)
-    );
-  }
-  
-  // CPT code exact match
-  if (query.cpt && query.cpt.trim()) {
-    const cptCodes = query.cpt.split(/[,\s]+/).map(c => c.trim()).filter(Boolean);
-    filtered = filtered.filter(m => 
-      m.cptCodes?.some(code => cptCodes.includes(code))
-    );
-  }
-  
-  // ICD-10 code exact match
-  if (query.icd10 && query.icd10.trim()) {
-    const icd10Codes = query.icd10.split(/[,\s]+/).map(c => c.trim()).filter(Boolean);
-    filtered = filtered.filter(m => 
-      m.icd10Codes?.some(code => icd10Codes.includes(code))
-    );
-  }
-  
-  // Treatment/procedure matching
-  if (query.treatment) {
-    const treatmentLower = query.treatment.toLowerCase();
-    filtered = filtered.filter(m => 
-      m.title.toLowerCase().includes(treatmentLower) ||
-      m.procedures?.some(p => p.toLowerCase().includes(treatmentLower)) ||
-      m.aliases?.some(a => a.toLowerCase().includes(treatmentLower))
-    );
-  }
-  
-  // Diagnosis/condition matching
-  if (query.diagnosis) {
-    const diagnosisLower = query.diagnosis.toLowerCase();
-    filtered = filtered.filter(m => 
-      m.relatedConditions?.some(c => c.toLowerCase().includes(diagnosisLower)) ||
-      m.title.toLowerCase().includes(diagnosisLower)
-    );
-  }
-  
-  return filtered;
+  const cptCodes =
+    query.cpt && query.cpt.trim()
+      ? query.cpt.split(/[,\s]+/).map((c) => c.trim()).filter(Boolean)
+      : [];
+  const icd10Codes =
+    query.icd10 && query.icd10.trim()
+      ? query.icd10.split(/[,\s]+/).map((c) => c.trim()).filter(Boolean)
+      : [];
+
+  const hasCriteria =
+    !!query.domain ||
+    cptCodes.length > 0 ||
+    icd10Codes.length > 0 ||
+    !!query.treatment ||
+    !!query.diagnosis ||
+    (query.keywords?.length ?? 0) > 0;
+
+  // No criteria to narrow on → return everything.
+  if (!hasCriteria) return metadata;
+
+  const domains = query.domain ? expandDomain(query.domain) : [];
+  // Treatment/keywords drive procedure/title/alias matching; diagnosis drives
+  // related-condition matching.
+  const procTokens = tokenize(query.treatment, (query.keywords ?? []).join(' '));
+  const diagTokens = tokenize(query.diagnosis);
+
+  const scored = metadata.map((m) => {
+    let score = 0;
+
+    if (domains.length) {
+      const dom = m.domain.toLowerCase();
+      const grp = m.sourceGroup.toLowerCase();
+      if (domains.some((d) => dom.includes(d) || grp.includes(d))) score += 3;
+    }
+    if (cptCodes.length && m.cptCodes?.some((c) => cptCodes.includes(c))) score += 5;
+    if (icd10Codes.length && m.icd10Codes?.some((c) => icd10Codes.includes(c))) score += 5;
+
+    if (procTokens.size) {
+      const docTokens = tokenize(
+        m.title,
+        (m.procedures ?? []).join(' '),
+        (m.aliases ?? []).join(' '),
+      );
+      score += 2 * overlaps(procTokens, docTokens);
+    }
+    if (diagTokens.size) {
+      const condTokens = tokenize((m.relatedConditions ?? []).join(' '), m.title);
+      score += overlaps(diagTokens, condTokens);
+    }
+
+    return { m, score };
+  });
+
+  // Criteria were provided but nothing matched → empty (caller decides on a
+  // fallback). Otherwise return matches ranked by signal strength.
+  return scored
+    .filter((s) => s.score > 0)
+    .sort((a, b) => b.score - a.score)
+    .map((s) => s.m);
 }
 
 /**

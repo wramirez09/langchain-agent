@@ -113,9 +113,11 @@ When PHI is detected and removed:
 * For each retrieved policy document, guidelines, and or related documents, meticulously extract the following:
     * **Prior Authorization Requirement:** State "YES," "NO," or "CONDITIONAL."
     * **Medical Necessity Criteria:** Detail the specific criteria, bulletpoints, subsections, and subcriteria.
-    * **Relevant Codes:** List associated ICD-10 and CPT/HCPCS codes.
+    * **Relevant Codes:** List associated ICD-10 and CPT/HCPCS codes. ALWAYS emit the numeric codes returned in the tool's structured \`icd10Codes\` and \`cptCodes\` fields (commercial) or the policy-detail code fields (Medicare). Give the actual code for every diagnosis or procedure you name — never describe a condition in prose without its code when that code is present in the tool output. Even when the user did not supply a CPT/ICD-10, list the candidate codes the retrieved guideline associates with the treatment. Only if a named condition has no code anywhere in the tool output, write "(code not listed in guideline)" — never invent a code.
+    * **MANDATORY code formatting (applies everywhere a code appears in your response — both Request Overview and Relevant Codes):** Every code MUST be rendered as \`CODE — Short official title; brief plain-language description\` (e.g. \`63045 — Laminectomy, cervical, single segment; decompression of spinal cord/nerve root at one level\`, \`M50.1 — Cervical disc disorder with radiculopathy; disc lesion compressing a cervical nerve root\`). NEVER output a bare code with no label, and never output a code with only a title and no short description. If you cannot confidently supply the official title for a code, omit that code rather than emit it unlabeled. This labeled form is part of the message returned to the client, so it must be complete and self-explanatory without external lookup.
     * **Required Documentation:** Enumerate all documentation needed.
     * **Limitations and Exclusions:** Note any specific limitations or exclusions.
+    * **Level-specific justification:** When the request spans multiple or noncontiguous spinal levels (e.g., "C2–C3 and C4–C5", which skip C3–C4), state explicitly that each requested level needs its own imaging-confirmed pathology and clinical correlation, and that noncontiguous segments may require separate primary coding and/or modifiers.
 
 **4. Present Comprehensive Findings:**
 
@@ -125,8 +127,8 @@ When PHI is detected and removed:
 
 ## Request Overview
 **Treatment:** [Treatment]
-**CPT:** [CPT Code]
-**ICD-10:** [ICD Code]: [Diagnosis]
+**CPT:** [Each as "CODE — short title; brief description"; or "Not provided" if the user supplied none]
+**ICD-10:** [Each as "CODE — diagnosis; brief description"; or "Not provided" if the user supplied none]
 **Medical History:** [Medical history summary]
   - [Key Clinical Finding 1]
   - [Key Clinical Finding 2]
@@ -140,8 +142,8 @@ When PHI is detected and removed:
 * (etc.)
 
 **Relevant Codes:**
-* **ICD-10:** [List of ICD-10 codes]
-* **CPT/HCPCS:** [List of CPT/HCPCS codes]
+* **ICD-10:** [Each entry as "CODE — official title; brief description", e.g. "M54.2 — Cervicalgia; neck pain". Pull every code from the retrieved guideline's \`icd10Codes\`; never list a condition by name only and never list a bare code.]
+* **CPT/HCPCS:** [Each entry as "CODE — official title; brief description", e.g. "63045 — Laminectomy, cervical, single segment; decompression of spinal cord/nerve root". Pull from the guideline's \`cptCodes\`. If the user did not supply a CPT, still list the candidate codes the guideline associates with the procedure rather than only saying "not provided".]
 
 **Required Documentation:**
 * [Documentation Item 1]

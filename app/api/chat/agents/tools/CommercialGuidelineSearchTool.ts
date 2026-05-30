@@ -7,6 +7,7 @@ import {
   CommercialGuidelineSearchOutput,
   ScoredResult,
 } from "./utils/commercialGuidelineTypes";
+import { labelCode } from "./utils/codeLabels";
 
 // Output budget. Beyond this we shrink excerpts and trim arrays rather than
 // invoking an LLM summarizer (which doubled latency and dropped the
@@ -24,6 +25,11 @@ function redactResult(r: ScoredResult): Omit<ScoredResult, "path" | "body"> & {
   const { path: _path, body: _body, mergedFrom, ...rest } = r;
   return {
     ...rest,
+    // Enrich each code with its guideline-sourced descriptor ("CODE — label")
+    // so the agent can relay verified labels to the client instead of bare
+    // codes or model-invented text.
+    cptCodes: (rest.cptCodes ?? []).map(labelCode),
+    icd10Codes: (rest.icd10Codes ?? []).map(labelCode),
     ...(mergedFrom
       ? { mergedFrom: mergedFrom.map(({ id, title }) => ({ id, title })) }
       : {}),
