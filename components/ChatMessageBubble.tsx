@@ -114,6 +114,13 @@ const MarkdownRenderer: React.FC<MarkdownRendererProps> = ({ content }) => {
             // Render all other strong/bold text as default markdown
             return <strong {...props}>{children}</strong>;
           },
+          // Codes (e.g. "M54.2 — Cervicalgia") must read like normal text, not
+          // monospace/bold inline-code. If the model ever wraps a code in
+          // backticks, render it as a plain inline span instead of <code>.
+          code: ({ children, ...props }) => {
+            const { node: _node, ...rest } = props as { node?: unknown } & Record<string, unknown>;
+            return <span {...rest}>{children}</span>;
+          },
           ul: ({ children, ...props }) => {
             // Pass through ul elements with default styling
             return <ul {...props}>{children}</ul>;
