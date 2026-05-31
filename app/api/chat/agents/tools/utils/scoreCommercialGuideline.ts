@@ -702,16 +702,18 @@ function mergeDocuments(
     .map((doc, index) => {
       const fullDoc = fullDocs.find((fd) => fd.id === doc.id);
       const excerpt = fullDoc
-        ? extractRelevantSections(fullDoc.body, 1500, anchorTerms)
+        ? extractRelevantSections(fullDoc.body, 6000, anchorTerms)
         : doc.excerpt;
       return index === 0 ? excerpt : `\n\n[Source ${index + 1}]: ${excerpt}`;
     })
     .join("");
 
   // Cap the merged excerpt so a many-source merge can't blow the output budget.
+  // (shrinkToFit in the tool still enforces the overall budget; this is a
+  // per-merge guard.)
   const finalExcerpt =
-    mergedExcerpt.length > 5000
-      ? mergedExcerpt.substring(0, 5000).trim() + "..."
+    mergedExcerpt.length > 12000
+      ? mergedExcerpt.substring(0, 12000).trim() + "..."
       : mergedExcerpt.trim() + "...";
 
   // Create merged source info
@@ -796,7 +798,13 @@ export function scoreAndRankDocuments(
       score,
       domain: doc.domain,
       matchedOn,
-      excerpt: extractRelevantSections(doc.body, 2500, anchorTerms),
+      // Pass the doc's content as fully as possible: a focused single-procedure
+      // doc (<=~20k chars) is returned WHOLE so the agent sees the original
+      // criteria verbatim rather than a trimmed/summarized slice; only the large
+      // multi-procedure aggregators get section-extracted. shrinkToFit (in the
+      // tool) preserves the top match and trims lower-ranked ones if the total
+      // output exceeds budget.
+      excerpt: extractRelevantSections(doc.body, 20000, anchorTerms),
       path: doc.path,
       treatment: doc.treatment,
       cptCodes: doc.cptCodes,

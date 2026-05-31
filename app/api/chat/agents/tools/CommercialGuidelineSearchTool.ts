@@ -1,5 +1,8 @@
 import { StructuredTool } from "@langchain/core/tools";
-import { loadRelevantDocuments, getMetadataIndex } from "./utils/commercialGuidelineLoaderOptimized";
+import {
+  loadRelevantDocuments,
+  getMetadataIndex,
+} from "./utils/commercialGuidelineLoaderOptimized";
 import { scoreAndRankDocuments } from "./utils/scoreCommercialGuideline";
 import {
   CommercialGuidelineSearchInputSchema,
@@ -59,22 +62,30 @@ function shrinkToFit(
   let top = [...output.topMatches];
   let related = [...output.relatedMatches];
   let json = measure(top, related);
-  if (json.length <= OUTPUT_BUDGET_CHARS) return { ...output, topMatches: top, relatedMatches: related };
+  if (json.length <= OUTPUT_BUDGET_CHARS)
+    return { ...output, topMatches: top, relatedMatches: related };
 
   // 1) Drop relatedMatches entirely.
   related = [];
   json = measure(top, related);
 
-  // 2) Shrink each excerpt to MIN_EXCERPT_CHARS.
-  if (json.length > OUTPUT_BUDGET_CHARS) {
-    top = top.map((r) => ({
-      ...r,
-      excerpt:
-        r.excerpt.length > MIN_EXCERPT_CHARS
-          ? r.excerpt.slice(0, MIN_EXCERPT_CHARS).trim() + "…"
-          : r.excerpt,
-    }));
-    json = measure(top, related);
+  // 2) Shrink excerpts from the LOWEST-ranked match upward, preserving the top
+  //    match's full content. The #1 result is the doc the request is actually
+  //    about; the agent should see its original criteria verbatim rather than a
+  //    trimmed/summarized slice. Lower-ranked matches are supporting context and
+  //    are shrunk (then popped in step 3) first.
+  for (
+    let i = top.length - 1;
+    i >= 1 && json.length > OUTPUT_BUDGET_CHARS;
+    i--
+  ) {
+    if (top[i].excerpt.length > MIN_EXCERPT_CHARS) {
+      top[i] = {
+        ...top[i],
+        excerpt: top[i].excerpt.slice(0, MIN_EXCERPT_CHARS).trim() + "…",
+      };
+      json = measure(top, related);
+    }
   }
 
   // 3) Pop low-scoring topMatches until we fit (keep at least 1).
@@ -88,10 +99,10 @@ function shrinkToFit(
 
 /**
  * Commercial Guideline Search Tool
- * 
+ *
  * A structured tool that uses deterministic scoring to search commercial guidelines
  * for prior authorization requirements.
- * 
+ *
  * Features:
  * - Deterministic weighted scoring (no embeddings, no LLM calls)
  * - Exact CPT/ICD-10 code matching (+10 points each)
@@ -100,7 +111,7 @@ function shrinkToFit(
  * - Domain and metadata filtering
  * - Fast, cached document loading
  * - Structured input/output
- * 
+ *
  * Architecture:
  * - Load full documents (no chunking)
  * - Score using weighted signals (CPT, ICD-10, keywords, fuzzy matching)
@@ -108,9 +119,11 @@ function shrinkToFit(
  * - Return top matches + related matches
  * - LLM synthesizes final answer from structured results
  */
-export class CommercialGuidelineSearchTool extends StructuredTool<typeof CommercialGuidelineSearchInputSchema> {
+export class CommercialGuidelineSearchTool extends StructuredTool<
+  typeof CommercialGuidelineSearchInputSchema
+> {
   name = "commercial_guidelines_search";
-  
+
   description = `Search commercial guidelines for prior authorization requirements using structured inputs.
 
 This tool performs deterministic search across commercial guideline documents to find relevant authorization criteria with enhanced metadata matching.
@@ -161,34 +174,39 @@ Use ONLY generic terms like "commercial guidelines", "proprietary criteria", or 
 
   async _call(input: CommercialGuidelineSearchInput): Promise<string> {
     console.log("[CommercialGuidelineSearchTool] Received input:", input);
-    
+
     try {
       // Load only relevant documents based on metadata filtering
       // This is much faster than loading all 58 documents
       const docs = loadRelevantDocuments(input);
-      
+
       if (docs.length === 0) {
         return JSON.stringify({
           query: input.query,
           topMatches: [],
           relatedMatches: [],
-          error: "No matching commercial guideline documents found for the query criteria.",
+          error:
+            "No matching commercial guideline documents found for the query criteria.",
         });
       }
-      
-      console.log(`[CommercialGuidelineSearchTool] Searching ${docs.length} relevant documents`);
-      
+
+      console.log(
+        `[CommercialGuidelineSearchTool] Searching ${docs.length} relevant documents`,
+      );
+
       // Score and rank documents using deterministic scoring
       const { topMatches, relatedMatches } = scoreAndRankDocuments(docs, input);
-      
+
       // Build structured output
       const output: CommercialGuidelineSearchOutput = {
         query: input.query,
         topMatches,
         relatedMatches,
       };
-      
-      console.log(`[CommercialGuidelineSearchTool] Found ${topMatches.length} top matches, ${relatedMatches.length} related matches`);
+
+      console.log(
+        `[CommercialGuidelineSearchTool] Found ${topMatches.length} top matches, ${relatedMatches.length} related matches`,
+      );
 
       const fitted = shrinkToFit(output);
       const jsonOutput = JSON.stringify(
@@ -217,12 +235,18 @@ Use ONLY generic terms like "commercial guidelines", "proprietary criteria", or 
       }
       return jsonOutput;
     } catch (error) {
-      console.error("[CommercialGuidelineSearchTool] Error during search:", error);
+      console.error(
+        "[CommercialGuidelineSearchTool] Error during search:",
+        error,
+      );
       return JSON.stringify({
         query: input.query,
         topMatches: [],
         relatedMatches: [],
-        error: error instanceof Error ? error.message : "Unknown error occurred during search",
+        error:
+          error instanceof Error
+            ? error.message
+            : "Unknown error occurred during search",
       });
     }
   }
@@ -234,7 +258,9 @@ Use ONLY generic terms like "commercial guidelines", "proprietary criteria", or 
  * Full documents are loaded on-demand based on query criteria
  */
 const metadataIndex = getMetadataIndex();
-console.log(`[CommercialGuidelineSearchTool] Metadata index loaded at module initialization: ${metadataIndex.length} documents`);
+console.log(
+  `[CommercialGuidelineSearchTool] Metadata index loaded at module initialization: ${metadataIndex.length} documents`,
+);
 
 /**
  * Factory function to create the tool instance
