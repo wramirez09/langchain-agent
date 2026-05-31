@@ -1,17 +1,35 @@
 ---
 title: "Radiation Oncology Coding Standards"
 domain: "mixed"
-specialty: ["radiation oncology"]
+specialty: ["radiation oncology", "medical physics", "radiology"]
 procedures:
   - "dosimetry planning"
   - "image guidance"
   - "treatment simulation"
   - "physics consultation"
-aliases: ["radiation coding", "treatment planning"]
-relatedConditions: ["cancer treatment", "radiation therapy"]
-cpt_codes: ["77014", "77280", "77285", "77290", "77293", "77295", "77300", "77301", "77417", "77427"]
+  - "3-dimensional radiotherapy plan"
+  - "imrt plan"
+  - "teletherapy isodose plan"
+  - "brachytherapy isodose plan"
+  - "special teletherapy port plan"
+  - "basic radiation dosimetry calculation"
+  - "special dosimetry"
+  - "image-guided radiation therapy"
+  - "port images"
+  - "external beam treatment management"
+  - "stereotactic treatment management"
+  - "intraoperative radiation treatment management"
+  - "special treatment procedure"
+  - "continuing medical physics"
+  - "special physics consultation"
+  - "treatment devices"
+  - "imrt planning device"
+aliases: ["radiation coding", "treatment planning", "rad onc coding", "igrt", "srs", "stereotactic radiosurgery", "stereotactic body radiation therapy", "external beam radiation therapy", "ebrt", "hdr brachytherapy", "ldr brachytherapy", "sirt", "proton therapy", "neutron beam therapy"]
+relatedConditions: ["cancer treatment", "radiation therapy", "malignant neoplasm", "prostate cancer", "spine metastasis", "thyroid carcinoma", "hyperthyroidism"]
+cpt_codes: ["77014", "77280", "77285", "77290", "77293", "77295", "77300", "77301", "77306", "77307", "77316", "77317", "77318", "77321", "77331", "77332", "77333", "77334", "77336", "77338", "77370", "77385", "77386", "77387", "77399", "77401", "77417", "77427", "77431", "77432", "77435", "77469", "77470", "77499", "77750", "77761", "77762", "77763", "77767", "77768", "77770", "77771", "77772", "77778", "77789", "77790", "79101", "79445", "G6001", "G6002", "G6017"]
+icd10_codes: []
 priority: "low"
-keywords: ["3D planning", "IMRT", "SBRT", "brachytherapy"]
+keywords: ["3D planning", "IMRT", "SBRT", "brachytherapy", "isodose plan", "dose constraints", "organs at risk", "target volume", "fiducial markers", "image fusion", "registration", "simulation", "verification simulation", "immobilization device", "beam-modifying device", "rectal balloon", "fractions", "course of treatment", "volume of interest", "MLC", "diode", "chart check", "QA", "radioactive source", "radiopharmaceutical", "iodine-131", "DIBH", "total body irradiation", "hemi-body radiation", "fetal dose", "peer-to-peer review", "medical necessity"]
 ---
 
 \## Scope

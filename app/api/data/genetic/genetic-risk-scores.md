@@ -1,15 +1,20 @@
 ---
 title: "Polygenic Risk Scores"
 domain: "genetic"
-specialty: ["genetics", "precision medicine"]
+specialty: ["genetics", "precision medicine", "oncology", "molecular pathology", "laboratory medicine"]
 procedures:
   - "polygenic risk score testing"
   - "polygenic expression testing"
   - "multivariable prognostic testing"
-aliases: ["PRS", "genetic risk score", "polygenic testing"]
-relatedConditions: ["disease risk prediction", "cancer prognosis"]
+  - "polygenic expression prognostic testing"
+  - "multivariable prognostic genetic testing"
+  - "urine-based tumor marker testing"
+  - "gene expression profiling"
+aliases: ["PRS", "genetic risk score", "polygenic testing", "polygenic risk score", "polygenic expression test", "multivariable prognostic test", "polygenic prognostic testing", "gene expression classifier", "molecular prognostic assay"]
+relatedConditions: ["disease risk prediction", "cancer prognosis", "bladder cancer", "hematuria", "microhematuria", "melanoma", "lung cancer", "prostate cancer", "monogenic disorder"]
 priority: "low"
-keywords: ["risk prediction", "not medically necessary", "clinical utility"]
+cpt_codes: ["81313", "81401", "81402", "81403", "81404", "81405", "81406", "81407", "81408", "81479", "81493", "81551", "81554", "81599", "0005U", "0012M", "0089U", "0090U", "0113U", "0114U", "0170U", "0203U", "0253U", "0258U", "0289U", "0290U", "0291U", "0292U", "0293U", "0294U", "0296U", "0313U", "0314U", "0317U", "0339U", "0343U", "0363U", "0389U", "0401U", "0403U", "0420U", "0424U", "0433U", "0437U", "0439U", "0440U", "0466U", "0500U", "0506U", "0529U", "0549U", "0613U"]
+keywords: ["risk prediction", "not medically necessary", "clinical utility", "predictive testing", "prognostic testing", "pretest likelihood", "polygenic risk score", "monogenic disorder", "repeat testing", "peer-to-peer review", "urine tumor markers", "biomarker", "gene expression classifier", "diagnostic performance", "experimental", "investigational", "statistical risk", "population-derived risk"]
 ---
 
 Medical Necessity Criteria General clinical review requirements in the

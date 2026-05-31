@@ -1,14 +1,27 @@
 ---
 title: "Coronary Angiography"
 domain: "cardio"
-specialty: ["cardiology", "interventional cardiology"]
+specialty: ["cardiology", "interventional cardiology", "cardiovascular disease", "cardiac surgery"]
 procedures:
   - "coronary angiography"
   - "cardiac catheterization"
-aliases: ["coronary angiogram", "cardiac cath", "heart catheterization"]
-relatedConditions: ["coronary artery disease", "chest pain", "angina", "myocardial infarction", "unstable angina"]
+  - "diagnostic coronary angiography"
+  - "percutaneous coronary intervention"
+  - "coronary artery bypass grafting"
+  - "coronary computed tomography angiography"
+  - "noninvasive stress testing"
+  - "SPECT myocardial perfusion imaging"
+  - "stress PET"
+  - "stress echocardiography"
+  - "EKG treadmill testing"
+  - "transcatheter aortic valve replacement"
+  - "fractional flow reserve"
+aliases: ["coronary angiogram", "cardiac cath", "heart catheterization", "diagnostic coronary angiography", "invasive coronary angiography", "left heart catheterization", "coronary arteriography", "CCTA", "coronary CT angiography", "CTCA", "PCI", "CABG", "TAVR", "FFR"]
+relatedConditions: ["coronary artery disease", "chest pain", "angina", "myocardial infarction", "unstable angina", "STEMI", "stable ischemic heart disease", "left main coronary artery disease", "coronary artery stenosis", "heart failure", "left ventricular systolic dysfunction", "ventricular tachycardia", "ventricular fibrillation", "sudden cardiac death", "mitral regurgitation", "aortic stenosis", "congenital heart disease", "coronary artery anomaly", "acute coronary syndrome", "chronic kidney disease"]
 priority: "high"
-keywords: ["CAD", "stenosis", "CCTA", "PCI", "CABG", "GDMT"]
+keywords: ["CAD", "stenosis", "CCTA", "PCI", "CABG", "GDMT", "guideline-directed medical therapy", "left main coronary artery", "unprotected left main", "ischemia", "ischemic equivalent", "Duke treadmill score", "ejection fraction", "left ventricular dysfunction", "NYHA class III", "NYHA class IV", "sustained ventricular tachycardia", "ventricular fibrillation", "resuscitated sudden cardiac death", "STEMI", "ACS", "non-culprit vessel", "TAVR", "valve replacement", "mitral regurgitation", "congenital coronary anomaly", "cardiac transplant", "stress testing", "SPECT MPI", "stress PET", "stress echocardiography", "conscious sedation", "iodinated contrast", "pretest likelihood", "high-intensity statin", "beta blocker", "calcium channel blocker", "nitrates", "ranolazine", "antiplatelet therapy", "fractional flow reserve", "FFR", "nonemergency", "asymptomatic screening"]
+icd10_codes: ["I25.10", "I25.119", "I20.0", "I20.9", "I21.3", "I21.9", "I50.9", "I47.2", "I49.01", "I46.9", "I34.0", "I35.0", "Q24.9", "Q24.5", "N18.6", "N18.5", "Z95.5", "Z95.1", "Z94.1"]
+cpt_codes: ["92973", "92974", "92978", "92979", "93454", "93455", "93456", "93457", "93458", "93459", "93460", "93461", "C7516", "C7517", "C7518", "C7519", "C7520", "C7521", "C7522", "C7523", "C7524", "C7525", "C7526", "C7527", "C7528", "C7529", "C7552", "C7553", "C7557", "C7562"]
 ---
 
 MEDICAL NECESSITY CRITERIA

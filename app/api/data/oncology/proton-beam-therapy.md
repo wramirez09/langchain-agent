@@ -1,14 +1,21 @@
 ---
 title: "Proton Beam Therapy"
 domain: "oncology"
-specialty: ["radiation oncology"]
+specialty: ["radiation oncology", "neurosurgery", "ophthalmology", "pediatric oncology", "medical oncology", "surgical oncology"]
 procedures:
   - "proton beam therapy"
   - "proton radiation"
-aliases: ["proton therapy", "proton beam radiation"]
-relatedConditions: ["chordoma", "chondrosarcoma", "sinonasal carcinoma", "arteriovenous malformation", "skull base tumor"]
+  - "proton treatment delivery"
+  - "re-irradiation"
+  - "intensity modulated radiation therapy"
+  - "3d conformal radiation therapy"
+  - "stereotactic radiosurgery"
+aliases: ["proton therapy", "proton beam radiation", "pbt", "proton beam radiotherapy", "charged particle therapy", "particle beam therapy", "proton beam irradiation"]
+relatedConditions: ["chordoma", "chondrosarcoma", "sinonasal carcinoma", "arteriovenous malformation", "skull base tumor", "central nervous system tumor", "glioma", "primary cns malignancy", "metastatic cns malignancy", "hepatocellular carcinoma", "intrahepatic cholangiocarcinoma", "ocular melanoma", "uveal melanoma", "pediatric malignancy"]
 priority: "medium"
-keywords: ["base of skull", "critical structures", "IMRT comparison", "monotherapy"]
+keywords: ["base of skull", "critical structures", "IMRT comparison", "monotherapy", "isodose comparison", "postoperative therapy", "residual localized tumor", "no evidence of metastasis", "curative intent", "unresectable", "non-metastatic", "uveal tract", "iris", "choroid", "ciliary body", "extrascleral extension", "optic nerve", "optic chiasm", "brainstem", "spinal cord", "orbit", "basisphenoid", "cervical spine", "sacral spine", "locally advanced", "re-irradiation", "dose tolerance", "pediatric", "younger than 21 years"]
+cpt_codes: ["77520", "77522", "77523", "77525", "77301", "77295", "77338", "77432", "77435", "61796", "61797", "61798", "61799", "61800", "63620", "63621", "S8030"]
+icd10_codes: ["C41.2", "C41.4", "C41.9", "C11.0", "C11.1", "C11.2", "C11.3", "C11.8", "C11.9", "C30.0", "C31.0", "C31.1", "C31.2", "C31.3", "C31.8", "C31.9", "Q28.2", "Q28.3", "C71.0", "C71.1", "C71.2", "C71.3", "C71.4", "C71.5", "C71.6", "C71.7", "C71.8", "C71.9", "C72.0", "C72.1", "C72.20", "C72.30", "C72.40", "C72.50", "C72.59", "C72.9", "C79.31", "C79.49", "D09.8", "D33.0", "D33.1", "D33.2", "D33.3", "D33.4", "D33.7", "D33.9", "D42.0", "D42.1", "D42.9", "D43.0", "D43.1", "D43.2", "D43.3", "D43.4", "D43.8", "D43.9", "D49.6", "C69.30", "C69.40", "C69.90", "C22.0", "C22.1"]
 ---
 
 \## Medical Necessity Criteria

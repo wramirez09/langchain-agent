@@ -1,15 +1,34 @@
 ---
 title: "SPECT Imaging"
 domain: "imaging"
-specialty: ["radiology", "nuclear medicine"]
+specialty: ["radiology", "nuclear medicine", "oncology", "cardiology", "neurology", "orthopedics", "endocrinology", "surgery", "pediatrics"]
 procedures:
   - "SPECT"
   - "SPECT/CT"
   - "bone SPECT"
-aliases: ["single photon emission computed tomography", "SPECT scan"]
-relatedConditions: ["avascular necrosis", "stress fracture", "occult fracture", "osteonecrosis"]
+  - "dopaminergic SPECT"
+  - "perfusion scintigraphy"
+  - "thallium scintigraphy"
+  - "gallium scintigraphy"
+  - "hepatic scintigraphy"
+  - "leukocyte scintigraphy"
+  - "lymphoscintigraphy"
+  - "sentinel lymph node localization"
+  - "MIBG scintigraphy"
+  - "parathyroid imaging"
+  - "pyrophosphate imaging"
+  - "renal scintigraphy"
+  - "somatostatin receptor imaging"
+  - "thyroid scintigraphy"
+  - "VQ scintigraphy"
+  - "bone marrow scintigraphy"
+  - "planar scintigraphy"
+aliases: ["single photon emission computed tomography", "SPECT scan", "SPECT-CT", "DaTscan", "ioflupane SPECT", "DAT scan", "PYP scan", "pyrophosphate scan", "MIBG scan", "metaiodobenzylguanidine scan", "octreotide scan", "ventilation perfusion scan", "V/Q scan", "sestamibi scan", "sentinel node mapping", "WBC scan", "white blood cell scan", "tagged white cell scan", "gallium scan", "bone scintigraphy"]
+relatedConditions: ["avascular necrosis", "stress fracture", "occult fracture", "osteonecrosis", "spondylolysis", "pars defect", "spinal fracture", "scaphoid fracture", "femoral neck fracture", "osteomyelitis", "septic arthritis", "periprosthetic infection", "spinal infection", "discitis", "epidural abscess", "arachnoiditis", "sternal wound infection", "osseous metastatic disease", "indeterminate bone lesion", "Parkinson's disease", "essential tremor", "Lewy body dementia", "Alzheimer's disease", "mild cognitive impairment", "dementia", "stroke", "transient ischemic attack", "lymphoma", "focal nodular hyperplasia", "hepatic hemangioma", "indeterminate liver lesion", "fever of unknown origin", "Crohn's disease", "ulcerative colitis", "inflammatory bowel disease", "irritable bowel syndrome", "breast cancer", "ductal carcinoma in situ", "cervical cancer", "head and neck cancer", "melanoma", "penile cancer", "uterine cancer", "vulvar cancer", "neuroblastoma", "pheochromocytoma", "paraganglioma", "ganglioneuroma", "primary hyperparathyroidism", "parathyroid adenoma", "cardiac amyloidosis", "transthyretin amyloidosis", "carpal tunnel syndrome", "aortic stenosis", "heart failure", "neuroendocrine tumor", "differentiated thyroid cancer", "papillary thyroid cancer", "follicular thyroid cancer", "Hurthle cell carcinoma", "pulmonary embolism", "renal scarring", "urinary tract infection"]
 priority: "medium"
-keywords: ["preoperative evaluation", "SIRT", "radioembolization"]
+keywords: ["preoperative evaluation", "SIRT", "radioembolization", "selective internal radiation therapy", "medical necessity", "nondiagnostic", "equivocal", "planar scintigraphy", "femoral head collapse", "weight-bearing site", "modified Wells criteria", "D-dimer", "fecal calprotectin", "C-reactive protein", "colonoscopy", "upper endoscopy", "neuropsychological testing", "deep brain stimulation", "thyroglobulin", "anti-thyroglobulin antibodies", "radioactive iodine therapy", "thyroidectomy", "metanephrine", "I131 iobenguane", "peptide receptor radioligand therapy", "TTR gene mutation", "left ventricular wall thickness", "echocardiography", "cardiac MRI", "sentinel node", "lymphovascular invasion", "toxic megacolon", "fistula", "stricture", "abscess", "vascular graft infection", "endograft infection", "hardware failure", "bone marrow scintigraphy", "occult fracture", "spinal fracture", "thallium", "gallium", "leukocyte", "somatostatin receptor", "parathyroidectomy", "immunocompromised"]
+cpt_codes: ["78071", "78072", "78803", "78830", "78831", "78832"]
+icd10_codes: ["M87.9", "M87.059", "M84.30XA", "M48.40XA", "M43.00", "M86.9", "M00.9", "C79.51", "G20", "G25.0", "G31.83", "G30.9", "I63.9", "G45.9", "C85.90", "D26.9", "R50.9", "K50.90", "K51.90", "C50.919", "D05.90", "C53.9", "C76.0", "C43.9", "C60.9", "C54.1", "C51.9", "C74.90", "E27.5", "E21.0", "D35.1", "E85.82", "G56.00", "I35.0", "I50.9", "C7A.8", "C73", "I26.99", "N15.9"]
 ---
 
 \## Medical Necessity Criteria

@@ -1,17 +1,25 @@
 ---
 title: "Abdomen and Pelvis Imaging"
 domain: "imaging"
-specialty: ["radiology", "gastroenterology", "obstetrics"]
+specialty: ["radiology", "gastroenterology", "obstetrics", "gynecology", "urology", "hepatology", "nephrology", "general surgery", "orthopedics", "rheumatology", "maternal-fetal medicine"]
 procedures:
   - "CT abdomen/pelvis"
   - "MRI abdomen/pelvis"
   - "pelvic ultrasound"
   - "abdominal ultrasound"
-aliases: ["abdominal imaging", "pelvic imaging", "GI imaging"]
-relatedConditions: ["appendicitis", "bowel obstruction", "abdominal mass", "pelvic mass", "endometriosis", "uterine fibroids"]
-cpt_codes: ["72192", "72193", "72194", "72195", "72196", "72197", "74150", "74160", "74170", "74176", "74177", "74178"]
+  - "MRCP"
+  - "MR enterography"
+  - "MR urography"
+  - "MR elastography"
+  - "fetal MRI"
+  - "CT pancreas protocol"
+  - "dynamic pelvic floor MRI"
+aliases: ["abdominal imaging", "pelvic imaging", "GI imaging", "CT A/P", "MRI A/P", "abdominopelvic CT", "abdominopelvic MRI", "MRCP", "magnetic resonance cholangiopancreatography", "MR urogram", "MR enterography", "MR elastography", "pelvimetry", "transvaginal ultrasound", "renal ultrasound"]
+relatedConditions: ["appendicitis", "bowel obstruction", "abdominal mass", "pelvic mass", "endometriosis", "uterine fibroids", "adenomyosis", "adnexal mass", "uterine leiomyomata", "diverticulitis", "colitis", "enteritis", "GI bleeding", "inflammatory bowel disease", "Crohn disease", "perianal fistula", "perianal abscess", "biliary obstruction", "cholecystitis", "choledocholithiasis", "primary sclerosing cholangitis", "Caroli disease", "diffuse liver disease", "hemochromatosis", "cirrhosis", "NAFLD", "focal liver lesion", "hepatic adenoma", "hepatomegaly", "jaundice", "pancreatitis", "pancreatic duct dilatation", "pancreatic mass", "pancreatic cyst", "adrenal mass", "bladder diverticula", "urethral diverticula", "hematuria", "hydronephrosis", "nephrocalcinosis", "polycystic kidney disease", "pyelonephritis", "renal mass", "urinary tract calculi", "nephrolithiasis", "splenic mass", "splenomegaly", "avascular necrosis", "axial spondyloarthropathy", "sacroiliitis", "developmental hip dysplasia", "osseous tumor", "osteoid osteoma", "osteomyelitis", "septic arthritis", "pelvic fracture", "sacral insufficiency fracture", "hemoperitoneum", "hernia", "sports hernia", "lymphadenopathy", "pelvic floor disorder", "pelvic organ prolapse", "retroperitoneal fibrosis", "abscess", "abdominal trauma", "constipation", "weight loss", "abdominal pain", "pelvic pain"]
+cpt_codes: ["72192", "72193", "72194", "72195", "72196", "72197", "74150", "74160", "74170", "74176", "74177", "74178", "74181", "74182", "74183", "74712", "74713", "76391", "S8037", "0648T", "0649T"]
+icd10_codes: ["K35.80", "K56.60", "N83.20", "R19.00", "N80.9", "D25.9", "N80.0", "K57.92", "K52.9", "K50.90", "K60.3", "K61.0", "K83.1", "K81.9", "K80.70", "K83.0", "K76.9", "E83.110", "K74.60", "K76.0", "R16.0", "R17", "K85.90", "K86.1", "D13.6", "K86.2", "D35.00", "N32.3", "N36.1", "R31.9", "N13.30", "E83.59", "Q61.3", "N12", "D41.00", "N20.0", "D73.89", "R16.1", "M87.059", "M46.9", "M46.1", "Q65.9", "M89.40", "D16.8", "M84.459A", "M86.9", "M00.9", "S32.10XA", "K66.1", "K46.9", "R59.9", "N81.9", "K66.0", "R63.4", "R10.9", "R10.2", "Q89.9"]
 priority: "high"
-keywords: ["ultrasound first", "fetal imaging", "obstetric complications"]
+keywords: ["ultrasound first", "fetal imaging", "obstetric complications", "nondiagnostic ultrasound", "conservative therapy", "inflammatory back pain", "fecal calprotectin", "CRP", "ESR", "elastography", "EUS/FNA", "total kidney volume", "renal colic", "microscopic hematuria", "macroscopic hematuria", "RBC/HPF", "urinalysis", "cystoscopy", "colonoscopy", "upper endoscopy", "surgical abdomen", "guarding", "Valsalva", "monochorionic twins", "pelvimetry", "leiomyosarcoma", "fertility-sparing", "toxic megacolon", "stricture", "fistula", "anal manometry", "balloon expulsion", "anal stenosis", "failure to thrive", "second trimester", "third trimester", "PCNL", "ureteroscopy", "SWL", "KUB", "LFTs", "short-axis", "loss of fatty hilum"]
 ---
 
 CPT/HCPCS: 72192, 72193, 72194, 72195, 72196, 72197, 74150, 74160,

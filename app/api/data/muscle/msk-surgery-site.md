@@ -1,14 +1,17 @@
 ---
 title: "Surgical Site of Care"
 domain: "muscle"
-specialty: ["surgery", "anesthesiology"]
+specialty: ["surgery", "anesthesiology", "perioperative medicine", "musculoskeletal surgery", "orthopedic surgery"]
 procedures:
   - "hospital outpatient surgery"
   - "ambulatory surgery"
-aliases: ["site of service", "outpatient surgery", "HOPD"]
-relatedConditions: ["surgical comorbidities", "ASA class III", "complex surgery"]
+  - "outpatient surgical procedure"
+  - "same-day surgery"
+  - "preoperative airway assessment"
+aliases: ["site of service", "outpatient surgery", "HOPD", "hospital outpatient department", "site of care", "ambulatory surgery center", "ASC", "level of care", "place of service", "POS"]
+relatedConditions: ["surgical comorbidities", "ASA class III", "complex surgery", "increased bleeding risk", "obstructive sleep apnea", "morbid obesity", "treatment-resistant hypertension", "poorly controlled diabetes", "end-stage renal disease", "heart failure", "difficult airway"]
 priority: "medium"
-keywords: ["ASA class", "comorbidities", "surgical duration", "airway management", "BMI"]
+keywords: ["ASA class", "comorbidities", "surgical duration", "airway management", "BMI", "difficult intubation", "craniofacial abnormalities", "limited neck extension", "hemodynamic instability", "transfusion", "anticoagulation", "antiplatelet therapy", "INR", "hemoglobin A1c", "FEV1", "FEV1/FVC", "AHI", "RDI", "polysomnography", "MELD score", "NYHA class", "COPD", "asthma", "diabetic ketoacidosis", "GFR", "hemodialysis", "ancillary resources", "same-day discharge", "peer-to-peer review", "medical necessity", "higher-acuity care"]
 ---
 
 MEDICAL NECESSITY CRITERIA

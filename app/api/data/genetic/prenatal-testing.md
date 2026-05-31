@@ -1,16 +1,22 @@
 ---
 title: "Prenatal Cell-Free DNA Screening"
 domain: "genetic"
-specialty: ["maternal-fetal medicine", "obstetrics", "genetics"]
+specialty: ["maternal-fetal medicine", "obstetrics", "genetics", "obstetrics and gynecology", "prenatal genetics", "genetic counseling"]
 procedures:
   - "cell-free DNA screening"
   - "NIPT"
   - "prenatal aneuploidy screening"
-aliases: ["cfDNA screening", "non-invasive prenatal testing", "NIPS"]
-relatedConditions: ["trisomy 21", "trisomy 18", "trisomy 13", "sex chromosome aneuploidy", "Down syndrome"]
-cpt_codes: ["81403", "81420", "81479", "81507", "81599", "0327U"]
+  - "noninvasive prenatal screening"
+  - "fetal aneuploidy screening"
+  - "maternal serum screening"
+  - "diagnostic prenatal genetic testing"
+  - "genetic counseling"
+aliases: ["cfDNA screening", "non-invasive prenatal testing", "NIPS", "cell-free fetal DNA testing", "cffDNA testing", "noninvasive prenatal screening", "prenatal cell-free DNA screening", "NIPT screening"]
+relatedConditions: ["trisomy 21", "trisomy 18", "trisomy 13", "sex chromosome aneuploidy", "Down syndrome", "Patau syndrome", "Edwards syndrome", "fetal aneuploidy", "monosomy X", "Turner syndrome", "Klinefelter syndrome"]
+cpt_codes: ["81403", "81420", "81479", "81507", "81599", "0327U", "81422", "0060U", "0341U", "0488U", "0489U", "0494U", "0536U"]
+icd10_codes: ["Q90.9", "Q91.7", "Q91.3", "Q98.4", "Q97.3", "Z36.0", "Z36.9"]
 priority: "high"
-keywords: ["aneuploidy", "singleton pregnancy", "twin pregnancy", "genetic counseling"]
+keywords: ["aneuploidy", "singleton pregnancy", "twin pregnancy", "genetic counseling", "gestational age", "viable pregnancy", "chromosome 13", "chromosome 18", "chromosome 21", "chromosome X", "chromosome Y", "abnormal maternal serum screen", "fetal anomalies", "fetal demise", "vanishing twin", "co-twin demise", "X-linked disorder", "microdeletion screening", "twin zygosity", "single-gene screening", "polygenic risk", "post-test counseling", "informed decision-making", "once per pregnancy"]
 ageRestrictions: "9 weeks gestational age or later"
 ---
 

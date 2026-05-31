@@ -1,16 +1,28 @@
 ---
 title: "Hereditary Cancer Genetic Testing"
 domain: "genetic"
-specialty: ["genetics", "oncology", "genetic counseling"]
+specialty: ["genetics", "oncology", "genetic counseling", "medical genetics", "molecular pathology", "gastroenterology", "urology", "dermatology", "endocrinology"]
 procedures:
   - "hereditary cancer testing"
   - "BRCA testing"
   - "Lynch syndrome testing"
   - "cancer gene panel testing"
-aliases: ["inherited cancer testing", "familial cancer testing", "cancer predisposition testing"]
-relatedConditions: ["hereditary breast and ovarian cancer", "Lynch syndrome", "familial adenomatous polyposis", "Peutz-Jeghers syndrome", "Cowden syndrome", "Li-Fraumeni syndrome"]
+  - "germline genetic testing"
+  - "multigene panel testing"
+  - "single-gene testing"
+  - "known familial variant testing"
+  - "APC and MUTYH testing"
+  - "TP53 testing"
+  - "PTEN testing"
+  - "STK11 testing"
+  - "PALB2 testing"
+  - "genetic counseling"
+aliases: ["inherited cancer testing", "familial cancer testing", "cancer predisposition testing", "hereditary cancer genetic testing", "hereditary cancer panel", "HBOC testing", "hereditary breast and ovarian cancer testing", "HNPCC testing", "germline cancer testing", "cancer susceptibility gene testing", "confirmatory germline testing"]
+relatedConditions: ["hereditary breast and ovarian cancer", "Lynch syndrome", "familial adenomatous polyposis", "Peutz-Jeghers syndrome", "Cowden syndrome", "Li-Fraumeni syndrome", "MUTYH-associated polyposis", "juvenile polyposis syndrome", "hereditary diffuse gastric cancer", "hereditary pancreatic cancer", "hereditary melanoma", "nevoid basal cell carcinoma syndrome", "Birt-Hogg-Dube syndrome", "hereditary leiomyomatosis and renal cell cancer", "von Hippel-Lindau syndrome", "multiple endocrine neoplasia type 2", "hereditary pheochromocytoma-paraganglioma syndrome", "hereditary prostate cancer", "hereditary kidney cancer", "epithelial ovarian cancer", "pancreatic ductal adenocarcinoma", "PTEN hamartoma tumor syndrome"]
 priority: "high"
-keywords: ["BRCA1", "BRCA2", "APC", "MUTYH", "PTEN", "STK11", "genetic counseling"]
+cpt_codes: ["81162", "81163", "81164", "81165", "81166", "81167", "81201", "81202", "81203", "81212", "81215", "81216", "81217", "81288", "81292", "81293", "81294", "81295", "81296", "81297", "81298", "81299", "81300", "81317", "81318", "81319", "0238U", "81307", "81308", "81321", "81322", "81323", "81351", "81352", "81353", "0235U", "81401", "81403", "81404", "81405", "81406", "81408", "81432", "81437", "81479", "0129U", "S3840", "S3841", "S3842"]
+icd10_codes: ["Z15.01", "Z15.02", "Z15.03", "Z15.04", "Z15.09", "Z80.0", "Z80.41", "Z80.51", "Z84.81", "D12.6"]
+keywords: ["BRCA1", "BRCA2", "APC", "MUTYH", "PTEN", "STK11", "genetic counseling", "TP53", "PALB2", "CDH1", "MLH1", "MSH2", "MSH6", "PMS2", "EPCAM", "SMAD4", "BMPR1A", "GREM1", "ATM", "BRIP1", "RAD51C", "RAD51D", "CDKN2A", "CDK4", "BAP1", "CHEK2", "HOXB13", "RET", "VHL", "FLCN", "FH", "MET", "SDHB", "MEN1", "NF1", "KIT", "PDGFRA", "germline variant", "pathogenic variant", "likely pathogenic variant", "variant of uncertain significance", "mismatch repair deficiency", "microsatellite instability", "MSI-high", "IHC", "BRAF V600E", "MLH1 promoter methylation", "colorectal adenoma", "triple-negative breast cancer", "PARP inhibitor", "Ashkenazi Jewish ancestry", "Lhermitte-Duclos disease", "congenital hypertrophy of retinal pigment epithelium", "odontogenic keratocyst", "adrenocortical carcinoma", "medullary thyroid cancer", "pheochromocytoma", "paraganglioma", "renal cell carcinoma", "family history", "risk assessment", "5% mutation probability"]
 ---
 
 MEDICAL NECESSITY CRITERIA

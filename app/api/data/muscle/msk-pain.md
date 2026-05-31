@@ -1,17 +1,32 @@
 ---
 title: "Musculoskeletal Pain Management"
 domain: "muscle"
-specialty: ["pain management", "anesthesiology", "physiatry"]
+specialty: ["pain management", "anesthesiology", "physiatry", "neurosurgery", "orthopedic surgery", "physical medicine and rehabilitation", "interventional pain", "neurology"]
 procedures:
   - "epidural steroid injection"
   - "selective nerve root block"
   - "facet joint injection"
   - "radiofrequency ablation"
-aliases: ["pain injections", "spinal injections", "nerve blocks"]
-relatedConditions: ["radiculopathy", "spinal stenosis", "herniated disc", "chronic pain", "neurogenic claudication"]
-icd10_codes: ["G89.11", "G89.12", "G89.18"]
+  - "transforaminal epidural injection"
+  - "caudal epidural injection"
+  - "interlaminar epidural injection"
+  - "intradiscal injection"
+  - "medial branch block"
+  - "thermal medial branch radiofrequency neurotomy"
+  - "intraosseous basivertebral nerve ablation"
+  - "regional sympathetic nerve block"
+  - "stellate ganglion block"
+  - "lumbar sympathetic block"
+  - "sacroiliac joint injection"
+  - "spinal cord stimulation"
+  - "dorsal root ganglion stimulation"
+  - "facet synovial cyst aspiration"
+aliases: ["pain injections", "spinal injections", "nerve blocks", "ESI", "TFESI", "SNRB", "MBB", "facet block", "RFA", "RFN", "radiofrequency neurotomy", "rhizotomy", "BVN ablation", "basivertebral nerve ablation", "SCS", "DRG stimulation", "SI joint injection", "sympathetic block", "sympathetic blockade"]
+relatedConditions: ["radiculopathy", "spinal stenosis", "herniated disc", "chronic pain", "neurogenic claudication", "lumbar radiculopathy", "herniated nucleus pulposus", "facet syndrome", "facetogenic pain", "vertebrogenic pain", "complex regional pain syndrome", "CRPS", "painful diabetic neuropathy", "sacroiliac joint dysfunction", "lumbosacral arachnoiditis", "failed back surgery syndrome", "pars defect", "spondylolisthesis", "facet synovial cyst", "neuropathic pain", "axial low back pain"]
+icd10_codes: ["G89.11", "G89.12", "G89.18", "M54.16", "M54.17", "M48.06", "M51.26", "M51.27", "M47.816", "M47.817", "M53.3", "M53.86", "M53.87", "G90.521", "G90.522", "G90.523", "G90.529", "G90.50", "E11.42", "G54.4", "M62.830"]
+cpt_codes: ["62280", "62281", "62282", "62292", "62320", "62321", "62322", "62323", "62324", "62325", "62326", "62327", "64479", "64480", "64483", "64484", "0627T", "0628T", "0629T", "0630T", "0213T", "0214T", "0215T", "0216T", "0217T", "0218T", "64490", "64491", "64492", "64493", "64494", "64495", "64628", "64629", "64633", "64634", "64635", "64636", "64510", "64520", "27096", "64451", "64625", "G0260", "63650", "63655", "63663", "63664", "63685", "63688", "C1767", "C1820", "C1822", "L8679", "L8680", "L8682", "L8683", "L8685", "L8686", "L8687", "L8688"]
 priority: "high"
-keywords: ["conservative management", "physical therapy", "nerve root compression", "functional impairment"]
+keywords: ["conservative management", "physical therapy", "nerve root compression", "functional impairment", "radicular pain", "fluoroscopy", "CT guidance", "medical necessity", "advanced imaging", "ADLs", "IADLs", "diagnostic block", "therapeutic injection", "corticosteroid", "cumulative steroid dose", "methylprednisolone", "triamcinolone", "betamethasone", "dexamethasone", "dual medial branch block", "Modic changes", "ODI", "VAS", "provocative testing", "FABER", "Gaenslen", "thigh thrust", "myelopathy", "cauda equina syndrome", "anticoagulation", "comprehensive pain management", "multimodal conservative management", "percutaneous lead", "stimulator trial"]
 ---
 
 DOCUMENT SUMMARY

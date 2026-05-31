@@ -1,17 +1,28 @@
 ---
 title: "Embolization Procedures"
 domain: "cardio"
-specialty: ["interventional radiology", "vascular surgery"]
+specialty: ["interventional radiology", "vascular surgery", "interventional oncology", "urology"]
 procedures:
   - "prostate artery embolization"
   - "splenic artery embolization"
   - "TACE"
   - "SIRT"
   - "TAE"
-aliases: ["PAE", "transarterial chemoembolization", "radioembolization", "Y90"]
-relatedConditions: ["benign prostatic hypertrophy", "hepatocellular carcinoma", "liver metastases", "gastric varices"]
+  - "TARE"
+  - "uterine artery embolization"
+  - "renal artery embolization"
+  - "portal vein embolization"
+  - "transhepatic variceal embolization"
+  - "ovarian vein embolization"
+  - "internal iliac vein embolization"
+  - "arteriovenous malformation embolization"
+  - "venous malformation embolization"
+aliases: ["PAE", "transarterial chemoembolization", "radioembolization", "Y90", "UAE", "TARE", "selective internal radiation therapy", "transarterial radioembolization", "transarterial embolization", "yttrium-90", "DEB-TACE", "AVM embolization", "PVE"]
+relatedConditions: ["benign prostatic hypertrophy", "hepatocellular carcinoma", "liver metastases", "gastric varices", "cholangiocarcinoma", "neuroendocrine tumor", "uveal melanoma", "colorectal cancer", "renal cell carcinoma", "renal angiomyolipoma", "uterine fibroids", "pelvic congestion syndrome", "arteriovenous malformation", "arteriovenous fistula", "pseudoaneurysm", "venous malformation", "hematuria", "varicocele"]
+cpt_codes: ["37241", "37242", "37243", "37244"]
+icd10_codes: ["N40.1", "C22.0", "C22.1", "C78.7", "I85.11", "C64.9", "D30.00", "D25.9", "I86.2", "I77.0", "I72.9", "Q27.30", "N42.1"]
 priority: "medium"
-keywords: ["liver malignancy", "neuroendocrine tumor", "colorectal metastases"]
+keywords: ["liver malignancy", "neuroendocrine tumor", "colorectal metastases", "medical necessity", "unresectable", "Child-Pugh", "bridge to liver transplant", "downstage", "extrahepatic disease", "future liver remnant", "splenic vein occlusion", "variceal bleeding", "lower urinary tract symptoms", "intractable hematuria", "nephrectomy", "pelvic vein reflux", "uterine fibroids", "excessive bleeding", "bladder pressure", "pseudoaneurysm", "arteriovenous fistula", "peer-to-peer review", "Child-Pugh class C", "portal vein thrombus", "drug-eluting bead"]
 ---
 
 MEDICAL NECESSITY CRITERIA

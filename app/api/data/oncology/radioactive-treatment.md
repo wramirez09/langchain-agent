@@ -1,16 +1,25 @@
 ---
 title: "Therapeutic Radiopharmaceuticals"
 domain: "oncology"
-specialty: ["nuclear medicine", "radiation oncology"]
+specialty: ["nuclear medicine", "radiation oncology", "medical oncology", "urology", "endocrinology"]
 procedures:
   - "radiopharmaceutical therapy"
   - "strontium-89 therapy"
   - "radioactive treatment"
-aliases: ["radioisotope therapy", "radionuclide therapy"]
-relatedConditions: ["bone metastases", "osteoblastic metastases", "cancer pain"]
-cpt_codes: ["A9600", "77750"]
+  - "strontium Sr-89 chloride therapy"
+  - "ibritumomab tiuxetan therapy"
+  - "lutetium Lu 177 dotatate therapy"
+  - "lutetium Lu 177 vipivotide tetraxetan therapy"
+  - "radium Ra-223 dichloride therapy"
+  - "sodium iodide I 131 therapy"
+  - "radioactive iodine ablation"
+  - "peptide receptor radionuclide therapy"
+aliases: ["radioisotope therapy", "radionuclide therapy", "metastron", "zevalin", "lutathera", "pluvicto", "vipivotide", "xofigo", "radium-223", "radioactive iodine", "RAI", "I-131", "PRRT", "PSMA-targeted radioligand therapy", "radioembolization"]
+relatedConditions: ["bone metastases", "osteoblastic metastases", "cancer pain", "prostate cancer", "metastatic castrate-resistant prostate cancer", "follicular lymphoma", "non-Hodgkin lymphoma", "marginal zone lymphoma", "MALT lymphoma", "gastroenteropancreatic neuroendocrine tumors", "bronchopulmonary neuroendocrine tumors", "thymic neuroendocrine tumors", "pheochromocytoma", "paraganglioma", "differentiated thyroid cancer", "papillary thyroid cancer", "follicular thyroid cancer", "Hurthle cell thyroid cancer"]
+cpt_codes: ["A9600", "77750", "A9543", "79403", "A9513", "79101", "A9607", "A9606", "A9528", "A9531", "78012", "78013", "78014", "78015", "78016", "78018"]
+icd10_codes: ["C61", "C79.51", "R97.21", "Z19.2", "C81.00", "C88.9", "C82.00", "C82.99", "C83.80", "C83.89", "C83.90", "C88.4", "C25.4", "C74.10", "C74.12", "C74.90", "C74.92", "C75.5", "C7A.00", "C7A.8", "C7B.00", "C7B.09", "C7B.8", "E34.0", "Z85.020", "Z85.030", "Z85.040", "Z85.060", "Z85.07", "Z85.110", "Z85.230", "C73"]
 priority: "medium"
-keywords: ["strontium Sr-89", "symptomatic bone metastases", "pain control"]
+keywords: ["strontium Sr-89", "symptomatic bone metastases", "pain control", "osteoblastic bone metastases", "solid organ malignancy", "CD20-positive", "non-Hodgkin lymphoma", "marrow cellularity", "platelet count", "somatostatin receptor", "ECOG performance status", "PSMA-positive", "PSMA-11 PET", "taxane-based chemotherapy", "androgen receptor pathway inhibitor", "abiraterone", "enzalutamide", "apalutamide", "darolutamide", "castrate-resistant", "serum testosterone", "visceral metastases", "PSA", "androgen deprivation therapy", "spinal cord compression", "differentiated thyroid cancer", "total thyroidectomy", "thyroglobulin", "radioiodine-avid scintigraphy", "bone marrow reserve", "conventional therapy"]
 ---
 
 \## General Medical Necessity Requirements

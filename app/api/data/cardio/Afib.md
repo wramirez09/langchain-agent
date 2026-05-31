@@ -1,17 +1,22 @@
 ---
 title: "Atrial Fibrillation Ablation"
 domain: "cardio"
-specialty: ["cardiology", "electrophysiology"]
+specialty: ["cardiology", "electrophysiology", "cardiac electrophysiology"]
 procedures:
   - "pulmonary vein isolation"
   - "catheter ablation"
   - "AV node ablation"
   - "accessory pathway ablation"
-aliases: ["afib ablation", "PVI", "atrial fib treatment", "AF ablation"]
-relatedConditions: ["atrial fibrillation", "paroxysmal atrial fibrillation", "persistent atrial fibrillation", "heart failure", "hypertrophic cardiomyopathy"]
+  - "linear atrial ablation"
+  - "focal atrial ablation"
+  - "supraventricular tachycardia ablation"
+  - "AV junction ablation"
+aliases: ["afib ablation", "PVI", "atrial fib treatment", "AF ablation", "pulmonary vein ablation", "AVN ablation", "AV junction ablation", "AV nodal ablation", "WPW ablation", "atrial fibrillation catheter ablation"]
+relatedConditions: ["atrial fibrillation", "paroxysmal atrial fibrillation", "persistent atrial fibrillation", "heart failure", "hypertrophic cardiomyopathy", "pre-excited atrial fibrillation", "Wolff-Parkinson-White syndrome", "ventricular pre-excitation", "tachycardia-mediated cardiomyopathy", "supraventricular tachycardia", "bradycardia"]
 cpt_codes: ["93650", "93653", "93655", "93656", "93657"]
+icd10_codes: ["I48.0", "I48.1", "I48.11", "I48.19", "I48.20", "I48.21", "I48.91", "I50.9", "I42.1", "I42.2", "I45.6", "I47.1", "I49.8", "R00.1"]
 priority: "high"
-keywords: ["rhythm control", "antiarrhythmic", "electrophysiology study", "tachycardia"]
+keywords: ["rhythm control", "antiarrhythmic", "electrophysiology study", "tachycardia", "rate control", "Class I antiarrhythmic", "Class III antiarrhythmic", "paroxysmal", "persistent", "ventricular response rate", "pre-excitation", "post-conversion pause", "pacemaker", "peer-to-peer review", "medical necessity", "competitive athletics", "high-risk EP study", "ventricular pre-excitation"]
 ---
 
 Medical Necessity Criteria

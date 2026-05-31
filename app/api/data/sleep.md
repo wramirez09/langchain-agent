@@ -1,16 +1,32 @@
 ---
 title: "Sleep Diagnostic Testing"
 domain: "mixed"
-specialty: ["sleep medicine", "pulmonology"]
+specialty: ["sleep medicine", "pulmonology", "otolaryngology", "neurology", "dental sleep medicine", "pediatrics", "cardiology"]
 procedures:
   - "home sleep apnea testing"
   - "polysomnography"
   - "sleep study"
   - "HSAT"
-aliases: ["sleep test", "OSA testing", "sleep apnea study"]
-relatedConditions: ["obstructive sleep apnea", "sleep-disordered breathing", "obesity hypoventilation syndrome", "periodic limb movement disorder"]
+  - "in-lab sleep study"
+  - "split-night study"
+  - "multiple sleep latency test"
+  - "maintenance of wakefulness test"
+  - "CPAP titration"
+  - "APAP titration"
+  - "BPAP titration"
+  - "oral appliance therapy"
+  - "mandibular repositioning appliance"
+  - "tongue-retaining device"
+  - "hypoglossal nerve stimulator implantation"
+  - "drug-induced sleep endoscopy"
+  - "adenotonsillectomy"
+  - "adaptive servo-ventilation"
+aliases: ["sleep test", "OSA testing", "sleep apnea study", "PSG", "MSLT", "MWT", "CPAP", "APAP", "BPAP", "BiPAP", "PAP therapy", "DISE", "hypoglossal nerve stimulation", "HGNS", "MRA", "oral appliance", "home sleep test"]
+relatedConditions: ["obstructive sleep apnea", "sleep-disordered breathing", "obesity hypoventilation syndrome", "periodic limb movement disorder", "central sleep apnea", "narcolepsy", "idiopathic hypersomnia", "restless legs syndrome", "congenital central alveolar hypoventilation syndrome", "cataplexy", "Down syndrome", "severe COPD", "neuromuscular disease"]
 priority: "high"
-keywords: ["AHI", "RDI", "PAP compliance", "excessive daytime sleepiness"]
+keywords: ["AHI", "RDI", "REI", "PAP compliance", "PAP adherence", "excessive daytime sleepiness", "habitual snoring", "treatment-resistant hypertension", "neck circumference", "drug-induced sleep endoscopy", "retropalatal obstruction", "cataplexy", "hypnagogic hallucinations", "sleep paralysis", "split-night study", "titration", "PaCO2", "sleep oximetry", "oxygen saturation", "forced vital capacity", "maximal inspiratory pressure", "BMI", "back-up rate", "left ventricular ejection fraction", "periodontal disease", "adenotonsillar hypertrophy"]
+cpt_codes: ["95782", "95783", "95800", "95801", "95805", "95806", "95807", "95808", "95810", "95811", "G0398", "G0399", "G0400", "0964T", "0965T", "0966T", "64568", "64582", "64583", "64584", "E0470", "E0471", "E0485", "E0486", "E0490", "E0491", "E0492", "E0493", "E0530", "E0561", "E0562", "E0601", "E0743", "E1399", "A4544", "A4604", "A7027", "A7028", "A7029", "A7030", "A7031", "A7032", "A7033", "A7034", "A7035", "A7036", "A7037", "A7038", "A7039", "A7044", "A7045", "A7046", "K1027", "C1607", "C1767", "C1778", "C1787", "L8680", "L8681", "L8686", "L8688", "D9947", "D9948"]
+icd10_codes: ["G47.33", "G47.30", "R06.83", "E66.2", "G47.61", "G47.31", "G47.411", "G47.419", "G47.421", "G47.429", "G25.81"]
 ---
 
 1\) General Required Documentation

@@ -1,16 +1,33 @@
 ---
 title: "Epidural Spine Injections"
 domain: "mixed"
-specialty: ["pain management", "anesthesiology"]
+specialty: ["pain management", "anesthesiology", "physical medicine and rehabilitation", "neurosurgery", "orthopedic surgery"]
 procedures:
   - "epidural steroid injection"
   - "transforaminal injection"
   - "interlaminar injection"
   - "caudal injection"
-aliases: ["spinal injections", "epidural injections"]
-relatedConditions: ["radicular pain", "spinal stenosis", "failed back surgery syndrome", "epidural fibrosis"]
+  - "paravertebral facet joint injection"
+  - "medial branch block"
+  - "facet joint denervation"
+  - "radiofrequency neurolysis"
+  - "sacroiliac joint injection"
+  - "intraspinal drug trial"
+  - "intrathecal pump trial"
+  - "implantable infusion pump insertion"
+  - "spinal cord stimulator trial"
+  - "spinal cord stimulator implantation"
+  - "stellate ganglion block"
+  - "thoracic sympathetic block"
+  - "lumbar sympathetic block"
+  - "celiac plexus block"
+  - "superior hypogastric block"
+aliases: ["spinal injections", "epidural injections", "ESI", "transforaminal epidural steroid injection", "TFESI", "interlaminar epidural steroid injection", "caudal epidural", "facet injection", "facet block", "MBB", "radiofrequency ablation", "RFA", "facet rhizotomy", "SI joint injection", "SIJ injection", "intrathecal pump", "pain pump", "baclofen pump", "intrathecal drug delivery", "spinal cord stimulator", "SCS", "dorsal column stimulator", "neurostimulator", "sympathetic block", "celiac plexus neurolysis"]
+relatedConditions: ["radicular pain", "spinal stenosis", "failed back surgery syndrome", "epidural fibrosis", "radiculopathy", "radiculitis", "facet joint syndrome", "spondylolysis", "pars interarticularis fracture", "sacroiliitis", "sacroiliac joint pain", "spondyloarthropathy", "synovial cyst", "chronic intractable pain", "spasticity", "spinal cord injury", "multiple sclerosis", "stiff person syndrome", "complex regional pain syndrome", "lumbosacral arachnoiditis", "postherpetic neuralgia", "diabetic peripheral neuropathy", "phantom limb syndrome", "peripheral neuropathy", "refractory angina pectoris", "herpes zoster", "pancreatitis", "cancer pain"]
 priority: "high"
-keywords: ["fluoroscopic guidance", "conservative treatment", "functional disability"]
+keywords: ["fluoroscopic guidance", "conservative treatment", "functional disability", "CT guidance", "ultrasound guidance", "image guidance", "axial pain", "non-radicular pain", "medial branch block", "provocation tests", "FABER", "Gaenslen", "Budapest criteria", "psychological assessment", "intractable pain", "opioid-naive", "antispasmodic", "neurolysis", "HLA-B27", "elevated CRP", "new episode of care", "diagnostic phase", "therapeutic phase", "50% pain relief", "70% pain relief", "75% pain relief", "average pain 6/10"]
+cpt_codes: ["62320", "62321", "62322", "62323", "64479", "64480", "64483", "64484", "64490", "64491", "64492", "64493", "64494", "64495", "0213T", "0214T", "0215T", "0216T", "0217T", "0218T", "64633", "64634", "64635", "64636", "27096", "G0260", "62350", "62351", "62355", "62360", "62361", "62362", "63650", "63655", "63661", "63662", "63663", "63664", "63685", "63688", "64510", "64517", "64520", "64530"]
+icd10_codes: []
 ---
 
 \## Epidural Spine Injections

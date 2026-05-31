@@ -1,16 +1,30 @@
 ---
 title: "Radiation Therapy"
 domain: "oncology"
-specialty: ["radiation oncology"]
+specialty: ["radiation oncology", "medical oncology", "surgical oncology", "urology", "gynecologic oncology", "otolaryngology"]
 procedures:
   - "external beam radiation therapy"
   - "IMRT"
   - "SBRT"
   - "brachytherapy"
-aliases: ["radiation oncology", "radiotherapy", "radiation treatment"]
-relatedConditions: ["breast cancer", "lung cancer", "prostate cancer", "colorectal cancer", "head and neck cancer", "lymphoma", "bone metastases"]
+  - "2D/3D conformal radiation therapy"
+  - "stereotactic radiosurgery"
+  - "image-guided radiation therapy"
+  - "intraoperative radiation therapy"
+  - "accelerated partial breast irradiation"
+  - "endobronchial brachytherapy"
+  - "low dose rate brachytherapy"
+  - "high dose rate brachytherapy"
+  - "prophylactic cranial irradiation"
+  - "special treatment procedure"
+  - "special physics consult"
+  - "whole breast irradiation"
+aliases: ["radiation oncology", "radiotherapy", "radiation treatment", "EBRT", "external beam radiation", "IGRT", "SRS", "SRS/SBRT", "stereotactic body radiation therapy", "stereotactic radiosurgery", "3D conformal", "3DCRT", "IORT", "APBI", "WBI", "LDR brachytherapy", "HDR brachytherapy", "PCI", "deep inspiration breath hold", "DIBH"]
+relatedConditions: ["breast cancer", "lung cancer", "non-small cell lung cancer", "small cell lung cancer", "prostate cancer", "colorectal cancer", "colon cancer", "rectal cancer", "anal cancer", "head and neck cancer", "thyroid cancer", "anaplastic thyroid cancer", "glottic cancer", "lymphoma", "bone metastases", "spinal cord compression", "oligometastatic disease", "cervical cancer", "ovarian cancer", "fallopian tube cancer", "endometrial carcinoma", "uterine sarcoma", "uterine carcinosarcoma", "vulvar cancer", "vaginal cancer", "DCIS", "skin cancer", "cutaneous melanoma", "non-melanoma skin cancer", "esophageal cancer", "gastric cancer", "hepatobiliary cancer", "pancreatic cancer", "bladder cancer", "CNS cancer", "pathologic fracture"]
 priority: "high"
-keywords: ["image guidance", "oligometastatic disease", "CNS cancer", "gynecologic cancer"]
+keywords: ["image guidance", "oligometastatic disease", "CNS cancer", "gynecologic cancer", "medical necessity", "previously irradiated field", "re-irradiation", "fractionation", "single fraction", "boost irradiation", "dose constraints", "organ at risk", "QUANTEC", "fiducial markers", "tumor motion management", "4D CT", "deep inspiration breath hold", "cardiac sparing", "morbid obesity", "Gleason score", "PSA", "post-prostatectomy", "salvage therapy", "adjuvant therapy", "neoadjuvant", "palliative", "internal mammary node", "lumpectomy", "mastectomy", "weight-bearing bone", "lytic lesion", "spinal cord compression", "V20", "Heart V25", "LAD V15", "dosimetric hot spots", "concurrent chemoradiotherapy", "electronic brachytherapy", "neutron therapy", "prophylactic cranial irradiation"]
+cpt_codes: ["77014", "77387", "G6001", "G6002", "G6017", "77295", "77301", "77470", "77370", "77402", "77407", "77412", "G6003-G6014", "77338", "77385", "G6015", "G6016", "77386", "77373", "77435", "G0339", "G0340", "77316", "77317", "77318", "61796-61799", "63620-63621", "77432", "76965", "77761", "77762", "77763", "77767", "77768", "77770", "77771", "77772", "77778", "77790", "Q3001", "77401"]
+icd10_codes: ["C18.0-C18.9", "C19-C21.8", "Z92.3", "C51.0-C51.9", "C52", "C53.0-C53.9", "C54.0-C55", "C56.1-C56.9", "C57.00-C57.02", "C57.7-C57.9", "C15.3-C15.9", "C16.0-C16.9", "C22.0", "C22.1", "C24.0", "C25.0-C25.9", "C78.7", "C67.0-C67.9", "C69.20-C69.22", "C69.40-C69.42", "C71.0-C71.9", "C79.31-C79.49", "C85.81", "D33.0-D33.2", "D35.2", "D35.4", "G50.0", "Q28.2", "C61"]
 ---
 
 #Radiation Therapy (Excluding Proton) - Summary

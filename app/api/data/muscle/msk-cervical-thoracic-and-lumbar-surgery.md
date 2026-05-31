@@ -1,17 +1,30 @@
 ---
 title: "Cervical, Thoracic, and Lumbar Spine Surgery"
 domain: "muscle"
-specialty: ["orthopedic surgery", "neurosurgery", "spine surgery"]
+specialty: ["orthopedic surgery", "neurosurgery", "spine surgery", "pain management", "interventional radiology"]
 procedures:
   - "cervical disc arthroplasty"
   - "lumbar fusion"
   - "laminectomy"
   - "discectomy"
   - "spinal decompression"
-aliases: ["spine surgery", "spinal fusion", "artificial disc replacement"]
-relatedConditions: ["radiculopathy", "myelopathy", "degenerative disc disease", "spinal stenosis", "herniated disc"]
+  - "lumbar disc arthroplasty"
+  - "lumbar laminectomy"
+  - "electrical bone growth stimulation"
+  - "vertebroplasty"
+  - "kyphoplasty"
+  - "bone graft substitute"
+  - "bone morphogenetic protein"
+  - "dorsal rhizotomy"
+  - "tethered cord release"
+  - "anterior lumbar interbody fusion"
+  - "lateral lumbar interbody fusion"
+aliases: ["spine surgery", "spinal fusion", "artificial disc replacement", "total disc replacement", "cervical artificial disc", "lumbar artificial disc", "two-level cervical arthroplasty", "ALIF", "XLIF", "PLIF", "TLIF", "rhBMP-2", "demineralized bone matrix", "DBM", "percutaneous vertebroplasty", "balloon kyphoplasty", "bone growth stimulator", "noninvasive electrical bone growth stimulation"]
+relatedConditions: ["radiculopathy", "myelopathy", "degenerative disc disease", "spinal stenosis", "herniated disc", "myeloradiculopathy", "neurogenic claudication", "cauda equina syndrome", "conus medullaris syndrome", "lumbar synovial cyst", "spondylolisthesis", "vertebral compression fracture", "osteoporosis", "osteopenia", "vertebral metastasis", "multiple myeloma", "plasmacytoma", "vertebral hemangioma", "eosinophilic granuloma", "tethered cord syndrome", "pseudoarthrosis", "discogenic back pain"]
 priority: "high"
-keywords: ["conservative treatment", "nerve root compression", "FDA-approved device", "skeletal maturity"]
+keywords: ["conservative treatment", "nerve root compression", "FDA-approved device", "skeletal maturity", "physical therapy", "epidural steroid injection", "chiropractic manipulation", "activity modification", "objective neurologic findings", "disc herniation", "spondylotic osteophyte", "cord compression", "Modic changes", "VAS", "ADLs", "IADLs", "DEXA T-score", "facet arthropathy", "OPLL", "focal kyphosis", "central stenosis", "lateral recess stenosis", "foraminal stenosis", "CT myelography", "MRI", "axial back pain", "Modic", "revision fusion", "adjacent levels", "nicotine use", "diabetes", "metabolic bone disease", "burst fracture", "vertebra plana", "retropulsed fragment", "autograft", "donor site", "urodynamic", "neurogenic bladder"]
+cpt_codes: ["0095T", "0098T", "22856", "22858", "22861", "22864", "0164T", "0165T", "22857", "22860", "22862", "22865", "62380", "63030", "63032", "63035", "63042", "63044", "63056", "63057", "C9757", "20974", "E0748", "0200T", "0201T", "22510", "22511", "22512", "22513", "22514", "22515", "C7504", "C7505", "C7507", "C7508", "C1062", "20930", "20931", "20932", "20933", "20934", "20936", "20937", "20938", "20939", "C9359", "C9362"]
+icd10_codes: ["M54.12", "M54.16", "M54.17", "M47.12", "M47.16", "M47.26", "M47.27", "M51.16", "M51.17", "M51.26", "M51.27", "M48.06", "M48.07", "M99.73", "G83.4", "G95.81", "M43.16", "M43.17", "M80.08XA", "M84.58XA", "M81.0", "M85.80", "C79.51", "C90.00", "C41.2", "D18.09", "C96.6", "Q06.1", "M96.0", "G82.20"]
 ---
 
 GENERAL DOCUMENTATION REQUIREMENTS The general documentation framework

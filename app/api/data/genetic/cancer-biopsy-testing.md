@@ -1,16 +1,22 @@
 ---
 title: "Cancer Liquid Biopsy Testing"
 domain: "genetic"
-specialty: ["oncology", "molecular pathology"]
+specialty: ["oncology", "molecular pathology", "medical oncology", "hematology/oncology", "pathology", "urology"]
 procedures:
   - "liquid biopsy"
   - "cell-free DNA testing"
   - "circulating tumor DNA testing"
   - "NGS-based somatic profiling"
-aliases: ["ctDNA testing", "cfDNA testing", "blood-based tumor testing"]
-relatedConditions: ["non-small cell lung cancer", "biliary tract carcinoma", "metastatic breast cancer", "advanced malignancy"]
+  - "comprehensive genomic profiling"
+  - "somatic tumor mutation testing"
+  - "companion diagnostic testing"
+  - "molecular biomarker testing"
+aliases: ["ctDNA testing", "cfDNA testing", "blood-based tumor testing", "liquid biopsy", "circulating tumor DNA", "cell-free DNA", "plasma-based genomic profiling", "blood-based NGS", "next-generation sequencing", "NGS panel", "somatic profiling", "comprehensive genomic profiling", "CGP"]
+relatedConditions: ["non-small cell lung cancer", "biliary tract carcinoma", "metastatic breast cancer", "advanced malignancy", "NSCLC", "cholangiocarcinoma", "metastatic prostate cancer", "prostate adenocarcinoma", "ER-positive HER2-negative breast cancer", "invasive malignancy", "metastatic solid tumor"]
 priority: "medium"
-keywords: ["biomarker testing", "companion diagnostic", "PIK3CA", "ESR1", "actionable variants"]
+keywords: ["biomarker testing", "companion diagnostic", "PIK3CA", "ESR1", "actionable variants", "AKT1", "PTEN", "cell-free DNA", "circulating tumor DNA", "ctDNA", "cfDNA", "next-generation sequencing", "NGS", "somatic profiling", "PARP inhibitor", "PD-1 inhibitor", "FDA companion diagnostic", "NCCN category 2A", "analytical validity", "clinical validity", "clinical utility", "minimal residual disease", "MRD", "clonal hematopoiesis", "tumor mutation", "targeted therapy", "metastatic", "ER-positive", "HER2-negative", "tumor tissue insufficiency", "multi-cancer early detection", "cancer screening", "repeat testing"]
+cpt_codes: ["81462", "81463", "81464", "81479", "0177U", "0179U", "0239U", "0242U", "0326U", "0388U", "0487U", "0539U", "0562U", "81327", "0007M", "0011M", "0013M", "0229U", "0285U", "0306U", "0307U", "0332U", "0333U", "0340U", "0356U", "0368U", "0405U", "0409U", "0410U", "0422U", "0452U", "0453U", "0467U", "0485U", "0486U", "0496U", "0507U", "0530U", "0537U", "0560U", "0561U", "0565U", "0566U", "0569U", "0571U", "0585U", "0611U", "0612U"]
+icd10_codes: ["C34.90", "C34.91", "C34.92", "C24.0", "C24.9", "C22.1", "C50.911", "C50.912", "C61", "C79.51", "C78.7", "C80.1"]
 ---
 
 MEDICAL NECESSITY CRITERIA

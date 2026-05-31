@@ -1,15 +1,27 @@
 ---
 title: "Fractional Flow Reserve CT"
 domain: "mixed"
-specialty: ["cardiology", "radiology"]
+specialty: ["cardiology", "radiology", "electrophysiology", "cardiac surgery", "interventional cardiology", "pediatric cardiology"]
 procedures:
   - "FFR-CT"
   - "fractional flow reserve CT"
-aliases: ["CT-FFR", "coronary CT FFR"]
-relatedConditions: ["coronary artery disease", "intermediate stenosis"]
-cpt_codes: ["75580"]
+  - "cardiac resynchronization therapy"
+  - "implantable cardioverter defibrillator"
+  - "pacemaker"
+  - "leadless pacemaker"
+  - "transthoracic echocardiography"
+  - "transesophageal echocardiography"
+  - "stress echocardiography"
+  - "heart catheterization"
+  - "invasive coronary arteriography"
+  - "left heart catheterization"
+  - "right heart catheterization"
+aliases: ["CT-FFR", "coronary CT FFR", "CRT", "biventricular pacemaker", "ICD", "AICD", "TTE", "echocardiogram", "echo", "TEE", "transesophageal echo", "stress echo", "dobutamine stress echo", "cardiac cath", "left heart cath", "right heart cath", "coronary angiography", "cardiac catheterization", "AV nodal ablation", "EPS", "electrophysiology study"]
+relatedConditions: ["coronary artery disease", "intermediate stenosis", "ischemic cardiomyopathy", "nonischemic cardiomyopathy", "hypertrophic cardiomyopathy", "dilated cardiomyopathy", "restrictive cardiomyopathy", "cardiac sarcoidosis", "cardiac amyloidosis", "transthyretin amyloid cardiomyopathy", "arrhythmogenic right ventricular cardiomyopathy", "left bundle branch block", "right bundle branch block", "heart failure", "systolic heart failure", "diastolic heart failure", "HFrEF", "HFpEF", "atrial fibrillation", "atrial flutter", "ventricular tachycardia", "ventricular fibrillation", "sinus node dysfunction", "sinus bradycardia", "AV block", "complete heart block", "long QT syndrome", "Brugada syndrome", "catecholaminergic polymorphic ventricular tachycardia", "short QT syndrome", "tetralogy of Fallot", "transposition of the great arteries", "atrial septal defect", "ventricular septal defect", "patent foramen ovale", "patent ductus arteriosus", "coarctation of the aorta", "bicuspid aortic valve", "aortic stenosis", "aortic regurgitation", "mitral stenosis", "mitral regurgitation", "infective endocarditis", "pericarditis", "pericardial effusion", "pulmonary hypertension", "thoracic aortic aneurysm", "aortic dissection", "syncope", "myocardial infarction", "myocarditis", "Kawasaki disease", "Turner syndrome", "left ventricular non-compaction"]
+cpt_codes: ["75580", "33221", "33224", "33225", "33231", "33230", "33240", "33249", "33206", "33207", "33208", "33212", "33213", "93303", "93304", "93306", "93307", "93308", "93320", "93321", "93325", "93356", "93312", "93313", "93314", "93315", "93316", "93317", "93318", "93350", "93351", "93352", "93452", "93453", "93454", "93455", "93456", "93457", "93458", "93459", "93460", "93461", "93462", "93463", "93464", "93565", "93566", "93567", "93568"]
+icd10_codes: ["I25.10", "I25.5", "I42.0", "I42.1", "I42.2", "I42.5", "I42.8", "I42.9", "I50.9", "I50.20", "I50.30", "I48.91", "I47.2", "I49.01", "I49.02", "I49.5", "I44.2", "I44.30", "I45.10", "I45.19", "I45.2", "I45.3", "I46.9", "R55", "I21.4", "I33.0", "I40.9", "I30.9", "I31.3", "I27.0", "I27.20", "I71.2", "I71.01", "Q21.3", "Q20.3", "Q21.1", "Q21.0", "Q25.0", "Q25.1", "Q23.0", "Q23.1", "Q23.2", "Q23.3"]
 priority: "medium"
-keywords: ["coronary CT angiography", "revascularization", "coronary calcification"]
+keywords: ["coronary CT angiography", "revascularization", "coronary calcification", "guideline-directed medical therapy", "LVEF", "ejection fraction", "QRS duration", "left bundle branch block", "NYHA class", "primary prevention", "secondary prevention", "AV nodal ablation", "ventricular pacing", "electrophysiology study", "nonsustained VT", "sustained VT", "Lamin A/C mutation", "QTc", "sudden cardiac arrest", "high-grade AV block", "Mobitz II", "third-degree AV block", "chronotropic incompetence", "tachycardia-bradycardia syndrome", "carotid sinus syndrome", "HV interval", "leadless pacemaker", "VVI", "VVIR", "single-chamber RV pacing", "Duke treadmill score", "coronary calcium score", "FFR-CT", "intermediate stenosis", "Prinzmetal angina", "anginal symptoms", "stress imaging", "myocardial ischemia", "wall motion abnormality", "valvular disease", "aortic stenosis surveillance", "prosthetic valve", "TAVR", "LAA occlusion", "PFO closure", "percutaneous mitral valve repair", "pulmonary hypertension", "thoracic aortic disease", "aortic dissection", "infective endocarditis", "pericardial effusion", "embolic source", "cardiac mass", "diastolic function", "HFpEF", "cardiotoxic therapy", "radiation cardiotoxicity", "ventricular assist device", "cardiac transplant", "allograft vasculopathy", "septal reduction", "LVOT obstruction", "shunt physiology", "ascending aortography"]
 ---
 
 \## Service: Fractional Flow Reserve CT

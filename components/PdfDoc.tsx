@@ -139,6 +139,26 @@ const styles = StyleSheet.create({
   },
 });
 
+// Render a string with markdown `**bold**` segments as a sequence of nested
+// Text spans so the bold portions render bold and `*` markers don't leak.
+const renderInlineBold = (text: string, baseStyle?: any): React.ReactNode => {
+  // Strip stray markdown code backticks so codes read as plain text.
+  text = text.replace(/`/g, '');
+  if (!text.includes('**')) return text;
+  const parts = text.split(/(\*\*[^*]+\*\*)/g);
+  return parts.map((part, idx) => {
+    const m = part.match(/^\*\*([^*]+)\*\*$/);
+    if (m) {
+      return (
+        <Text key={idx} style={[baseStyle, { fontFamily: 'Helvetica-Bold' }]}>
+          {m[1]}
+        </Text>
+      );
+    }
+    return part;
+  });
+};
+
 type PdfProps = {
   name: string;
   role: string;
@@ -170,15 +190,19 @@ const PdfDoc: React.FC<PdfProps> = React.memo(({ name, role, messages }) => {
     const renderedLines: React.ReactElement[] = [];
 
     lines.forEach((line, i) => {
-      const lineLower = line.toLowerCase();
-      
-      // Process bold/strong text (section headers) - matches ChatMessageBubble strong component
+      // Process bold/strong text — render dedicated section-header lines styled.
+      // For lines that merely contain **bold** spans (e.g. "**Treatment:** ...",
+      // "**Prior Authorization Required:** ...") fall through to the
+      // bullet/paragraph branches below so their inline values actually render.
+      // Previously an unconditional `return` here dropped everything after the
+      // bold label, wiping the Request Overview key/value block.
       if (line.includes('**')) {
         const boldMatch = line.match(/\*\*([^*]+)\*\*/g);
         if (boldMatch && boldMatch.length > 0) {
+          let renderedAsHeader = false;
           boldMatch.forEach((bold, boldIndex) => {
             const text = bold.replace(/\*\*/g, '').toLowerCase();
-            
+
             // Update section tracking and style Medical Necessity Criteria header in green
             if (text.includes('medical necessity criteria')) {
               sectionTracker.current = 'medical-necessity-zone';
@@ -187,9 +211,10 @@ const PdfDoc: React.FC<PdfProps> = React.memo(({ name, role, messages }) => {
                   {bold.replace(/\*\*/g, '')}
                 </Text>
               );
+              renderedAsHeader = true;
               return;
             }
-            
+
             // Update section tracking and style Required Documentation header in green
             if (text.includes('required documentation')) {
               sectionTracker.current = 'medical-necessity-zone';
@@ -198,9 +223,10 @@ const PdfDoc: React.FC<PdfProps> = React.memo(({ name, role, messages }) => {
                   {bold.replace(/\*\*/g, '')}
                 </Text>
               );
+              renderedAsHeader = true;
               return;
             }
-            
+
             // Update section tracking for Relevant Codes
             if (text.includes('relevant codes')) {
               sectionTracker.current = 'relevant-codes';
@@ -209,9 +235,10 @@ const PdfDoc: React.FC<PdfProps> = React.memo(({ name, role, messages }) => {
                   {bold.replace(/\*\*/g, '')}
                 </Text>
               );
+              renderedAsHeader = true;
               return;
             }
-            
+
             // Update section tracking and style Limitations and Exclusions header in red
             if (text.includes('limitations and exclusions') || (text.includes('limitations') && text.includes('exclusions'))) {
               sectionTracker.current = 'exclusions';
@@ -220,30 +247,18 @@ const PdfDoc: React.FC<PdfProps> = React.memo(({ name, role, messages }) => {
                   {bold.replace(/\*\*/g, '')}
                 </Text>
               );
+              renderedAsHeader = true;
               return;
             }
-            
-            // Update section tracking for Summary
+
+            // Update section tracking for Summary — track only; let the line
+            // render inline below so any trailing content isn't dropped.
             if (text.includes('summary report') || text.includes('summary')) {
               sectionTracker.current = 'summary';
-              renderedLines.push(
-                <Text key={`${i}-${boldIndex}-summary`} style={styles.heading4}>
-                  {bold.replace(/\*\*/g, '')}
-                </Text>
-              );
-              return;
             }
-            
-            // Render all other bold text as headers (e.g., **Determination:**, **Prior Authorization Required:**)
-            renderedLines.push(
-              <Text key={`${i}-${boldIndex}-bold`} style={[styles.heading4, { fontFamily: 'Helvetica-Bold' }]}>
-                {bold.replace(/\*\*/g, '')}
-              </Text>
-            );
           });
-          
-          // We handled the bold text, skip further processing
-          return;
+          if (renderedAsHeader) return;
+          // else fall through — line has inline bold but is regular content
         }
       }
       
@@ -264,15 +279,7 @@ const PdfDoc: React.FC<PdfProps> = React.memo(({ name, role, messages }) => {
         
         // Skip empty bullets or bullets with only whitespace/special chars
         const cleanContent = content.trim().replace(/[\u200B-\u200D\uFEFF]/g, ''); // Remove zero-width spaces
-        
-        // Debug logging for empty bullets
         if (!cleanContent || cleanContent.length === 0) {
-          console.log('Skipping empty bullet:', { 
-            line: JSON.stringify(line), 
-            content: JSON.stringify(content),
-            cleanContent: JSON.stringify(cleanContent),
-            lineLength: line.length 
-          });
           return;
         }
         
@@ -281,7 +288,7 @@ const PdfDoc: React.FC<PdfProps> = React.memo(({ name, role, messages }) => {
           renderedLines.push(
             <View key={i} style={[styles.listItem, { marginLeft: indentLevel * 10 }]}>
               <View style={styles.checkbox} />
-              <Text style={[styles.listItemContent, styles.listItemGreen]}>{content}</Text>
+              <Text style={[styles.listItemContent, styles.listItemGreen]}>{renderInlineBold(content, styles.listItemGreen)}</Text>
             </View>
           );
           return;
@@ -292,7 +299,7 @@ const PdfDoc: React.FC<PdfProps> = React.memo(({ name, role, messages }) => {
           renderedLines.push(
             <View key={i} style={[styles.listItem, { marginLeft: indentLevel * 10 }]}>
               <Text style={styles.redX}>✗</Text>
-              <Text style={[styles.listItemContent, styles.listItemRed]}>{content}</Text>
+              <Text style={[styles.listItemContent, styles.listItemRed]}>{renderInlineBold(content, styles.listItemRed)}</Text>
             </View>
           );
           return;
@@ -301,7 +308,8 @@ const PdfDoc: React.FC<PdfProps> = React.memo(({ name, role, messages }) => {
         // All other sections - default rendering
         renderedLines.push(
           <View key={i} style={[styles.listItem, { marginLeft: indentLevel * 10 }]}>
-            <Text style={styles.listItemContent}>{content}</Text>
+            <Text style={styles.listItemBullet}>•</Text>
+            <Text style={styles.listItemContent}>{renderInlineBold(content)}</Text>
           </View>
         );
         return;
@@ -311,7 +319,7 @@ const PdfDoc: React.FC<PdfProps> = React.memo(({ name, role, messages }) => {
         renderedLines.push(
           <View key={i} style={styles.listItem}>
             <Text style={styles.listItemBullet}>{num}.</Text>
-            <Text style={styles.listItemContent}>{rest.join('. ')}</Text>
+            <Text style={styles.listItemContent}>{renderInlineBold(rest.join('. '))}</Text>
           </View>
         );
         return;
@@ -320,8 +328,9 @@ const PdfDoc: React.FC<PdfProps> = React.memo(({ name, role, messages }) => {
         renderedLines.push(<Text key={i} style={{ height: 10 }}> </Text>);
         return;
       } else {
-        // Regular text
-        renderedLines.push(<Text key={i} style={styles.messageContent}>{line}</Text>);
+        // Regular text — render inline bold so e.g.
+        // "**Prior Authorization Required:** CONDITIONAL" reads correctly.
+        renderedLines.push(<Text key={i} style={styles.messageContent}>{renderInlineBold(line)}</Text>);
       }
     });
     

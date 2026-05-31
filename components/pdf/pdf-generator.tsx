@@ -138,6 +138,8 @@ interface PdfDocumentProps {
 // Render a string with markdown `**bold**` segments as a sequence of nested
 // Text spans so the bold portions render bold and `*` markers don't leak.
 const renderInlineBold = (text: string, baseStyle?: any): React.ReactNode => {
+  // Strip stray markdown code backticks so codes read as plain text.
+  text = text.replace(/`/g, '');
   if (!text.includes('**')) return text;
   const parts = text.split(/(\*\*[^*]+\*\*)/g);
   return parts.map((part, idx) => {

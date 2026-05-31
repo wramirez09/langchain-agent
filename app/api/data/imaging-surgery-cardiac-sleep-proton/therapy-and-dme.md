@@ -1,16 +1,36 @@
 ---
 title: "Therapy Services and DME"
 domain: "mixed"
-specialty: ["physical therapy", "occupational therapy", "rehabilitation"]
+specialty: ["physical therapy", "occupational therapy", "rehabilitation", "speech-language pathology", "chiropractic", "pediatric therapy"]
 procedures:
   - "physical therapy"
   - "occupational therapy"
   - "habilitative therapy"
   - "durable medical equipment"
-aliases: ["PT", "OT", "rehabilitation therapy", "DME"]
-relatedConditions: ["developmental delay", "functional impairment", "progressive disorders"]
+  - "speech-language therapy"
+  - "feeding and swallowing therapy"
+  - "therapeutic exercise"
+  - "neuromuscular reeducation"
+  - "aquatic therapy"
+  - "gait training"
+  - "orthotic management and training"
+  - "prosthetic training"
+  - "therapeutic activities"
+  - "cognitive function intervention"
+  - "sensory integration"
+  - "self-care/home management training"
+  - "wheelchair management training"
+  - "work hardening"
+  - "work conditioning"
+  - "chiropractic manipulative treatment"
+  - "passive modalities"
+  - "mechanical traction"
+aliases: ["PT", "OT", "SLP", "speech therapy", "rehabilitation therapy", "rehab therapy", "DME", "chiropractic care", "spinal manipulation", "habilitative care", "rehabilitative care", "work hardening", "work conditioning", "therapeutic exercise", "neuromuscular reeducation", "aquatic therapy", "gait training", "wheelchair management"]
+relatedConditions: ["developmental delay", "functional impairment", "progressive disorders", "dysphagia", "feeding disorder", "speech and language disorder", "stuttering", "voice disorder", "gait abnormality", "vestibular dysfunction", "cognitive deficit", "sensory processing disorder", "muscle weakness", "neuromuscular injury", "infantile colic", "low back pain", "neck pain"]
 priority: "medium"
-keywords: ["skilled therapy", "functional progress", "standardized testing"]
+keywords: ["skilled therapy", "functional progress", "standardized testing", "medical necessity", "plan of care", "SMART goals", "norm-referenced", "percentile rank", "standard deviation", "discharge planning", "home exercise program", "ADLs", "range of motion", "manual muscle testing", "maintenance care", "habilitative", "rehabilitative", "conservative care", "oral motor", "swallowing", "feeding therapy", "fluency", "voice", "gait deficits", "cadence", "stride length", "balance", "cognitive deficits", "sensory processing", "wheelchair seating and positioning", "orthotics", "prosthetics", "15-minute unit", "timed billing", "NCCI edits", "passive modalities", "TENS", "NMES", "ultrasound", "diathermy", "cryotherapy", "thermotherapy", "myofascial release", "trigger point therapy", "mechanical traction", "MCID", "MCIC", "MDC", "outcome measures", "Berg Balance Scale", "Oswestry Disability Index", "DASH", "LEFS", "Timed Up and Go", "experimental or investigational", "dry needling", "cupping", "kinesio taping"]
+cpt_codes: ["97012", "97110", "97112", "97113", "97116", "97129", "97530", "97533", "97535", "97537", "97542", "97545", "97546", "97760", "97761", "97763", "98940", "98941", "98942", "98943"]
+icd10_codes: ["R13.10", "R10.83", "R26.9", "R27.8", "R47.9", "R49.9"]
 ---
 
 \## 1. Therapy Services --- Habilitative Physical and Occupational Care

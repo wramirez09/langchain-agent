@@ -1,15 +1,25 @@
 ---
 title: "Thoracic Imaging"
 domain: "imaging"
-specialty: ["radiology", "pulmonology", "cardiothoracic surgery"]
+specialty: ["radiology", "pulmonology", "cardiothoracic surgery", "thoracic surgery", "oncology", "pediatrics", "internal medicine"]
 procedures:
   - "CT chest"
   - "MRI chest"
   - "chest CT"
-aliases: ["chest imaging", "lung imaging", "thorax imaging"]
-relatedConditions: ["pneumonia", "pulmonary embolism", "lung nodule", "congenital thoracic anomalies", "chest wall deformity"]
+  - "HRCT chest"
+  - "CTA chest"
+  - "MRA chest"
+  - "MRI breast"
+  - "FDG-PET"
+  - "FDG-PET/CT"
+  - "navigational bronchoscopy"
+  - "lung volume reduction"
+aliases: ["chest imaging", "lung imaging", "thorax imaging", "chest CT", "CT chest", "MRI chest", "HRCT", "high-resolution CT chest", "CTA chest", "MRA chest", "thoracic CT", "FDG-PET/CT", "PET/CT chest"]
+relatedConditions: ["pneumonia", "pulmonary embolism", "lung nodule", "congenital thoracic anomalies", "chest wall deformity", "pulmonary nodule", "pulmonary mass", "lymphadenopathy", "mediastinal mass", "pleural effusion", "empyema", "hemothorax", "chylothorax", "pneumothorax", "bronchiectasis", "bronchiolitis obliterans", "interstitial lung disease", "idiopathic pulmonary fibrosis", "sarcoidosis", "asbestosis", "silicosis", "berylliosis", "coal worker's pneumoconiosis", "lung abscess", "mediastinitis", "thymoma", "Pancoast tumor", "Horner's syndrome", "thoracic outlet syndrome", "diaphragmatic hernia", "breast implant rupture", "pectoralis muscle tear", "hemoptysis", "chronic cough", "dyspnea", "hoarseness", "fever of unknown origin", "congenital pulmonary airway malformation", "congenital lobar emphysema", "pulmonary sequestration", "pectus excavatum", "chest wall mass", "paraneoplastic syndrome"]
 priority: "high"
-keywords: ["congenital anomalies", "pulmonary sequestration", "pectus excavatum"]
+cpt_codes: ["71250", "71260", "71270", "71550", "71551", "71552", "77046", "77047", "77048", "77049", "78811", "78812", "78813", "78814", "78815", "78816", "C8903", "C8905", "C8906", "C8908"]
+icd10_codes: ["J18.9", "I26.99", "R91.1", "R91.8", "Q34.1", "Q33.0", "Q33.2", "Q67.6", "J47.9", "J84.10", "J84.112", "D86.0", "J61", "J62.8", "J63.2", "J86.9", "J90", "J94.2", "J93.9", "J85.2", "J98.51", "C37", "C38.3", "G90.2", "G54.0", "Q79.0", "T85.43XA", "R09.1", "R59.9", "D38.1", "R05.3", "R06.00", "R50.9", "R04.2", "R49.0", "R63.4"]
+keywords: ["congenital anomalies", "pulmonary sequestration", "pectus excavatum", "medical necessity", "chest radiograph", "Lung-RADS", "lung cancer screening", "subsolid nodule", "ground glass", "part-solid nodule", "calcification pattern", "spiculated margins", "mediastinal widening", "hilar enlargement", "short axis", "lymph node", "necrosis", "HRCT", "usual interstitial pneumonia", "UIP", "fiducial markers", "navigational bronchoscopy", "lung volume reduction", "transplant evaluation", "immunocompromised", "pulmonary function testing", "spirometry", "laryngoscopy", "recurrent laryngeal nerve", "silicone breast implant", "full-thickness tear", "myotendinous junction", "neurogenic", "vascular", "sputum cytology", "bronchoscopy", "unintentional weight loss", "clubbing", "inspiratory crackles", "smoking history", "asbestos", "radon", "uranium"]
 ---
 
 \# 1. Medical Necessity Criteria

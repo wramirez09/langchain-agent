@@ -1,16 +1,24 @@
 ---
 title: "Spine Imaging"
 domain: "imaging"
-specialty: ["radiology", "orthopedic surgery", "neurosurgery"]
+specialty: ["radiology", "orthopedic surgery", "neurosurgery", "rheumatology", "neurology", "physical medicine and rehabilitation", "pain management", "pediatrics"]
 procedures:
   - "spine MRI"
   - "spine CT"
   - "cervical MRI"
   - "lumbar MRI"
-aliases: ["spinal imaging", "back imaging", "neck imaging"]
-relatedConditions: ["radiculopathy", "spinal stenosis", "herniated disc", "myelopathy", "back pain"]
+  - "thoracic MRI"
+  - "cervical CT"
+  - "thoracic CT"
+  - "lumbar CT"
+  - "CT bone mineral density study"
+  - "FDG-PET/CT"
+aliases: ["spinal imaging", "back imaging", "neck imaging", "MRI spine", "CT spine", "cervical spine MRI", "lumbar spine MRI", "thoracic spine MRI", "cervical spine CT", "lumbar spine CT", "thoracic spine CT", "DEXA", "bone densitometry", "PET-CT"]
+relatedConditions: ["radiculopathy", "spinal stenosis", "herniated disc", "myelopathy", "back pain", "cervical radiculopathy", "lumbar radiculopathy", "thoracic radiculopathy", "spondylolisthesis", "spondylolysis", "cauda equina syndrome", "scoliosis", "spinal dysraphism", "tethered cord", "syringomyelia", "spinal infection", "epidural abscess", "discitis", "vertebral osteomyelitis", "arachnoiditis", "ankylosing spondylitis", "axial spondyloarthropathy", "psoriatic arthritis", "reactive arthritis", "juvenile idiopathic arthritis", "multiple sclerosis", "spinal cord infarction", "vertebral compression fracture", "spinal tumor", "osteoporosis", "osteopenia", "Paget disease", "spontaneous intracranial hypotension", "craniocervical junction abnormality", "atlantoaxial instability", "basilar invagination", "congenital vertebral defect", "neurogenic claudication", "spinal cord trauma"]
 priority: "high"
-keywords: ["conservative management", "nerve root compression", "physical therapy"]
+cpt_codes: ["72125", "72126", "72127", "72128", "72129", "72130", "72131", "72132", "72133", "72141", "72142", "72146", "72147", "72148", "72149", "72156", "72157", "72158", "77078", "78811", "78812", "78813", "78814", "78815", "78816", "G0235"]
+icd10_codes: ["M54.12", "M54.14", "M54.16", "M54.2", "M54.50", "M54.9", "M48.06", "M48.04", "M51.16", "M51.17", "M51.26", "M51.27", "M47.16", "M47.812", "M47.816", "G95.0", "G95.11", "G83.4", "Q76.0", "Q76.2", "Q76.3", "Q76.49", "Q05.8", "Q05.9", "M41.20", "M41.0", "M41.119", "M41.5", "M46.20", "M46.30", "M46.40", "M46.50", "M45.9", "L40.50", "M02.9", "M08.00", "G35", "M80.08XA", "M84.58XA", "C41.2", "D16.6", "C79.51", "M81.0", "M85.80", "M88.9", "G96.0"]
+keywords: ["conservative management", "nerve root compression", "physical therapy", "cord compression", "muscle weakness", "sensory abnormality", "dermatome", "myotome", "reflex changes", "spasticity", "epidural steroid injection", "nerve membrane stabilizers", "muscle relaxants", "anti-inflammatory medications", "neurogenic claudication", "inflammatory back pain", "sacroiliitis", "Cobb angle", "sagittal vertical axis", "vertebroplasty", "kyphoplasty", "nondiagnostic radiographs", "without contrast", "with contrast", "ESR", "CRP", "saddle anesthesia", "bladder dysfunction", "bowel dysfunction", "PECARN", "NEXUS", "Pieretti-Vanmarcke", "DISH", "natalizumab", "disease-modifying therapy", "bone mineral density", "presurgical planning", "claudication", "intractable pain"]
 ---
 
 \## Medical Necessity Criteria

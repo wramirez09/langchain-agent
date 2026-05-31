@@ -1,15 +1,19 @@
 ---
 title: "Wearable Cardioverter Defibrillator"
 domain: "cardio"
-specialty: ["cardiology", "electrophysiology"]
+specialty: ["cardiology", "electrophysiology", "heart failure", "cardiac electrophysiology"]
 procedures:
   - "wearable cardioverter defibrillator"
   - "LifeVest"
-aliases: ["WCD", "wearable defibrillator", "external defibrillator"]
-relatedConditions: ["cardiomyopathy", "myocarditis", "Takotsubo cardiomyopathy", "post-partum cardiomyopathy", "ICD infection"]
+  - "wearable cardioverter-defibrillator set-up and programming"
+  - "implantable cardioverter defibrillator implantation"
+  - "ICD explant"
+aliases: ["WCD", "wearable defibrillator", "external defibrillator", "wearable cardioverter-defibrillator", "garment-type automatic external defibrillator", "wearable AED", "wearable automatic external defibrillator"]
+relatedConditions: ["cardiomyopathy", "myocarditis", "Takotsubo cardiomyopathy", "post-partum cardiomyopathy", "ICD infection", "peripartum cardiomyopathy", "non-ischemic cardiomyopathy", "left ventricular dysfunction after myocardial infarction", "ventricular tachycardia", "ventricular fibrillation", "tachyarrhythmia", "ICD malfunction", "sudden cardiac death risk"]
 cpt_codes: ["93745", "K0606"]
+icd10_codes: ["I42.9", "I40.9", "I51.81", "O90.3", "I42.8", "I47.2", "I49.01", "T82.7XXA", "T82.190A", "I46.9", "Z95.810"]
 priority: "medium"
-keywords: ["bridge to ICD", "temporary protection", "heart transplant waiting list"]
+keywords: ["bridge to ICD", "temporary protection", "heart transplant waiting list", "infection", "malfunction", "explant", "delayed implantation", "systemic infection", "lack of vascular access", "anticoagulation", "antiplatelet therapy", "hemodynamic instability", "tachyarrhythmia", "recoverable cardiomyopathy", "outpatient", "patient compliance", "peer-to-peer discussion", "baseline electronic ECG", "sudden cardiac death", "ventricular arrhythmia"]
 ---
 
 MEDICAL NECESSITY CRITERIA

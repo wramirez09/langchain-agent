@@ -1,17 +1,48 @@
 ---
 title: "Nuclear Medicine Imaging"
 domain: "imaging"
-specialty: ["radiology", "nuclear medicine"]
+specialty: ["radiology", "nuclear medicine", "oncology", "urology", "gastroenterology", "endocrinology", "cardiology", "pulmonology", "neurology", "infectious disease", "surgery", "pediatrics"]
 procedures:
   - "bone scan"
   - "gallium scan"
   - "gastric emptying study"
   - "thyroid scan"
-aliases: ["nuclear imaging", "scintigraphy", "radionuclide imaging"]
-relatedConditions: ["bone metastases", "infection", "thyroid disease", "gastric motility disorder"]
-cpt_codes: ["78102", "78103", "78104", "78300", "78305", "78306", "78315", "78800", "78801", "78802"]
+  - "bone marrow scintigraphy"
+  - "bone scintigraphy"
+  - "dacryoscintigraphy"
+  - "esophageal motility scintigraphy"
+  - "gallium scintigraphy"
+  - "gastric emptying scintigraphy"
+  - "whole gut transit scintigraphy"
+  - "gastrointestinal blood loss scintigraphy"
+  - "GERD scintigraphy"
+  - "hepatic scintigraphy"
+  - "hepatobiliary scintigraphy"
+  - "HIDA scan"
+  - "leukocyte scintigraphy"
+  - "lymphoscintigraphy"
+  - "sentinel lymph node mapping"
+  - "Meckel's scan"
+  - "MIBG scintigraphy"
+  - "parathyroid scintigraphy"
+  - "perfusion scintigraphy"
+  - "peritoneal venous shunt scintigraphy"
+  - "pyrophosphate scintigraphy"
+  - "radionuclide cisternography"
+  - "radionuclide cystography"
+  - "renal scintigraphy"
+  - "somatostatin receptor scintigraphy"
+  - "splenic scintigraphy"
+  - "thallium scintigraphy"
+  - "thyroid scintigraphy"
+  - "radioactive iodine uptake"
+  - "VQ scan"
+aliases: ["nuclear imaging", "scintigraphy", "radionuclide imaging", "nuclear medicine", "bone scan", "bone marrow scan", "gallium scan", "HIDA scan", "hepatobiliary iminodiacetic acid scan", "white blood cell scan", "WBC scan", "indium scan", "sentinel node scan", "Meckel scan", "MIBG scan", "iobenguane scan", "sestamibi scan", "PYP scan", "octreotide scan", "OctreoScan", "thyroid uptake scan", "RAIU", "V/Q scan", "ventilation-perfusion scan", "VCUG alternative", "radionuclide VCUG", "DMSA scan", "MAG3 scan", "renal scan", "renogram"]
+relatedConditions: ["bone metastases", "infection", "thyroid disease", "gastric motility disorder", "osteomyelitis", "septic arthritis", "avascular necrosis", "occult fracture", "stress fracture", "Paget's disease", "periprosthetic infection", "prostate cancer", "breast cancer", "colorectal cancer", "bladder cancer", "melanoma", "sarcoma", "lymphoma", "fever of unknown origin", "inflammatory bowel disease", "Crohn disease", "lymphedema", "cervical cancer", "head and neck cancer", "Merkel cell carcinoma", "penile cancer", "vulvar cancer", "uterine cancer", "Meckel diverticulum", "neuroblastoma", "pheochromocytoma", "paraganglioma", "ganglioneuroma", "neuroendocrine tumor", "primary hyperparathyroidism", "parathyroid adenoma", "refractory epilepsy", "stroke", "transient ischemic attack", "cirrhosis", "refractory ascites", "cardiac amyloidosis", "transthyretin amyloidosis", "carpal tunnel syndrome", "aortic stenosis", "leptomeningeal metastases", "CSF leak", "hydrocephalus", "spontaneous intracranial hypotension", "vesicoureteral reflux", "urinary tract infection", "ureteropelvic junction obstruction", "hydronephrosis", "renal cell carcinoma", "renal artery stenosis", "renovascular hypertension", "thyroid cancer", "thyroid nodule", "goiter", "thyrotoxicosis", "lung cancer", "malignant pleural mesothelioma", "chronic thromboembolic pulmonary hypertension", "pulmonary embolism", "congenital heart disease", "biliary atresia", "cholecystitis", "bile leak", "choledochocele", "gastroesophageal reflux disease", "nasolacrimal duct obstruction", "splenosis", "wandering spleen", "gastrointestinal bleeding"]
+cpt_codes: ["78012", "78013", "78014", "78015", "78016", "78018", "78020", "78070", "78102", "78103", "78104", "78185", "78195", "78201", "78202", "78215", "78216", "78226", "78227", "78258", "78261", "78262", "78264", "78265", "78266", "78278", "78290", "78291", "78300", "78305", "78306", "78315", "78579", "78580", "78582", "78597", "78598", "78600", "78601", "78605", "78606", "78610", "78630", "78635", "78645", "78650", "78660", "78700", "78701", "78707", "78708", "78709", "78725", "78730", "78740", "78800", "78801", "78802", "78804"]
+icd10_codes: ["C50.919", "C61", "C18.9", "C67.9", "C43.9", "C81.90", "C7A.00", "C73", "C34.90", "C45.0", "C71.9", "D3A.00", "C76.0", "M86.9", "M00.9", "M87.9", "M88.9", "E21.0", "D35.1", "K81.9", "K82.9", "Q44.2", "P59.9", "Q44.3", "K50.90", "R50.9", "I27.24", "I26.99", "E83.110", "E83.01", "E05.90", "E04.9", "E04.1", "R94.6", "N13.30", "N13.0", "I70.1", "N28.84", "N30.91", "Q62.11", "E85.82", "G56.03", "I35.0", "K76.7", "R85.5", "G91.9", "G96.0", "G96.811", "K22.70", "R10.84", "G40.909", "I63.9", "G45.9", "Q24.9", "Q33.0", "K59.09"]
 priority: "medium"
-keywords: ["scintigraphy", "radiotracer", "bone marrow imaging"]
+keywords: ["scintigraphy", "radiotracer", "bone marrow imaging", "radionuclide", "SPECT", "extramedullary hematopoiesis", "triple-phase bone scan", "bone metastases", "occult fracture", "stress fracture", "avascular necrosis", "diabetic foot infection", "septic arthritis", "Paget's disease", "periprosthetic infection", "aseptic loosening", "Gleason score", "PSA", "grade group", "cancer staging", "sentinel lymph node", "DCIS", "lymphovascular invasion", "fever of unknown origin", "fecal calprotectin", "CRP", "toxic megacolon", "fistula", "ectopic gastric mucosa", "metanephrines", "I-131 iobenguane", "peptide receptor radionuclide therapy", "PRRT", "thyroglobulin", "anti-thyroglobulin antibodies", "TSH", "radioactive iodine uptake", "RAIU", "ictal SPECT", "LeVeen shunt", "Denver shunt", "TTR mutation", "ATTR", "AL amyloidosis", "LV wall thickness", "beta-2 transferrin", "CSF flow", "intrathecal chemotherapy", "vesicoureteral reflux", "VCUG", "split renal function", "renal scarring", "DMSA", "MAG3", "Wells score", "D-dimer", "FEV1", "pneumonectomy", "lobectomy", "radioembolization", "Y-90", "nondiagnostic", "conservative treatment", "medical necessity", "Mirizzi syndrome", "biliary atresia", "neonatal jaundice"]
 ---
 
 \## General Medical Necessity Framework

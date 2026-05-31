@@ -1,15 +1,28 @@
 ---
 title: "Oncologic Imaging"
 domain: "imaging"
-specialty: ["radiology", "oncology", "nuclear medicine"]
+specialty: ["radiology", "oncology", "nuclear medicine", "hematology", "urology", "hepatology", "pulmonology", "radiation oncology"]
 procedures:
   - "PET/CT"
   - "PET scan"
   - "cancer staging imaging"
-aliases: ["cancer imaging", "tumor imaging", "oncology imaging"]
-relatedConditions: ["cancer", "malignancy", "tumor", "metastatic disease"]
+  - "FDG-PET/CT"
+  - "PSMA PET/CT"
+  - "CT"
+  - "MRI"
+  - "brain MRI with contrast"
+  - "MRI abdomen with MRCP"
+  - "multiparametric prostate MRI"
+  - "bone scan"
+  - "CT colonography"
+  - "low-dose CT lung cancer screening"
+  - "radioligand therapy"
+aliases: ["cancer imaging", "tumor imaging", "oncology imaging", "oncologic imaging", "PET-CT", "FDG-PET", "PSMA PET", "radiotracer imaging", "molecular imaging", "cancer staging scan"]
+relatedConditions: ["cancer", "malignancy", "tumor", "metastatic disease", "hepatobiliary cancer", "biliary tract cancer", "cirrhosis", "hepatitis B", "small cell lung cancer", "Hodgkin lymphoma", "prostate cancer", "metastatic castrate-resistant prostate cancer", "biochemical recurrence", "tumor recurrence"]
 priority: "high"
-keywords: ["staging", "restaging", "treatment response", "PET"]
+keywords: ["staging", "restaging", "treatment response", "PET", "surveillance", "recurrence", "radiation planning", "salvage therapy", "biochemical recurrence", "PSA", "AFP", "PSMA", "FDG", "radiotracer", "with contrast", "without contrast", "gadolinium", "nondiagnostic", "equivocal", "pretest likelihood", "medical necessity", "conventional imaging", "metastasis", "pathologic confirmation", "PSA nadir", "androgen-receptor pathway inhibitor"]
+cpt_codes: ["70450", "70460", "70470", "70480", "70481", "70482", "70486", "70487", "70488", "70490", "70491", "70492", "71250", "71260", "71270", "71271", "72125", "72126", "72127", "72128", "74261", "74262", "74263", "70540", "70542", "70543", "70551", "70552", "70553", "70554", "70555", "71550", "71551", "71552", "74183", "76390", "77046", "77047", "77048", "77049", "77084", "78608", "78609", "78811", "78812", "78813", "78814", "78815", "78816", "0633T", "0634T", "0635T", "0636T", "0637T", "0638T", "A9596", "A9597", "A9598", "A9800", "C8903", "C8905", "C8906", "C8908", "G0219", "G0235", "G0252", "S8037", "S8085"]
+icd10_codes: ["C22.0", "C22.1", "C24.0", "C24.9", "K74.60", "B18.1", "C34.90", "C81.90", "C61", "Z19.2"]
 ---
 
 \## Core Medical Necessity Criteria

@@ -1,17 +1,29 @@
 ---
 title: "Extremity Imaging"
 domain: "imaging"
-specialty: ["radiology", "orthopedic surgery", "sports medicine"]
+specialty: ["radiology", "orthopedic surgery", "sports medicine", "podiatry", "pediatrics", "rheumatology", "physical medicine and rehabilitation", "neurology", "hand surgery"]
 procedures:
   - "MRI shoulder"
   - "MRI knee"
   - "MRI ankle"
   - "MRI hip"
   - "CT extremity"
-aliases: ["joint imaging", "musculoskeletal imaging", "MSK imaging"]
-relatedConditions: ["rotator cuff tear", "meniscal tear", "ligament injury", "arthritis", "joint pain"]
+  - "MRI upper extremity joint"
+  - "MRI upper extremity non-joint"
+  - "MRI lower extremity"
+  - "CT upper extremity"
+  - "CT lower extremity"
+  - "FDG-PET"
+  - "hip ultrasound"
+  - "arthrocentesis"
+  - "shoulder arthroplasty presurgical planning"
+  - "knee arthroplasty presurgical planning"
+aliases: ["joint imaging", "musculoskeletal imaging", "MSK imaging", "extremity MRI", "extremity CT", "limb imaging", "MR arthrogram", "MSK MRI", "upper extremity imaging", "lower extremity imaging"]
+relatedConditions: ["rotator cuff tear", "meniscal tear", "ligament injury", "arthritis", "joint pain", "labral tear", "femoroacetabular impingement", "osteomyelitis", "septic arthritis", "soft tissue infection", "fracture", "occult fracture", "stress fracture", "avascular necrosis", "Morton's neuroma", "plantar fasciitis", "plantar fibromatosis", "tarsal coalition", "tarsal tunnel syndrome", "Lisfranc injury", "osteochondritis dissecans", "pigmented villonodular synovitis", "adhesive capsulitis", "brachial plexopathy", "entrapment neuropathy", "ulnar collateral ligament tear", "triangular fibrocartilage complex tear", "Legg-Calve-Perthes disease", "slipped capital femoral epiphysis", "developmental dysplasia of the hip", "juvenile idiopathic arthritis", "myositis", "Charcot joint", "neuropathic osteoarthropathy", "Paget disease", "intra-articular loose body", "hemarthrosis", "SLAP tear", "Bankart lesion", "biceps tendon rupture", "indeterminate bone lesion", "soft tissue mass"]
 priority: "medium"
-keywords: ["conservative management", "physical therapy", "prior radiographs"]
+cpt_codes: ["73200", "73201", "73202", "73218", "73219", "73220", "73221", "73222", "73223", "73700", "73701", "73702", "73718", "73719", "73720", "73721", "73722", "73723", "78811", "78812", "78813", "78814", "78815", "78816", "G0235", "S8085"]
+icd10_codes: ["M75.100", "M23.209", "M19.90", "M25.50", "M86.9", "M00.9", "M72.2", "M25.069", "M87.9", "M88.9", "M91.10", "M93.003"]
+keywords: ["conservative management", "physical therapy", "prior radiographs", "advanced imaging", "medical necessity", "nondiagnostic radiographs", "occult fracture", "weight-bearing", "intra-articular corticosteroid injection", "home exercise program", "clinical reevaluation", "failure of conservative management", "electromyography", "nerve conduction study", "McMurray test", "Apley test", "Lachman test", "anterior drawer", "posterior drawer", "pivot shift", "joint effusion", "joint line tenderness", "scaphoid", "femoral neck", "tibial plateau", "Salter-Harris fracture", "supracondylar fracture", "delayed union", "nonunion", "foot orthosis", "night splints", "steroid injection", "without contrast", "with contrast", "MRI contraindication", "gadolinium", "presurgical planning", "robotic-assisted arthroplasty"]
 ---
 
 \## Medical Necessity Criteria

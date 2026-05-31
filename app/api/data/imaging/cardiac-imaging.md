@@ -1,17 +1,30 @@
 ---
 title: "Cardiac Imaging"
 domain: "imaging"
-specialty: ["cardiology", "radiology", "nuclear medicine"]
+specialty: ["cardiology", "radiology", "nuclear medicine", "cardiac surgery", "pediatric cardiology"]
 procedures:
   - "cardiac stress test"
   - "echocardiogram"
   - "cardiac MRI"
   - "cardiac CT"
   - "CCTA"
-aliases: ["heart imaging", "cardiac testing", "stress testing"]
-relatedConditions: ["coronary artery disease", "chest pain", "heart failure", "valvular disease", "cardiomyopathy"]
+  - "coronary artery calcium scoring"
+  - "FFR-CT"
+  - "PET myocardial perfusion imaging"
+  - "metabolic PET"
+  - "myocardial perfusion imaging"
+  - "infarct imaging"
+  - "cardiac blood pool imaging"
+  - "MUGA scan"
+  - "transthoracic echocardiography"
+  - "transesophageal echocardiography"
+  - "stress echocardiography"
+aliases: ["heart imaging", "cardiac testing", "stress testing", "CCTA", "coronary CT angiography", "CAC score", "coronary calcium scan", "FFR-CT", "MPI", "SPECT", "MUGA", "RNA", "radionuclide angiography", "TTE", "TEE", "stress echo", "PET MPI", "viability study", "pharmacologic stress test"]
+relatedConditions: ["coronary artery disease", "chest pain", "heart failure", "valvular disease", "cardiomyopathy", "myocarditis", "pericardial disease", "thoracic aortic aneurysm", "aortic dissection", "congenital heart disease", "Kawasaki disease", "cardiac sarcoidosis", "arrhythmogenic right ventricular dysplasia", "atrial fibrillation", "ventricular tachycardia", "pulmonary hypertension", "pulmonary embolism", "infective endocarditis", "myocardial infarction", "acute coronary syndrome", "cardiac mass", "Fabry disease", "hypertrophic cardiomyopathy"]
 priority: "high"
-keywords: ["CAD", "pretest probability", "ASCVD risk", "stress imaging"]
+cpt_codes: ["75571", "75572", "75573", "75574", "75580", "75557", "75559", "75561", "75563", "75565", "78429", "78430", "78431", "78432", "78433", "78459", "78491", "78492", "78451", "78452", "78453", "78454", "78466", "78468", "78469", "78414", "78428", "78472", "78473", "78481", "78483", "78494", "78496", "93303", "93304", "93306", "93307", "93308", "93312", "93313", "93314", "93315", "93316", "93317", "93319", "93320", "93321", "93325", "93350", "93351", "93352", "S8092", "S8085"]
+icd10_codes: ["I25.10", "R07.9", "I50.9", "I42.9", "I40.9", "I31.9", "I71.2", "I71.00", "M30.3", "D86.85", "I42.8", "I48.91", "I47.2", "I27.20", "I26.99", "I33.0", "I21.9", "I24.9", "I35.9", "I34.0", "Q23.1", "I34.1", "I42.1", "E75.21"]
+keywords: ["CAD", "pretest probability", "ASCVD risk", "stress imaging", "chest pain", "dyspnea", "palpitations", "syncope", "LDL", "coronary artery calcium", "ejection fraction", "LV dysfunction", "RV dysfunction", "myocardial viability", "revascularization", "CABG", "PCI", "EKG", "LBBB", "ST depression", "LVH", "PVCs", "iodinated contrast", "ionizing radiation", "MRI safety", "maximal medical therapy", "cardiotoxic therapy", "troponin", "BNP", "pharmacologic stress", "coronary stenosis", "valvular regurgitation", "valvular stenosis", "bicuspid aortic valve", "mitral valve prolapse", "thoracic aorta", "pericardial effusion", "left atrial appendage closure"]
 ---
 
 \## Core documentation required for any request

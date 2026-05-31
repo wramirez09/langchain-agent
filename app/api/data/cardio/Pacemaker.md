@@ -1,15 +1,22 @@
 ---
 title: "Permanent Pacemaker Implantation"
 domain: "cardio"
-specialty: ["cardiology", "electrophysiology", "cardiac surgery"]
+specialty: ["cardiology", "electrophysiology", "cardiac surgery", "internal medicine"]
 procedures:
   - "permanent pacemaker implantation"
   - "transvenous pacemaker"
   - "leadless pacemaker"
-aliases: ["pacemaker placement", "cardiac pacing", "PPM implantation"]
-relatedConditions: ["sinus node dysfunction", "AV block", "bradycardia", "heart block", "sick sinus syndrome", "tachy-brady syndrome"]
+  - "single-chamber pacemaker implantation"
+  - "dual-chamber pacemaker implantation"
+  - "pacemaker generator replacement"
+  - "pacemaker lead placement"
+  - "device interrogation"
+aliases: ["pacemaker placement", "cardiac pacing", "PPM implantation", "PPM", "permanent pacemaker", "single-chamber pacemaker", "dual-chamber pacemaker", "leadless PPM", "right ventricular leadless pacemaker", "pacemaker generator replacement", "pulse generator replacement", "CIED"]
+relatedConditions: ["sinus node dysfunction", "AV block", "bradycardia", "heart block", "sick sinus syndrome", "tachy-brady syndrome", "atrioventricular block", "third-degree AV block", "second-degree AV block", "Mobitz type II AV block", "Mobitz type I AV block", "first-degree AV block", "complete heart block", "bundle branch block", "fascicular block", "permanent atrial fibrillation", "chronotropic incompetence", "neuromuscular disease", "infiltrative cardiomyopathy", "congenital heart disease", "congenital complete AV block", "Anderson-Fabry disease", "postoperative AV block", "syncope"]
 priority: "high"
-keywords: ["bradyarrhythmia", "conduction disturbance", "chronotropic incompetence", "neuromuscular disease"]
+keywords: ["bradyarrhythmia", "conduction disturbance", "chronotropic incompetence", "neuromuscular disease", "symptomatic bradycardia", "arrhythmia", "reversible causes", "PR interval", "HV interval", "QRS duration", "infranodal block", "electrophysiology study", "escape rhythm", "ventricular ectopy", "ventricular dysfunction", "syncope", "presyncope", "dizziness", "lightheadedness", "cerebral hypoperfusion", "alternating bundle branch block", "2:1 AV block", "high-grade AV block", "venous access", "prosthetic tricuspid valve", "device infection", "end of life", "elective replacement indicator", "device interrogation", "device malfunction", "mean daytime heart rate", "expected survival"]
+cpt_codes: ["00530", "33206", "33207", "33208", "33212", "33213", "33214", "33215", "33216", "33217", "33218", "33220", "33222", "33227", "33228", "33233", "33234", "33235", "33274", "33275", "0823T", "0824T", "0825T", "0795T", "0796T", "0797T", "0798T", "0799T", "0800T", "0801T", "0802T", "0803T", "0804T", "C1785", "C1786", "C2619", "C2620", "C2621", "C1605"]
+icd10_codes: ["I49.5", "I44.0", "I44.1", "I44.2", "I44.30", "I45.0", "I45.10", "I45.19", "I45.2", "I45.3", "I45.5", "I49.8", "I48.21", "R55", "R42", "I50.9", "R00.1", "Q24.6", "E75.21"]
 ---
 
 MEDICAL NECESSITY CRITERIA

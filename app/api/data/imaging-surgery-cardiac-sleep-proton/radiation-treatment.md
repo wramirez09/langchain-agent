@@ -1,7 +1,7 @@
 ---
 title: "Radiation Treatment Modalities"
 domain: "mixed"
-specialty: ["radiation oncology"]
+specialty: ["radiation oncology", "medical oncology", "surgical oncology", "neuro-oncology", "neurosurgery", "urology", "gynecologic oncology", "otolaryngology", "dermatology", "pediatric oncology", "hematology"]
 procedures:
   - "IMRT"
   - "SBRT"
@@ -9,10 +9,24 @@ procedures:
   - "brachytherapy"
   - "IORT"
   - "SIRT"
-aliases: ["radiation therapy", "radiotherapy modalities"]
-relatedConditions: ["breast cancer", "CNS tumors", "glioma", "meningioma", "acoustic neuroma"]
+  - "2D external beam radiation therapy"
+  - "3D conformal radiation therapy"
+  - "electron beam therapy"
+  - "superficial radiation therapy"
+  - "orthovoltage radiation therapy"
+  - "hyperthermia with concurrent radiation"
+  - "re-irradiation"
+  - "accelerated partial breast irradiation"
+  - "prophylactic cranial irradiation"
+  - "electronic brachytherapy"
+  - "treatment planning"
+  - "image-guided radiation therapy"
+aliases: ["radiation therapy", "radiotherapy modalities", "XRT", "EBRT", "external beam radiation therapy", "intensity-modulated radiation therapy", "stereotactic body radiation therapy", "stereotactic radiosurgery", "intraoperative radiation therapy", "selective internal radiation therapy", "radioembolization", "APBI", "3D-CRT", "3D conformal", "PCI", "IGRT", "SIB", "simultaneous integrated boost", "hypofractionation", "hyperfractionation", "proton therapy", "radioisotope therapy"]
+relatedConditions: ["breast cancer", "CNS tumors", "glioma", "meningioma", "acoustic neuroma", "male breast cancer", "ependymoma", "medulloblastoma", "primary CNS lymphoma", "spinal cord tumor", "arteriovenous malformation", "trigeminal neuralgia", "craniopharyngioma", "pituitary adenoma", "rectal cancer", "anal cancer", "colon cancer", "esophageal cancer", "gastric cancer", "pancreatic cancer", "cholangiocarcinoma", "gallbladder cancer", "hepatocellular carcinoma", "prostate cancer", "bladder cancer", "urethral cancer", "penile cancer", "testicular cancer", "cervical cancer", "endometrial cancer", "vulvar cancer", "vaginal cancer", "oral cavity cancer", "oropharyngeal cancer", "nasopharyngeal cancer", "laryngeal cancer", "hypopharyngeal cancer", "salivary gland cancer", "carcinoma of unknown primary", "non-small cell lung cancer", "small cell lung cancer", "malignant pleural mesothelioma", "Hodgkin lymphoma", "non-Hodgkin lymphoma", "follicular lymphoma", "marginal zone lymphoma", "mantle cell lymphoma", "diffuse large B-cell lymphoma", "primary mediastinal B-cell lymphoma", "peripheral T-cell lymphoma", "primary cutaneous lymphoma", "oligometastatic disease", "oligoprogressive disease", "bone metastases", "spinal metastases", "solitary plasmacytoma", "multiple myeloma", "soft tissue sarcoma", "retroperitoneal sarcoma", "desmoid tumor", "basal cell carcinoma", "squamous cell carcinoma", "melanoma", "Merkel cell carcinoma", "dermatofibrosarcoma protuberans", "thymoma", "thymic carcinoma", "differentiated thyroid cancer", "medullary thyroid cancer", "anaplastic thyroid cancer"]
 priority: "low"
-keywords: ["external beam", "stereotactic", "re-irradiation"]
+keywords: ["external beam", "stereotactic", "re-irradiation", "hypofractionation", "hyperfractionation", "fractionation", "dose ceiling", "fraction limit", "target volume", "whole-breast irradiation", "chest wall", "post-mastectomy", "post-lumpectomy", "lymph node negative", "lymph node positive", "risk group", "very low risk", "low risk", "intermediate risk", "high risk", "post-prostatectomy", "TURP", "inflammatory bowel disease", "prostate size", "symptom score", "pelvic lymph nodes", "vaginal cuff boost", "lymph node boost", "image guidance", "MRI-confirmed", "spinal segments", "spine stability", "neurologic compromise", "metastatic burden", "PET/CT", "CT chest abdomen pelvis", "combined modality therapy", "monotherapy", "boost", "definitive treatment", "postoperative treatment", "preoperative treatment", "palliation", "investigational", "not medically necessary", "medical necessity", "prior authorization", "conventional fractionation", "electronic brachytherapy", "office visit notes", "laboratory data"]
+cpt_codes: ["0394T", "0395T", "19294", "19296", "19297", "19298", "20555", "31643", "32701", "41019", "43499", "47999", "55860", "55862", "55865", "55875", "55899", "55920", "57155", "57156", "58346", "61796", "61797", "61798", "61799", "61800", "63620", "63621", "67218", "76145", "76873", "76965", "77011", "77014", "77261", "77262", "77263", "77280", "77285", "77290", "77293", "77295", "77299", "77300", "77301", "77306", "77307", "77316", "77317", "77318", "77321", "77331", "77332", "77333", "77334", "77336", "77338", "77370", "77371", "77372", "77373", "77385", "77386", "77387", "77399", "77401", "77402", "77407", "77412", "77417", "77424", "77425", "77427", "77431", "77432", "77435", "77469", "77470", "77499", "77600", "77605", "77610", "77615", "77620", "77750", "77761", "77762", "77763", "77767", "77768", "77770", "77771", "77772", "77778", "77789", "77790", "77799", "C2616", "C9794", "C9795", "G0339", "G0340", "G0458", "G6001", "G6002", "G6003", "G6004", "G6005", "G6006", "G6007", "G6008", "G6009", "G6010", "G6011", "G6012", "G6013", "G6014", "G6015", "G6016", "G6017"]
+icd10_codes: ["C50.911", "C50.929", "C71.9", "D32.9", "D33.3", "C72.0", "C70.1", "Q28.2", "G50.0", "D44.4", "D35.2", "C20", "C21.0", "C18.9", "C15.9", "C16.9", "C25.9", "C24.0", "C23", "C22.0", "C61", "C67.9", "C68.0", "C60.9", "C62.90", "C53.9", "C54.1", "C51.9", "C52", "C06.9", "C10.9", "C11.9", "C32.9", "C13.9", "C08.9", "C80.1", "C34.90", "C45.0", "C81.90", "C82.90", "C83.10", "C83.30", "C85.20", "C84.40", "C84.A0", "C90.20", "C90.00", "C49.9", "C48.0", "D48.1", "C44.91", "C44.92", "C43.9", "C4A.9"]
 ---
 
 \### Covered Treatment Modalities Referenced

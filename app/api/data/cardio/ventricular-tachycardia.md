@@ -1,16 +1,21 @@
 ---
 title: "Ventricular Tachycardia Ablation"
 domain: "cardio"
-specialty: ["cardiology", "electrophysiology"]
+specialty: ["cardiology", "electrophysiology", "cardiac electrophysiology"]
 procedures:
   - "catheter ablation for ventricular tachycardia"
   - "VT ablation"
   - "SVT ablation"
   - "PVC ablation"
-aliases: ["VT ablation", "ventricular arrhythmia ablation", "PVC ablation"]
-relatedConditions: ["ventricular tachycardia", "ventricular fibrillation", "PVCs", "supraventricular tachycardia", "Brugada syndrome", "arrhythmogenic right ventricular cardiomyopathy"]
+  - "transcatheter ablation"
+  - "accessory pathway ablation"
+  - "ventricular arrhythmia ablation"
+aliases: ["VT ablation", "ventricular arrhythmia ablation", "PVC ablation", "catheter ablation", "transcatheter ablation", "SVT ablation", "accessory pathway ablation", "premature ventricular contraction ablation"]
+relatedConditions: ["ventricular tachycardia", "ventricular fibrillation", "PVCs", "supraventricular tachycardia", "Brugada syndrome", "arrhythmogenic right ventricular cardiomyopathy", "hypertrophic cardiomyopathy", "non-ischemic cardiomyopathy", "tachycardia-mediated cardiomyopathy", "prior myocardial infarction", "congenital heart disease", "ventricular preexcitation", "syncope", "sudden cardiac death", "bundle branch reentrant VT", "outflow tract ventricular arrhythmia"]
 priority: "high"
-keywords: ["ICD shocks", "structural heart disease", "cardiomyopathy", "outflow tract VT"]
+keywords: ["ICD shocks", "structural heart disease", "cardiomyopathy", "outflow tract VT", "sustained monomorphic VT", "antiarrhythmic therapy", "beta blockers", "syncope", "tachycardia-mediated cardiomyopathy", "sudden cardiac death", "cardioversion", "accessory pathway", "preexcitation", "high-risk EP study", "papillary muscle", "verapamil-sensitive VT", "interfascicular reentry", "bundle branch reentrant VT", "unifocal PVCs", "LV systolic dysfunction", "left ventricular systolic dysfunction", "congenital heart disease", "QRS morphology"]
+cpt_codes: ["93650", "93653", "93654", "93655"]
+icd10_codes: ["I47.2", "I47.20", "I49.01", "I49.3", "I47.1", "I47.10", "I49.8", "I42.8", "I42.2", "R55"]
 ---
 
 Medical Necessity Criteria

@@ -1,14 +1,21 @@
 ---
 title: "Proton Beam Radiation Evidence Criteria"
 domain: "mixed"
-specialty: ["radiation oncology"]
+specialty: ["radiation oncology", "oncology", "medical oncology", "pediatric oncology", "neuro-oncology"]
 procedures:
   - "proton beam therapy"
   - "neutron beam therapy"
-aliases: ["proton therapy", "particle therapy"]
-relatedConditions: ["breast cancer", "prostate cancer", "lung cancer", "melanoma", "lymphoma"]
+  - "proton beam radiation therapy"
+  - "particle beam radiation therapy"
+  - "re-irradiation"
+  - "intensity modulated radiation therapy"
+  - "stereotactic radiosurgery"
+aliases: ["proton therapy", "particle therapy", "proton beam radiation", "pbt", "proton beam radiotherapy", "charged particle therapy", "neutron beam radiation", "neutron beam radiotherapy", "imrt", "srs", "re-irradiation"]
+relatedConditions: ["breast cancer", "prostate cancer", "lung cancer", "melanoma", "lymphoma", "colon cancer", "bladder cancer", "kidney cancer", "head and neck cancer", "uterine cancer", "pancreatic cancer", "hepatocellular carcinoma", "intrahepatic bile duct cancer", "paranasal sinus cancer", "nasopharyngeal cancer", "maxillary sinus cancer", "ethmoid sinus cancer", "oropharyngeal cancer", "chordoma", "chondrosarcoma", "meningioma", "arteriovenous malformation", "acoustic neuroma", "pituitary adenoma", "uveal melanoma", "esophageal cancer", "salivary gland cancer"]
 priority: "low"
-keywords: ["phase 3 trial", "randomized controlled trial", "evidence-based criteria"]
+keywords: ["phase 3 trial", "randomized controlled trial", "evidence-based criteria", "peer-reviewed literature", "highly prevalent cancer", "less prevalent cancer", "pediatric indications", "adult indications", "re-irradiation", "salivary gland cancer", "unresectable", "recurrent", "optic nerve", "optic chiasm", "brain stem", "spinal cord", "base of skull", "imrt", "srs", "survival benefit", "long-term toxicity", "acute toxicity", "dosimetry", "fractionation", "multidisciplinary tumor board", "p < 0.05", "clinically meaningful benefit"]
+cpt_codes: ["32701", "61796", "61797", "61798", "61799", "61800", "63620", "63621", "77014", "77261", "77262", "77263", "77280", "77285", "77290", "77293", "77295", "77299", "77300", "77301", "77321", "77331", "77332", "77333", "77334", "77336", "77338", "77370", "77372", "77373", "77387", "77399", "77423", "77427", "77432", "77435", "77470", "77499", "77520", "77522", "77523", "77525", "G0339", "G0340", "G6001", "G6002", "G6017"]
+icd10_codes: ["C50.919", "C61", "C34.90", "C43.9", "C85.90", "C18.9", "C67.9", "C64.9", "C76.0", "C54.1", "C25.9", "C22.0", "C22.1", "C31.9", "C11.9", "C31.0", "C31.1", "C10.9", "C41.2", "C41.0", "C41.4", "D32.9", "Q28.2", "D33.3", "D35.2", "C69.30", "C15.9", "C08.9"]
 ---
 
 \### General Criteria

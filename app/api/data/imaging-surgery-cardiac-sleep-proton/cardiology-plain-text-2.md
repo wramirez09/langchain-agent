@@ -1,16 +1,52 @@
 ---
 title: "Inferior Vena Cava Filter"
 domain: "mixed"
-specialty: ["vascular surgery", "interventional radiology"]
+specialty: ["vascular surgery", "interventional radiology", "cardiology", "electrophysiology", "cardiac electrophysiology", "interventional cardiology", "nephrology", "cardiothoracic surgery", "congenital heart disease", "heart failure cardiology"]
 procedures:
   - "IVC filter placement"
   - "IVC filter removal"
   - "IVC filter repositioning"
-aliases: ["vena cava filter", "IVC filter"]
-relatedConditions: ["deep vein thrombosis", "pulmonary embolism", "DVT", "PE"]
-cpt_codes: ["37191", "37192", "37193"]
+  - "percutaneous closure of patent foramen ovale"
+  - "PFO closure"
+  - "cardiac implantable electronic device programming"
+  - "pacemaker programming"
+  - "ICD programming"
+  - "subcutaneous ICD implantation"
+  - "subcutaneous ICD removal"
+  - "S-ICD lead repositioning"
+  - "venogram"
+  - "invasive vein mapping"
+  - "pacemaker implantation"
+  - "leadless pacemaker implantation"
+  - "interventions for adult congenital heart defects"
+  - "atrial septal defect repair"
+  - "ventricular septal defect closure"
+  - "wireless pulmonary artery pressure monitor implantation"
+  - "CardioMEMS implantation"
+  - "coronary intravascular ultrasound"
+  - "implantable cardioverter defibrillator implantation"
+  - "infrainguinal open arterial bypass"
+  - "femoral-popliteal bypass"
+  - "common femoral endarterectomy"
+  - "embolectomy"
+  - "thrombectomy"
+  - "myocardial perfusion imaging"
+  - "SPECT myocardial perfusion imaging"
+  - "PET myocardial perfusion imaging"
+  - "varicose vein treatment"
+  - "endovenous thermal ablation"
+  - "sclerotherapy"
+  - "enhanced external counterpulsation"
+  - "hemodialysis access maintenance"
+  - "fistulogram"
+  - "aorto-renal endarterectomy"
+  - "renal artery bypass"
+aliases: ["vena cava filter", "IVC filter", "PFO closure", "patent foramen ovale closure", "transcatheter PFO closure", "device programming", "device interrogation", "CIED programming", "S-ICD", "subcutaneous ICD", "EV-ICD", "leadless pacemaker", "PPM", "permanent pacemaker", "AICD", "ICD", "CRT-D", "CRT-P", "ILR", "implantable loop recorder", "wearable defibrillator", "life vest", "venography", "vein mapping", "ASD repair", "VSD closure", "CardioMEMS", "PA pressure monitor", "IVUS", "intravascular ultrasound", "fem-pop bypass", "infrainguinal bypass", "MPI", "SPECT", "myocardial perfusion scan", "nuclear stress test", "stress echocardiography", "EECP", "enhanced external counterpulsation", "AV fistula", "AV graft", "dialysis access", "fistulogram", "renal artery bypass"]
+relatedConditions: ["deep vein thrombosis", "pulmonary embolism", "DVT", "PE", "patent foramen ovale", "cryptogenic stroke", "transient ischemic attack", "TIA", "bradycardia", "atrioventricular block", "complete heart block", "sinus node dysfunction", "atrial fibrillation", "atrial flutter", "ventricular tachycardia", "ventricular fibrillation", "heart failure", "ischemic cardiomyopathy", "nonischemic dilated cardiomyopathy", "hypertrophic cardiomyopathy", "congenital heart disease", "atrial septal defect", "ventricular septal defect", "anomalous pulmonary venous connection", "atrioventricular septal defect", "transposition of the great arteries", "coronary artery anomaly", "coronary artery disease", "refractory angina", "angina pectoris", "left main coronary disease", "peripheral artery disease", "claudication", "chronic limb-threatening ischemia", "femoral-popliteal aneurysm", "varicose veins", "venous reflux", "venous insufficiency", "superficial thrombophlebitis", "post-thrombotic syndrome", "iliac vein stenosis", "renal artery stenosis", "fibromuscular dysplasia", "cardiac sarcoidosis", "cardiac amyloidosis", "end-stage renal disease", "high-output heart failure", "AV access stenosis", "pseudoaneurysm"]
+cpt_codes: ["37191", "37192", "37193", "93580", "93581", "93582", "93260", "93279", "93280", "93281", "93282", "93283", "93284", "93285", "93640", "93641", "93644", "93745", "33270", "33271", "33272", "33273", "36005", "36010", "36011", "36012", "75820", "75822", "75825", "75827", "33206", "33207", "33208", "33212", "33213", "33215", "33216", "33217", "33218", "33220", "33274", "33275", "33414", "33415", "33416", "33417", "33470", "33471", "33474", "33475", "33476", "33477", "33478", "33500", "33501", "33502", "33503", "33504", "33505", "33506", "33507", "33641", "33645", "33647", "33660", "33665", "33670", "33675", "33676", "33677", "33681", "33684", "33724", "33726", "33730", "33732", "33820", "33822", "33824", "33840", "33845", "33881", "33917", "33920", "33922", "33924", "33925", "33926", "37236", "37237", "92986", "92990", "33289", "93264", "92978", "92979", "33230", "33231", "33240", "33249", "35302", "35303", "35304", "35306", "35351", "35355", "35361", "35363", "35371", "35372", "35539", "35540", "35556", "35558", "35560", "35563", "35565", "35566", "35570", "35571", "35572", "35583", "35585", "35587", "35646", "35647", "35650", "35654", "35656", "35661", "35663", "35665", "35666", "35671", "35681", "35682", "35683", "35685", "35700", "35701", "35702", "35703", "35721", "35741", "35860", "35879", "35881", "35883", "35884", "35903", "78451", "78452", "78453", "78454", "78466", "78468", "78469", "78481", "78483", "93015", "93016", "93017", "93018", "A9500", "A9502", "A9505", "J0153", "J1245", "J2785", "36465", "36466", "36470", "36471", "36473", "36474", "36475", "36476", "36478", "36479", "36482", "36483", "37500", "37700", "37718", "37722", "37735", "37760", "37761", "37765", "37766", "37780", "37785", "G0166", "36901", "36902", "36903", "36904", "36905", "36906", "36907", "36908", "36909", "36831", "36832", "36833", "37607"]
+icd10_codes: ["I20.0", "I20.1", "I20.8", "I20.9"]
 priority: "high"
-keywords: ["anticoagulation contraindication", "recurrent PE", "trauma prophylaxis"]
+keywords: ["anticoagulation contraindication", "recurrent PE", "trauma prophylaxis", "cryptogenic stroke", "interatrial communication", "transesophageal echocardiography", "dual antiplatelet therapy", "device interrogation", "antitachycardia pacing", "oversensing", "inappropriate shocks", "defibrillation threshold testing", "QRS-T morphology", "guideline-directed medical therapy", "GDMT", "duplex ultrasound", "venous reflux", "CEAP", "perforator incompetence", "saphenofemoral junction", "great saphenous vein", "small saphenous vein", "ankle-brachial index", "toe-brachial index", "claudication", "chronic limb-threatening ischemia", "rest pain", "gangrene", "WIfI", "Qp:Qs", "left-to-right shunt", "right ventricular volume overload", "left ventricular ejection fraction", "NYHA class", "post-MI", "nonsustained VT", "electrophysiology study", "natriuretic peptides", "pulmonary artery pressure", "intravascular ultrasound", "left main lesion", "allograft vasculopathy", "stent restenosis", "Agatston score", "Duke treadmill score", "CCTA", "stress echocardiography", "myocardial viability", "refractory angina", "CCS angina class", "AV fistula maturation", "Kt/V", "venous outflow stenosis", "anastomotic stenosis", "fibromuscular dysplasia", "renal artery stenosis", "carotid duplex", "CTA", "MRA"]
 ---
 
 \## Guideline 7305 -- Inferior Vena Cava Filter Device

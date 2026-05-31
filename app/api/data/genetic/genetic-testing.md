@@ -1,15 +1,33 @@
 ---
 title: "Inherited Condition Genetic Testing"
 domain: "genetic"
-specialty: ["genetics", "medical genetics", "genetic counseling"]
+specialty: ["genetics", "medical genetics", "genetic counseling", "cardiology", "electrophysiology", "neurology", "ophthalmology", "hematology", "reproductive endocrinology", "maternal-fetal medicine", "transplant cardiology"]
 procedures:
   - "genetic testing"
   - "multigene panel testing"
   - "germline testing"
-aliases: ["hereditary genetic testing", "inherited disease testing", "germline mutation testing"]
-relatedConditions: ["long QT syndrome", "Brugada syndrome", "hypertrophic cardiomyopathy", "arrhythmogenic right ventricular dysplasia", "hereditary aortopathy", "mitochondrial disease", "amyloidosis"]
+  - "confirmatory germline variant testing"
+  - "targeted familial variant testing"
+  - "mitochondrial DNA sequencing"
+  - "mtDNA large-deletion analysis"
+  - "nuclear gene panel testing"
+  - "TTR sequencing"
+  - "thrombophilia testing"
+  - "Factor V Leiden testing"
+  - "prothrombin G20210A testing"
+  - "SOD1 testing"
+  - "preimplantation genetic testing"
+  - "PGT-M"
+  - "PGT-SR"
+  - "PGT-A"
+  - "AlloMap gene-expression profiling"
+  - "post-mortem genetic testing"
+aliases: ["hereditary genetic testing", "inherited disease testing", "germline mutation testing", "molecular genetic testing", "hereditary cancer panel", "single-gene testing", "whole mtDNA sequencing", "nuclear gene panel", "preimplantation genetic diagnosis", "PGD", "donor-derived cell-free DNA", "dd-cfDNA", "gene expression profiling"]
+relatedConditions: ["long QT syndrome", "Brugada syndrome", "hypertrophic cardiomyopathy", "arrhythmogenic right ventricular dysplasia", "hereditary aortopathy", "mitochondrial disease", "amyloidosis", "catecholaminergic polymorphic ventricular tachycardia", "dilated cardiomyopathy", "thoracic aortic aneurysm and dissection", "heritable thoracic aortic disease", "transthyretin amyloidosis", "inherited retinal disorders", "venous thromboembolism", "Factor V Leiden thrombophilia", "prothrombin G20210A thrombophilia", "amyotrophic lateral sclerosis", "Alzheimer's dementia", "frontotemporal dementia", "cardiac transplant rejection", "Marfan syndrome"]
 priority: "medium"
-keywords: ["pathogenic variant", "family history", "CPVT", "HTAD", "sudden cardiac death", "TTR sequencing"]
+keywords: ["pathogenic variant", "likely pathogenic variant", "variant of uncertain significance", "family history", "CPVT", "HTAD", "sudden cardiac death", "TTR sequencing", "presymptomatic testing", "first-degree relative", "second-degree relative", "third-degree relative", "analytical validity", "clinical validity", "germline variant", "ECG features", "syncope", "cardiac arrest", "thoracic aortic disease", "aneurysm", "dissection", "Factor V Leiden", "prothrombin G20210A", "unprovoked VTE", "recurrent VTE", "MTHFR", "tofersen", "AlloMap", "graft rejection", "genetic counseling", "nondisclosure testing", "autosomal recessive", "autosomal dominant", "X-linked", "balanced structural rearrangement", "carrier status", "brain MRI", "organic acids", "muscle biopsy", "anticoagulation"]
+cpt_codes: ["81161", "81223", "81224", "81228", "81229", "81234", "81238", "81239", "81240", "81241", "81242", "81243", "81244", "81247", "81248", "81249", "81250", "81251", "81252", "81253", "81254", "81255", "81256", "81257", "81258", "81259", "81260", "81265", "81285", "81286", "81289", "81290", "81302", "81303", "81304", "81312", "81324", "81325", "81326", "81329", "81330", "81331", "81332", "81333", "81336", "81337", "81343", "81344", "81349", "81361", "81362", "81363", "81364", "81400", "81401", "81402", "81403", "81404", "81405", "81406", "81407", "81408", "81410", "81411", "81413", "81414", "81419", "81430", "81431", "81434", "81439", "81440", "81441", "81442", "81448", "81460", "81465", "81470", "81471", "81558", "0055U", "0079U", "0087U", "0088U", "0118U", "0217U", "0268U", "0269U", "0270U", "0271U", "0272U", "0273U", "0274U", "0276U"]
+icd10_codes: ["I45.81", "I49.01", "I42.1", "I42.2", "I42.0", "I47.20", "I71.2", "I71.01", "Q87.40", "E85.1", "E85.0", "H35.50", "I82.90", "I82.401", "D68.51", "D68.52", "G12.21", "G31.09", "G30.9", "Z84.81", "Z82.49", "Z13.79"]
 ---
 
 1.  MEDICAL NECESSITY CRITERIA

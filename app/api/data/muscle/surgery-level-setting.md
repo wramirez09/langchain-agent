@@ -1,14 +1,31 @@
 ---
 title: "Surgical Level of Care"
 domain: "muscle"
-specialty: ["surgery", "anesthesiology", "hospital medicine"]
+specialty: ["surgery", "anesthesiology", "hospital medicine", "orthopedic surgery", "neurosurgery", "utilization management"]
 procedures:
   - "inpatient surgery"
   - "observation surgery"
-aliases: ["level of care", "inpatient admission", "surgical setting"]
-relatedConditions: ["surgical risk", "postoperative monitoring", "ASA class IV"]
+  - "shoulder arthroplasty"
+  - "shoulder arthroscopy"
+  - "hip arthroplasty"
+  - "hip arthroscopy"
+  - "knee arthroplasty"
+  - "knee arthroscopy"
+  - "meniscal allograft transplantation"
+  - "osteochondral graft"
+  - "anterior cervical discectomy and fusion"
+  - "cervical artificial disc arthroplasty"
+  - "cervical laminectomy"
+  - "lumbar discectomy"
+  - "lumbar laminectomy"
+  - "lumbar fusion"
+  - "vertebroplasty"
+  - "kyphoplasty"
+aliases: ["level of care", "inpatient admission", "surgical setting", "site of care", "site-of-service", "level of care determination", "ACDF", "anterior cervical discectomy and fusion", "cervical disc arthroplasty", "laminectomy", "laminotomy", "discectomy", "spinal fusion", "total shoulder arthroplasty", "total hip arthroplasty", "total knee arthroplasty", "TKA", "THA", "TSA", "observation stay"]
+relatedConditions: ["surgical risk", "postoperative monitoring", "ASA class IV", "ASA class V", "severe systemic disease", "moribund patient", "managed comorbidities", "unmanaged comorbidities"]
 priority: "medium"
-keywords: ["ASA physical status", "postoperative care", "hemodynamic monitoring", "comorbidities"]
+keywords: ["ASA physical status", "postoperative care", "hemodynamic monitoring", "comorbidities", "cardiorespiratory monitoring", "vascular monitoring", "neurologic monitoring", "laboratory monitoring", "medical necessity", "preoperative medical optimization", "medical clearance", "medical consultation", "Charlson Comorbidity Index", "surgical risk score", "emergency modifier", "peer-to-peer review", "non-emergent procedure", "outpatient surgery", "discharge planning", "preoperative care coordination", "surgical risk factors"]
+cpt_codes: ["23470", "23472", "23105", "23107", "23120", "23130", "23410", "23412", "23415", "23420", "23430", "23440", "23450", "23455", "23460", "23462", "23465", "23466", "29805", "29806", "29807", "29819", "29820", "29821", "29822", "29823", "29824", "29825", "29826", "29827", "29828", "27125", "27130", "29860", "29861", "29862", "29863", "29914", "29915", "29916", "27437", "27438", "27440", "27441", "27442", "27443", "27446", "27447", "27331", "27332", "27333", "27334", "27335", "27403", "27405", "27407", "27409", "27427", "27428", "27429", "29870", "29871", "29873", "29874", "29875", "29876", "29877", "29879", "29880", "29881", "29882", "29883", "29884", "29885", "29886", "29887", "29888", "29889", "29868", "27412", "27415", "27416", "29866", "29867", "29892", "27702", "27703", "27704", "27870", "28110", "28285", "28286", "28289", "28291", "28292", "28295", "28296", "28297", "28298", "28299", "28306", "28307", "28308", "28310", "28312", "28315", "28750", "22551", "22552", "22554", "22585", "22634", "22845", "22853", "22856", "22858", "63020", "63035", "63040", "63043", "63048", "63075", "63076", "63265", "63005", "63012", "63017", "63030", "63042", "63044", "63047", "63056", "63057", "63267", "22633", "22510", "22511", "22512", "22513", "22514", "22515"]
 ---
 
 MEDICAL NECESSITY CRITERIA
