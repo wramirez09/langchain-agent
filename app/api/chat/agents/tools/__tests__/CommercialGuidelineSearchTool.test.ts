@@ -95,7 +95,7 @@ describe('CommercialGuidelineSearchTool', () => {
       maxResults: 200,
     })
     const parsed = JSON.parse(out)
-    expect(out.length).toBeLessThanOrEqual(30_000)
+    expect(out.length).toBeLessThanOrEqual(55_000)
     expect(Array.isArray(parsed.topMatches)).toBe(true)
     expect(parsed.topMatches.length).toBeGreaterThan(0)
     expect(parsed.truncated).toBeDefined()

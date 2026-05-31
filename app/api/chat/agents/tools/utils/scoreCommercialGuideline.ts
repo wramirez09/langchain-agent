@@ -75,6 +75,45 @@ function fuzzySimilarity(str1: string, str2: string): number {
   return 1 - (distance / maxLen);
 }
 
+// Pull the clinically decisive sections out of a guideline body instead of a
+// blind substring of the opening. Payer-critical detail (e.g. "failure of at
+// least 6 weeks of conservative treatment", structured component lists) lives
+// deep in the body; a substring(0, N) excerpt truncated it, so the agent only
+// ever saw generic intro text and reconstructed vague criteria.
+const SECTION_ANCHORS: { re: RegExp; take: number }[] = [
+  { re: /medical necessity/i, take: 1800 },
+  { re: /clinical (?:indications|appropriateness)|indications for|coverage (?:criteria|is considered|requires)/i, take: 1400 },
+  { re: /conservative (?:treatment|therapy|management|care)/i, take: 1000 },
+  { re: /required documentation|documentation (?:required|needed|requirements)/i, take: 900 },
+  { re: /limitations|exclusions|not (?:medically )?(?:necessary|covered)/i, take: 800 },
+];
+
+export function extractRelevantSections(body: string, maxChars: number): string {
+  if (!body) return "";
+  if (body.length <= maxChars) return body.trim();
+
+  const ranges: [number, number][] = [[0, 300]]; // always lead with the opening for context
+  for (const a of SECTION_ANCHORS) {
+    const m = a.re.exec(body);
+    if (m && m.index != null) ranges.push([m.index, Math.min(body.length, m.index + a.take)]);
+  }
+  // Merge overlapping/adjacent ranges, preserving document order.
+  ranges.sort((x, y) => x[0] - y[0]);
+  const merged: [number, number][] = [];
+  for (const r of ranges) {
+    const last = merged[merged.length - 1];
+    if (last && r[0] <= last[1] + 40) last[1] = Math.max(last[1], r[1]);
+    else merged.push([r[0], r[1]]);
+  }
+  let out = "";
+  for (const [s, e] of merged) {
+    if (out.length >= maxChars) break;
+    const chunk = body.substring(s, e).trim();
+    if (chunk) out += (out ? "\n…\n" : "") + chunk;
+  }
+  return out.substring(0, maxChars).trim();
+}
+
 /**
  * Score a commercial guideline document against search input
  * Returns score and list of matched signals
@@ -419,22 +458,18 @@ function mergeDocuments(docs: ScoredResult[], fullDocs: CommercialGuidelineDoc[]
   // Merged score is the max member score — no inflation for group size
   const mergedScore = Math.max(...docs.map(d => d.score));
   
-  // Create merged excerpt from first 500 chars of each document
+  // Merged excerpt: pull the decisive sections (medical necessity, conservative
+  // therapy, documentation, exclusions) from each source rather than the first
+  // N chars, so payer-critical detail survives the merge.
   const mergedExcerpt = docs.map((doc, index) => {
-    // Find the full document to get a better excerpt
     const fullDoc = fullDocs.find(fd => fd.id === doc.id);
-    const excerpt = fullDoc ? fullDoc.body.substring(0, 500).trim() : doc.excerpt;
-    
-    if (index === 0) {
-      return excerpt;
-    } else {
-      return `\n\n[Source ${index + 1}]: ${excerpt}`;
-    }
+    const excerpt = fullDoc ? extractRelevantSections(fullDoc.body, 1500) : doc.excerpt;
+    return index === 0 ? excerpt : `\n\n[Source ${index + 1}]: ${excerpt}`;
   }).join('');
-  
-  // Limit merged excerpt to reasonable size (max 2000 chars)
-  const finalExcerpt = mergedExcerpt.length > 2000 
-    ? mergedExcerpt.substring(0, 2000).trim() + '...' 
+
+  // Cap the merged excerpt so a many-source merge can't blow the output budget.
+  const finalExcerpt = mergedExcerpt.length > 5000
+    ? mergedExcerpt.substring(0, 5000).trim() + '...'
     : mergedExcerpt.trim() + '...';
   
   // Create merged source info
@@ -488,7 +523,7 @@ export function scoreAndRankDocuments(
       score,
       domain: doc.domain,
       matchedOn,
-      excerpt: doc.body.substring(0, 300).trim() + "...",
+      excerpt: extractRelevantSections(doc.body, 2500),
       path: doc.path,
       treatment: doc.treatment,
       cptCodes: doc.cptCodes,

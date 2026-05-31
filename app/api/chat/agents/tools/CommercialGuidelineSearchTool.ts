@@ -12,8 +12,12 @@ import { labelCode } from "./utils/codeLabels";
 // Output budget. Beyond this we shrink excerpts and trim arrays rather than
 // invoking an LLM summarizer (which doubled latency and dropped the
 // structured topMatches/relatedMatches shape the agent relies on).
-const OUTPUT_BUDGET_CHARS = 30_000;
-const MIN_EXCERPT_CHARS = 200;
+const OUTPUT_BUDGET_CHARS = 55_000;
+// Floor for excerpt shrinking under budget pressure. Kept high enough to retain
+// the decisive criteria (conservative-therapy thresholds, etc.) that
+// extractRelevantSections surfaces — a 200-char floor used to truncate them back
+// off, defeating section-aware excerpting.
+const MIN_EXCERPT_CHARS = 1200;
 
 // Strip filesystem paths from tool output. The agent prompt forbids citing
 // file/folder names; relying on the LLM to redact a field we hand it is a
