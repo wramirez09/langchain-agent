@@ -39,12 +39,13 @@ ACDF for cervical radiculopathy is considered medically necessary when all of th
     -   Dermatomal upper extremity pain, numbness, or paresthesia corresponding to the compressed level
     -   Motor weakness in a myotomal distribution
     -   Diminished or absent deep tendon reflex in the affected root distribution
--   The patient has failed at least 6 weeks of appropriate conservative (non-operative) care unless one of the exceptions listed below applies; conservative care must be multimodal and should include at least one active modality (physical therapy or supervised home exercise program) and at least one additional measure, which may include:
+-   The patient has failed at least 6 weeks of appropriate conservative (non-operative) care within the last 6 months unless one of the exceptions listed below applies; conservative care must be multimodal and should include at least one active modality (physical therapy or supervised home exercise program) and at least one additional measure, which may include:
     -   Anti-inflammatory medication or analgesics
     -   Epidural steroid injection or selective nerve root block
-    -   Activity modification
+    -   Activity modification, rest, massage, or acupuncture
     -   Chiropractic manipulation
     -   Adjunctive medications (muscle relaxants, neuropathic pain agents)
+-   Pain and functional thresholds: significant pain generally means at least 3/10, with associated functional impairment affecting at least 2 ADLs/IADLs in the general spine framework; documentation must show compliance with treatment and clinical reevaluation showing no meaningful improvement or worsening.
 -   Exceptions permitting earlier surgical consideration without completing 6 weeks of conservative care:
     -   Severe or rapidly progressive motor deficit (e.g., new or worsening upper extremity weakness that interferes with activities of daily living)
     -   Intractable pain refractory to appropriate analgesic management
@@ -89,6 +90,7 @@ Advanced Imaging
 -   CT myelography of the cervical spine: acceptable when MRI is contraindicated (e.g., pacemaker, implanted ferromagnetic device) or technically inadequate; report must describe the level(s) and degree of neural compression
 -   Flexion-extension cervical radiographs: required when instability is the primary or contributing indication; must document dynamic segmental translation or angular motion
 -   Plain cervical radiographs (AP and lateral): supporting documentation of degenerative changes, disc space height loss, osteophyte formation, or alignment abnormalities
+-   Imaging must be read by an independent radiologist and support the requested procedure
 
 Neurological Examination
 
@@ -102,7 +104,7 @@ Neurological Examination
 
 Conservative Care History
 
--   For cervical radiculopathy: documentation of at least 6 weeks of multimodal conservative treatment, including clinician notes or physical therapy records specifying the type of treatment, duration, frequency, and outcome, unless a documented exception applies (severe or progressive motor deficit, intractable pain, or neurological deterioration during conservative care)
+-   For cervical radiculopathy: documentation of at least 6 weeks of multimodal conservative treatment within the last 6 months, including clinician notes or physical therapy records specifying the type of treatment, duration, frequency, and outcome, unless a documented exception applies (severe or progressive motor deficit, intractable pain, or neurological deterioration during conservative care)
 -   For cervical myelopathy: documentation confirming the myelopathic diagnosis; a conservative-care waiting period is not required; documentation should indicate the trajectory of symptoms (stable vs. progressive) and the rationale for surgical timing
 -   For trauma, tumor, infection, or instability: operative report, imaging, oncology or infectious disease records, or other relevant clinical documentation demonstrating the acuity or nature of the underlying condition
 
