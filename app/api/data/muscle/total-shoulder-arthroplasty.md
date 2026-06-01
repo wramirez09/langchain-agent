@@ -13,7 +13,7 @@ aliases: ["TSA", "rTSA", "reverse shoulder replacement", "anatomic TSA", "revers
 relatedConditions: ["glenohumeral osteoarthritis", "rotator cuff tear arthropathy", "proximal humerus fracture", "avascular necrosis of the humeral head", "osteonecrosis of the humeral head", "rheumatoid arthritis", "inflammatory arthropathy", "failed prior shoulder arthroplasty", "irreparable rotator cuff tear", "pseudoparalysis", "cuff tear arthropathy"]
 priority: "high"
 keywords: ["total shoulder arthroplasty", "reverse shoulder arthroplasty", "TSA", "rTSA", "anatomic", "reverse", "glenohumeral osteoarthritis", "rotator cuff tear arthropathy", "cuff tear arthropathy", "pseudoparalysis", "irreparable rotator cuff tear", "proximal humerus fracture", "failed arthroplasty", "conservative care", "physical therapy", "corticosteroid injection", "rotator cuff intact", "radiographic evidence", "joint space narrowing", "avascular necrosis", "osteonecrosis", "humeral head", "glenoid", "Neer classification", "axillary nerve", "deltoid function", "glenohumeral arthritis", "ASES score", "PENN shoulder score", "range of motion", "functional impairment", "failed hemiarthroplasty", "revision arthroplasty", "cortisone injection", "arthroscopic surgery within 12 weeks"]
-icd10_codes: ["M19.011", "M19.012", "M75.100", "M75.120", "M12.211", "M12.212", "M87.021", "M87.022", "S42.201A", "S42.202A", "S42.209A", "T84.010A", "T84.011A", "M06.011", "M06.012"]
+icd10_codes: ["M19.011", "M19.012", "M75.100", "M75.120", "M75.121", "M75.122", "M12.211", "M12.212", "M87.021", "M87.022", "S42.201A", "S42.202A", "S42.209A", "T84.010A", "T84.011A", "M06.011", "M06.012"]
 cpt_codes: ["23472", "23473", "23474", "23470", "23331", "23332"]
 ---
 

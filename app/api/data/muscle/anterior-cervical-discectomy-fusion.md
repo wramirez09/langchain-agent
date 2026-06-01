@@ -12,7 +12,7 @@ aliases: ["ACDF", "cervical arthrodesis", "anterior cervical fusion", "cervical 
 relatedConditions: ["cervical radiculopathy", "cervical myelopathy", "cervical spondylosis", "cervical disc herniation", "cervical stenosis", "cervical spondylotic myelopathy", "cervical foraminal stenosis", "cervical instability", "ossification of the posterior longitudinal ligament", "OPLL"]
 priority: "high"
 keywords: ["ACDF", "cervical radiculopathy", "cervical myelopathy", "nerve root compression", "spinal cord compression", "cervical disc herniation", "cervical stenosis", "cervical spondylosis", "conservative care", "physical therapy", "objective neurologic findings", "MRI cervical spine", "CT myelography", "dermatomal pain", "dermatomal numbness", "upper extremity weakness", "hyperreflexia", "myelopathic signs", "Lhermitte sign", "Hoffman sign", "gait disturbance", "hand clumsiness", "cervical instability", "OPLL", "spondylotic osteophyte", "foraminal stenosis", "neuroforaminal narrowing", "anterior approach", "interbody graft", "plating", "skeletally mature", "progressive deficit", "trauma", "tumor", "infection", "fracture-dislocation"]
-icd10_codes: ["M50.120", "M50.121", "M50.122", "M50.020", "M50.021", "M50.022", "M47.12", "M47.121", "M47.122", "M50.00", "M50.01", "M50.02", "M50.10", "M50.11", "M50.12", "M50.220", "M50.221", "M50.222", "M50.320", "M50.321", "M50.322", "M47.11", "M48.02", "M50.30", "M50.31", "M50.32", "S12.000A", "S12.200A", "M43.02", "C79.51", "M46.32", "G99.2"]
+icd10_codes: ["M54.2", "M54.12", "M50.120", "M50.121", "M50.122", "M50.020", "M50.021", "M50.022", "M47.12", "M47.121", "M47.122", "M50.00", "M50.01", "M50.02", "M50.10", "M50.11", "M50.12", "M50.220", "M50.221", "M50.222", "M50.320", "M50.321", "M50.322", "M47.11", "M48.02", "M50.30", "M50.31", "M50.32", "S12.000A", "S12.200A", "M43.02", "C79.51", "M46.32", "G99.2"]
 cpt_codes: ["22551", "22552", "22554", "22556", "63075", "63076", "63077", "22600", "22612", "20930", "20931", "20936", "20937", "20938", "22840", "22845"]
 ---
 
@@ -144,6 +144,8 @@ RELEVANT CODES
     -   22845 — Anterior instrumentation; 2 to 3 vertebral segments (add-on, cervical plating)
     -   20930, 20931, 20936, 20937, 20938 — Bone graft procedures (allograft, autograft; add-on codes as applicable)
 -   ICD-10 (select based on clinical indication and level; C2-C3 = 1, C3-C4 = 2, C4-C5 = 3, C5-C6 = 4, C6-C7 = 5, C7-T1 = 6 or 7):
+    -   M54.2 — Cervicalgia (neck pain); the presenting symptom code — generally insufficient alone for surgical authorization without radiculopathy, myelopathy, or imaging-confirmed neural compression
+    -   M54.12 — Radiculopathy, cervical region
     -   M50.120 — Cervical disc derangement with radiculopathy, mid-cervical region, unspecified level
     -   M50.121 — Cervical disc derangement with radiculopathy, C4-C5
     -   M50.122 — Cervical disc derangement with radiculopathy, C5-C6

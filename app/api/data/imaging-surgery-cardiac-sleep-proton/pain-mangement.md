@@ -27,7 +27,7 @@ relatedConditions: ["radicular pain", "spinal stenosis", "failed back surgery sy
 priority: "high"
 keywords: ["fluoroscopic guidance", "conservative treatment", "functional disability", "CT guidance", "ultrasound guidance", "image guidance", "axial pain", "non-radicular pain", "medial branch block", "provocation tests", "FABER", "Gaenslen", "Budapest criteria", "psychological assessment", "intractable pain", "opioid-naive", "antispasmodic", "neurolysis", "HLA-B27", "elevated CRP", "new episode of care", "diagnostic phase", "therapeutic phase", "50% pain relief", "70% pain relief", "75% pain relief", "average pain 6/10"]
 cpt_codes: ["62320", "62321", "62322", "62323", "64479", "64480", "64483", "64484", "64490", "64491", "64492", "64493", "64494", "64495", "0213T", "0214T", "0215T", "0216T", "0217T", "0218T", "64633", "64634", "64635", "64636", "27096", "G0260", "62350", "62351", "62355", "62360", "62361", "62362", "63650", "63655", "63661", "63662", "63663", "63664", "63685", "63688", "64510", "64517", "64520", "64530"]
-icd10_codes: []
+icd10_codes: ["M54.2", "M54.50", "M54.12", "M54.16", "M54.17", "M51.16", "M51.17", "M51.14", "M51.15", "M48.02", "M48.06", "M48.061", "M48.062", "M47.812", "M47.816", "M47.817", "M53.3", "M53.86", "M53.87", "M46.1", "M99.03", "M99.04", "M96.1", "G89.21", "G89.29", "G89.4", "G90.50", "G57.00", "G58.7"]
 ---
 
 \## Epidural Spine Injections
