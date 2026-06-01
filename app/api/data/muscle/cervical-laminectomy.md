@@ -22,7 +22,13 @@ MEDICAL NECESSITY CRITERIA
 
 Cervical laminectomy (posterior cervical decompression) is a surgical procedure in which the lamina, hypertrophied ligamentum flavum, and/or osteophytic overgrowth are removed to decompress the cervical spinal cord, lateral recesses, or exiting nerve roots. The procedure directly relieves pressure on the spinal cord or nerve roots caused by structural stenosis, disc-osteophyte complex, or ligamentous hypertrophy. Variants include laminotomy (partial laminar removal), foraminotomy (foraminal enlargement), hemilaminectomy, and laminoplasty (canal-expansion with preservation of the posterior elements); these are subject to the same medical necessity standards. This guideline addresses decompression WITHOUT fusion; when arthrodesis or instrumentation is planned, the fusion component must be authorized separately under the applicable cervical fusion guideline.
 
-Cervical laminectomy or decompression is considered medically necessary when ALL of the following criteria are met for non-emergent cases:
+Posterior decompression without fusion is medically necessary for either of the following:
+
+-   Progressive myelopathy or neurologic deficit with imaging-confirmed compression; or
+-   Cervical radiculopathy with BOTH failure of conservative treatment for at least 6 weeks within the last 6 months AND imaging-confirmed compression at the symptomatic level(s).
+-   First-line surgery (without a conservative-care trial) may be allowed for tumor, infection, or trauma.
+
+In all non-emergent cases, the following supporting criteria must also be met:
 
 -   Advanced imaging (MRI or CT myelography) confirms spinal cord compression, nerve root compression, central canal stenosis, or significant foraminal stenosis at the level(s) proposed for decompression, with findings that correlate anatomically with the patient's symptoms and neurologic examination.
 -   Symptoms and neurologic examination findings are concordant with the imaging level(s) to be decompressed.
@@ -52,14 +58,16 @@ CONSERVATIVE THERAPY (for non-urgent cervical radiculopathy)
 -   The conservative trial should be multimodal and include at least one active modality, such as:
     -   Supervised physical therapy targeting the cervical spine, or a documented structured home exercise program of equivalent intensity.
 -   The trial should also include at least one additional measure, which may include:
-    -   NSAIDs, analgesics, or neuropathic agents (e.g., gabapentin, pregabalin) at adequate doses unless contraindicated.
+    -   Anti-inflammatory medication or analgesics, adjunctive medications, or neuropathic agents (e.g., gabapentin, pregabalin) at adequate doses unless contraindicated.
     -   Cervical epidural corticosteroid injection or selective nerve root block providing insufficient or only temporary relief.
-    -   Activity modification, bracing, or other appropriate nonoperative care.
--   Documentation must specify treatment type, dates, duration, frequency, compliance, and the patient's response (or lack of response) to each modality.
--   Conservative therapy may be bypassed for red-flag or urgent indications, including:
+    -   Activity modification, rest, bracing, massage, chiropractic manipulation, or acupuncture.
+-   Documentation must specify treatment type, dates, duration, frequency, compliance with treatment, and the patient's response (or lack of response) to each modality, with clinical reevaluation showing no meaningful improvement or worsening.
+-   Pain and functional thresholds: significant pain generally means at least 3/10, with associated functional impairment affecting at least 2 ADLs/IADLs in the general spine framework.
+-   Conservative therapy may be waived/bypassed for red-flag or urgent indications, including:
     -   Cervical myelopathy with functional impairment (a trial of conservative care is NOT required prior to authorization for symptomatic cervical myelopathy confirmed clinically and radiographically).
-    -   Severe or rapidly progressive motor deficit.
+    -   Progressive neurologic compromise, or severe or rapidly progressive motor deficit.
     -   Acute or severe spinal cord compression with significant functional impairment.
+    -   Bladder disturbance, cauda equina syndrome, or conus medullaris syndrome.
     -   Documented significant neurologic deterioration during conservative care.
     -   Tumor, infection, trauma, fracture, or instability with significant cord or nerve-root compression.
 
@@ -78,11 +86,13 @@ The following documentation must be submitted with or available at the time of p
     -   MRI cervical spine (preferred): report and images demonstrating the level(s) of nerve root or spinal cord compression, degree of canal or foraminal stenosis, disc-osteophyte morphology, and cord signal change (T2 hyperintensity / myelomalacia) if present; should generally be recent (within 6 to 12 months, or sooner if clinical status has changed) and correlate with the clinical presentation.
     -   CT myelography: acceptable when MRI is contraindicated (e.g., pacemaker, implanted ferromagnetic device) or technically inadequate; must describe the level(s) and degree of neural compression.
     -   Plain cervical radiographs (AP and lateral) documenting alignment, degenerative changes, osteophytes, and disc-space loss; flexion-extension views when instability is part of the indication.
+    -   Imaging must be read by an independent radiologist and support the requested procedure.
 -   Neurologic history and physical examination:
     -   Complete upper- and lower-extremity neurologic examination documenting motor strength by myotome (graded 0-5), deep tendon reflexes, dermatomal sensory testing, gait assessment, and pathologic reflex testing (Hoffman, Babinski, clonus) when myelopathy is suspected.
     -   Description of symptom onset, duration, character, severity, and functional impact.
 -   Pain severity and functional impairment measures:
     -   A validated functional outcome measure such as the Neck Disability Index (NDI), and documentation of activities-of-daily-living or work limitations attributable to the cervical condition.
+    -   Significant pain generally means at least 3/10, with associated functional impairment affecting at least 2 ADLs/IADLs in the general spine framework.
 -   Conservative care history and documentation (for non-urgent radiculopathy):
     -   Physical therapy or supervised home exercise records (dates, frequency, modalities, response).
     -   Medication trials (NSAIDs, analgesics, neuropathic agents), doses, duration, and response.
@@ -95,7 +105,7 @@ The following documentation must be submitted with or available at the time of p
     -   Type of decompression planned (laminectomy, laminotomy, foraminotomy, laminoplasty) and rationale for the approach.
     -   For noncontiguous levels, the level-by-level rationale described above.
     -   Whether fusion or instrumentation is planned; if so, the basis for that decision and a separate fusion authorization request.
--   Perioperative risk assessment / medical optimization as applicable (e.g., management of uncontrolled comorbidity, osteoporosis, or nicotine use when fusion is contemplated).
+-   Perioperative risk assessment / medical optimization as applicable (e.g., management of uncontrolled comorbidity, osteoporosis). When fusion or instrumentation is added to the decompression, smoking/nicotine abstinence is required before surgery, and BMI should generally be < 40 for certain posterior procedures unless a case-by-case review supports otherwise.
 
 LIMITATIONS AND EXCLUSIONS
 
@@ -128,6 +138,7 @@ RELEVANT CODES
     -   63043 — Laminotomy (hemilaminectomy), reexploration; each additional cervical interspace (add-on code, used with 63040).
     -   63050 — Laminoplasty, cervical, with decompression of the spinal cord, 2 or more vertebral segments.
     -   63051 — Laminoplasty, cervical, with decompression of the spinal cord, 2 or more vertebral segments; with reconstruction of the posterior bony elements.
+    -   Per-procedure mapping: posterior decompression WITHOUT fusion maps to 63001, 63015, 63020, +63035, 63040, +63043, 63045, +63048, 63050, 63051. Related cervical procedures use a different code family and should be coded/authorized under their own guideline — do NOT list these for a decompression-only request: anterior decompression without fusion (63075, +63076); posterior decompression WITH fusion (22590, 22595, 22600, +22614) plus the relevant arthrodesis/instrumentation codes; anterior cervical fusion/ACDF (22548, 22551, 22554, +22552, +22585); artificial disc replacement (22856, 22861, 22864, +22858, +0095T, +0098T).
     -   Note: Noncontiguous cervical segments may require separate primary coding and/or modifiers per CPT and payer policy. Verify final coding with the operative note and the coding team.
 -   ICD-10 (select based on the documented diagnosis and level; multiple codes may apply):
     -   M54.2 — Cervicalgia (neck pain); the presenting symptom code — generally insufficient alone for surgical authorization without radiculopathy, myelopathy, or imaging-confirmed neural compression.
