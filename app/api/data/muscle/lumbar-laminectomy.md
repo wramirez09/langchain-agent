@@ -14,7 +14,7 @@ aliases: ["decompression surgery", "lumbar laminotomy", "spinal decompression", 
 relatedConditions: ["lumbar spinal stenosis", "neurogenic claudication", "lumbar radiculopathy", "cauda equina syndrome", "lateral recess stenosis", "foraminal stenosis", "central canal stenosis", "degenerative lumbar stenosis", "lumbar disc herniation", "spondylotic stenosis", "spondylolisthesis with stenosis"]
 priority: "high"
 keywords: ["lumbar spinal stenosis", "neurogenic claudication", "lumbar radiculopathy", "cauda equina syndrome", "conservative care failure", "physical therapy", "epidural steroid injection", "MRI lumbar spine", "CT myelography", "nerve root compression", "central stenosis", "lateral recess stenosis", "foraminal stenosis", "objective neurologic deficit", "lower extremity weakness", "dermatomal sensory loss", "ambulation limitation", "positional symptoms", "flexion relief", "progressive neurologic deficit", "bladder dysfunction", "bowel dysfunction", "NASS", "63047", "63048", "63030", "63042"]
-icd10_codes: ["M48.06", "M48.061", "M48.062", "M54.16", "M51.16", "M51.17", "M47.16", "M47.26", "G83.4", "M43.16", "M43.17", "M48.07"]
+icd10_codes: ["M54.50", "M48.06", "M48.061", "M48.062", "M54.16", "M51.16", "M51.17", "M47.16", "M47.26", "G83.4", "M43.16", "M43.17", "M48.07"]
 cpt_codes: ["63047", "63048", "63030", "63042", "63044", "63005", "63012", "63017", "63035"]
 ---
 
