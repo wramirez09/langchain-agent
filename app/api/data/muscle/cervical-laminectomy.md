@@ -67,7 +67,7 @@ CONSERVATIVE THERAPY (for non-urgent cervical radiculopathy)
     -   Cervical myelopathy with functional impairment (a trial of conservative care is NOT required prior to authorization for symptomatic cervical myelopathy confirmed clinically and radiographically).
     -   Progressive neurologic compromise, or severe or rapidly progressive motor deficit.
     -   Acute or severe spinal cord compression with significant functional impairment.
-    -   Bladder disturbance, cauda equina syndrome, or conus medullaris syndrome.
+    -   Bladder or bowel dysfunction attributable to cervical spinal cord compression.
     -   Documented significant neurologic deterioration during conservative care.
     -   Tumor, infection, trauma, fracture, or instability with significant cord or nerve-root compression.
 

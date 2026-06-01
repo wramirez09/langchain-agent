@@ -171,6 +171,22 @@ function validate(file) {
     }
   }
 
+  // 6) Payer-specificity (synthesized-doc drift). Spine surgical/interventional
+  //    docs are filed against payer policies that gate on concrete thresholds.
+  //    A focused doc that omits them looks complete but is generic and will
+  //    suppress the real payer specifics at retrieval time. Flag the missing
+  //    signals so the doc can be backfilled verbatim from its source.
+  if (spineSurgicalRe.test(hint) && !isPolicyDoc(hint)) {
+    const missing = [];
+    if (!/\b\d\s*\/\s*10\b/.test(body)) missing.push("pain-severity threshold (e.g. 3/10)");
+    if (!/\bADLs?\b|\bIADLs?\b/i.test(body)) missing.push("functional-impairment specificity (ADLs/IADLs)");
+    if (!/within (?:the last )?\d+\s*months|weeks within/i.test(body))
+      missing.push("conservative recency window (e.g. within the last 6 months)");
+    if (!/independent radiologist/i.test(body)) missing.push("independent-radiologist imaging read");
+    if (missing.length)
+      add("WARN", `thin on payer specifics — missing: ${missing.join("; ")}`);
+  }
+
   return { rel, findings };
 }
 
