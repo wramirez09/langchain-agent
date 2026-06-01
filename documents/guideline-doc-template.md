@@ -22,6 +22,20 @@ surfaces. Three failure modes this template prevents:
    `CODE — descriptor` line in the body, so the label pipeline can't attach a
    guideline-sourced descriptor. Every code should appear in a RELEVANT CODES
    block as `CODE — official title; brief description`.
+4. **Synthesized-doc drift.** A clean, model-authored focused doc ranks well and
+   *outranks* the authoritative payer source doc — but was written from general
+   knowledge, so it silently DROPS the payer's concrete thresholds (pain ≥3/10,
+   ≥2 ADLs/IADLs, "6 weeks within the last 6 months", BMI < 40, imaging "read by
+   an independent radiologist", per-procedure code maps). The output then looks
+   complete but is generic. Mitigations:
+   - **Derive, don't invent.** Pull numeric thresholds VERBATIM from the
+     authoritative source doc(s) in the corpus; do not paraphrase them generically.
+   - Record provenance in front matter: `derivedFrom: ["<source-doc relative path>", ...]`.
+   - A focused doc must be at least as specific as the payer source it competes
+     with. If the source states a figure, the focused doc must carry that figure.
+   - Runtime backstop: the agent prompt reconciles to the most specific criteria
+     across ALL retrieved sources, so a thin doc cannot hide another source's
+     thresholds — but that is a safety net, not a substitute for accurate docs.
 
 ## Front matter (required fields)
 
@@ -34,6 +48,7 @@ procedures: ["<canonical>", "..."]       # required — drives matching
 aliases: ["...", "..."]
 relatedConditions: ["...", "..."]
 priority: "high"                          # high | medium | low
+derivedFrom: ["<source-doc path>", ...]  # authoritative payer doc(s) thresholds were pulled from
 keywords: ["...", "..."]
 cpt_codes: ["#####", "..."]              # required (except policy/coding/predictive-genetic docs)
 icd10_codes: ["A##.#", "..."]            # required — INCLUDE the presenting pain code
@@ -77,5 +92,7 @@ RELEVANT CODES
 - [ ] Every metadata code that should be relayed appears as a `CODE — descriptor` line in RELEVANT CODES.
 - [ ] Conservative-therapy duration + recency window are stated verbatim.
 - [ ] Required Documentation names a validated functional measure (NDI/ODI) and prior-procedure history.
+- [ ] Numeric thresholds (pain score, ADL/IADL count, BMI, age bands, "independent radiologist") are pulled VERBATIM from the source doc named in `derivedFrom` — not synthesized generically.
+- [ ] The focused doc is at least as specific as the payer source it competes with for its query.
 
 > Model-authored docs require SME review before they are relied upon clinically.
