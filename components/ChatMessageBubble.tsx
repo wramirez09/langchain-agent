@@ -275,13 +275,13 @@ export function ChatMessageBubble(props: {
         isUser ? "ml-auto" : "mr-auto",
       )}
     >
-      {!isUser && (
+      {/* {!isUser && (
         <div className="hidden md:flex mr-3 mt-1 flex-shrink-0">
           <div className="h-8 w-8 rounded-full bg-[#358cee] flex items-center justify-center text-white font-medium">
             <span className="text-sm">ND</span>
           </div>
         </div>
-      )}
+      )} */}
 
       <div className="flex-1 min-w-0 overflow-hidden">
         <div
@@ -293,7 +293,7 @@ export function ChatMessageBubble(props: {
               : "bg-white border border-blue-100 rounded-tl-none text-gray-900 hover:bg-blue-50"),
           )}
         >
-          <div className="prose prose-sm max-w-none leading-snug">
+          <div className="test-sm max-w-none leading-snug">
             {props.isLoading && props.isLastMessage && !displayContent ? (
               <div className="flex items-center space-x-2">
                 <Loader2 className="h-3.5 w-3.5 animate-spin text-blue-500" />
