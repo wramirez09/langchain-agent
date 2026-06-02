@@ -77,6 +77,10 @@ interface ChatContextState {
   // (in-memory state). Drives the export-button enable gate so the button
   // is enabled exactly once "all messages from the BE are in."
   responseReady: boolean;
+  // Whether the most recent query originated from the form ("Generate") or the
+  // raw chat input. Stamped at submit time and read when saving a query so the
+  // saved record knows how to re-apply (restore form fields vs. just chat).
+  lastQueryOrigin: "form" | "chat" | null;
   setChatMessages: React.Dispatch<React.SetStateAction<Message[]>>;
   setChatInput: (value: string) => void;
   setIsLoading: (value: boolean) => void;
@@ -84,6 +88,7 @@ interface ChatContextState {
   setIntermediateStepsLoading: (value: boolean) => void;
   setSourcesForMessages: (sources: Record<string, any>) => void;
   setResponseReady: (value: boolean) => void;
+  setLastQueryOrigin: (origin: "form" | "chat" | null) => void;
 }
 
 const ChatContext = createContext<ChatContextState | undefined>(undefined);
@@ -96,6 +101,7 @@ function ChatProvider({ children }: { children: ReactNode }) {
   const [intermediateStepsLoading, setIntermediateStepsLoading] = useState(false);
   const [sourcesForMessages, setSourcesForMessages] = useState<Record<string, any>>({});
   const [responseReady, setResponseReady] = useState(false);
+  const [lastQueryOrigin, setLastQueryOrigin] = useState<"form" | "chat" | null>(null);
 
   return (
     <ChatContext.Provider
@@ -107,6 +113,7 @@ function ChatProvider({ children }: { children: ReactNode }) {
         intermediateStepsLoading,
         sourcesForMessages,
         responseReady,
+        lastQueryOrigin,
         setChatMessages,
         setChatInput,
         setIsLoading,
@@ -114,6 +121,7 @@ function ChatProvider({ children }: { children: ReactNode }) {
         setIntermediateStepsLoading,
         setSourcesForMessages,
         setResponseReady,
+        setLastQueryOrigin,
       }}
     >
       {children}

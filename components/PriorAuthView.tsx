@@ -17,6 +17,9 @@ import { PriorAuthFormPanel } from "@/components/prior-auth/PriorAuthFormPanel";
 import { PriorAuthChatPanel } from "@/components/prior-auth/PriorAuthChatPanel";
 import { PriorAuthOutputPanel } from "@/components/prior-auth/PriorAuthOutputPanel";
 import { createChatFetchWithRetry } from "@/lib/priorAuth/chatFetchWithRetry";
+import { SavedQueriesSheet } from "@/components/saved-queries/SavedQueriesSheet";
+import { useCurrentUserId } from "@/lib/savedQueries/useCurrentUserId";
+import { type SavedQuery } from "@/lib/savedQueries/db";
 
 interface PriorAuthViewProps {
   pendingMessage?: string | null;
@@ -27,7 +30,7 @@ export function PriorAuthView({
   pendingMessage,
   onPendingMessageConsumed,
 }: PriorAuthViewProps) {
-  const { formFields, resetForm: resetFormFields } = usePriorAuthForm();
+  const { formFields, updateFormField, resetForm: resetFormFields } = usePriorAuthForm();
   const {
     setChatMessages,
     chatInput,
@@ -38,12 +41,17 @@ export function PriorAuthView({
     intermediateStepsLoading,
     setIntermediateStepsLoading,
     sourcesForMessages,
+    responseReady,
     setResponseReady,
     setSourcesForMessages,
+    lastQueryOrigin,
+    setLastQueryOrigin,
   } = usePriorAuthChat();
   const { activeFormTab, setActiveFormTab } = usePriorAuthUi();
+  const userId = useCurrentUserId();
 
   const [isLayoutSwapped, setIsLayoutSwapped] = useState(false);
+  const [savedSheetOpen, setSavedSheetOpen] = useState(false);
   const abortControllerRef = useRef<AbortController | null>(null);
   const loadingToast1Ref = useRef<NodeJS.Timeout | null>(null);
   const loadingToast2Ref = useRef<NodeJS.Timeout | null>(null);
@@ -188,6 +196,7 @@ export function PriorAuthView({
     setIsLoading(true);
     setIntermediateStepsLoading(true);
     setResponseReady(false);
+    setLastQueryOrigin("chat");
     chat.append({ role: "user", content: pendingMessage });
     setActiveFormTab("chat");
   }, [pendingMessage]); // eslint-disable-line react-hooks/exhaustive-deps
@@ -221,6 +230,7 @@ export function PriorAuthView({
     setIsLoading(true);
     setIntermediateStepsLoading(true);
     setResponseReady(false);
+    setLastQueryOrigin("form");
     setActiveFormTab("chat");
     toast.info("Sending request to our AI agent");
 
@@ -250,6 +260,7 @@ export function PriorAuthView({
     setIsLoading(true);
     setIntermediateStepsLoading(true);
     setResponseReady(false);
+    setLastQueryOrigin("chat");
     toast.info("Sending request to our AI agent");
 
     loadingToast1Ref.current = setTimeout(() => toast.info("Processing your request"), 20000);
@@ -296,8 +307,73 @@ export function PriorAuthView({
     resetFormFields();
     setChatInput("");
     setResponseReady(false);
+    setLastQueryOrigin(null);
     toast.success("Chat cleared successfully");
-  }, [chat, clearTimeouts, resetFormFields, setIntermediateStepsLoading, setIsLoading, setSourcesForMessages, setChatInput, setResponseReady]);
+  }, [chat, clearTimeouts, resetFormFields, setIntermediateStepsLoading, setIsLoading, setSourcesForMessages, setChatInput, setResponseReady, setLastQueryOrigin]);
+
+  const hasAssistantResponse = chat.messages.some(
+    (m) => m.role === "assistant" && m.content,
+  );
+  const canSave = responseReady && hasAssistantResponse && !!userId;
+
+  const handleSaveQuery = useCallback(async () => {
+    if (!userId || !hasAssistantResponse) return;
+    try {
+      const { saveQuery } = await import("@/lib/savedQueries/db");
+      await saveQuery({
+        userId,
+        origin: lastQueryOrigin ?? "chat",
+        formFields: { ...formFields },
+        chatMessages: chat.messages.map((m) => ({ ...m })),
+      });
+      toast.success("Query saved");
+    } catch (error) {
+      toast.error("Could not save query", {
+        description: (error as Error)?.message,
+      });
+    }
+  }, [userId, hasAssistantResponse, lastQueryOrigin, formFields, chat.messages]);
+
+  const handleReapply = useCallback(
+    (saved: SavedQuery) => {
+      // Restore the conversation WITHOUT re-querying the agent: set both the
+      // useChat store and the context mirror, never chat.append.
+      chat.setMessages(saved.chatMessages);
+      setChatMessages(saved.chatMessages);
+      setSourcesForMessages({});
+      setChatInput("");
+      setResponseReady(true);
+      setLastQueryOrigin(saved.origin);
+
+      if (saved.origin === "form") {
+        const f = saved.formFields;
+        updateFormField("guidelines", f.guidelines);
+        updateFormField("state", f.state);
+        updateFormField("treatment", f.treatment);
+        updateFormField("cptCodes", f.cptCodes);
+        updateFormField("diagnosis", f.diagnosis);
+        updateFormField("patientHistory", f.patientHistory);
+        updateFormField("relevantHistory", f.relevantHistory);
+        // "pre-auth" is valid on both mobile and desktop layouts.
+        setActiveFormTab("pre-auth");
+      } else {
+        setActiveFormTab("chat");
+      }
+
+      setSavedSheetOpen(false);
+      toast.success("Query re-applied");
+    },
+    [
+      chat,
+      setChatMessages,
+      setSourcesForMessages,
+      setChatInput,
+      setResponseReady,
+      setLastQueryOrigin,
+      updateFormField,
+      setActiveFormTab,
+    ],
+  );
 
   const isProcessing = chat.isLoading || intermediateStepsLoading || isLoading;
 
@@ -308,6 +384,13 @@ export function PriorAuthView({
       <PriorAuthTabs
         isLayoutSwapped={isLayoutSwapped}
         setIsLayoutSwapped={setIsLayoutSwapped}
+        onOpenSaved={() => setSavedSheetOpen(true)}
+      />
+
+      <SavedQueriesSheet
+        open={savedSheetOpen}
+        onOpenChange={setSavedSheetOpen}
+        onReapply={handleReapply}
       />
 
       <div className="flex-1 overflow-hidden">
@@ -329,13 +412,20 @@ export function PriorAuthView({
                 onSubmit={handleChatInputSubmit}
                 onStop={handleStop}
                 onClear={clearChat}
+                canSave={canSave}
+                onSaveQuery={handleSaveQuery}
               />
             </div>
           </LayoutGroup>
         )}
 
         {activeFormTab === "output" && (
-          <PriorAuthOutputPanel messages={chat.messages} isProcessing={isProcessing} />
+          <PriorAuthOutputPanel
+            messages={chat.messages}
+            isProcessing={isProcessing}
+            canSave={canSave}
+            onSaveQuery={handleSaveQuery}
+          />
         )}
       </div>
     </div>

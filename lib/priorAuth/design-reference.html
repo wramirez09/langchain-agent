@@ -1,0 +1,740 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Prior Authorization Summary — Coronary Calcium Score</title>
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet" />
+<style>
+  :root{
+    --bg:#f4f6fb;
+    --card:#ffffff;
+    --border:#e6eaf2;
+    --border-soft:#eef1f7;
+    --rule:#edf0f6;
+    --text:#283142;
+    --text-strong:#0f172a;
+    --label:#475569;
+    --muted:#64748b;
+    --muted-2:#94a3b8;
+    --blue:#2563eb;
+    --blue-700:#1d4ed8;
+    --blue-50:#eff4ff;
+    --blue-100:#dbe6fe;
+    --green:#15803d;
+    --green-bg:#edfcf2;
+    --green-border:#bbf0cb;
+    --amber:#b45309;
+    --amber-bg:#fff8ec;
+    --amber-border:#f7e0b0;
+    --shadow:0 1px 2px rgba(16,24,40,.04), 0 8px 28px -18px rgba(16,24,40,.18);
+  }
+  *{box-sizing:border-box;}
+  html{scroll-behavior:smooth;}
+  body{
+    margin:0;
+    font-family:"Inter",-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;
+    background:var(--bg);
+    color:var(--text);
+    -webkit-font-smoothing:antialiased;
+    font-size:15px;
+    line-height:1.55;
+  }
+
+  /* ---------- App chrome ---------- */
+  .appbar{
+    background:#fff;
+    border-bottom:1px solid var(--border);
+    height:64px;
+    display:flex;align-items:center;justify-content:center;
+    position:relative;
+    padding:0 28px;
+  }
+  .brand{display:flex;align-items:center;gap:11px;}
+  .brand .mark{
+    width:34px;height:34px;border-radius:9px;
+    background:linear-gradient(150deg,#3b82f6,#2563eb);
+    display:flex;align-items:center;justify-content:center;flex:none;
+    box-shadow:0 2px 8px -2px rgba(37,99,235,.55);
+  }
+  .brand .mark svg{display:block;}
+  .brand .name{font-weight:700;font-size:18px;color:var(--text-strong);letter-spacing:-.01em;}
+  .brand .name b{color:var(--blue);font-weight:700;}
+  .account{
+    position:absolute;right:28px;top:50%;transform:translateY(-50%);
+    display:flex;align-items:center;gap:12px;
+  }
+  .account .who{text-align:right;line-height:1.25;}
+  .account .who .e1{font-size:13.5px;color:var(--text-strong);font-weight:500;}
+  .account .who .e2{font-size:12px;color:var(--muted-2);}
+  .avatar{
+    width:38px;height:38px;border-radius:50%;flex:none;
+    background:linear-gradient(150deg,#3b82f6,#1d4ed8);
+    color:#fff;font-weight:600;font-size:14px;
+    display:flex;align-items:center;justify-content:center;
+  }
+
+  .tabsbar{
+    background:#fff;border-bottom:1px solid var(--border);
+    padding:0 28px;display:flex;align-items:center;gap:26px;
+  }
+  .tab{
+    padding:14px 2px 12px;font-size:14px;font-weight:500;color:var(--muted);
+    border-bottom:2px solid transparent;cursor:default;
+  }
+  .tab.active{color:var(--blue);border-bottom-color:var(--blue);font-weight:600;}
+  .tabsbar .spacer{flex:1;}
+  .tabsbar .doc-actions{display:flex;gap:8px;}
+  .ghost-btn{
+    display:inline-flex;align-items:center;gap:7px;
+    font-size:13px;font-weight:500;color:var(--label);
+    background:#fff;border:1px solid var(--border);
+    padding:7px 13px;border-radius:8px;cursor:pointer;
+    transition:border-color .15s,color .15s,background .15s;
+  }
+  .ghost-btn:hover{border-color:#c7d2e8;color:var(--blue);}
+  .ghost-btn svg{width:15px;height:15px;}
+  .ghost-btn.primary{background:var(--blue);border-color:var(--blue);color:#fff;}
+  .ghost-btn.primary:hover{background:var(--blue-700);color:#fff;border-color:var(--blue-700);}
+
+  /* ---------- Layout ---------- */
+  .shell{
+    max-width:1240px;margin:0 auto;padding:28px 28px 64px;
+    display:grid;grid-template-columns:236px minmax(0,1fr);gap:30px;
+    align-items:start;
+  }
+
+  /* ---------- TOC ---------- */
+  .toc{position:sticky;top:24px;}
+  .toc .toc-head{
+    font-size:11px;font-weight:600;letter-spacing:.1em;text-transform:uppercase;
+    color:var(--muted-2);padding:0 12px 10px;
+  }
+  .toc nav{display:flex;flex-direction:column;gap:1px;}
+  .toc a{
+    display:flex;align-items:center;gap:10px;
+    padding:8px 12px;border-radius:8px;
+    font-size:13.5px;color:var(--muted);text-decoration:none;font-weight:500;
+    border-left:2px solid transparent;
+    transition:background .15s,color .15s;
+  }
+  .toc a .n{
+    font-size:11px;font-weight:600;color:var(--muted-2);
+    width:18px;text-align:center;flex:none;
+  }
+  .toc a:hover{background:#fff;color:var(--text-strong);}
+  .toc a.active{background:#fff;color:var(--blue);box-shadow:var(--shadow);}
+  .toc a.active .n{color:var(--blue);}
+  .toc .toc-foot{
+    margin-top:16px;padding:13px 14px;border-radius:11px;
+    background:var(--blue-50);border:1px solid var(--blue-100);
+  }
+  .toc .toc-foot .verdict-mini{font-size:12px;color:var(--muted);margin-bottom:5px;}
+  .toc .toc-foot .verdict-val{font-size:14px;font-weight:700;color:var(--blue-700);}
+
+  /* ---------- Document ---------- */
+  .doc{min-width:0;}
+  .doc-head{margin-bottom:22px;}
+  .eyebrow{
+    font-size:12px;font-weight:600;letter-spacing:.06em;text-transform:uppercase;
+    color:var(--muted-2);margin-bottom:9px;display:flex;align-items:center;gap:8px;
+  }
+  .eyebrow .nd{
+    width:22px;height:22px;border-radius:50%;background:var(--blue);color:#fff;
+    font-size:9px;font-weight:700;letter-spacing:0;
+    display:inline-flex;align-items:center;justify-content:center;
+  }
+  h1.doc-title{
+    font-size:27px;line-height:1.18;font-weight:700;color:var(--text-strong);
+    letter-spacing:-.02em;margin:0 0 16px;text-wrap:balance;
+  }
+  .meta-strip{
+    display:flex;flex-wrap:wrap;gap:10px;align-items:center;
+  }
+  .pill{
+    display:inline-flex;align-items:center;gap:7px;
+    font-size:12.5px;font-weight:600;padding:5px 12px;border-radius:999px;
+    border:1px solid var(--border);background:#fff;color:var(--label);
+  }
+  .pill .dot{width:7px;height:7px;border-radius:50%;background:var(--muted-2);}
+  .pill.status-conditional{background:var(--amber-bg);border-color:var(--amber-border);color:var(--amber);}
+  .pill.status-conditional .dot{background:#d97706;}
+  .pill.meta-plain{color:var(--muted);font-weight:500;}
+  .pill.meta-plain b{color:var(--text-strong);font-weight:600;}
+
+  /* card */
+  .card{
+    background:var(--card);border:1px solid var(--border);border-radius:14px;
+    box-shadow:var(--shadow);padding:26px 28px;margin-bottom:18px;
+  }
+  .card.compact{padding:22px 24px;}
+  .sec-label{
+    font-size:11.5px;font-weight:700;letter-spacing:.09em;text-transform:uppercase;
+    color:var(--muted);margin:0 0 18px;
+    display:flex;align-items:center;gap:10px;
+  }
+  .sec-label .ix{
+    color:var(--blue);font-variant-numeric:tabular-nums;
+  }
+  .sec-sub{
+    font-size:12.5px;font-weight:600;color:var(--text-strong);
+    margin:22px 0 12px;letter-spacing:.01em;
+  }
+  .sec-sub:first-child{margin-top:0;}
+
+  /* field grid */
+  .fields{display:grid;grid-template-columns:1fr 1fr;gap:20px 32px;}
+  .field{min-width:0;}
+  .field.full{grid-column:1/-1;}
+  .field .k{font-size:12.5px;font-weight:600;color:var(--label);margin-bottom:4px;}
+  .field .v{font-size:15px;color:var(--text-strong);}
+  .field .v.na{color:var(--muted-2);font-style:normal;}
+
+  .rule{height:1px;background:var(--rule);margin:24px 0;border:0;}
+
+  /* code option lists */
+  .opt-cols{display:grid;grid-template-columns:1fr 1fr;gap:26px 32px;}
+  .opt-col h4{
+    font-size:12px;font-weight:600;color:var(--muted);margin:0 0 12px;letter-spacing:.01em;
+  }
+  ul.opts{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:13px;}
+  ul.opts li{display:grid;grid-template-columns:auto 1fr;gap:10px;font-size:14px;line-height:1.5;}
+  .code-chip{
+    font-weight:600;color:var(--blue-700);background:var(--blue-50);
+    border:1px solid var(--blue-100);border-radius:6px;
+    padding:1px 7px;font-size:12.5px;height:fit-content;white-space:nowrap;
+    font-variant-numeric:tabular-nums;
+  }
+  ul.opts li .desc{color:var(--text);}
+
+  /* prose */
+  .prose{font-size:14.5px;color:var(--text);line-height:1.62;}
+  .prose p{margin:0 0 12px;}
+  .prose p:last-child{margin-bottom:0;}
+
+  /* finding list */
+  ul.findings{list-style:none;margin:6px 0 0;padding:0;display:flex;flex-direction:column;gap:11px;}
+  ul.findings li{position:relative;padding-left:22px;font-size:14.5px;line-height:1.55;color:var(--text);}
+  ul.findings li::before{
+    content:"";position:absolute;left:2px;top:8px;width:7px;height:7px;border-radius:50%;
+    background:var(--blue-100);border:1.5px solid var(--blue);
+  }
+
+  /* criteria */
+  .crit{display:flex;flex-direction:column;gap:4px;}
+  .crit-row{padding:14px 0;border-top:1px solid var(--rule);}
+  .crit-row:first-child{border-top:0;padding-top:2px;}
+  .crit-head{display:flex;align-items:baseline;justify-content:space-between;gap:14px;}
+  .crit-title{font-size:14.5px;font-weight:600;color:var(--text-strong);}
+  .crit-desc{font-size:14px;color:var(--muted);margin-top:4px;line-height:1.55;}
+  .crit-children{
+    margin:12px 0 2px 4px;padding-left:18px;border-left:2px solid var(--border-soft);
+    display:flex;flex-direction:column;gap:16px;
+  }
+  .crit-children .crit-title{font-size:13.5px;}
+
+  .tag{
+    flex:none;font-size:11.5px;font-weight:600;letter-spacing:.01em;
+    padding:3px 9px;border-radius:999px;white-space:nowrap;
+    display:inline-flex;align-items:center;gap:6px;
+  }
+  .tag .d{width:6px;height:6px;border-radius:50%;}
+  .tag.met{background:var(--green-bg);color:var(--green);border:1px solid var(--green-border);}
+  .tag.met .d{background:var(--green);}
+  .tag.missing{background:var(--amber-bg);color:var(--amber);border:1px solid var(--amber-border);}
+  .tag.missing .d{background:#d97706;}
+
+  /* code tables */
+  .ctable{width:100%;border-collapse:collapse;font-size:14px;}
+  .ctable + .ct-note{margin-top:12px;}
+  .ctable th{
+    text-align:left;font-size:11px;font-weight:600;letter-spacing:.07em;text-transform:uppercase;
+    color:var(--muted-2);padding:0 14px 9px 0;border-bottom:1px solid var(--border);
+  }
+  .ctable td{padding:11px 14px 11px 0;border-bottom:1px solid var(--rule);vertical-align:top;line-height:1.5;}
+  .ctable tr:last-child td{border-bottom:0;}
+  .ctable td.code{width:84px;font-weight:600;color:var(--text-strong);font-variant-numeric:tabular-nums;white-space:nowrap;}
+  .ctable td.desc{color:var(--text);}
+  .ctable td.desc .cond{color:var(--muted-2);}
+  .ct-note{font-size:13px;color:var(--muted);line-height:1.55;font-style:italic;}
+  .ct-group-label{font-size:12px;font-weight:600;color:var(--muted);margin:26px 0 10px;letter-spacing:.04em;text-transform:uppercase;}
+  .ct-group-label:first-of-type{margin-top:0;}
+
+  /* required documentation checklist */
+  .docgroup + .docgroup{margin-top:22px;}
+  ul.checklist{list-style:none;margin:8px 0 0;padding:0;display:flex;flex-direction:column;gap:12px;}
+  ul.checklist li{display:grid;grid-template-columns:18px 1fr auto;gap:11px;align-items:start;font-size:14px;line-height:1.5;}
+  ul.checklist li .ck{margin-top:2px;width:16px;height:16px;flex:none;}
+  ul.checklist li .ck svg{display:block;width:16px;height:16px;}
+  ul.checklist li .txt{color:var(--text);min-width:0;}
+  .mini-tag{
+    flex:none;font-size:11px;font-weight:600;padding:2px 8px;border-radius:999px;
+    background:var(--amber-bg);color:var(--amber);border:1px solid var(--amber-border);white-space:nowrap;
+  }
+
+  /* summary checklist (blue) */
+  ul.strengthen{list-style:none;margin:8px 0 0;padding:0;display:flex;flex-direction:column;gap:10px;}
+  ul.strengthen li{display:grid;grid-template-columns:20px 1fr;gap:11px;font-size:14.5px;line-height:1.5;color:var(--text);align-items:start;}
+  ul.strengthen li .ck{margin-top:1px;}
+  ul.strengthen li .ck svg{width:18px;height:18px;display:block;}
+
+  .summary-card{border-color:var(--blue-100);}
+  .summary-verdict{font-size:17px;font-weight:700;color:var(--text-strong);margin:2px 0 12px;}
+  .summary-verdict .cw{color:var(--amber);}
+
+  .disclaimer{font-size:12.5px;color:var(--muted-2);line-height:1.6;font-style:italic;margin:6px 0 14px;}
+  .verify-note{
+    background:var(--blue-50);border:1px solid var(--blue-100);border-radius:11px;
+    padding:14px 16px;font-size:13.5px;color:var(--blue-700);font-style:italic;line-height:1.55;
+    display:flex;gap:10px;align-items:flex-start;
+  }
+  .verify-note svg{width:17px;height:17px;flex:none;margin-top:1px;}
+
+  .appfoot{text-align:center;color:var(--muted-2);font-size:12.5px;padding:26px 0 40px;}
+
+  @media (max-width:920px){
+    .shell{grid-template-columns:1fr;}
+    .toc{position:static;display:none;}
+    .fields,.opt-cols{grid-template-columns:1fr;}
+    .account .who{display:none;}
+  }
+</style>
+</head>
+<body>
+
+<!-- ===== App header ===== -->
+<header class="appbar">
+  <div class="brand">
+    <span class="mark" aria-hidden="true">
+      <svg width="18" height="18" viewBox="0 0 18 18" fill="none">
+        <rect x="7.25" y="2" width="3.5" height="14" rx="1.4" fill="#fff"/>
+        <rect x="2" y="7.25" width="14" height="3.5" rx="1.4" fill="#fff"/>
+      </svg>
+    </span>
+    <span class="name">NoteDoctor<b>.Ai</b></span>
+  </div>
+  <div class="account">
+    <div class="who">
+      <div class="e1">wramirez1980@gmail.com</div>
+      <div class="e2">Cardiology — Utilization</div>
+    </div>
+    <div class="avatar">W</div>
+  </div>
+</header>
+
+<!-- ===== Tabs ===== -->
+<div class="tabsbar">
+  <span class="tab">Input</span>
+  <span class="tab active">Output</span>
+  <span class="spacer"></span>
+  <div class="doc-actions">
+    <button class="ghost-btn"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M8 17.929H6c-1.105 0-2-.912-2-2.036V5.036C4 3.91 4.895 3 6 3h8c1.105 0 2 .911 2 2.036v1.866m-6 .17h8c1.105 0 2 .91 2 2.035v10.857C20 21.09 19.105 22 18 22h-8c-1.105 0-2-.911-2-2.036V9.107c0-1.124.895-2.036 2-2.036z"/></svg>Copy</button>
+    <button class="ghost-btn primary"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 15V3m0 12l-4-4m4 4l4-4M2 17l.621 2.485A2 2 0 0 0 4.561 21h14.878a2 2 0 0 0 1.94-1.515L22 17"/></svg>Export PDF</button>
+  </div>
+</div>
+
+<!-- ===== Shell ===== -->
+<div class="shell">
+
+  <!-- TOC -->
+  <aside class="toc">
+    <div class="toc-head">On this page</div>
+    <nav id="toc">
+      <a href="#overview"><span class="n">01</span>Request Overview</a>
+      <a href="#context"><span class="n">02</span>Clinical Context</a>
+      <a href="#authorization"><span class="n">03</span>Authorization</a>
+      <a href="#criteria"><span class="n">04</span>Necessity Criteria</a>
+      <a href="#codes"><span class="n">05</span>Relevant Codes</a>
+      <a href="#documentation"><span class="n">06</span>Required Docs</a>
+      <a href="#limitations"><span class="n">07</span>Limitations</a>
+      <a href="#summary"><span class="n">08</span>Summary</a>
+    </nav>
+    <div class="toc-foot">
+      <div class="verdict-mini">Determination</div>
+      <div class="verdict-val">Conditional</div>
+    </div>
+  </aside>
+
+  <!-- Document -->
+  <article class="doc">
+    <div class="doc-head">
+      <div class="eyebrow"><span class="nd">ND</span>Prior Authorization Summary</div>
+      <h1 class="doc-title">Prior Authorization Summary for Coronary Calcium Score</h1>
+      <div class="meta-strip">
+        <span class="pill status-conditional"><span class="dot"></span>Conditional — documentation needed</span>
+        <span class="pill meta-plain">Guidelines&nbsp;<b>Commercial</b></span>
+        <span class="pill meta-plain">CPT&nbsp;<b>75571</b></span>
+        <span class="pill meta-plain">Generated&nbsp;<b>Jun 1, 2026</b></span>
+      </div>
+    </div>
+
+    <!-- 01 Request Overview -->
+    <section id="overview" class="card">
+      <h2 class="sec-label"><span class="ix">01</span>Request Overview</h2>
+      <div class="fields">
+        <div class="field full">
+          <div class="k">Treatment</div>
+          <div class="v">Coronary calcium score by non-contrast cardiac CT</div>
+        </div>
+        <div class="field full">
+          <div class="k">Diagnosis</div>
+          <div class="v">Coronary artery disease risk assessment in an asymptomatic individual with no known CAD</div>
+        </div>
+        <div class="field">
+          <div class="k">CPT / HCPCS</div>
+          <div class="v na">Not provided</div>
+        </div>
+        <div class="field">
+          <div class="k">ICD-10</div>
+          <div class="v na">Not provided</div>
+        </div>
+      </div>
+
+      <hr class="rule" />
+
+      <div class="opt-cols">
+        <div class="opt-col">
+          <h4>Likely CPT / HCPCS options</h4>
+          <ul class="opts">
+            <li><span class="code-chip">75571</span><span class="desc">Computed tomography, heart, without contrast material, with quantitative evaluation of coronary calcium; non-contrast cardiac CT used to calculate an Agatston coronary artery calcium score</span></li>
+            <li><span class="code-chip">S8092</span><span class="desc">Electron beam computed tomography, also known as ultrafast CT or cine CT; payer-specific HCPCS option sometimes used for coronary calcium scoring</span></li>
+          </ul>
+        </div>
+        <div class="opt-col">
+          <h4>Likely ICD-10 options</h4>
+          <ul class="opts">
+            <li><span class="code-chip">Z13.6</span><span class="desc">Encounter for screening for cardiovascular disorders; screening / risk assessment for cardiovascular disease</span></li>
+            <li><span class="code-chip">Z82.49</span><span class="desc">Family history of ischemic heart disease and other diseases of the circulatory system; family history risk enhancer for ASCVD</span></li>
+            <li><span class="code-chip">Z91.89</span><span class="desc">Other specified personal risk factors, not elsewhere classified; elevated cardiovascular risk or risk-enhancer documentation</span></li>
+            <li><span class="code-chip">R03.0</span><span class="desc">Elevated blood-pressure reading, without diagnosis of hypertension; elevated blood pressure as a cardiovascular risk factor</span></li>
+            <li><span class="code-chip">E78.2</span><span class="desc">Mixed hyperlipidemia; combined lipid abnormality contributing to ASCVD risk</span></li>
+            <li><span class="code-chip">E78.3</span><span class="desc">Hyperchylomicronemia; lipid disorder that may contribute to cardiovascular risk</span></li>
+            <li><span class="code-chip">E78.4</span><span class="desc">Other hyperlipidemia; other specified lipid abnormality contributing to cardiovascular risk</span></li>
+            <li><span class="code-chip">E78.5</span><span class="desc">Hyperlipidemia, unspecified; unspecified lipid abnormality contributing to cardiovascular risk</span></li>
+            <li><span class="code-chip">I25.10</span><span class="desc">Atherosclerotic heart disease of native coronary artery without angina pectoris; documented coronary atherosclerosis when known CAD is present</span></li>
+          </ul>
+        </div>
+      </div>
+    </section>
+
+    <!-- 02 Clinical Context -->
+    <section id="context" class="card">
+      <h2 class="sec-label"><span class="ix">02</span>Clinical Context</h2>
+      <h3 class="sec-sub">Medical History</h3>
+      <div class="prose">
+        <p>Request is for coronary artery calcium scoring for CAD risk assessment. The submitted history asks to include the ASCVD 10-year risk calculation using the pooled cohort equation, risk enhancers such as family history of premature ASCVD, LDL levels, diabetes, smoking, chronic kidney disease, and inflammatory disorders, confirmation of no known CAD, confirmation that the member is asymptomatic, and a statement of how results will change management such as starting, intensifying, or deferring statin therapy and considering aspirin.</p>
+      </div>
+      <h3 class="sec-sub">Key Clinical Findings</h3>
+      <ul class="findings">
+        <li>No known CAD is requested to be documented but not yet explicitly confirmed in the submitted clinical summary.</li>
+        <li>Asymptomatic status is requested to be documented but not yet explicitly confirmed in the submitted clinical summary.</li>
+        <li>ASCVD 10-year risk calculation using the pooled cohort equation is requested but no numeric risk percentage is provided.</li>
+        <li>Risk enhancers are requested to be documented but individual risk-enhancer findings are not yet specified.</li>
+        <li>A management-impact statement is requested and should specify whether CAC results will start, intensify, or defer statin therapy and whether aspirin will be considered.</li>
+      </ul>
+    </section>
+
+    <!-- 03 Authorization -->
+    <section id="authorization" class="card">
+      <h2 class="sec-label"><span class="ix">03</span>Prior Authorization Required</h2>
+      <div style="margin-bottom:14px;">
+        <span class="pill status-conditional"><span class="dot"></span>Conditional</span>
+      </div>
+      <div class="prose">
+        <p>Commercial guidelines treat coronary artery calcium scoring as medically necessary only when used as an adjunct to global coronary or cardiovascular risk estimation over the next 10 years and when the result is expected to help guide management decisions. Prior authorization requirements vary by plan, but the request should be supported with risk calculation, risk enhancers, absence of known CAD, asymptomatic status, and a management-change rationale.</p>
+      </div>
+    </section>
+
+    <!-- 04 Medical Necessity Criteria -->
+    <section id="criteria" class="card">
+      <h2 class="sec-label"><span class="ix">04</span>Medical Necessity Criteria</h2>
+      <div class="crit">
+
+        <div class="crit-row">
+          <div class="crit-head">
+            <span class="crit-title">Test type</span>
+            <span class="tag met"><span class="d"></span>Met</span>
+          </div>
+          <div class="crit-desc">Coronary artery calcium scoring is performed by either EBCT or non-contrast cardiac CT.</div>
+          <div class="crit-children">
+            <div>
+              <div class="crit-head"><span class="crit-title">Quantitative CAC assessment</span><span class="tag missing"><span class="d"></span>Not documented</span></div>
+              <div class="crit-desc">CAC testing provides a quantitative assessment of coronary artery calcium content in Agatston units, as an adjunct to the estimation of global risk for coronary or cardiovascular events over the next 10 years.</div>
+            </div>
+            <div>
+              <div class="crit-head"><span class="crit-title">Atherosclerosis specificity</span><span class="tag missing"><span class="d"></span>Not documented</span></div>
+              <div class="crit-desc">A CAC Score greater than 0 is a highly specific feature of coronary atherosclerosis.</div>
+            </div>
+          </div>
+        </div>
+
+        <div class="crit-row">
+          <div class="crit-head">
+            <span class="crit-title">Clinical purpose</span>
+            <span class="tag missing"><span class="d"></span>Not documented</span>
+          </div>
+          <div class="crit-desc">Coronary artery calcium testing is considered medically necessary only to help with management decisions after global risk estimation for coronary or cardiovascular events over the next 10 years.</div>
+          <div class="crit-children">
+            <div>
+              <div class="crit-head"><span class="crit-title">ASCVD 10-year risk calculation</span><span class="tag missing"><span class="d"></span>Not documented</span></div>
+              <div class="crit-desc">Include ASCVD 10-year risk calculation using the pooled cohort equation. The request should document the exact calculated 10-year ASCVD risk percentage.</div>
+            </div>
+            <div>
+              <div class="crit-head"><span class="crit-title">Borderline ASCVD risk band</span><span class="tag missing"><span class="d"></span>Not documented</span></div>
+              <div class="crit-desc">For 10-year ASCVD risk 5% to less than 7.5%, coronary artery calcium scoring may be used when risk-enhancer information leaves uncertainty about whether to start statin therapy.</div>
+            </div>
+            <div>
+              <div class="crit-head"><span class="crit-title">Intermediate ASCVD risk band</span><span class="tag missing"><span class="d"></span>Not documented</span></div>
+              <div class="crit-desc">For 10-year ASCVD risk 7.5% to less than 20%, coronary artery calcium scoring may be used when the decision about statin therapy remains uncertain after clinician-patient risk discussion.</div>
+            </div>
+            <div>
+              <div class="crit-head"><span class="crit-title">Low-risk special circumstance</span><span class="tag missing"><span class="d"></span>Not documented</span></div>
+              <div class="crit-desc">For 10-year ASCVD risk less than 5%, coronary artery calcium scoring is generally not routine but may be considered in selected individuals when a strong risk enhancer, such as family history of premature ASCVD, materially changes risk discussion.</div>
+            </div>
+            <div>
+              <div class="crit-head"><span class="crit-title">High-risk circumstance</span><span class="tag missing"><span class="d"></span>Not documented</span></div>
+              <div class="crit-desc">For 10-year ASCVD risk 20% or greater, coronary artery calcium scoring is less likely to change the need for intensive risk-reduction therapy; documentation should explain why CAC results are still necessary to change management.</div>
+            </div>
+          </div>
+        </div>
+
+        <div class="crit-row">
+          <div class="crit-head">
+            <span class="crit-title">No known CAD</span>
+            <span class="tag missing"><span class="d"></span>Not documented</span>
+          </div>
+          <div class="crit-desc">Confirm no known CAD. The request should state that there is no prior myocardial infarction, coronary revascularization, known coronary stenosis, known coronary atherosclerosis, angina diagnosis, ischemic equivalent diagnosis, or established ASCVD that would make the test diagnostic rather than preventive / risk stratification.</div>
+        </div>
+
+        <div class="crit-row">
+          <div class="crit-head">
+            <span class="crit-title">Asymptomatic status</span>
+            <span class="tag missing"><span class="d"></span>Not documented</span>
+          </div>
+          <div class="crit-desc">Confirm the member is asymptomatic. Coronary artery calcium scoring for risk stratification should not be substituted for diagnostic evaluation of active symptoms such as chest pain, pressure, dyspnea on exertion concerning for angina, syncope, acute coronary syndrome symptoms, or other symptoms requiring diagnostic cardiac imaging or functional testing.</div>
+        </div>
+
+        <div class="crit-row">
+          <div class="crit-head">
+            <span class="crit-title">Risk enhancers</span>
+            <span class="tag missing"><span class="d"></span>Not documented</span>
+          </div>
+          <div class="crit-desc">Document risk enhancers, including family history of premature ASCVD, LDL levels, diabetes, smoking, chronic kidney disease, and inflammatory disorders.</div>
+          <div class="crit-children">
+            <div><div class="crit-head"><span class="crit-title">Family history of premature ASCVD</span><span class="tag missing"><span class="d"></span>Not documented</span></div><div class="crit-desc">Document whether there is family history of premature ASCVD and specify affected relative and age at event.</div></div>
+            <div><div class="crit-head"><span class="crit-title">LDL levels</span><span class="tag missing"><span class="d"></span>Not documented</span></div><div class="crit-desc">Document lipid values, especially LDL cholesterol, and whether LDL cholesterol is 70 to 189 mg/dL when CAC is being used to refine statin decision-making in primary prevention.</div></div>
+            <div><div class="crit-head"><span class="crit-title">Diabetes</span><span class="tag missing"><span class="d"></span>Not documented</span></div><div class="crit-desc">Document whether diabetes is present. Diabetes may independently support statin therapy, and the request should explain why CAC results are needed to modify management if diabetes is present.</div></div>
+            <div><div class="crit-head"><span class="crit-title">Smoking</span><span class="tag missing"><span class="d"></span>Not documented</span></div><div class="crit-desc">Document current or prior smoking status because smoking changes ASCVD risk estimation and may affect interpretation of CAC = 0.</div></div>
+            <div><div class="crit-head"><span class="crit-title">Chronic kidney disease</span><span class="tag missing"><span class="d"></span>Not documented</span></div><div class="crit-desc">Document whether chronic kidney disease is present, including stage or estimated glomerular filtration rate when available.</div></div>
+            <div><div class="crit-head"><span class="crit-title">Inflammatory disorders</span><span class="tag missing"><span class="d"></span>Not documented</span></div><div class="crit-desc">Document whether chronic inflammatory disorders are present, such as rheumatoid arthritis, psoriasis, lupus, HIV, or other chronic inflammatory conditions.</div></div>
+          </div>
+        </div>
+
+        <div class="crit-row">
+          <div class="crit-head">
+            <span class="crit-title">How results will change management</span>
+            <span class="tag missing"><span class="d"></span>Not documented</span>
+          </div>
+          <div class="crit-desc">The ordering clinician should document how results will change management, including whether CAC results will be used to start, intensify, or defer statin therapy and whether aspirin will be considered.</div>
+          <div class="crit-children">
+            <div><div class="crit-head"><span class="crit-title">CAC = 0</span><span class="tag missing"><span class="d"></span>Not documented</span></div><div class="crit-desc">If CAC = 0, statin therapy may be deferred or delayed when otherwise clinically appropriate, except when risk remains high because of circumstances such as diabetes, smoking, or strong family history of premature ASCVD.</div></div>
+            <div><div class="crit-head"><span class="crit-title">CAC 1 to 99 Agatston units</span><span class="tag missing"><span class="d"></span>Not documented</span></div><div class="crit-desc">If CAC is 1 to 99 Agatston units, statin therapy is generally favored, especially in individuals age 55 years or older.</div></div>
+            <div><div class="crit-head"><span class="crit-title">CAC 100 Agatston units or greater</span><span class="tag missing"><span class="d"></span>Not documented</span></div><div class="crit-desc">If CAC is 100 Agatston units or greater, statin therapy is generally supported unless otherwise deferred after clinician-patient risk discussion.</div></div>
+            <div><div class="crit-head"><span class="crit-title">CAC at or above the 75th percentile</span><span class="tag missing"><span class="d"></span>Not documented</span></div><div class="crit-desc">If CAC is at or above the 75th percentile for age, sex, and ethnicity, statin therapy is generally supported unless otherwise deferred after clinician-patient risk discussion.</div></div>
+            <div><div class="crit-head"><span class="crit-title">Aspirin consideration</span><span class="tag missing"><span class="d"></span>Not documented</span></div><div class="crit-desc">If aspirin is being considered, document that CAC results will be used as part of individualized risk-benefit assessment, including bleeding risk; CAC 100 Agatston units or greater is commonly used as a threshold that may support net benefit in selected patients with low bleeding risk.</div></div>
+          </div>
+        </div>
+
+        <div class="crit-row">
+          <div class="crit-head">
+            <span class="crit-title">Expected benefit</span>
+            <span class="tag missing"><span class="d"></span>Not documented</span>
+          </div>
+          <div class="crit-desc">Evidence should show that the requested test is expected to change management or improve outcomes and that expected benefits outweigh potential harms, including radiation exposure, incidental findings, downstream testing, and cost.</div>
+        </div>
+
+      </div>
+    </section>
+
+    <!-- 05 Relevant Codes -->
+    <section id="codes" class="card">
+      <h2 class="sec-label"><span class="ix">05</span>Relevant Codes</h2>
+
+      <div class="ct-group-label">ICD-10</div>
+      <table class="ctable">
+        <thead><tr><th style="width:84px;">Code</th><th>Description</th></tr></thead>
+        <tbody>
+          <tr><td class="code">Z13.6</td><td class="desc">Encounter for screening for cardiovascular disorders; screening / risk assessment for cardiovascular disease</td></tr>
+          <tr><td class="code">Z82.49</td><td class="desc">Family history of ischemic heart disease and other diseases of the circulatory system; family history risk enhancer for ASCVD</td></tr>
+          <tr><td class="code">Z91.89</td><td class="desc">Other specified personal risk factors, not elsewhere classified; elevated cardiovascular risk or risk-enhancer documentation</td></tr>
+          <tr><td class="code">R03.0</td><td class="desc">Elevated blood-pressure reading, without diagnosis of hypertension; elevated blood pressure as a cardiovascular risk factor</td></tr>
+          <tr><td class="code">E78.0</td><td class="desc">Pure hypercholesterolemia; elevated LDL cholesterol or hypercholesterolemia risk factor</td></tr>
+          <tr><td class="code">E78.1</td><td class="desc">Pure hyperglyceridemia; elevated triglycerides as a lipid risk factor</td></tr>
+          <tr><td class="code">E78.2</td><td class="desc">Mixed hyperlipidemia; combined lipid abnormality contributing to ASCVD risk</td></tr>
+          <tr><td class="code">E78.3</td><td class="desc">Hyperchylomicronemia; lipid disorder that may contribute to cardiovascular risk</td></tr>
+          <tr><td class="code">E78.4</td><td class="desc">Other hyperlipidemia; other specified lipid abnormality contributing to cardiovascular risk</td></tr>
+          <tr><td class="code">E78.5</td><td class="desc">Hyperlipidemia, unspecified; unspecified lipid abnormality contributing to cardiovascular risk</td></tr>
+          <tr><td class="code">I25.10</td><td class="desc">Atherosclerotic heart disease of native coronary artery without angina pectoris; documented coronary atherosclerosis when known CAD is present <span class="cond">(Use only if known CAD / coronary atherosclerosis is actually documented; for a preventive CAC request, the record should generally confirm no known CAD.)</span></td></tr>
+        </tbody>
+      </table>
+      <p class="ct-note">Select ICD-10 coding based on the documented reason for testing. For a preventive / asymptomatic CAC request, screening and risk-factor codes are typically more consistent than established CAD codes unless CAD is already known.</p>
+
+      <div class="ct-group-label">CPT / HCPCS</div>
+      <table class="ctable">
+        <thead><tr><th style="width:84px;">Code</th><th>Description</th></tr></thead>
+        <tbody>
+          <tr><td class="code">75571</td><td class="desc">Computed tomography, heart, without contrast material, with quantitative evaluation of coronary calcium; non-contrast cardiac CT used to calculate an Agatston coronary artery calcium score</td></tr>
+          <tr><td class="code">S8092</td><td class="desc">Electron beam computed tomography, also known as ultrafast CT or cine CT; payer-specific HCPCS option sometimes used for coronary calcium scoring <span class="cond">(Use only if the payer accepts this HCPCS code for the requested CAC scoring method.)</span></td></tr>
+        </tbody>
+      </table>
+      <p class="ct-note">CPT 75571 is the primary code associated with coronary calcium scoring by non-contrast cardiac CT.</p>
+    </section>
+
+    <!-- 06 Required Documentation -->
+    <section id="documentation" class="card">
+      <h2 class="sec-label"><span class="ix">06</span>Required Documentation</h2>
+
+      <div class="docgroup">
+        <h3 class="sec-sub">Clinical Status</h3>
+        <ul class="checklist" data-checklist></ul>
+      </div>
+      <div class="docgroup">
+        <h3 class="sec-sub">ASCVD Risk Calculation</h3>
+        <ul class="checklist" data-checklist></ul>
+      </div>
+      <div class="docgroup">
+        <h3 class="sec-sub">Risk Enhancers</h3>
+        <ul class="checklist" data-checklist></ul>
+      </div>
+      <div class="docgroup">
+        <h3 class="sec-sub">Management Impact</h3>
+        <ul class="checklist" data-checklist></ul>
+      </div>
+      <div class="docgroup">
+        <h3 class="sec-sub">Prior Testing and Treatment</h3>
+        <ul class="checklist" data-checklist></ul>
+      </div>
+    </section>
+
+    <!-- 07 Limitations -->
+    <section id="limitations" class="card">
+      <h2 class="sec-label"><span class="ix">07</span>Limitations &amp; Exclusions</h2>
+      <ul class="findings">
+        <li>CAC scoring is intended as an adjunct to global risk estimation for coronary or cardiovascular events over the next 10 years, not as a stand-alone screening test without ASCVD risk calculation.</li>
+        <li>A request filed simply as CAD without clarifying no known CAD may conflict with the preventive / risk-stratification purpose of CAC scoring.</li>
+        <li>CAC scoring is generally not the appropriate test for symptomatic patients or for evaluation of active chest pain or anginal equivalents.</li>
+        <li>CAC scoring is less likely to be supported when results will not change management, such as when the clinician has already decided to start or intensify therapy regardless of the result.</li>
+        <li>If the patient already has established ASCVD or known CAD, preventive CAC scoring is generally not necessary because the result is unlikely to change the indication for secondary prevention.</li>
+        <li>Radiation exposure, incidental findings, downstream diagnostic testing, and cost should be considered when documenting expected benefit.</li>
+      </ul>
+    </section>
+
+    <!-- 08 Summary -->
+    <section id="summary" class="card summary-card">
+      <h2 class="sec-label"><span class="ix">08</span>Summary</h2>
+      <div class="summary-verdict">Conditional <span class="cw">— documentation needed</span></div>
+      <div class="prose">
+        <p>The requested coronary calcium score can be supported under commercial guidelines when used for asymptomatic coronary risk stratification in a person with no known CAD and when the result will change management. The submitted information identifies the right documentation elements but does not yet provide the actual ASCVD 10-year risk percentage, risk-enhancer findings, confirmation of no known CAD, confirmation of asymptomatic status, or a concrete management plan tied to CAC results.</p>
+      </div>
+      <h3 class="sec-sub">To strengthen the request</h3>
+      <ul class="strengthen" data-strengthen></ul>
+    </section>
+
+    <p class="disclaimer">This information is guidance only and does not guarantee approval. Final decisions rest with the payer or the patient's specific plan criteria. Verify with the latest plan publications and the patient's benefit requirements. Based on available guideline information.</p>
+    <div class="verify-note">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 9v4m0 4h.01M10.3 3.86l-8.5 14.74A2 2 0 0 0 3.53 22h16.94a2 2 0 0 0 1.73-3.4L13.7 3.86a2 2 0 0 0-3.4 0z"/></svg>
+      <span>Always verify with payer portal guidelines prior to submission. This analysis is based on publicly available information.</span>
+    </div>
+  </article>
+</div>
+
+<footer class="appfoot">© 2026 NoteDoctor.Ai. All rights reserved.</footer>
+
+<script>
+  // ---- Required Documentation data (text, missing flag) ----
+  const DOC_GROUPS = [
+    [
+      ["Confirmation that the member has no known CAD, including no prior myocardial infarction, coronary revascularization, known coronary stenosis, known coronary atherosclerosis, angina diagnosis, or established ASCVD", true],
+      ["Confirmation that the member is asymptomatic and not being evaluated for active chest pain, anginal equivalent symptoms, acute coronary syndrome, syncope, or diagnostic cardiac testing", true],
+      ["Complete history and physical examination relevant to cardiovascular risk assessment", false]
+    ],
+    [
+      ["ASCVD 10-year risk calculation using the pooled cohort equation", true],
+      ["Exact calculated 10-year ASCVD risk percentage", true],
+      ["Inputs used for the pooled cohort equation, including sex, race when used by the calculator, total cholesterol, HDL cholesterol, systolic blood pressure, blood-pressure treatment status, diabetes status, and smoking status", true],
+      ["Risk category: less than 5%, 5% to less than 7.5%, 7.5% to less than 20%, or 20% or greater", true]
+    ],
+    [
+      ["Family history of premature ASCVD, including affected relative and age at event", true],
+      ["Most recent lipid panel, including LDL cholesterol, HDL cholesterol, total cholesterol, and triglycerides", true],
+      ["Diabetes status and relevant supporting labs or diagnosis history", true],
+      ["Smoking status, including current, former, or never smoker", true],
+      ["Chronic kidney disease status, including stage or estimated glomerular filtration rate if applicable", true],
+      ["Inflammatory disorders, if present, such as rheumatoid arthritis, psoriasis, lupus, HIV, or other chronic inflammatory disease", true]
+    ],
+    [
+      ["Clinician statement explaining why CAC scoring is needed after standard ASCVD risk calculation and risk-enhancer review", true],
+      ["Planned action if CAC = 0, such as defer or delay statin therapy when appropriate and no diabetes, smoking, or strong family history of premature ASCVD is present", true],
+      ["Planned action if CAC is 1 to 99 Agatston units, such as favoring statin therapy, especially in individuals age 55 years or older", true],
+      ["Planned action if CAC is 100 Agatston units or greater or at or above the 75th percentile, such as starting or intensifying statin therapy", true],
+      ["If aspirin is being considered, documentation of individualized ASCVD benefit versus bleeding risk and how CAC results would affect that decision", true]
+    ],
+    [
+      ["Prior cardiovascular testing results, if any", false],
+      ["Current lipid-lowering therapy, including statin type, dose, adherence, tolerance, and prior adverse effects", true],
+      ["Current preventive therapy and lifestyle interventions", false]
+    ]
+  ];
+
+  const checkSvg = '<svg viewBox="0 0 20 20" fill="none"><circle cx="10" cy="10" r="9" fill="#edfcf2" stroke="#bbf0cb"/><path d="M6 10.2l2.6 2.6L14 7.4" stroke="#15803d" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>';
+  const dashSvg  = '<svg viewBox="0 0 20 20" fill="none"><circle cx="10" cy="10" r="9" fill="#fff8ec" stroke="#f7e0b0"/><path d="M6.3 10h7.4" stroke="#d97706" stroke-width="2" stroke-linecap="round"/></svg>';
+
+  const lists = document.querySelectorAll('[data-checklist]');
+  DOC_GROUPS.forEach((items, gi) => {
+    const ul = lists[gi];
+    if (!ul) return;
+    items.forEach(([txt, missing]) => {
+      const li = document.createElement('li');
+      li.innerHTML = '<span class="ck">' + (missing ? dashSvg : checkSvg) + '</span>'
+        + '<span class="txt">' + txt + '</span>'
+        + (missing ? '<span class="mini-tag">Not in record</span>' : '<span></span>');
+      ul.appendChild(li);
+    });
+  });
+
+  // ---- To strengthen the request ----
+  const STRENGTHEN = [
+    "ASCVD 10-year risk calculation using the pooled cohort equation",
+    "Exact calculated 10-year ASCVD risk percentage and risk category",
+    "Most recent lipid values, including LDL cholesterol",
+    "Risk-enhancer documentation, including family history of premature ASCVD, diabetes, smoking, chronic kidney disease, and inflammatory disorders",
+    "Explicit statement that there is no known CAD or established ASCVD",
+    "Explicit statement that the member is asymptomatic",
+    "Clinician statement explaining how CAC results will change management, including start / intensify / defer statin therapy and whether aspirin will be considered"
+  ];
+  const sBullet = '<svg viewBox="0 0 20 20" fill="none"><circle cx="10" cy="10" r="9" fill="#eff4ff" stroke="#dbe6fe"/><path d="M6.4 10.3l2.4 2.4L13.8 7.6" stroke="#2563eb" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>';
+  const sUl = document.querySelector('[data-strengthen]');
+  STRENGTHEN.forEach(t => {
+    const li = document.createElement('li');
+    li.innerHTML = '<span class="ck">' + sBullet + '</span><span>' + t + '</span>';
+    sUl.appendChild(li);
+  });
+
+  // ---- Scroll-spy TOC ----
+  const links = [...document.querySelectorAll('#toc a')];
+  const map = new Map(links.map(a => [a.getAttribute('href').slice(1), a]));
+  const obs = new IntersectionObserver((entries) => {
+    entries.forEach(e => {
+      if (e.isIntersecting) {
+        links.forEach(l => l.classList.remove('active'));
+        const a = map.get(e.target.id);
+        if (a) a.classList.add('active');
+      }
+    });
+  }, { rootMargin: '-20% 0px -70% 0px', threshold: 0 });
+  document.querySelectorAll('.doc section[id]').forEach(s => obs.observe(s));
+</script>
+</body>
+</html>

@@ -6874,6 +6874,23 @@ __metadata:
   languageName: node
   linkType: hard
 
+"dexie-react-hooks@npm:^4.4.0":
+  version: 4.4.0
+  resolution: "dexie-react-hooks@npm:4.4.0"
+  peerDependencies:
+    dexie: ">=4.2.0-alpha.1 <5.0.0"
+    react: ">=16"
+  checksum: 0feda42a0daec802ba4dfc1e6aa180a2e2f9e408f99bcf449374494969b2f5579eb8d0edfa8936bee6b0cec5c9523d8d7a6771b5f017a5846ed951d3dee04e28
+  languageName: node
+  linkType: hard
+
+"dexie@npm:^4.4.3":
+  version: 4.4.3
+  resolution: "dexie@npm:4.4.3"
+  checksum: 6d20d52c22425a320e8efd5e95b75ecb3046438cb8009246cd782d4cbc5fe1626acecb24cb80a2ca02c85df4cedfe8858332e5553aa42c7185e136d03d2e8f94
+  languageName: node
+  linkType: hard
+
 "dezalgo@npm:^1.0.4":
   version: 1.0.4
   resolution: "dezalgo@npm:1.0.4"
@@ -10050,6 +10067,8 @@ eslint@latest:
     clsx: ^2.1.1
     cmdk: ^1.1.1
     dayjs: ^1.11.13
+    dexie: ^4.4.3
+    dexie-react-hooks: ^4.4.0
     dotenv: ^17.2.3
     embla-carousel: ^8.5.2
     embla-carousel-react: ^8.5.2

@@ -20,15 +20,16 @@ describe('AGENT_SYSTEM_CONTENT', () => {
     expect(AGENT_SYSTEM_CONTENT).toMatch(/Never mention tool names, URLs/)
   })
 
-  it('mandates the structured output template', () => {
-    expect(AGENT_SYSTEM_CONTENT).toMatch(
-      /# Prior Authorization Summary for \[Treatment\]/,
-    )
-    expect(AGENT_SYSTEM_CONTENT).toMatch(/\*\*Prior Authorization Required:\*\*/)
+  it('mandates the structured JSON artifact output', () => {
+    expect(AGENT_SYSTEM_CONTENT).toMatch(/PriorAuthArtifact schema/)
+    expect(AGENT_SYSTEM_CONTENT).toMatch(/single JSON object/)
+    expect(AGENT_SYSTEM_CONTENT).toMatch(/Prior Authorization Summary for \[Treatment\]/)
+    expect(AGENT_SYSTEM_CONTENT).toMatch(/`priorAuthRequired`/)
   })
 
   it('includes the legal disclaimer requirement', () => {
-    expect(AGENT_SYSTEM_CONTENT).toMatch(/Crucial Disclaimer/)
+    expect(AGENT_SYSTEM_CONTENT).toMatch(/`disclaimer`/)
+    expect(AGENT_SYSTEM_CONTENT).toMatch(/does not guarantee approval/)
   })
 })
 

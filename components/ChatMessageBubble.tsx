@@ -4,6 +4,10 @@ import React, { useEffect, useState } from "react";
 import { motion } from "framer-motion";
 import ReactMarkdown from "react-markdown";
 import { Loader2 } from "lucide-react";
+import {
+  PriorAuthArtifact,
+  looksLikeArtifact,
+} from "@/components/prior-auth/artifact/PriorAuthArtifact";
 
 // Restrict link/image URLs to safe schemes. react-markdown's default
 // already strips javascript:/vbscript:/data:, but we narrow further to
@@ -275,13 +279,13 @@ export function ChatMessageBubble(props: {
         isUser ? "ml-auto" : "mr-auto",
       )}
     >
-      {!isUser && (
+      {/* {!isUser && (
         <div className="hidden md:flex mr-3 mt-1 flex-shrink-0">
           <div className="h-8 w-8 rounded-full bg-[#358cee] flex items-center justify-center text-white font-medium">
             <span className="text-sm">ND</span>
           </div>
         </div>
-      )}
+      )} */}
 
       <div className="flex-1 min-w-0 overflow-hidden">
         <div
@@ -299,18 +303,23 @@ export function ChatMessageBubble(props: {
                 <Loader2 className="h-3.5 w-3.5 animate-spin text-blue-500" />
                 <span className="text-sm">{LOADING_MESSAGES[loadingMsgIndex]}</span>
               </div>
+            ) : !isUser && looksLikeArtifact(props.message.content) ? (
+              <PriorAuthArtifact
+                raw={props.message.content}
+                streaming={!!props.isLoading && !!props.isLastMessage}
+              />
             ) : (
               <MarkdownRenderer content={props.message.content} />
             )}
           </div>
 
-          {!isUser && props.isLastMessage && displayContent && !props.isLoading && (
+          {/* {!isUser && props.isLastMessage && displayContent && !props.isLoading && (
             <div className="mt-3 p-2 bg-blue-50 border border-blue-100 rounded-md">
               <div className="text-xs text-blue-700 italic">
                 Always verify with payer portal guidelines prior to submission. This analysis is based on publicly available information.
               </div>
             </div>
-          )}
+          )} */}
 
           {!isUser && props.sources && props.sources.length > 0 && (
             <div className="mt-1.5 text-xs text-gray-500">

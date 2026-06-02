@@ -21,14 +21,16 @@ describe('ChatMessageBubble', () => {
     expect(screen.getByTestId('md').textContent).toBe('hello')
   })
 
-  it('renders assistant message with disclaimer when last and not loading', () => {
+  it('renders assistant message content when last and not loading', () => {
     render(
       <ChatMessageBubble
         message={{ id: '1', role: 'assistant', content: 'response body' } as any}
         isLastMessage
       />,
     )
-    expect(screen.getByText(/Always verify with payer portal/)).toBeInTheDocument()
+    // Non-artifact assistant text renders via the markdown renderer. (The
+    // verify-note disclaimer now lives in the artifact's DisclaimerBlock.)
+    expect(screen.getByTestId('md').textContent).toBe('response body')
   })
 
   it('shows rotating loading message when isLoading and no content yet', () => {

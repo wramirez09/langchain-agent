@@ -1,0 +1,355 @@
+{
+    "kind": "prior-auth-summary",
+    "schemaVersion": 1,
+    "title": "Prior Authorization Summary for Coronary Calcium Score",
+    "guidelineBasis": "commercial",
+    "requestOverview": {
+        "treatment": "Coronary calcium score / coronary artery calcium scoring by non-contrast cardiac CT",
+        "cpt": [],
+        "icd10": [],
+        "medicalHistory": "Request is for coronary artery calcium scoring for CAD risk assessment. The submitted information asks to include ASCVD 10-year risk calculation using the pooled cohort equation, risk enhancers, confirmation of no known CAD and asymptomatic status, and how the result will change management, but no patient-specific values or confirmations were provided.",
+        "keyFindings": [
+            "Patient-specific 10-year ASCVD risk calculation using the pooled cohort equation is not provided.",
+            "Risk enhancers are requested for inclusion but their presence or absence is not documented.",
+            "No known CAD and asymptomatic status are requested for confirmation but are not documented.",
+            "The intended management impact is generally described, such as start/intensify/defer statin or consider aspirin, but the patient-specific management plan is not documented."
+        ]
+    },
+    "priorAuthRequired": "CONDITIONAL",
+    "priorAuthRationale": "Commercial guidelines support coronary artery calcium scoring only when specific primary-prevention risk-stratification criteria and documentation requirements are met; the submitted record is currently incomplete.",
+    "medicalNecessityCriteria": [
+        {
+            "title": "Test type and purpose",
+            "status": "unknown",
+            "detail": "Coronary artery calcium scoring is performed by either EBCT or non-contrast cardiac CT. CAC testing provides a quantitative assessment of coronary artery calcium content in Agatston units, as an adjunct to the estimation of global risk for coronary or cardiovascular events over the next 10 years. A CAC Score greater than 0 is a highly specific feature of coronary atherosclerosis.",
+            "subCriteria": []
+        },
+        {
+            "title": "Primary-prevention management decision for hypercholesterolemia",
+            "status": "unknown",
+            "detail": "Coronary artery calcium testing is considered medically necessary only to help with management decisions for hypercholesterolemia when all of the following apply.",
+            "subCriteria": [
+                {
+                    "title": "No known atheromatous vascular disease",
+                    "status": "unknown",
+                    "detail": "No known atheromatous vascular disease.",
+                    "subCriteria": []
+                },
+                {
+                    "title": "Not diabetic",
+                    "status": "unknown",
+                    "detail": "Not diabetic.",
+                    "subCriteria": []
+                },
+                {
+                    "title": "Age range",
+                    "status": "unknown",
+                    "detail": "Age 40 to 75.",
+                    "subCriteria": []
+                },
+                {
+                    "title": "LDL range",
+                    "status": "unknown",
+                    "detail": "LDL 70 to 190 mg/dL.",
+                    "subCriteria": []
+                },
+                {
+                    "title": "10-year ASCVD risk range",
+                    "status": "unknown",
+                    "detail": "10-year ASCVD risk in the borderline-to-intermediate range (about 5% to 20%), reported as one of two distinct bands.",
+                    "subCriteria": [
+                        {
+                            "title": "Borderline risk band",
+                            "status": "unknown",
+                            "detail": "Borderline risk: about 5% to less than 7.5% (most useful with risk enhancers and uncertainty about starting statin therapy).",
+                            "subCriteria": []
+                        },
+                        {
+                            "title": "Intermediate risk band",
+                            "status": "unknown",
+                            "detail": "Intermediate risk: about 7.5% to 20% (to help decide on starting or intensifying statin therapy).",
+                            "subCriteria": []
+                        }
+                    ]
+                },
+                {
+                    "title": "Absence of listed risk-enhancing factors",
+                    "status": "unknown",
+                    "detail": "None of the following risk-enhancing factors: family history of premature ASCVD; LDL 160 mg/dL or higher; triglycerides above 175 mg/dL; metabolic syndrome; chronic kidney disease; chronic inflammatory condition; menopause before age 40; history of preeclampsia; high-risk race/ethnicity such as South Asian ancestry; elevated hs-CRP; elevated lipoprotein(a); ApoB above 130 mg/dL; ankle-brachial index below 0.9.",
+                    "subCriteria": [
+                        {
+                            "title": "Family history",
+                            "status": "unknown",
+                            "detail": "Family history of premature ASCVD.",
+                            "subCriteria": []
+                        },
+                        {
+                            "title": "LDL threshold",
+                            "status": "unknown",
+                            "detail": "LDL 160 mg/dL or higher.",
+                            "subCriteria": []
+                        },
+                        {
+                            "title": "Triglyceride threshold",
+                            "status": "unknown",
+                            "detail": "Triglycerides above 175 mg/dL.",
+                            "subCriteria": []
+                        },
+                        {
+                            "title": "Metabolic syndrome",
+                            "status": "unknown",
+                            "detail": "Metabolic syndrome.",
+                            "subCriteria": []
+                        },
+                        {
+                            "title": "Chronic kidney disease",
+                            "status": "unknown",
+                            "detail": "Chronic kidney disease.",
+                            "subCriteria": []
+                        },
+                        {
+                            "title": "Chronic inflammatory condition",
+                            "status": "unknown",
+                            "detail": "Chronic inflammatory condition.",
+                            "subCriteria": []
+                        },
+                        {
+                            "title": "Premature menopause",
+                            "status": "unknown",
+                            "detail": "Menopause before age 40.",
+                            "subCriteria": []
+                        },
+                        {
+                            "title": "Preeclampsia history",
+                            "status": "unknown",
+                            "detail": "History of preeclampsia.",
+                            "subCriteria": []
+                        },
+                        {
+                            "title": "High-risk race or ethnicity",
+                            "status": "unknown",
+                            "detail": "High-risk race/ethnicity such as South Asian ancestry.",
+                            "subCriteria": []
+                        },
+                        {
+                            "title": "High-sensitivity CRP threshold",
+                            "status": "unknown",
+                            "detail": "High-sensitivity CRP 2.0 mg/L or higher, if measured.",
+                            "subCriteria": []
+                        },
+                        {
+                            "title": "Lipoprotein(a) threshold",
+                            "status": "unknown",
+                            "detail": "Lipoprotein(a) over 50 mg/dL, if measured.",
+                            "subCriteria": []
+                        },
+                        {
+                            "title": "Apolipoprotein B threshold",
+                            "status": "unknown",
+                            "detail": "ApoB above 130 mg/dL, if measured.",
+                            "subCriteria": []
+                        },
+                        {
+                            "title": "Ankle-brachial index threshold",
+                            "status": "unknown",
+                            "detail": "Ankle-brachial index below 0.9.",
+                            "subCriteria": []
+                        }
+                    ]
+                }
+            ]
+        },
+        {
+            "title": "Alternative supported indication: asymptomatic adult without known CAD",
+            "status": "unknown",
+            "detail": "Asymptomatic adult, without known CAD, when the CAC result will change management.",
+            "subCriteria": []
+        },
+        {
+            "title": "Borderline or intermediate risk where CAC will guide statin therapy",
+            "status": "unknown",
+            "detail": "Borderline or intermediate 10-year ASCVD risk where CAC will guide statin therapy.",
+            "subCriteria": [
+                {
+                    "title": "Borderline risk with risk enhancers and uncertainty",
+                    "status": "unknown",
+                    "detail": "Borderline risk (about 5% to less than 7.5%) with risk enhancers and uncertainty about starting statin therapy.",
+                    "subCriteria": []
+                },
+                {
+                    "title": "Intermediate risk for statin decision-making",
+                    "status": "unknown",
+                    "detail": "Intermediate risk (about 7.5% to 20%) to help decide on starting or intensifying statin therapy.",
+                    "subCriteria": []
+                }
+            ]
+        },
+        {
+            "title": "Selected cases with persistent uncertainty",
+            "status": "unknown",
+            "detail": "Selected cases with uncertainty despite clinical assessment, such as diabetes age 40 to 75 with uncertainty about statin intensity; strong family history of premature ASCVD; primary hypercholesterolemia or persistent risk factors where CAC will clarify the need for or intensity of therapy.",
+            "subCriteria": [
+                {
+                    "title": "Diabetes-specific uncertainty scenario",
+                    "status": "unknown",
+                    "detail": "Diabetes age 40 to 75 with uncertainty about statin intensity.",
+                    "subCriteria": []
+                },
+                {
+                    "title": "Strong family history scenario",
+                    "status": "unknown",
+                    "detail": "Strong family history of premature ASCVD.",
+                    "subCriteria": []
+                },
+                {
+                    "title": "Primary hypercholesterolemia or persistent risk factors",
+                    "status": "unknown",
+                    "detail": "Primary hypercholesterolemia or persistent risk factors where CAC will clarify the need for or intensity of therapy.",
+                    "subCriteria": []
+                }
+            ]
+        },
+        {
+            "title": "Expected impact on treatment",
+            "status": "unknown",
+            "detail": "The result is expected to impact treatment (for example, defer statin if CAC = 0 in appropriate patients; initiate or intensify statin if CAC is elevated).",
+            "subCriteria": []
+        }
+    ],
+    "relevantCodes": {
+        "icd10": [
+            {
+                "code": "Z13.6",
+                "label": "Encounter for screening for cardiovascular disorders; screening/risk assessment for cardiovascular disease."
+            },
+            {
+                "code": "Z82.49",
+                "label": "Family history of ischemic heart disease and other diseases of the circulatory system; documents family history of ischemic heart or circulatory disease when clinically applicable."
+            },
+            {
+                "code": "E78.0",
+                "label": "Pure hypercholesterolemia; elevated cholesterol disorder category when clinically documented."
+            },
+            {
+                "code": "E78.1",
+                "label": "Pure hyperglyceridemia; elevated triglyceride disorder category when clinically documented."
+            },
+            {
+                "code": "E78.2",
+                "label": "Mixed hyperlipidemia; combined lipid disorder when clinically documented."
+            },
+            {
+                "code": "E78.3",
+                "label": "Hyperchylomicronemia; chylomicron-related lipid disorder when clinically documented."
+            },
+            {
+                "code": "E78.4",
+                "label": "Other hyperlipidemia; other specified lipid disorder when clinically documented."
+            },
+            {
+                "code": "E78.5",
+                "label": "Hyperlipidemia, unspecified; unspecified lipid disorder when clinically documented."
+            },
+            {
+                "code": "Z91.89",
+                "label": "Other specified personal risk factors, not elsewhere classified; other documented cardiovascular risk factors."
+            },
+            {
+                "code": "R03.0",
+                "label": "Elevated blood-pressure reading, without diagnosis of hypertension; elevated blood pressure reading when hypertension is not diagnosed."
+            }
+        ],
+        "cpt": [
+            {
+                "code": "75571",
+                "label": "Computed tomography, heart, without contrast material, with quantitative evaluation of coronary calcium; non-contrast cardiac CT for coronary artery calcium score."
+            }
+        ]
+    },
+    "requiredDocumentation": [
+        {
+            "item": "Clinical rationale describing how the CAC result will change management.",
+            "provided": false
+        },
+        {
+            "item": "10-year ASCVD risk calculation using the pooled cohort equation.",
+            "provided": false
+        },
+        {
+            "item": "Data used for the pooled cohort equation, including age, sex, lipid panel, blood pressure, smoking status, and diabetes status.",
+            "provided": false
+        },
+        {
+            "item": "Documentation of risk-enhancing factors, including family history of premature ASCVD, LDL level, chronic kidney disease, and inflammatory conditions.",
+            "provided": false
+        },
+        {
+            "item": "Confirmation that the member is asymptomatic.",
+            "provided": false
+        },
+        {
+            "item": "Confirmation that the member has no known CAD.",
+            "provided": false
+        },
+        {
+            "item": "Confirmation that the member has no prior coronary revascularization.",
+            "provided": false
+        },
+        {
+            "item": "Prior and current lipid values.",
+            "provided": false
+        },
+        {
+            "item": "Therapies considered or discussed, including statin initiation, statin intensification, statin deferral, or aspirin consideration if appropriate.",
+            "provided": false
+        },
+        {
+            "item": "Ordering clinician's intent, such as to initiate, intensify, or defer statin therapy, or to consider aspirin based on CAC.",
+            "provided": false
+        },
+        {
+            "item": "Diabetes status.",
+            "provided": false
+        },
+        {
+            "item": "Known vascular disease status.",
+            "provided": false
+        },
+        {
+            "item": "LDL cholesterol value showing whether LDL is 70 to 190 mg/dL and whether LDL is 160 mg/dL or higher.",
+            "provided": false
+        },
+        {
+            "item": "Triglyceride value showing whether triglycerides are above 175 mg/dL.",
+            "provided": false
+        }
+    ],
+    "limitations": [
+        "Not for individuals with known CAD, prior myocardial infarction, prior PCI/CABG, or established atherosclerotic cardiovascular disease.",
+        "A diagnosis coded as I25.x for known or chronic ischemic heart disease is not a supporting indication for CAC scoring and should not be submitted as the rationale; if the encounter is for risk stratification, use a screening or risk code instead when clinically appropriate.",
+        "Not for evaluation of active chest pain or symptomatic suspected CAD; use appropriate diagnostic testing instead.",
+        "Not for routine screening in low-risk individuals when results will not change management.",
+        "Not for serial monitoring of therapy; repeat CAC is generally not covered, and if allowed, typically not more often than every 5 years.",
+        "Not for preoperative clearance or unrelated risk stratification without clear impact on management.",
+        "CAC scoring does not directly evaluate coronary stenosis severity and is not used for acute chest pain or suspected acute coronary syndrome.",
+        "Often not covered as a screening study when documentation does not show an expected management change.",
+        "Coronary calcium scoring is not the same as CCTA and is not the same as cardiac CT for structure/function.",
+        "Uses ionizing radiation."
+    ],
+    "summary": {
+        "determination": "more_info_needed",
+        "determinationLabel": "Additional documentation needed",
+        "rationale": "The requested elements align with commercial guideline documentation expectations, but the submitted record does not provide the patient-specific ASCVD 10-year risk calculation, lipid values, diabetes status, risk-enhancer assessment, confirmation of no known CAD and asymptomatic status, or a specific management-change plan. If the indication is established CAD rather than primary-prevention risk stratification in a patient without known CAD, CAC scoring is generally not supported.",
+        "missingItems": [
+            "10-year ASCVD risk calculation using the pooled cohort equation and the input data used.",
+            "Current lipid panel, including LDL and triglycerides.",
+            "Diabetes status.",
+            "Documentation that the patient is age 40 to 75, if applicable.",
+            "Confirmation that the patient is asymptomatic.",
+            "Confirmation of no known CAD, no prior myocardial infarction, no prior PCI/CABG, and no established atherosclerotic cardiovascular disease.",
+            "Risk-enhancer assessment, including family history of premature ASCVD, LDL 160 mg/dL or higher, triglycerides above 175 mg/dL, metabolic syndrome, chronic kidney disease, chronic inflammatory condition, menopause before age 40, history of preeclampsia, high-risk race/ethnicity such as South Asian ancestry, hs-CRP 2.0 mg/L or higher if measured, lipoprotein(a) over 50 mg/dL if measured, ApoB above 130 mg/dL if measured, and ankle-brachial index below 0.9.",
+            "Specific statement of how the CAC result will change management, such as defer statin if CAC = 0 in an appropriate patient, initiate or intensify statin if CAC is elevated, or consider aspirin when clinically appropriate."
+        ]
+    },
+    "disclaimer": "This information is guidance only and does not guarantee approval. Final decisions rest with the payer and the patient's specific plan. Verify with the latest published criteria and the patient's specific plan requirements. Based on publicly available information."
+}

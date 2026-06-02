@@ -3,7 +3,7 @@
 import React, { FormEvent, useRef } from "react";
 import { motion } from "framer-motion";
 import { type Message } from "ai";
-import { LoaderCircle, Trash2, AlertTriangle } from "lucide-react";
+import { LoaderCircle, Trash2, AlertTriangle, Bookmark } from "lucide-react";
 import { IconSend2 } from "@tabler/icons-react";
 import { ChatMessageBubble } from "@/components/ChatMessageBubble";
 import { IntermediateStep } from "@/components/IntermediateStep";
@@ -18,6 +18,8 @@ interface PriorAuthChatPanelProps {
   onSubmit: (e?: FormEvent) => void;
   onStop: () => void;
   onClear: () => void;
+  canSave?: boolean;
+  onSaveQuery?: () => void;
 }
 
 export function PriorAuthChatPanel({
@@ -28,6 +30,8 @@ export function PriorAuthChatPanel({
   onSubmit,
   onStop,
   onClear,
+  canSave,
+  onSaveQuery,
 }: PriorAuthChatPanelProps) {
   const { chatInput, setChatInput } = usePriorAuthChat();
   const { activeFormTab } = usePriorAuthUi();
@@ -46,16 +50,28 @@ export function PriorAuthChatPanel({
     >
       <div className="px-6 py-4 border-b border-gray-100 flex items-center justify-between flex-shrink-0">
         <h3 className="text-sm font-semibold text-gray-900">Chat Assistant</h3>
-        {messages.length > 0 && (
-          <button
-            onClick={onClear}
-            className="flex items-center gap-1.5 text-xs text-gray-400 hover:text-red-500 transition-colors"
-            title="Clear chat"
-          >
-            <Trash2 className="size-3.5" />
-            Clear
-          </button>
-        )}
+        <div className="flex items-center gap-3">
+          {canSave && (
+            <button
+              onClick={onSaveQuery}
+              className="flex items-center gap-1.5 text-xs text-gray-500 hover:text-blue-600 transition-colors"
+              title="Save this query and response"
+            >
+              <Bookmark className="size-3.5" />
+              Save
+            </button>
+          )}
+          {messages.length > 0 && (
+            <button
+              onClick={onClear}
+              className="flex items-center gap-1.5 text-xs text-gray-400 hover:text-red-500 transition-colors"
+              title="Clear chat"
+            >
+              <Trash2 className="size-3.5" />
+              Clear
+            </button>
+          )}
+        </div>
       </div>
 
       <div
