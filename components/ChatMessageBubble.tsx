@@ -297,7 +297,7 @@ export function ChatMessageBubble(props: {
               : "bg-white border border-blue-100 rounded-tl-none text-gray-900 hover:bg-blue-50"),
           )}
         >
-          <div className="prose prose-sm max-w-none leading-snug">
+          <div className="test-sm max-w-none leading-snug">
             {props.isLoading && props.isLastMessage && !displayContent ? (
               <div className="flex items-center space-x-2">
                 <Loader2 className="h-3.5 w-3.5 animate-spin text-blue-500" />

@@ -1,0 +1,171 @@
+Prior Authorization Summary for C2–C3 and C4–C5 Laminectomy
+Request Overview
+Treatment: C2–C3 and C4–C5 cervical laminectomy
+
+CPT: Not provided
+Commonly relevant cervical laminectomy/decompression CPT codes may include 63001, 63015, 63020, 63035, 63040, 63043, 63045, 63048, 63050, 63051, depending on operative approach, number of levels, and whether decompression/fusion is included.
+
+ICD-10: Not provided
+
+Diagnosis: Cervical spine condition requiring decompression was implied, but the request lacks documentation of radiculopathy, myelopathy, or imaging-confirmed compression.
+
+Medical History:
+
+Lacking documentation of neurologic deficits, such as cervical radiculopathy or myelopathy.
+Lacking documentation of failed conservative therapy.
+Lacking imaging evidence correlating symptoms to the requested surgical levels.
+No MRI/CT findings were provided showing spinal cord, nerve root, or canal compression at C2–C3 or C4–C5.
+Prior Authorization Required: YES
+
+Cervical spine surgery, including multilevel cervical laminectomy, typically requires prior authorization under commercial guidelines.
+
+Medical Necessity Criteria
+Commercial guidelines generally require documentation supporting all or most of the following for cervical laminectomy/decompression:
+
+Neurologic Indication
+
+
+Objective evidence of cervical myelopathy, such as gait disturbance, hyperreflexia, hand clumsiness, bowel/bladder dysfunction, or upper motor neuron signs.
+
+
+Objective evidence of cervical radiculopathy, such as dermatomal pain, sensory loss, motor weakness, diminished reflexes, or electrodiagnostic findings consistent with the affected nerve root.
+
+
+Progressive neurologic deficit may support surgical intervention more strongly and may reduce the need for prolonged conservative management.
+
+Imaging Correlation
+
+
+MRI or CT must show clinically significant stenosis, spinal cord compression, nerve root compression, or other compressive pathology.
+
+
+Imaging findings should correlate with:
+
+
+The patient’s symptoms.
+
+The neurologic exam.
+
+The requested surgical levels, specifically C2–C3 and C4–C5.
+Conservative Therapy Requirement
+
+
+For non-emergent cases, documentation usually must show failure of conservative treatment, commonly including:
+
+Physical therapy or supervised home exercise program.
+
+Activity modification.
+
+Anti-inflammatory medications, analgesics, or other appropriate medications.
+
+Epidural steroid injection or other interventional pain management when clinically appropriate.
+
+Duration often expected to be approximately 6 weeks or more, unless there is progressive neurologic deficit, severe myelopathy, instability, infection, tumor, fracture, or another urgent surgical indication.
+Severity and Functional Impact
+
+Documentation should describe how symptoms impair function, such as:
+Difficulty walking.
+Loss of hand dexterity.
+Weakness affecting activities of daily living.
+Persistent disabling neck/arm pain despite treatment.
+Functional limitation despite appropriate nonsurgical care.
+Surgical Plan Requirements
+
+Requested levels must be justified by imaging and symptoms.
+The operative plan should specify:
+Exact decompression levels.
+Whether fusion/instrumentation is planned.
+Whether instability, kyphosis, deformity, or multilevel stenosis is present.
+Why laminectomy is the appropriate approach.
+Relevant Codes
+ICD-10: Not provided
+Potentially relevant ICD-10 codes depend on the documented diagnosis and may include cervical radiculopathy, cervical myelopathy, cervical spinal stenosis, cervical disc disorder, or spondylosis with myelopathy/radiculopathy, if clinically supported.
+
+CPT/HCPCS: Not provided
+Potentially relevant cervical decompression codes may include:
+
+63001 — Cervical laminectomy with decompression.
+63015 — Cervical laminectomy, more than two segments.
+63020 / 63035 — Cervical laminotomy/foraminotomy-type procedures.
+63045 / 63048 — Laminectomy/facetectomy/foraminotomy decompression codes, depending on region and levels.
+63050 / 63051 — Cervical laminoplasty codes, if applicable.
+Final code selection should be based on the operative approach, number of levels, decompression type, and whether fusion or instrumentation is also performed.
+
+Required Documentation
+To support prior authorization, the submission should include:
+
+Clinical Evaluation
+
+
+Office visit notes documenting symptoms, duration, severity, and functional impairment.
+
+Neurologic examination documenting motor strength, reflexes, sensation, gait, coordination, pathologic reflexes, or myelopathic signs.
+
+Clear diagnosis supporting cervical decompression.
+Imaging
+
+
+MRI cervical spine report, or CT/CT myelogram if MRI is contraindicated.
+
+Imaging must show compression or stenosis at the requested levels:
+C2–C3
+C4–C5
+
+Surgeon’s interpretation correlating imaging findings with symptoms and exam findings.
+Conservative Treatment History
+
+
+Physical therapy records or documented supervised home exercise program.
+
+Medication trials and response.
+
+Activity modification.
+
+Pain management or injection records, if applicable.
+
+Dates, duration, and outcomes of conservative therapy.
+Surgical Rationale
+
+
+Surgeon’s statement explaining why surgery is medically necessary.
+
+Explanation of why the specific levels requested require decompression.
+
+Documentation of failure of nonoperative care or reason conservative therapy is not appropriate.
+
+If urgent surgery is requested, documentation of progressive neurologic deficit, severe myelopathy, instability, fracture, tumor, infection, or other high-risk findings.
+Limitations and Exclusions
+Commercial guidelines may consider cervical laminectomy not medically necessary when:
+
+✗
+There is no objective evidence of radiculopathy, myelopathy, or neurologic deficit.
+✗
+Imaging does not show clinically significant compression at the requested levels.
+✗
+Imaging abnormalities do not correlate with symptoms or exam findings.
+✗
+Conservative therapy has not been attempted or adequately documented.
+✗
+Surgery is requested primarily for axial neck pain without neurologic compromise or compressive pathology.
+✗
+The requested levels are not supported by imaging or clinical findings.
+✗
+Documentation does not establish functional impairment or severity.
+Summary Report
+Determination: Not currently supported / likely denial based on submitted information.
+
+Based on the information provided, the request does not currently meet typical commercial medical necessity criteria for C2–C3 and C4–C5 cervical laminectomy because the documentation is missing several key elements:
+
+
+No documented cervical radiculopathy or myelopathy.
+
+No objective neurologic deficits were provided.
+
+No documented failure of conservative therapy.
+
+No MRI or CT evidence showing compression at the requested levels.
+
+No clear correlation between symptoms, exam findings, and the proposed surgical levels.
+To strengthen the prior authorization request, the provider should submit updated clinical notes, neurologic exam findings, cervical MRI/CT results, conservative treatment history, and a surgeon’s statement explaining why decompression is required at C2–C3 and C4–C5.
+
+Disclaimer: This information is guidance only and does not guarantee approval. Final coverage and authorization decisions rest with the patient’s commercial payer and specific plan benefits. Providers should verify requirements with the most current payer policy and the patient’s plan. This analysis is based on publicly available information and general commercial guideline standards.

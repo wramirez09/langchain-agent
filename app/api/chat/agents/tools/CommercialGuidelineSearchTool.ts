@@ -9,12 +9,17 @@ import {
   CommercialGuidelineSearchOutput,
   ScoredResult,
 } from "./utils/commercialGuidelineTypes";
+import { labelCode } from "./utils/codeLabels";
 
 // Output budget. Beyond this we shrink excerpts and trim arrays rather than
 // invoking an LLM summarizer (which doubled latency and dropped the
 // structured topMatches/relatedMatches shape the agent relies on).
-const OUTPUT_BUDGET_CHARS = 30_000;
-const MIN_EXCERPT_CHARS = 200;
+const OUTPUT_BUDGET_CHARS = 55_000;
+// Floor for excerpt shrinking under budget pressure. Kept high enough to retain
+// the decisive criteria (conservative-therapy thresholds, etc.) that
+// extractRelevantSections surfaces — a 200-char floor used to truncate them back
+// off, defeating section-aware excerpting.
+const MIN_EXCERPT_CHARS = 1200;
 
 // Strip filesystem paths from tool output. The agent prompt forbids citing
 // file/folder names; relying on the LLM to redact a field we hand it is a
@@ -26,6 +31,11 @@ function redactResult(r: ScoredResult): Omit<ScoredResult, "path" | "body"> & {
   const { path: _path, body: _body, mergedFrom, ...rest } = r;
   return {
     ...rest,
+    // Enrich each code with its guideline-sourced descriptor ("CODE — label")
+    // so the agent can relay verified labels to the client instead of bare
+    // codes or model-invented text.
+    cptCodes: (rest.cptCodes ?? []).map(labelCode),
+    icd10Codes: (rest.icd10Codes ?? []).map(labelCode),
     ...(mergedFrom
       ? { mergedFrom: mergedFrom.map(({ id, title }) => ({ id, title })) }
       : {}),
@@ -51,22 +61,30 @@ function shrinkToFit(
   let top = [...output.topMatches];
   let related = [...output.relatedMatches];
   let json = measure(top, related);
-  if (json.length <= OUTPUT_BUDGET_CHARS) return { ...output, topMatches: top, relatedMatches: related };
+  if (json.length <= OUTPUT_BUDGET_CHARS)
+    return { ...output, topMatches: top, relatedMatches: related };
 
   // 1) Drop relatedMatches entirely.
   related = [];
   json = measure(top, related);
 
-  // 2) Shrink each excerpt to MIN_EXCERPT_CHARS.
-  if (json.length > OUTPUT_BUDGET_CHARS) {
-    top = top.map((r) => ({
-      ...r,
-      excerpt:
-        r.excerpt.length > MIN_EXCERPT_CHARS
-          ? r.excerpt.slice(0, MIN_EXCERPT_CHARS).trim() + "…"
-          : r.excerpt,
-    }));
-    json = measure(top, related);
+  // 2) Shrink excerpts from the LOWEST-ranked match upward, preserving the top
+  //    match's full content. The #1 result is the doc the request is actually
+  //    about; the agent should see its original criteria verbatim rather than a
+  //    trimmed/summarized slice. Lower-ranked matches are supporting context and
+  //    are shrunk (then popped in step 3) first.
+  for (
+    let i = top.length - 1;
+    i >= 1 && json.length > OUTPUT_BUDGET_CHARS;
+    i--
+  ) {
+    if (top[i].excerpt.length > MIN_EXCERPT_CHARS) {
+      top[i] = {
+        ...top[i],
+        excerpt: top[i].excerpt.slice(0, MIN_EXCERPT_CHARS).trim() + "…",
+      };
+      json = measure(top, related);
+    }
   }
 
   // 3) Pop low-scoring topMatches until we fit (keep at least 1).
@@ -132,7 +150,9 @@ function rowToScoredResult(row: RpcRow): ScoredResult {
  * the only network hop besides Supabase is a (cached) embedding for the
  * query string.
  */
-export class CommercialGuidelineSearchTool extends StructuredTool<typeof CommercialGuidelineSearchInputSchema> {
+export class CommercialGuidelineSearchTool extends StructuredTool<
+  typeof CommercialGuidelineSearchInputSchema
+> {
   name = "commercial_guidelines_search";
 
   description = `Search commercial guidelines for prior authorization requirements using structured inputs.
@@ -261,12 +281,18 @@ Never mention specific data sources, tool names, URLs, file names, folder names,
       );
       return jsonOutput;
     } catch (error) {
-      console.error("[CommercialGuidelineSearchTool] Error during search:", error);
+      console.error(
+        "[CommercialGuidelineSearchTool] Error during search:",
+        error,
+      );
       return JSON.stringify({
         query: input.query,
         topMatches: [],
         relatedMatches: [],
-        error: error instanceof Error ? error.message : "Unknown error occurred during search",
+        error:
+          error instanceof Error
+            ? error.message
+            : "Unknown error occurred during search",
       });
     }
   }
