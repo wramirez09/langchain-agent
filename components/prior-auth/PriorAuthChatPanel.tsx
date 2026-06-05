@@ -57,7 +57,7 @@ export function PriorAuthChatPanel({
               className="flex items-center gap-1.5 text-xs text-gray-500 hover:text-blue-600 transition-colors"
               title="Save this query and response"
             >
-              <Bookmark className="size-3.5" />
+              <Bookmark className="size-3.5" strokeWidth={1} />
               Save
             </button>
           )}
@@ -67,7 +67,7 @@ export function PriorAuthChatPanel({
               className="flex items-center gap-1.5 text-xs text-gray-400 hover:text-red-500 transition-colors"
               title="Clear chat"
             >
-              <Trash2 className="size-3.5" />
+              <Trash2 className="size-3.5" strokeWidth={1} />
               Clear
             </button>
           )}
@@ -134,15 +134,15 @@ export function PriorAuthChatPanel({
             )}
           >
             {isProcessing ? (
-              <LoaderCircle className="animate-spin size-4" />
+              <LoaderCircle className="animate-spin size-4" strokeWidth={1} />
             ) : (
-              <IconSend2 className="size-2" strokeWidth={2} size={20} />
+              <IconSend2 className="size-2" strokeWidth={1} size={20} />
             )}
           </button>
         </form>
         <div className="mt-2 mb-2 p-1 bg-amber-50 border border-amber-200 rounded-md">
           <div className="flex items-center gap-2">
-            <AlertTriangle className="hidden sm:flex w-4 h-4 text-amber-600 flex-shrink-0" />
+            <AlertTriangle className="hidden sm:flex w-4 h-4 text-amber-600 flex-shrink-0" strokeWidth={1} />
             <p className="text-xs text-amber-800 hidden md:block">
               <strong>HIPAA Compliance:</strong> Do not include patient-specific PHI such as names, dates of birth, medical record numbers, or other identifying information. Use generic descriptions only.
             </p>

@@ -102,7 +102,7 @@ const BlueCheckIcon = (
     <path
       d="M6.4 10.3l2.4 2.4L13.8 7.6"
       stroke="#2563eb"
-      strokeWidth="2"
+      strokeWidth="1"
       strokeLinecap="round"
       strokeLinejoin="round"
     />
@@ -379,7 +379,7 @@ const ExternalLinkIcon = (
     viewBox="0 0 24 24"
     fill="none"
     stroke="currentColor"
-    strokeWidth="2"
+    strokeWidth="1"
     strokeLinecap="round"
     strokeLinejoin="round"
     className="h-3 w-3 flex-none"
@@ -810,7 +810,7 @@ export function DisclaimerBlock({ disclaimer }: { disclaimer?: string }) {
           viewBox="0 0 24 24"
           fill="none"
           stroke="currentColor"
-          strokeWidth="2"
+          strokeWidth="1"
           strokeLinecap="round"
           strokeLinejoin="round"
           className="mt-px h-[17px] w-[17px] flex-none"

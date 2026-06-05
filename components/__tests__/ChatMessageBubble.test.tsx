@@ -12,13 +12,39 @@ import { render, screen } from '@testing-library/react'
 import { ChatMessageBubble } from '../ChatMessageBubble'
 
 describe('ChatMessageBubble', () => {
-  it('renders user message content', () => {
+  it('renders a plain user message as text (not via markdown)', () => {
     render(
       <ChatMessageBubble
         message={{ id: '1', role: 'user', content: 'hello' } as any}
       />,
     )
-    expect(screen.getByTestId('md').textContent).toBe('hello')
+    // User messages render via UserRequestFields, not react-markdown. A
+    // label-less message falls back to plain text.
+    expect(screen.getByText('hello')).toBeInTheDocument()
+    expect(screen.queryByTestId('md')).toBeNull()
+  })
+
+  it('separates a serialized form message into labeled fields', () => {
+    render(
+      <ChatMessageBubble
+        message={
+          {
+            id: '1',
+            role: 'user',
+            content:
+              'Guidelines: Commercial. State: TX. Treatment: MRI Lumbar | Any priors needed?',
+          } as any
+        }
+      />,
+    )
+    expect(screen.getByText('Your Request')).toBeInTheDocument()
+    expect(screen.getByText('Guidelines')).toBeInTheDocument()
+    expect(screen.getByText('Commercial')).toBeInTheDocument()
+    expect(screen.getByText('Treatment')).toBeInTheDocument()
+    expect(screen.getByText('MRI Lumbar')).toBeInTheDocument()
+    // Trailing free-text after " | " becomes an Additional Notes field.
+    expect(screen.getByText('Additional Notes')).toBeInTheDocument()
+    expect(screen.getByText('Any priors needed?')).toBeInTheDocument()
   })
 
   it('renders assistant message content when last and not loading', () => {

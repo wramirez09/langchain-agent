@@ -81,15 +81,15 @@ export function AppSidebar({ activeView, onViewChange }: AppSidebarProps) {
 
       <aside
         className={cn(
-          'bg-white border-r border-gray-200 flex flex-col py-8 px-3 w-24 m-1',
+          'bg-white border-r border-gray-200 flex flex-col py-8 px-2 w-16 m-1',
           'transition-all duration-300 ease-in-out',
           'fixed left-0 top-16 bottom-0 z-50',
-          'md:relative md:top-0 md:translate-x-0 md:w-24',
+          'md:relative md:top-0 md:translate-x-0 md:w-16',
           isOpen ? 'translate-x-0' : '-translate-x-full md:translate-x-0',
         )}
       >
         {/* Primary actions — evenly spaced above the fold */}
-        <div className="flex flex-col flex-1 justify-evenly w-full">
+        <div className="flex flex-col flex-1 justify-start gap-1 w-full">
           {navItems.map((item) => {
             const Icon = item.icon;
             const isActive = activeView === item.id;

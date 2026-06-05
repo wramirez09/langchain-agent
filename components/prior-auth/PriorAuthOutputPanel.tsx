@@ -51,7 +51,7 @@ export function PriorAuthOutputPanel({
               className="flex items-center gap-1.5 rounded-lg border border-gray-200 bg-white px-3 py-1.5 text-xs font-medium text-gray-700 shadow-sm transition-colors hover:bg-gray-50 hover:text-blue-600"
               title="Save this query and response"
             >
-              <Bookmark className="h-3.5 w-3.5" />
+              <Bookmark className="h-3.5 w-3.5" strokeWidth={1} />
               Save
             </button>
           </div>

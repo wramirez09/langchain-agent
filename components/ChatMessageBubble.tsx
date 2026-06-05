@@ -8,6 +8,7 @@ import {
   PriorAuthArtifact,
   looksLikeArtifact,
 } from "@/components/prior-auth/artifact/PriorAuthArtifact";
+import { UserRequestFields } from "@/components/prior-auth/UserRequestFields";
 
 // Restrict link/image URLs to safe schemes. react-markdown's default
 // already strips javascript:/vbscript:/data:, but we narrow further to
@@ -233,6 +234,12 @@ const MarkdownRenderer: React.FC<MarkdownRendererProps> = ({ content }) => {
   );
 };
 
+// Card styling mirrored from the agent artifact's SectionCard (the CARD token
+// in ArtifactSections) so a user message reads as a peer of the agent's cards:
+// white surface, hairline border, soft layered shadow, 14px radius.
+const USER_CARD =
+  "rounded-[14px] border border-[#e6eaf2] bg-white px-5 py-4 text-[#283142] shadow-[0_1px_2px_rgba(16,24,40,0.04),0_8px_28px_-18px_rgba(16,24,40,0.18)]";
+
 const LOADING_MESSAGES = [
   "Analyzing authorization criteria...",
   "Reviewing documentation requirements...",
@@ -290,20 +297,27 @@ export function ChatMessageBubble(props: {
       <div className="flex-1 min-w-0 overflow-hidden">
         <div
           className={cn(
-            "overflow-hidden",
-            !props.bare && "rounded-2xl px-4 py-2.5 shadow-sm transition-all duration-200",
-            !props.bare && (isUser
-              ? "bg-gray-100 text-white rounded-tr-none hover:bg-gray-200"
-              : "bg-white border border-blue-100 rounded-tl-none text-gray-900 hover:bg-blue-50"),
+            "overflow-hidden transition-all duration-200",
+            !props.bare &&
+              (isUser
+                ? USER_CARD
+                : "rounded-2xl rounded-tl-none border border-blue-100 bg-white px-4 py-2.5 text-gray-900 shadow-sm hover:bg-blue-50"),
           )}
         >
+          {isUser && !props.bare && (
+            <div className="mb-2.5 flex items-center gap-2.5 text-[11.5px] font-bold uppercase tracking-[0.09em] text-[#64748b]">
+              Your Request
+            </div>
+          )}
           <div className="test-sm max-w-none leading-snug">
             {props.isLoading && props.isLastMessage && !displayContent ? (
               <div className="flex items-center space-x-2">
-                <Loader2 className="h-3.5 w-3.5 animate-spin text-blue-500" />
+                <Loader2 className="h-3.5 w-3.5 animate-spin text-blue-500" strokeWidth={1} />
                 <span className="text-sm">{LOADING_MESSAGES[loadingMsgIndex]}</span>
               </div>
-            ) : !isUser && looksLikeArtifact(props.message.content) ? (
+            ) : isUser ? (
+              <UserRequestFields content={displayContent} />
+            ) : looksLikeArtifact(props.message.content) ? (
               <PriorAuthArtifact
                 raw={props.message.content}
                 streaming={!!props.isLoading && !!props.isLastMessage}
@@ -352,14 +366,6 @@ export function ChatMessageBubble(props: {
         </div>
 
       </div>
-
-      {isUser && (
-        <div className="ml-2 mt-1 flex-shrink-0">
-          <div className="h-8 w-8 rounded-full bg-[#358cee] hidden md:flex items-center justify-center text-white font-medium text-sm">
-            {"U"}
-          </div>
-        </div>
-      )}
 
     </motion.div>
   );
