@@ -45,7 +45,14 @@ describe('TopBar', () => {
   it('renders the logo always', async () => {
     mockGetSession.mockResolvedValue({ data: { session: null } })
     render(<TopBar />)
-    expect(screen.getByText('NoteDoctor.Ai')).toBeInTheDocument()
+    expect(screen.getByAltText('NoteDoctor.ai Logo')).toBeInTheDocument()
+    // Wordmark is split across spans (".Ai" carries the accent color) — match
+    // on the innermost element whose full text is the wordmark.
+    expect(
+      screen.getByText(
+        (_, el) => el?.tagName === 'SPAN' && el.textContent === 'NoteDoctor.Ai'
+      )
+    ).toBeInTheDocument()
   })
 
   it('shows email + computed initials when logged in', async () => {

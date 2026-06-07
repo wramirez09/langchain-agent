@@ -75,6 +75,27 @@ describe('PriorAuthChatPanel', () => {
     expect(screen.getByTestId('step')).toBeInTheDocument()
   })
 
+  it('shows the artifact skeleton (not the greeting) while a saved query restores', () => {
+    render(
+      wrap(
+        <PriorAuthChatPanel
+          {...baseProps}
+          isRestoring
+          messages={[{ id: 'u1', role: 'user', content: 'knee MRI' } as any]}
+        />
+      )
+    )
+    expect(screen.getByTestId('restore-skeleton')).toBeInTheDocument()
+    expect(screen.getByTestId('bubble')).toHaveTextContent('knee MRI')
+    expect(screen.queryByText(/Hello! I'm here to help/)).toBeNull()
+  })
+
+  it('shows the skeleton even before the restored user message lands', () => {
+    render(wrap(<PriorAuthChatPanel {...baseProps} isRestoring messages={[]} />))
+    expect(screen.getByTestId('restore-skeleton')).toBeInTheDocument()
+    expect(screen.queryByText(/Hello! I'm here to help/)).toBeNull()
+  })
+
   it('submit button calls onSubmit when not processing', async () => {
     const user = userEvent.setup()
     const onSubmit = jest.fn((e?: any) => e?.preventDefault?.())

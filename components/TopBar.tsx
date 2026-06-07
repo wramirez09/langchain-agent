@@ -20,23 +20,23 @@ const TopBar: React.FC = () => {
       const { data: { session } } = await supabase.auth.getSession();
       if (!session?.user) return;
       setIsLoggedIn(true);
-      
+
       // Get user email (never show user ID)
       const userEmail = session.user.email || '';
       setDisplayEmail(userEmail);
-      
+
       // Try to get full name from profiles table
       const { data: profile } = await supabase
         .from('profiles')
         .select('full_name, email')
         .eq('id', session.user.id)
         .single();
-      
+
       // Use full name if available, otherwise use email, fallback to 'User'
       // Never display the user ID
       const name = profile?.full_name || userEmail || 'User';
       setDisplayName(name);
-      
+
       // Generate initials from name
       const initials = name
         .split(' ')
@@ -66,7 +66,7 @@ const TopBar: React.FC = () => {
   }, []);
 
   return (
-    <div className="h-16 bg-white border-b border-gray-200 flex items-center px-4 md:px-6 z-50 flex-shrink-0">
+    <div className="h-20 bg-white border-b border-gray-200 flex items-center px-4 md:px-6 z-50 flex-shrink-0">
       {/* Left — hamburger on mobile, spacer on desktop */}
       <div className="flex-1 flex items-center">
         {isLoggedIn && (
@@ -80,10 +80,12 @@ const TopBar: React.FC = () => {
         )}
       </div>
 
-      {/* Center — logo always centered */}
-      <div className="flex items-center gap-2">
+      {/* Center — logo stacked over the wordmark, always centered */}
+      <div className="flex flex-col items-center justify-center gap-2">
         <Image src={logo} alt="NoteDoctor.ai Logo" className="h-8 w-auto" />
-        <span className="text-sm font-bold text-gray-900">NoteDoctor.Ai</span>
+        <span className="text-md font-bold text-gray-800">
+          NoteDoctor<span className="text-primary">.Ai</span>
+        </span>
       </div>
 
       {/* Right — user info */}

@@ -1,7 +1,15 @@
 "use client";
 
-import React, { createContext, useContext, useState, ReactNode } from "react";
+import React, {
+  createContext,
+  useContext,
+  useState,
+  useCallback,
+  useMemo,
+  ReactNode,
+} from "react";
 import { type Message } from "ai";
+import type { DocCheckMap } from "@/lib/priorAuth/docChecks";
 
 // ─── Form ──────────────────────────────────────────────────────────────────
 
@@ -135,6 +143,67 @@ export function usePriorAuthChat() {
   return ctx;
 }
 
+// ─── Documentation checklist ───────────────────────────────────────────────
+
+interface DocCheckContextState {
+  /**
+   * Reviewer toggles on the Required Documentation checkboxes, keyed by the
+   * artifact's message id → item key (lib/priorAuth/docChecks.docItemKey).
+   * Scoping by message id means a new query's artifact starts clean without
+   * any reset wiring. Read by the PDF export so downloaded reports reflect
+   * what the reviewer checked off on screen.
+   */
+  docChecks: Record<string, DocCheckMap>;
+  setDocCheck: (messageId: string, itemKey: string, checked: boolean) => void;
+}
+
+const DocCheckContext = createContext<DocCheckContextState | undefined>(
+  undefined,
+);
+
+function DocCheckProvider({ children }: { children: ReactNode }) {
+  const [docChecks, setDocChecks] = useState<Record<string, DocCheckMap>>({});
+
+  const setDocCheck = useCallback(
+    (messageId: string, itemKey: string, checked: boolean) => {
+      setDocChecks((prev) => ({
+        ...prev,
+        [messageId]: { ...prev[messageId], [itemKey]: checked },
+      }));
+    },
+    [],
+  );
+
+  const value = useMemo(
+    () => ({ docChecks, setDocCheck }),
+    [docChecks, setDocCheck],
+  );
+
+  return (
+    <DocCheckContext.Provider value={value}>
+      {children}
+    </DocCheckContext.Provider>
+  );
+}
+
+export function usePriorAuthDocChecks() {
+  const ctx = useContext(DocCheckContext);
+  if (!ctx)
+    throw new Error(
+      "usePriorAuthDocChecks must be used within a PriorAuthProvider",
+    );
+  return ctx;
+}
+
+/**
+ * Tolerant variant for components that may render outside the provider
+ * (e.g. the artifact cards in isolated tests) — returns null instead of
+ * throwing, and callers fall back to read-only checkboxes.
+ */
+export function useOptionalPriorAuthDocChecks() {
+  return useContext(DocCheckContext) ?? null;
+}
+
 // ─── UI ────────────────────────────────────────────────────────────────────
 
 type FormTab = "pre-auth" | "chat" | "input" | "output";
@@ -142,14 +211,21 @@ type FormTab = "pre-auth" | "chat" | "input" | "output";
 interface UiContextState {
   activeFormTab: FormTab;
   setActiveFormTab: (tab: FormTab) => void;
+  // Saved-queries palette visibility lives here (not in PriorAuthView) so the
+  // sidebar's "Saved" item can open the palette from outside the view tree.
+  savedSheetOpen: boolean;
+  setSavedSheetOpen: (open: boolean) => void;
 }
 
 const UiContext = createContext<UiContextState | undefined>(undefined);
 
 function UiProvider({ children }: { children: ReactNode }) {
   const [activeFormTab, setActiveFormTab] = useState<FormTab>("pre-auth");
+  const [savedSheetOpen, setSavedSheetOpen] = useState(false);
   return (
-    <UiContext.Provider value={{ activeFormTab, setActiveFormTab }}>
+    <UiContext.Provider
+      value={{ activeFormTab, setActiveFormTab, savedSheetOpen, setSavedSheetOpen }}
+    >
       {children}
     </UiContext.Provider>
   );
@@ -167,7 +243,9 @@ export function PriorAuthProvider({ children }: { children: ReactNode }) {
   return (
     <FormProvider>
       <ChatProvider>
-        <UiProvider>{children}</UiProvider>
+        <DocCheckProvider>
+          <UiProvider>{children}</UiProvider>
+        </DocCheckProvider>
       </ChatProvider>
     </FormProvider>
   );

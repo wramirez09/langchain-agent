@@ -7,6 +7,7 @@ import { LoaderCircle, Trash2, AlertTriangle, Bookmark } from "lucide-react";
 import { IconSend2 } from "@tabler/icons-react";
 import { ChatMessageBubble } from "@/components/ChatMessageBubble";
 import { IntermediateStep } from "@/components/IntermediateStep";
+import { ArtifactSkeleton } from "@/components/prior-auth/artifact/ArtifactSkeleton";
 import { cn } from "@/utils/cn";
 import { usePriorAuthChat, usePriorAuthUi } from "@/components/providers/PriorAuthProvider";
 
@@ -14,11 +15,15 @@ interface PriorAuthChatPanelProps {
   messages: Message[];
   sourcesForMessages: Record<string, any>;
   isProcessing: boolean;
+  /** A saved query is being re-applied: show an artifact skeleton below the
+   * restored user request until the full turn swaps in. */
+  isRestoring?: boolean;
   isLayoutSwapped: boolean;
   onSubmit: (e?: FormEvent) => void;
   onStop: () => void;
   onClear: () => void;
   canSave?: boolean;
+  saved?: boolean;
   onSaveQuery?: () => void;
 }
 
@@ -26,11 +31,13 @@ export function PriorAuthChatPanel({
   messages,
   sourcesForMessages,
   isProcessing,
+  isRestoring,
   isLayoutSwapped,
   onSubmit,
   onStop,
   onClear,
   canSave,
+  saved,
   onSaveQuery,
 }: PriorAuthChatPanelProps) {
   const { chatInput, setChatInput } = usePriorAuthChat();
@@ -51,16 +58,20 @@ export function PriorAuthChatPanel({
       <div className="px-6 py-4 border-b border-gray-100 flex items-center justify-between flex-shrink-0">
         <h3 className="text-sm font-semibold text-gray-900">Chat Assistant</h3>
         <div className="flex items-center gap-3">
-          {canSave && (
-            <button
-              onClick={onSaveQuery}
-              className="flex items-center gap-1.5 text-xs text-gray-500 hover:text-blue-600 transition-colors"
-              title="Save this query and response"
-            >
-              <Bookmark className="size-3.5" strokeWidth={1} />
-              Save
-            </button>
-          )}
+          <button
+            onClick={onSaveQuery}
+            disabled={!canSave}
+            className={cn(
+              "flex items-center gap-1.5 text-xs transition-colors disabled:cursor-not-allowed disabled:text-gray-300 disabled:hover:text-gray-300",
+              saved
+                ? "text-green-600 hover:text-green-700"
+                : "text-red-600 hover:text-red-700",
+            )}
+            title={saved ? "Saved" : "Save this query and response"}
+          >
+            <Bookmark className="size-3.5" strokeWidth={1} />
+            {saved ? "Saved" : "Save"}
+          </button>
           {messages.length > 0 && (
             <button
               onClick={onClear}
@@ -79,7 +90,7 @@ export function PriorAuthChatPanel({
         className="flex-1 min-h-0 px-4 py-4 space-y-3"
         style={{ overflowY: 'scroll', maxHeight: '100%' }}
       >
-        {messages.length === 0 ? (
+        {messages.length === 0 && !isRestoring ? (
           <div className="flex flex-col items-center justify-center h-full text-center px-4 py-8">
             <div className="size-10 bg-blue-100 rounded-full flex items-center justify-center mb-3">
               <span className="text-sm font-bold text-blue-600 p-3">NoteDoctor.Ai</span>
@@ -92,20 +103,27 @@ export function PriorAuthChatPanel({
             </p>
           </div>
         ) : (
-          messages.map((m, i) => {
-            if (m.role === "system") return <IntermediateStep key={m.id} message={m} />;
-            const sourceKey = (messages.length - 1 - i).toString();
-            const isLastMessage = i === messages.length - 1;
-            return (
-              <ChatMessageBubble
-                key={m.id}
-                message={m}
-                sources={sourcesForMessages[sourceKey] as unknown[]}
-                isLastMessage={isLastMessage}
-                isLoading={isLastMessage && isProcessing}
-              />
-            );
-          })
+          <>
+            {messages.map((m, i) => {
+              if (m.role === "system") return <IntermediateStep key={m.id} message={m} />;
+              const sourceKey = (messages.length - 1 - i).toString();
+              const isLastMessage = i === messages.length - 1;
+              return (
+                <ChatMessageBubble
+                  key={m.id}
+                  message={m}
+                  sources={sourcesForMessages[sourceKey] as unknown[]}
+                  isLastMessage={isLastMessage}
+                  isLoading={isLastMessage && isProcessing}
+                />
+              );
+            })}
+            {isRestoring && (
+              <div data-testid="restore-skeleton" className="pt-1">
+                <ArtifactSkeleton />
+              </div>
+            )}
+          </>
         )}
         <div ref={messagesEndRef} />
       </div>

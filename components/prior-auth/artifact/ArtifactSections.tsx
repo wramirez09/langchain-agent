@@ -1,3 +1,5 @@
+"use client";
+
 import React from "react";
 import { cn } from "@/utils/cn";
 import type {
@@ -9,6 +11,16 @@ import type {
   Determination,
   DeepPartial,
 } from "@/lib/priorAuth/artifactSchema";
+import {
+  type Tone,
+  DETERMINATION_TONE,
+  GUIDELINE_LABEL,
+  POLICY_GROUP_TITLE,
+  paRequiredPresentation,
+  policySourceUrl,
+} from "@/lib/priorAuth/artifactPresentation";
+import { docItemKey } from "@/lib/priorAuth/docChecks";
+import { useOptionalPriorAuthDocChecks } from "@/components/providers/PriorAuthProvider";
 
 type P<T> = DeepPartial<T>;
 
@@ -65,8 +77,6 @@ const DOT_TONES = {
   blue: "bg-[#2563eb]",
   neutral: "bg-[#94a3b8]",
 } as const;
-
-type Tone = keyof typeof PILL_TONES;
 
 function StatusPill({
   tone,
@@ -156,20 +166,6 @@ const CRIT_TAG: Record<CriterionStatus, { tone: Tone; label: string }> = {
   met: { tone: "green", label: "Met" },
   not_met: { tone: "amber", label: "Not met" },
   unknown: { tone: "amber", label: "Not documented" },
-};
-
-const DETERMINATION_TONE: Record<Determination, Tone> = {
-  meets_criteria: "green",
-  conditional: "amber",
-  more_info_needed: "amber",
-  likely_denial: "red",
-  not_supported: "red",
-};
-
-const GUIDELINE_LABEL: Record<string, string> = {
-  medicare: "Medicare",
-  commercial: "Commercial",
-  "commercial-fallback": "Commercial (fallback)",
 };
 
 // ---------------------------------------------------------------------------
@@ -349,9 +345,7 @@ export function PaRequiredCard({
   value?: string;
   rationale?: string;
 }) {
-  const tone: Tone = value === "NO" ? "green" : "amber";
-  const label =
-    value === "YES" ? "Required" : value === "NO" ? "Not required" : "Conditional";
+  const { tone, label } = paRequiredPresentation(value);
   return (
     <SectionCard id={id} index={index} title="Prior Authorization Required">
       <div className="mb-3.5">
@@ -368,12 +362,6 @@ export function PaRequiredCard({
 // Medicare coverage (NCD / LCD / LCA)
 // ---------------------------------------------------------------------------
 
-const POLICY_GROUP_TITLE: Record<string, string> = {
-  NCD: "National Coverage Determinations (NCD)",
-  LCD: "Local Coverage Determinations (LCD)",
-  LCA: "Local Coverage Articles (LCA)",
-};
-
 const ExternalLinkIcon = (
   <svg
     viewBox="0 0 24 24"
@@ -387,29 +375,6 @@ const ExternalLinkIcon = (
     <path d="M15 3h6v6M10 14L21 3M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6" />
   </svg>
 );
-
-/**
- * Resolve a citation's source link. Prefers the agent-supplied URL; otherwise
- * builds the canonical CMS Medicare Coverage Database URL from the policy id
- * (LCD/LCA ids drop their letter prefix for the query param; NCD keeps its
- * dotted number).
- */
-function policySourceUrl(
-  type?: string,
-  policyId?: string,
-  url?: string,
-): string | undefined {
-  if (url && /^https?:\/\//i.test(url.trim())) return url.trim();
-  if (!policyId) return undefined;
-  const id = policyId.trim();
-  const num = id.replace(/^[A-Za-z]+/, "");
-  const base = "https://www.cms.gov/medicare-coverage-database/view";
-  if (type === "NCD") return `${base}/ncd.aspx?ncdid=${encodeURIComponent(id)}`;
-  if (type === "LCD") return `${base}/lcd.aspx?lcdid=${encodeURIComponent(num)}`;
-  if (type === "LCA")
-    return `${base}/article.aspx?articleid=${encodeURIComponent(num)}`;
-  return undefined;
-}
 
 /** A clickable NCD/LCD/LCA citation chip ("LCD L34567") linking to its source. */
 function CitationChip({
@@ -676,11 +641,22 @@ export function DocumentationCard({
   id,
   index,
   groups,
+  messageId,
 }: {
   id?: string;
   index?: number;
   groups?: PartialPriorAuthArtifact["requiredDocumentation"];
+  /**
+   * Id of the artifact's chat message. When present (and a PriorAuthProvider
+   * is mounted) the checkboxes become controlled: toggles are stored per
+   * message and flow into the PDF export. Without it they stay read-write but
+   * ephemeral (uncontrolled), e.g. in isolated renders.
+   */
+  messageId?: string;
 }) {
+  const docChecks = useOptionalPriorAuthDocChecks();
+  const overrides = messageId ? docChecks?.docChecks[messageId] : undefined;
+  const interactive = Boolean(messageId && docChecks);
   const list = (groups ?? []).filter(Boolean);
   return (
     <SectionCard id={id} index={index} title="Required Documentation">
@@ -696,7 +672,8 @@ export function DocumentationCard({
               ) : null}
               <ul className="flex flex-col gap-3">
                 {items.map((d, i) => {
-                  const provided = d?.provided === true;
+                  const key = docItemKey(g?.title, d?.item);
+                  const provided = overrides?.[key] ?? d?.provided === true;
                   return (
                     <li
                       key={i}
@@ -704,7 +681,19 @@ export function DocumentationCard({
                     >
                       <input
                         type="checkbox"
-                        defaultChecked={provided}
+                        {...(interactive
+                          ? {
+                              checked: provided,
+                              onChange: (
+                                e: React.ChangeEvent<HTMLInputElement>,
+                              ) =>
+                                docChecks!.setDocCheck(
+                                  messageId!,
+                                  key,
+                                  e.target.checked,
+                                ),
+                            }
+                          : { defaultChecked: provided })}
                         aria-label={provided ? "Provided" : "Not in record"}
                         className="mt-0.5 h-4 w-4 flex-none cursor-pointer rounded border-[#cbd5e1] accent-[#15803d]"
                       />

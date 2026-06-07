@@ -7,20 +7,34 @@ import { Download, LoaderCircle } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { renderToBuffer } from "@react-pdf/renderer";
 import { default as PdfDocument } from "@/components/pdf/pdf-generator";
-import { usePriorAuthChat } from "@/components/providers/PriorAuthProvider";
+import { default as ArtifactPdfDocument } from "@/components/pdf/ArtifactPdfDoc";
+import { logoBase64 } from "@/components/pdf/logo";
+import {
+  usePriorAuthChat,
+  usePriorAuthDocChecks,
+} from "@/components/providers/PriorAuthProvider";
+import {
+  extractArtifact,
+  looksLikeArtifact,
+} from "@/lib/priorAuth/extractArtifact";
+import { applyDocChecks } from "@/lib/priorAuth/docChecks";
 
-// Base64 logo — same as app/pdf/page.tsx
-const logoBase64 = 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAC0AAAAtCAMAAAANxBKoAAACqVBMVEUAAAAA//8AgP8AqqpAgL8zmcwrgNUkktsggN8cjsYamcwui9ErldUnidgkktsiiMwgj88eh9IcjtUmjMwkks4gi9EgitUnic4mjtAkidEjjdMiiMwikdUhjNYgj88ni9Emj9IkitMjjtUiis8hkNEgjNIlj9MkjtAji9EijtIhi9MhjdQlj9UkjdAkj9EjjNIijtMijNQhjtAli9EkjdEkj9IjjdMijNAhjtEkjtIki9Mji9EijdEij9IhjNMkjtMkjNAjjtEjjNIijdIii9MijdMkjtEkjdEkjtIjjNIjjtMijdEkjNEkjdIjjdMjjtEijNEijtIkjdMkjNMjjdEjjtEjjdIijdMkjtMkjNEjjdIjjNIijtMijdEkjtEkjdIjjtIijdEkjNIkjdIjjtMjjdMjjtEjjNIijdIijNIkjdMkjNEjjdEjjtIjjdIijtIkjdEkjNIjjdIjjdMjjtMkjtIkjdIjjdIjjNMjjdEjjNEijdIijtIkjdIjjtMjjdEjjdIjjdIijdIijNMkjdMjjNEjjdIjjtIjjdIjjdMijdEkjdIkjNIjjdIjjNIjjtEijdIkjdIkjdIjjdIjjNMjjdEjjNIjjdIijtIkjdMjjtEjjdIjjdIjjdIjjdIkjdEjjtIjjdIjjtIjjdMijdIkjdIjjNIjjdIjjtIjjtIjjdIjjdMjjdEjjdIjjNIjjdIijtIkjdMjjdIjjdIjjdIjjdIkjdIjjtIjjdIjjdIjjdIjjNIjjdIjjtMjjdIjjdIjjdIijdIjjdIjjdIjjdIjjtIjjdIjjdIjjdIjjdIjjdIjjdIjjdIjjdMjjNIkjdIjjdIjjdIjjdIjjdIjjdIjjdIijdIjjdIjjdIjjdIjjdIjjdIjjdIjjdIjjdIjjdIjjdIjjdL///+PYGbAAAAA4XRSTlMAAQIDBAUGBwgJCgsMDQ4PEBESFBUWGBobHB0eHh8gISIjJCUnKCkrLC0uLzAxMjM0NTY3ODk6PD0/QEJDREVGR0hJSktMTU5PUFFTVFVXWFlaXF1eX2BiY2RlZmhpamtscHFyc3R1dnd4eXp7fH1+gIGChIWHiImKi4yNjo+QkZKTlJWWl5iZmpucnZ6foKKjpKWmp6ipqqusra6vsLGztLW2uLm6u7y9v8DDxMXGx8jJysvMzdDR09TW2Nna29zd3t/h4uPk5ebn6Onq6+zt7u/w8fLz9PX29/j5+vv8/f4oN+oTAAAAAWJLR0TixgGeHAAABBhJREFUGBmNwYljFQIAgPHvLZWjsknkqtTWumw1RuKhHRJzhw6E0FJSbV7H1tPh6JxCbbVJyFgRajxFGQotaiVUa7XvP/H2ttpbJX4//k2HBP5TAMbsHQ0Mqj/4EAHOofNTO+3OcxYAd+okyg6/cR1nF3hkr9qdqYaAO3UyG9SqGzmLXlXqsa1dKbAIyNWp3PTFEXVLH053/x/648Jk4GXDQK5OA25deUJ/v542zl+u39yTQJOZLgBydQZNBn+kx18M0Cqh3MZQB5rN8nUgVwuJafeFupBWczzxQGBsfv6oTsBslwA5GoLAvfn5hTvU8iAn3aeF7V81qnYAFFkC5OgsmGvM8aXjj99Bs2uPWNVugn6+rtFDnSh2JZCjRfQ/4Vcf1+vqC/fZMIKYcs3qutcymKi9mOsqIEfDLHZrIgP+cgkjG/0zQFSGumS3ToFM7UfY1UC2zuMzC4DNzoc1uoKo5Tbb3Y3pmkbY1UC2LmSZtQPIPWgIeh+24TJglS32b2zUVMKWAtn6OsknrP9O/+4HLNXpRCUlJfXs1XdirVEHuxK2FMjWRTDyqHpoCFFJh9xBq85jCkMTroCwZUC2LgX6TJ096RpivtfrOEPYMiBLS4gXqNXpPLq9ptn26upPKzcECLsGyNI3ya';
+const pdfLoading = () => (
+  <div className="flex items-center justify-center h-full">
+    <LoaderCircle className="animate-spin size-6 text-gray-400" />
+  </div>
+);
 
-// Dynamically import PdfDoc (PDFViewer) — must be client-only, no SSR
+// Dynamically import the PDF viewers — must be client-only, no SSR
 const PdfDoc = dynamic(() => import("@/components/PdfDoc"), {
   ssr: false,
-  loading: () => (
-    <div className="flex items-center justify-center h-full">
-      <LoaderCircle className="animate-spin size-6 text-gray-400" />
-    </div>
-  ),
+  loading: pdfLoading,
 });
+
+const ArtifactPdfPreview = dynamic(
+  () => import("@/components/pdf/ArtifactPdfPreview"),
+  { ssr: false, loading: pdfLoading },
+);
 
 // AI SDK 3 spreads streamed text across `message.content` (often only the
 // first chunk) and `message.parts` (the full accumulated stream as one or
@@ -35,9 +49,9 @@ function normalizeContent(message: Message): Message {
   const parts = (message as Message & { parts?: Array<{ type: string; text?: string }> }).parts;
   const partsText = Array.isArray(parts)
     ? parts
-        .filter((p) => p && p.type === 'text' && typeof p.text === 'string')
-        .map((p) => p.text!)
-        .join('\n')
+      .filter((p) => p && p.type === 'text' && typeof p.text === 'string')
+      .map((p) => p.text!)
+      .join('\n')
     : '';
 
   const text = partsText.length > contentText.length ? partsText : contentText;
@@ -48,17 +62,23 @@ function filterMessages(messages: Message[]): Message[] {
   return messages.map(normalizeContent).filter((message) => {
     // Filter out system messages
     if (message.role === "system") return false;
-    
+
     // Drop messages with no extractable text (after normalizeContent merged
     // any `parts`). Without this they render as empty PDF blocks.
     if (typeof message.content !== 'string' || message.content.trim().length === 0) {
       return false;
     }
 
+    // Structured artifact JSON is exported via the dedicated artifact PDF —
+    // it must never reach the markdown renderer (raw JSON renders as garbage).
+    if (message.role === "assistant" && looksLikeArtifact(message.content)) {
+      return false;
+    }
+
     // Filter out tool call messages - be specific to avoid filtering legitimate content
     if (message.content && typeof message.content === "string") {
       const content = message.content.trim();
-      
+
       // Only filter if it's clearly a tool call JSON object
       if (
         message.content.includes('"tool_call_id":') ||
@@ -66,7 +86,7 @@ function filterMessages(messages: Message[]): Message[] {
       ) {
         return false;
       }
-      
+
       // Filter out pure JSON objects that are tool-related (not markdown with code blocks)
       if (
         content.startsWith("{") &&
@@ -76,36 +96,94 @@ function filterMessages(messages: Message[]): Message[] {
         return false;
       }
     }
-    
+
     return true;
   });
 }
 
+/** "Prior Authorization Summary for MRI…" → "prior-authorization-summary-for-mri…" */
+function kebab(s: string): string {
+  return s
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, "-")
+    .replace(/^-+|-+$/g, "")
+    .slice(0, 60);
+}
+
+function artifactFileName(title?: string): string {
+  const base = (title && kebab(title)) || "prior-auth-report";
+  const date = new Date().toISOString().slice(0, 10);
+  return `${base}-${date}.pdf`;
+}
+
 export function FileExportView() {
   const { chatMessages } = usePriorAuthChat();
+  const { docChecks } = usePriorAuthDocChecks();
   const [isDownloading, setIsDownloading] = useState(false);
 
   const filteredMessages = useMemo(() => filterMessages(chatMessages), [chatMessages]);
+
+  // Latest assistant message parsed as a structured artifact (or null). When
+  // present, both the preview and the download render the artifact PDF; the
+  // markdown transcript path below stays as the fallback.
+  const extracted = useMemo(() => extractArtifact(chatMessages), [chatMessages]);
+
+  // The artifact actually rendered/downloaded: the reviewer's documentation
+  // checkbox toggles (from the Output tab) overlaid on the agent's `provided`
+  // flags, so the exported PDF matches what's checked off on screen.
+  const artifactForPdf = useMemo(
+    () =>
+      extracted
+        ? applyDocChecks(extracted.artifact, docChecks[extracted.messageId])
+        : null,
+    [extracted, docChecks],
+  );
+
+  // Stable per-conversation date string so the PDFViewer doesn't re-render
+  // (and re-layout the document) on every parent render.
+  const generatedAt = useMemo(
+    () =>
+      new Date().toLocaleDateString("en-US", {
+        year: "numeric",
+        month: "long",
+        day: "numeric",
+      }),
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    [extracted],
+  );
 
   const handleDownload = async () => {
     if (isDownloading) return;
     setIsDownloading(true);
     try {
-      const pdfBuffer = await renderToBuffer(
-        <PdfDocument
-          name="User"
-          role="Viewer"
-          messages={filteredMessages}
-          logoBase64={logoBase64}
-        />
-      );
+      let pdfBuffer: Uint8Array;
+      let fileName: string;
+      if (artifactForPdf) {
+        pdfBuffer = await renderToBuffer(
+          <ArtifactPdfDocument
+            artifact={artifactForPdf}
+            generatedAt={generatedAt}
+          />
+        );
+        fileName = artifactFileName(artifactForPdf.title);
+      } else {
+        pdfBuffer = await renderToBuffer(
+          <PdfDocument
+            name="User"
+            role="Viewer"
+            messages={filteredMessages}
+            logoBase64={logoBase64}
+          />
+        );
+        fileName = `prior-auth-report-${Date.now()}.pdf`;
+      }
       const blob = new Blob([new Uint8Array(pdfBuffer)], {
         type: "application/pdf",
       });
       const url = URL.createObjectURL(blob);
       const a = document.createElement("a");
       a.href = url;
-      a.download = `prior-auth-report-${Date.now()}.pdf`;
+      a.download = fileName;
       a.click();
       URL.revokeObjectURL(url);
     } catch (err) {
@@ -114,6 +192,8 @@ export function FileExportView() {
       setIsDownloading(false);
     }
   };
+
+  const hasReport = Boolean(extracted) || filteredMessages.length > 0;
 
   return (
     <div className="flex flex-col h-full overflow-hidden">
@@ -125,12 +205,16 @@ export function FileExportView() {
             Export and download patient records and reports
           </p>
         </div>
-        
       </div>
 
       {/* PDF Preview area */}
       <div className="flex-1 overflow-hidden m-6 rounded-lg border border-gray-200 shadow-sm bg-white">
-        {filteredMessages.length === 0 ? (
+        {artifactForPdf ? (
+          <ArtifactPdfPreview
+            artifact={artifactForPdf}
+            generatedAt={generatedAt}
+          />
+        ) : filteredMessages.length === 0 ? (
           <div className="flex flex-col items-center justify-center h-full text-center px-8 py-16">
             <div className="size-16 bg-gray-100 rounded-full flex items-center justify-center mb-4">
               <Download className="size-8 text-gray-400" />

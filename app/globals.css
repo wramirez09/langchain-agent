@@ -317,3 +317,106 @@ body {
 }
 
 @plugin "@tailwindcss/typography";
+
+/* Highlight pulse for a card the user jumps to from the artifact TOC. The
+   animation plays once and reverts, so the card's own shadow is restored. */
+@keyframes nd-flash {
+  0% {
+    box-shadow: 0 0 0 0 rgba(37, 99, 235, 0);
+  }
+  25% {
+    box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.45);
+  }
+  100% {
+    box-shadow: 0 0 0 0 rgba(37, 99, 235, 0);
+  }
+}
+
+.nd-flash {
+  animation: nd-flash 1.1s ease-out;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .nd-flash {
+    animation: none;
+  }
+}
+
+/* ── Fly-out sidebar rail ──────────────────────────────────────────────
+   Slim 76px icon rail that expands to 256px on hover (desktop). The app's
+   left gutter stays reserved at the collapsed width, so the open rail
+   FLOATS OVER the content (scrim + edge shadow) rather than pushing it —
+   only pinning widens the gutter into a static 256px sidebar. Animation
+   matches the fly-out prototype: width eases over .27s with
+   cubic-bezier(.2,.8,.2,1); labels fade in .16s and slide .22s; section
+   headers collapse via height .18s. The `transform` transition powers the
+   mobile drawer slide. */
+.flyout-zone {
+  transition: width 0.27s cubic-bezier(0.2, 0.8, 0.2, 1);
+}
+.flyout-wrap {
+  width: 76px;
+  overflow: visible;
+  transition:
+    width 0.27s cubic-bezier(0.2, 0.8, 0.2, 1),
+    transform 0.3s ease-in-out;
+}
+.flyout-wrap .flyout-rail {
+  width: 76px;
+  overflow: hidden;
+  transition: width 0.27s cubic-bezier(0.2, 0.8, 0.2, 1);
+}
+.flyout-wrap.is-open {
+  width: 256px;
+}
+.flyout-wrap.is-open .flyout-rail {
+  width: 256px;
+}
+/* Floating open (unpinned overlay) casts the prototype's edge shadow;
+   pinned is a static sidebar and sits flush, no shadow. */
+.flyout-wrap.is-open:not(.is-pinned) .flyout-rail {
+  box-shadow: 22px 0 50px -26px rgba(20, 30, 60, 0.3);
+}
+
+.flyout-rail .fb-label {
+  opacity: 0;
+  transform: translateX(-6px);
+  transition:
+    opacity 0.16s,
+    transform 0.22s;
+  pointer-events: none;
+  white-space: nowrap;
+}
+.flyout-wrap.is-open .fb-label {
+  opacity: 1;
+  transform: none;
+  pointer-events: auto;
+}
+.flyout-rail .fb-head {
+  height: 0;
+  margin: 0;
+  overflow: hidden;
+  transition: height 0.18s;
+}
+.flyout-wrap.is-open .fb-head {
+  height: auto;
+}
+
+/* Mobile drawer: always full-width with labels showing; it slides in/out
+   instead of growing. */
+@media (max-width: 767px) {
+  .flyout-wrap,
+  .flyout-wrap .flyout-rail {
+    width: 256px;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .flyout-zone,
+  .flyout-wrap,
+  .flyout-wrap .flyout-rail,
+  .flyout-rail .fb-label,
+  .flyout-rail .fb-head {
+    transition: none;
+  }
+}

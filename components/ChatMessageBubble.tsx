@@ -321,6 +321,7 @@ export function ChatMessageBubble(props: {
               <PriorAuthArtifact
                 raw={props.message.content}
                 streaming={!!props.isLoading && !!props.isLastMessage}
+                messageId={props.message.id}
               />
             ) : (
               <MarkdownRenderer content={props.message.content} />

@@ -7,11 +7,13 @@ import {
   PriorAuthArtifact,
   looksLikeArtifact,
 } from "@/components/prior-auth/artifact/PriorAuthArtifact";
+import { cn } from "@/utils/cn";
 
 interface PriorAuthOutputPanelProps {
   messages: Message[];
   isProcessing: boolean;
   canSave?: boolean;
+  saved?: boolean;
   onSaveQuery?: () => void;
 }
 
@@ -19,6 +21,7 @@ export function PriorAuthOutputPanel({
   messages,
   isProcessing,
   canSave,
+  saved,
   onSaveQuery,
 }: PriorAuthOutputPanelProps) {
   const assistantMessages = messages.filter((m) => m.role === "assistant" && m.content);
@@ -44,18 +47,22 @@ export function PriorAuthOutputPanel({
   return (
     <div className="h-full overflow-y-auto bg-[#f4f6fb] px-4 py-6 sm:px-6">
       <div className="mx-auto max-w-[1240px]">
-        {canSave && (
-          <div className="mb-4 flex justify-end">
-            <button
-              onClick={onSaveQuery}
-              className="flex items-center gap-1.5 rounded-lg border border-gray-200 bg-white px-3 py-1.5 text-xs font-medium text-gray-700 shadow-sm transition-colors hover:bg-gray-50 hover:text-blue-600"
-              title="Save this query and response"
-            >
-              <Bookmark className="h-3.5 w-3.5" strokeWidth={1} />
-              Save
-            </button>
-          </div>
-        )}
+        <div className="mb-4 flex justify-end">
+          <button
+            onClick={onSaveQuery}
+            disabled={!canSave}
+            className={cn(
+              "flex items-center gap-1.5 rounded-lg border bg-white px-3 py-1.5 text-xs font-medium shadow-sm transition-colors disabled:cursor-not-allowed disabled:border-gray-200 disabled:text-gray-300 disabled:shadow-none disabled:hover:bg-white disabled:hover:text-gray-300",
+              saved
+                ? "border-green-200 text-green-600 hover:bg-green-50 hover:text-green-700"
+                : "border-red-200 text-red-600 hover:bg-red-50 hover:text-red-700",
+            )}
+            title={saved ? "Saved" : "Save this query and response"}
+          >
+            <Bookmark className="h-3.5 w-3.5" strokeWidth={1} />
+            {saved ? "Saved" : "Save"}
+          </button>
+        </div>
         {lastIsArtifact ? (
           <>
             {assistantMessages.slice(0, -1).map((m) => (
@@ -63,7 +70,12 @@ export function PriorAuthOutputPanel({
                 <ChatMessageBubble message={m} sources={[]} bare />
               </div>
             ))}
-            <PriorAuthArtifact raw={last.content} streaming={isProcessing} withNav />
+            <PriorAuthArtifact
+              raw={last.content}
+              streaming={isProcessing}
+              withNav
+              messageId={last.id}
+            />
           </>
         ) : (
           <div className="mx-auto max-w-2xl space-y-2">

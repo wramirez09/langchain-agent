@@ -7,7 +7,6 @@ import type {
   PartialPriorAuthArtifact,
   Determination,
 } from "@/lib/priorAuth/artifactSchema";
-import { ARTIFACT_KIND } from "@/lib/priorAuth/artifactSchema";
 import { ArtifactSkeleton, SectionSkeleton } from "./ArtifactSkeleton";
 import {
   Header,
@@ -23,20 +22,9 @@ import {
   DisclaimerBlock,
 } from "./ArtifactSections";
 
-/**
- * Cheap heuristic to decide whether an assistant message is (or is becoming) a
- * PriorAuthArtifact JSON object vs. a plain text/markdown message.
- */
-export function looksLikeArtifact(content: string): boolean {
-  const t = content.trimStart();
-  if (!t.startsWith("{") && !t.startsWith("```")) return false;
-  return (
-    t.includes(ARTIFACT_KIND) ||
-    t.includes('"kind"') ||
-    t.includes('"requestOverview"') ||
-    t.includes('"medicalNecessityCriteria"')
-  );
-}
+// Moved to lib so non-client modules (PDF export) can share it; re-exported
+// here so existing imports keep working.
+export { looksLikeArtifact } from "@/lib/priorAuth/extractArtifact";
 
 function has(v: unknown): boolean {
   if (Array.isArray(v)) return v.length > 0;
@@ -55,11 +43,17 @@ export function PriorAuthArtifact({
   raw,
   streaming = false,
   withNav = false,
+  messageId,
 }: {
   raw: string;
   streaming?: boolean;
   /** Output-tab only: render the sticky left-side TOC + scroll-spy. */
   withNav?: boolean;
+  /**
+   * Id of the chat message this artifact came from. Enables persistent,
+   * per-message documentation checkbox toggles that flow into the PDF export.
+   */
+  messageId?: string;
 }) {
   const data = parsePartialJson<PartialPriorAuthArtifact>(raw);
 
@@ -103,7 +97,12 @@ export function PriorAuthArtifact({
     <CodesCard id="codes" index={i} codes={data.relevantCodes} />
   ));
   add(has(data.requiredDocumentation), "documentation", "Required Docs", (i) => (
-    <DocumentationCard id="documentation" index={i} groups={data.requiredDocumentation} />
+    <DocumentationCard
+      id="documentation"
+      index={i}
+      groups={data.requiredDocumentation}
+      messageId={messageId}
+    />
   ));
   add(has(data.limitations), "limitations", "Limitations", (i) => (
     <LimitationsCard id="limitations" index={i} items={data.limitations} />
@@ -181,6 +180,18 @@ function ArtifactWithNav({
               <a
                 key={n.id}
                 href={`#${n.id}`}
+                onClick={(e) => {
+                  e.preventDefault();
+                  setActiveId(n.id);
+                  const el = rootRef.current?.ownerDocument.getElementById(n.id);
+                  if (!el) return;
+                  el.scrollIntoView({ behavior: "smooth", block: "start" });
+                  // Replay the highlight pulse on every click (force reflow so
+                  // the animation re-triggers even on the same target).
+                  el.classList.remove("nd-flash");
+                  void el.offsetWidth;
+                  el.classList.add("nd-flash");
+                }}
                 className={cn(
                   "flex items-center gap-2.5 rounded-lg px-3 py-2 text-[13.5px] font-medium transition-colors",
                   active
