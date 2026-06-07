@@ -204,14 +204,15 @@ export function AppSidebar({ activeView, onViewChange }: AppSidebarProps) {
           )}
         >
           <aside className="flyout-rail h-full flex flex-col bg-white border-r border-[#ebedf1] pt-4 px-3 pb-3.5">
-            {/* Brand — real logo mark; wordmark hides when collapsed */}
-            <div className="flex items-center gap-[11px] px-1.5 pb-3">
+            {/* Brand — real logo mark; wordmark hides when collapsed. px-3
+                keeps the small mark centered on the rail's icon column. */}
+            <div className="flex items-center gap-[11px] px-3 pb-3">
               <Image
                 src={logoMark}
                 alt="NoteDoctor.Ai"
-                width={34}
-                height={34}
-                className="shrink-0 rounded-[10px]"
+                width={22}
+                height={22}
+                className="shrink-0 rounded-md"
                 priority
                 unoptimized
               />
