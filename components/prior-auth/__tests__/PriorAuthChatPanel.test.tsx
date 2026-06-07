@@ -96,6 +96,77 @@ describe('PriorAuthChatPanel', () => {
     expect(screen.queryByText(/Hello! I'm here to help/)).toBeNull()
   })
 
+  it('shows the pending skeleton under the user message while a generation is in flight', () => {
+    render(
+      wrap(
+        <PriorAuthChatPanel
+          {...baseProps}
+          isProcessing
+          messages={[{ id: 'u1', role: 'user', content: 'knee MRI' } as any]}
+        />
+      )
+    )
+    expect(screen.getByTestId('pending-skeleton')).toBeInTheDocument()
+    expect(screen.getByTestId('bubble')).toHaveTextContent('knee MRI')
+  })
+
+  it('keeps the pending skeleton while intermediate steps stream in', () => {
+    render(
+      wrap(
+        <PriorAuthChatPanel
+          {...baseProps}
+          isProcessing
+          messages={[
+            { id: 'u1', role: 'user', content: 'knee MRI' } as any,
+            { id: 's1', role: 'system', content: '{"action":{"name":"x"}}' } as any,
+          ]}
+        />
+      )
+    )
+    expect(screen.getByTestId('pending-skeleton')).toBeInTheDocument()
+  })
+
+  it('removes the pending skeleton once the artifact starts streaming', () => {
+    render(
+      wrap(
+        <PriorAuthChatPanel
+          {...baseProps}
+          isProcessing
+          messages={[
+            { id: 'u1', role: 'user', content: 'knee MRI' } as any,
+            { id: 'a1', role: 'assistant', content: '{"title":' } as any,
+          ]}
+        />
+      )
+    )
+    expect(screen.queryByTestId('pending-skeleton')).toBeNull()
+  })
+
+  it('does not show the pending skeleton when idle or restoring', () => {
+    const { rerender } = render(
+      wrap(
+        <PriorAuthChatPanel
+          {...baseProps}
+          messages={[{ id: 'u1', role: 'user', content: 'knee MRI' } as any]}
+        />
+      )
+    )
+    expect(screen.queryByTestId('pending-skeleton')).toBeNull()
+    // While restoring, the restore skeleton owns the slot.
+    rerender(
+      wrap(
+        <PriorAuthChatPanel
+          {...baseProps}
+          isProcessing
+          isRestoring
+          messages={[{ id: 'u1', role: 'user', content: 'knee MRI' } as any]}
+        />
+      )
+    )
+    expect(screen.queryByTestId('pending-skeleton')).toBeNull()
+    expect(screen.getByTestId('restore-skeleton')).toBeInTheDocument()
+  })
+
   it('submit button calls onSubmit when not processing', async () => {
     const user = userEvent.setup()
     const onSubmit = jest.fn((e?: any) => e?.preventDefault?.())

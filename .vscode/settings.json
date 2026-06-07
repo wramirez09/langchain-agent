@@ -5,5 +5,25 @@
       "**/*.sass",
       "**/*.less",
       "node_modules/@mantine/core/styles.css"
-    ]
+    ],
+    "workbench.colorCustomizations": {
+      "activityBar.activeBackground": "#cf4ddf",
+      "activityBar.background": "#cf4ddf",
+      "activityBar.foreground": "#15202b",
+      "activityBar.inactiveForeground": "#15202b99",
+      "activityBarBadge.background": "#d8c527",
+      "activityBarBadge.foreground": "#15202b",
+      "commandCenter.border": "#e7e7e799",
+      "sash.hoverBorder": "#cf4ddf",
+      "statusBar.background": "#c026d3",
+      "statusBar.foreground": "#e7e7e7",
+      "statusBarItem.hoverBackground": "#cf4ddf",
+      "statusBarItem.remoteBackground": "#c026d3",
+      "statusBarItem.remoteForeground": "#e7e7e7",
+      "titleBar.activeBackground": "#c026d3",
+      "titleBar.activeForeground": "#e7e7e7",
+      "titleBar.inactiveBackground": "#c026d399",
+      "titleBar.inactiveForeground": "#e7e7e799"
+    },
+    "peacock.color": "#c026d3"
   }

@@ -45,6 +45,17 @@ export function PriorAuthChatPanel({
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const messagesContainerRef = useRef<HTMLDivElement>(null);
 
+  // A generation is in flight but the artifact hasn't started streaming yet:
+  // the last message is still the user's request (or an intermediate step).
+  // Show the same skeleton as the restore path so the wait reads identically;
+  // it drops out the moment the assistant message starts streaming in.
+  const lastMessage = messages[messages.length - 1];
+  const awaitingArtifact =
+    isProcessing &&
+    !isRestoring &&
+    messages.length > 0 &&
+    lastMessage?.role !== "assistant";
+
   return (
     <motion.div
       layout
@@ -120,6 +131,11 @@ export function PriorAuthChatPanel({
             })}
             {isRestoring && (
               <div data-testid="restore-skeleton" className="pt-1">
+                <ArtifactSkeleton />
+              </div>
+            )}
+            {awaitingArtifact && (
+              <div data-testid="pending-skeleton" className="pt-1">
                 <ArtifactSkeleton />
               </div>
             )}

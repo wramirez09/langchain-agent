@@ -4,15 +4,7 @@ import { useState } from 'react'
 import dayjs from 'dayjs'
 import relativeTime from 'dayjs/plugin/relativeTime'
 import { toast } from 'sonner'
-import {
-  ArrowLeft,
-  Check,
-  Loader2,
-  Pencil,
-  Pin,
-  Trash2,
-  X,
-} from 'lucide-react'
+import { Loader2, Pin, Trash2 } from 'lucide-react'
 import { Dialog, DialogContent, DialogTitle } from '@/components/ui/dialog'
 import {
   Command,
@@ -29,9 +21,7 @@ import {
   clearAll,
   deleteQuery,
   togglePin,
-  updateQuery,
   MAX_SAVED_QUERIES,
-  type FormFieldsSnapshot,
   type SavedQuery,
 } from '@/lib/savedQueries/db'
 import { type Determination } from '@/lib/priorAuth/artifactSchema'
@@ -47,34 +37,6 @@ const DETERMINATION_BADGE: Record<Determination, string> = {
   not_supported: 'bg-[#fef2f2] border-[#fecaca] text-[#b91c1c]',
 }
 
-/**
- * Editable form-field snapshot, in form order with the form's labels, so edits
- * here map 1:1 onto the Request Details form on re-apply.
- */
-const FORM_FIELD_DEFS: {
-  key: keyof FormFieldsSnapshot
-  label: string
-  multiline?: boolean
-}[] = [
-  { key: 'guidelines', label: 'Guidelines' },
-  { key: 'state', label: 'State' },
-  { key: 'treatment', label: 'Pre-Auth Request' },
-  { key: 'cptCodes', label: 'CPT/HCPCS' },
-  { key: 'diagnosis', label: 'Diagnosis', multiline: true },
-  { key: 'patientHistory', label: 'Patient(s) Medical History', multiline: true },
-  { key: 'relevantHistory', label: 'Relevant Medical History', multiline: true },
-]
-
-const EMPTY_FIELDS: FormFieldsSnapshot = {
-  guidelines: '',
-  state: '',
-  treatment: '',
-  cptCodes: '',
-  diagnosis: '',
-  patientHistory: '',
-  relevantHistory: '',
-}
-
 interface SavedQueriesPaletteProps {
   open: boolean
   onOpenChange: (open: boolean) => void
@@ -88,7 +50,7 @@ interface SavedQueriesPaletteProps {
 /**
  * Command-palette presentation of the saved-queries library: a centered cmdk
  * modal — type to filter, Enter (or click) re-applies, row icons handle
- * pin/edit/delete. Editing swaps the list for an inline edit "page".
+ * pin/delete.
  */
 export function SavedQueriesPalette({
   open,
@@ -100,15 +62,8 @@ export function SavedQueriesPalette({
   const userId = useCurrentUserId()
   const { queries, isLoading } = useSavedQueries(userId)
   const [busyId, setBusyId] = useState<string | null>(null)
-  // Non-null while the edit page is showing for that query.
-  const [editing, setEditing] = useState<SavedQuery | null>(null)
 
   const atCapacity = queries.length >= MAX_SAVED_QUERIES
-
-  const handleOpenChange = (next: boolean) => {
-    if (!next) setEditing(null)
-    onOpenChange(next)
-  }
 
   const handleDelete = async (id: string) => {
     setBusyId(id)
@@ -144,11 +99,11 @@ export function SavedQueriesPalette({
   }
 
   return (
-    <Dialog open={open} onOpenChange={handleOpenChange}>
+    <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="top-[18%] max-w-2xl translate-y-0 gap-0 overflow-hidden rounded-2xl border border-gray-200 p-0">
         <DialogTitle className="sr-only">Saved Queries</DialogTitle>
 
-        {pendingSave && !editing ? (
+        {pendingSave ? (
           <div className="flex items-center justify-between gap-3 border-b border-amber-200 bg-[#fff8ec] px-4 py-2.5">
             <p className="text-xs text-[#b45309]">
               {atCapacity
@@ -166,72 +121,63 @@ export function SavedQueriesPalette({
           </div>
         ) : null}
 
-        {editing ? (
-          <EditPage
-            q={editing}
-            onBack={() => setEditing(null)}
-            onDone={() => setEditing(null)}
+        <Command className="rounded-2xl border-0 bg-white shadow-none">
+          <CommandInput
+            placeholder="Search saved queries…"
+            className="pr-10 text-sm placeholder:text-gray-400"
           />
-        ) : (
-          <Command className="rounded-2xl border-0 bg-white shadow-none">
-            <CommandInput
-              placeholder="Search saved queries…"
-              className="pr-10 text-sm placeholder:text-gray-400"
-            />
-            <CommandList className="max-h-[420px]">
-              {isLoading ? (
-                <div className="flex items-center justify-center gap-2 py-10 text-sm text-gray-500">
-                  <Loader2 className="h-4 w-4 animate-spin" strokeWidth={1} />
-                  Loading…
-                </div>
-              ) : queries.length === 0 ? (
-                <div className="px-6 py-10 text-center text-sm text-gray-500">
-                  No saved queries yet. Generate a response and click{' '}
-                  <span className="font-medium text-gray-700">Save</span> to
-                  keep it here.
-                </div>
-              ) : (
-                <>
-                  <CommandEmpty className="py-8 text-center text-sm text-gray-500">
-                    No matches.
-                  </CommandEmpty>
-                  <div className="p-1.5">
-                    {queries.map((q) => (
-                      <PaletteRow
-                        key={q.id}
-                        q={q}
-                        busy={busyId === q.id}
-                        onReapply={() => onReapply(q)}
-                        onPin={() => handlePin(q)}
-                        onEdit={() => setEditing(q)}
-                        onDelete={() => handleDelete(q.id)}
-                      />
-                    ))}
-                  </div>
-                </>
-              )}
-            </CommandList>
-
-            <div className="flex items-center justify-between border-t border-gray-100 px-4 py-2.5 text-[11px] text-gray-400">
-              <span className="tabular-nums">
-                {queries.length}/{MAX_SAVED_QUERIES} saved
-              </span>
-              <div className="flex items-center gap-4">
-                {queries.length > 0 ? (
-                  <button
-                    onClick={handleClearAll}
-                    className="font-medium text-gray-400 transition-colors hover:text-red-600"
-                  >
-                    Clear all
-                  </button>
-                ) : null}
-                <span className="hidden sm:inline">
-                  ↵ re-apply · esc close
-                </span>
+          <CommandList className="max-h-[420px]">
+            {isLoading ? (
+              <div className="flex items-center justify-center gap-2 py-10 text-sm text-gray-500">
+                <Loader2 className="h-4 w-4 animate-spin" strokeWidth={1} />
+                Loading…
               </div>
+            ) : queries.length === 0 ? (
+              <div className="px-6 py-10 text-center text-sm text-gray-500">
+                No saved queries yet. Generate a response and click{' '}
+                <span className="font-medium text-gray-700">Save</span> to
+                keep it here.
+              </div>
+            ) : (
+              <>
+                <CommandEmpty className="py-8 text-center text-sm text-gray-500">
+                  No matches.
+                </CommandEmpty>
+                <div className="p-1.5">
+                  {queries.map((q) => (
+                    <PaletteRow
+                      key={q.id}
+                      q={q}
+                      busy={busyId === q.id}
+                      onReapply={() => onReapply(q)}
+                      onPin={() => handlePin(q)}
+                      onDelete={() => handleDelete(q.id)}
+                    />
+                  ))}
+                </div>
+              </>
+            )}
+          </CommandList>
+
+          <div className="flex items-center justify-between border-t border-gray-100 px-4 py-2.5 text-[11px] text-gray-400">
+            <span className="tabular-nums">
+              {queries.length}/{MAX_SAVED_QUERIES} saved
+            </span>
+            <div className="flex items-center gap-4">
+              {queries.length > 0 ? (
+                <button
+                  onClick={handleClearAll}
+                  className="font-medium text-gray-400 transition-colors hover:text-red-600"
+                >
+                  Clear all
+                </button>
+              ) : null}
+              <span className="hidden sm:inline">
+                ↵ re-apply · esc close
+              </span>
             </div>
-          </Command>
-        )}
+          </div>
+        </Command>
       </DialogContent>
     </Dialog>
   )
@@ -242,14 +188,12 @@ function PaletteRow({
   busy,
   onReapply,
   onPin,
-  onEdit,
   onDelete,
 }: {
   q: SavedQuery
   busy: boolean
   onReapply: () => void
   onPin: () => void
-  onEdit: () => void
   onDelete: () => void
 }) {
   // Action buttons live inside the cmdk item; stop propagation so clicking
@@ -312,19 +256,19 @@ function PaletteRow({
           <span className="truncate text-sm font-semibold text-gray-900">
             {q.title}
           </span>
-          {q.determination ? (
-            <span
-              title={q.determinationLabel ?? q.determination}
-              className={cn(
-                'shrink-0 truncate rounded-full border px-2 py-0.5 text-[10px] font-semibold',
-                DETERMINATION_BADGE[q.determination] ??
-                  'border-gray-200 bg-gray-50 text-gray-600',
-              )}
-            >
-              {q.determinationLabel ?? q.determination}
-            </span>
-          ) : null}
         </div>
+        {q.determination ? (
+          <span
+            title={q.determinationLabel ?? q.determination}
+            className={cn(
+              'mt-1 inline-block max-w-full truncate rounded-full border px-2 py-0.5 text-[10px] font-semibold',
+              DETERMINATION_BADGE[q.determination] ??
+                'border-gray-200 bg-gray-50 text-gray-600',
+            )}
+          >
+            {q.determinationLabel ?? q.determination}
+          </span>
+        ) : null}
         {detail ? (
           <p className="mt-1 truncate text-xs leading-snug text-gray-600">
             {detail}
@@ -375,15 +319,6 @@ function PaletteRow({
         </button>
         <button
           onMouseDown={(e) => e.preventDefault()}
-          onClick={action(onEdit)}
-          aria-label="Edit saved query"
-          title="Edit"
-          className="grid h-7 w-7 place-items-center rounded-md text-gray-400 transition-colors hover:text-blue-600"
-        >
-          <Pencil className="h-3.5 w-3.5" strokeWidth={1} />
-        </button>
-        <button
-          onMouseDown={(e) => e.preventDefault()}
           onClick={action(onDelete)}
           disabled={busy}
           aria-label="Delete saved query"
@@ -398,132 +333,5 @@ function PaletteRow({
         </button>
       </div>
     </CommandItem>
-  )
-}
-
-function EditPage({
-  q,
-  onBack,
-  onDone,
-}: {
-  q: SavedQuery
-  onBack: () => void
-  onDone: () => void
-}) {
-  const [draftTitle, setDraftTitle] = useState(q.title)
-  const [draftFields, setDraftFields] = useState<FormFieldsSnapshot>({
-    ...EMPTY_FIELDS,
-    ...q.formFields,
-  })
-  const [working, setWorking] = useState(false)
-
-  const commitEdit = async () => {
-    setWorking(true)
-    try {
-      await updateQuery(q.id, {
-        title: draftTitle.trim() || q.title,
-        formFields: { ...draftFields },
-      })
-      onDone()
-    } catch (e) {
-      toast.error('Could not save changes', {
-        description: (e as Error)?.message,
-      })
-    } finally {
-      setWorking(false)
-    }
-  }
-
-  const onFieldKeyDown = (e: React.KeyboardEvent, allowEnter = false) => {
-    if (e.key === 'Enter' && !allowEnter) commitEdit()
-    if (e.key === 'Escape') {
-      e.stopPropagation()
-      onBack()
-    }
-  }
-
-  return (
-    <div className="flex flex-col">
-      <div className="flex items-center gap-2 border-b border-gray-100 px-3 py-3">
-        <button
-          onClick={onBack}
-          aria-label="Back to saved queries"
-          className="grid h-7 w-7 place-items-center rounded-md text-gray-400 transition-colors hover:text-gray-700"
-        >
-          <ArrowLeft className="h-4 w-4" strokeWidth={1} />
-        </button>
-        <h3 className="text-sm font-semibold text-gray-900">
-          Edit saved query
-        </h3>
-      </div>
-
-      <div className="max-h-[420px] space-y-2.5 overflow-y-auto px-4 py-3">
-        <div>
-          <label className="mb-1 block text-[10px] font-medium uppercase tracking-wide text-gray-400">
-            Title
-          </label>
-          <input
-            autoFocus
-            value={draftTitle}
-            onChange={(e) => setDraftTitle(e.target.value)}
-            onKeyDown={(e) => onFieldKeyDown(e)}
-            className="w-full rounded-md border border-gray-300 px-2 py-1 text-xs text-gray-700 focus:border-blue-400 focus:outline-none"
-          />
-        </div>
-        {FORM_FIELD_DEFS.map(({ key, label, multiline }) => (
-          <div key={key}>
-            <label className="mb-1 block text-[10px] font-medium uppercase tracking-wide text-gray-400">
-              {label}
-            </label>
-            {multiline ? (
-              <textarea
-                rows={2}
-                value={draftFields[key]}
-                onChange={(e) =>
-                  setDraftFields((f) => ({ ...f, [key]: e.target.value }))
-                }
-                onKeyDown={(e) => onFieldKeyDown(e, true)}
-                className="w-full resize-y rounded-md border border-gray-300 px-2 py-1 text-xs text-gray-700 focus:border-blue-400 focus:outline-none"
-              />
-            ) : (
-              <input
-                value={draftFields[key]}
-                onChange={(e) =>
-                  setDraftFields((f) => ({ ...f, [key]: e.target.value }))
-                }
-                onKeyDown={(e) => onFieldKeyDown(e)}
-                className="w-full rounded-md border border-gray-300 px-2 py-1 text-xs text-gray-700 focus:border-blue-400 focus:outline-none"
-              />
-            )}
-          </div>
-        ))}
-      </div>
-
-      <div className="flex items-center justify-end gap-1.5 border-t border-gray-100 px-4 py-2.5">
-        <Button
-          size="sm"
-          variant="ghost"
-          onClick={onBack}
-          disabled={working}
-          className="h-7 px-2 text-xs text-gray-500 hover:text-gray-700"
-        >
-          <X className="h-3.5 w-3.5" strokeWidth={1} />
-          Cancel
-        </Button>
-        <Button
-          size="sm"
-          onClick={commitEdit}
-          disabled={working}
-          className="h-7 px-2.5 text-xs"
-        >
-          {working ? (
-            <Loader2 className="h-3.5 w-3.5 animate-spin" strokeWidth={1} />
-          ) : (
-            <Check className="h-3.5 w-3.5" strokeWidth={1} />
-          )}
-          Save
-        </Button>
-      </div>
-    </div>
   )
 }

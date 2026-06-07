@@ -289,20 +289,6 @@ export function deleteQuery(id: string): Promise<void> {
   return getDb().savedQueries.delete(id)
 }
 
-/**
- * Update the title and/or form-field snapshot of a saved query. Edited fields
- * flow back into the form when the query is re-applied (form-origin saves).
- */
-export async function updateQuery(
-  id: string,
-  changes: { title?: string; formFields?: FormFieldsSnapshot },
-): Promise<void> {
-  const patch: Partial<SavedQuery> = { updatedAt: Date.now() }
-  if (changes.title !== undefined) patch.title = changes.title.trim()
-  if (changes.formFields) patch.formFields = { ...changes.formFields }
-  await getDb().savedQueries.update(id, patch)
-}
-
 /** Pin/unpin a saved query (pinned rows float to the top of the list). */
 export async function togglePin(id: string, pinned: boolean): Promise<void> {
   await getDb().savedQueries.update(id, { pinned, updatedAt: Date.now() })

@@ -10,7 +10,6 @@ jest.mock('@/lib/savedQueries/db', () => ({
   ...jest.requireActual('@/lib/savedQueries/db'),
   deleteQuery: jest.fn().mockResolvedValue(undefined),
   togglePin: jest.fn().mockResolvedValue(undefined),
-  updateQuery: jest.fn().mockResolvedValue(undefined),
   clearAll: jest.fn().mockResolvedValue(undefined),
 }))
 
