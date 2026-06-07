@@ -100,7 +100,7 @@ export function SavedQueriesPalette({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="top-[18%] max-w-2xl translate-y-0 gap-0 overflow-hidden rounded-2xl border border-gray-200 p-0">
+      <DialogContent className="top-[18%] w-[calc(100%-2rem)] max-w-2xl translate-y-0 gap-0 overflow-hidden rounded-2xl border border-gray-200 p-0 sm:w-[calc(100%-3rem)]">
         <DialogTitle className="sr-only">Saved Queries</DialogTitle>
 
         {pendingSave ? (
