@@ -137,7 +137,7 @@ const UploadDocumentsForm: React.FC<{
       {uploading && (
         <div className="absolute inset-0 bg-white/90 backdrop-blur-sm flex items-center justify-center rounded-lg z-10">
           <div className="flex flex-col items-center gap-3">
-            <LoaderCircle className="animate-spin h-10 w-10 text-[#1e7dbf]" />
+            <LoaderCircle className="animate-spin h-10 w-10 text-[#238dd2]" />
             <p className="font-medium text-gray-800">Processing your document</p>
             <p className="text-sm text-gray-500">This may take a moment...</p>
           </div>

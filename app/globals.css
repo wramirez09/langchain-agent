@@ -18,7 +18,8 @@
     --popover: 0 0% 100%;
     --popover-foreground: black;
 
-    --primary: 221.2 83.2% 53.3%;
+    /* Brand accent — the logo color (logo #238DD2 = 204 71% 48%) */
+    --primary: 204 71% 48%;
     --primary-foreground: 210 40% 98%;
 
     --secondary: 210 40% 96.1%;
@@ -35,7 +36,7 @@
 
     --border: 214.3 31.8% 91.4%;
     --input: 214.3 31.8% 91.4%;
-    --ring: 221.2 83.2% 53.3%;
+    --ring: 204 71% 48%;
 
     --radius: 0.5rem;
   }

@@ -443,6 +443,9 @@ export function PriorAuthView({
         setChatMessages(restored);
         setResponseReady(true);
         setIsRestoring(false);
+        // Land on the rendered report. The Output panel mounts fresh, so it
+        // opens scrolled to the top with Request Overview active in the TOC.
+        setActiveFormTab("output");
         toast.success("Query re-applied");
       }, 450);
     },

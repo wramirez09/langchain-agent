@@ -19,6 +19,17 @@ module.exports = {
   			]
   		},
   		colors: {
+  			// Brand blues from the logo (logo-main.svg fill #238DD2,
+  			// hsl 204 71% 48%). 500/600 are the logo color itself, so every
+  			// bg-blue-600 button and text-blue-600 accent app-wide carries
+  			// the brand color; 700 is a darker value of the same hue so
+  			// hover:bg-blue-700 states still read. Lighter pastels (50–400)
+  			// keep the Tailwind defaults.
+  			blue: {
+  				500: '#238dd2',
+  				600: '#238dd2',
+  				700: '#1c70a6'
+  			},
   			border: 'hsl(var(--border))',
   			input: 'hsl(var(--input))',
   			ring: 'hsl(var(--ring))',

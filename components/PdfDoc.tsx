@@ -47,7 +47,7 @@ const styles = StyleSheet.create({
     marginBottom: 4,
   },
   userMessage: {
-    color: '#1e7dbf',
+    color: '#238dd2',
   },
   aiMessage: {
     color: '#333',

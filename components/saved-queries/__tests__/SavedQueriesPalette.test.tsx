@@ -48,10 +48,17 @@ const fixtures = [
     updatedAt: Date.now() - 86_400_000,
     title: 'ACDF c5-c6',
     origin: 'form' as const,
-    formFields: { ...fields, treatment: 'ACDF', diagnosis: 'radiculopathy' },
+    formFields: {
+      ...fields,
+      treatment: 'ACDF',
+      diagnosis: 'radiculopathy',
+      state: 'Illinois',
+      cptCodes: '22551',
+    },
     chatMessages: [],
     determination: 'meets_criteria' as const,
     determinationLabel: 'Meets criteria',
+    guidelineBasis: 'medicare' as const,
     pinned: true,
   },
   {
@@ -63,6 +70,7 @@ const fixtures = [
     origin: 'chat' as const,
     formFields: { ...fields },
     chatMessages: [],
+    userPreview: 'Does knee arthroscopy need prior auth?',
   },
 ]
 
@@ -85,6 +93,25 @@ describe('SavedQueriesPalette', () => {
     expect(screen.getByText('Meets criteria')).toBeInTheDocument()
     expect(
       screen.getByText(`${fixtures.length}/${MAX_SAVED_QUERIES} saved`)
+    ).toBeInTheDocument()
+  })
+
+  it('shows request details and meta facts on each row', () => {
+    render(
+      <SavedQueriesPalette
+        open
+        onOpenChange={() => {}}
+        onReapply={() => {}}
+      />
+    )
+    // Form save: treatment — diagnosis detail line + guidelines/state/CPT facts.
+    expect(screen.getByText('ACDF — radiculopathy')).toBeInTheDocument()
+    expect(
+      screen.getByText('Medicare · Illinois · CPT 22551')
+    ).toBeInTheDocument()
+    // Chat save: falls back to the saved user message preview.
+    expect(
+      screen.getByText('Does knee arthroscopy need prior auth?')
     ).toBeInTheDocument()
   })
 

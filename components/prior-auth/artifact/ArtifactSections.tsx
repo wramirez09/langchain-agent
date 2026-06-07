@@ -51,7 +51,7 @@ function SectionCard({
     <section id={id} className={cn(CARD, blue && "border-[#dbe6fe]", "scroll-mt-4")}>
       <h3 className={`mb-[18px] flex items-center gap-2.5 text-[11.5px] font-bold uppercase tracking-[0.09em] theme ==== "danger" ? red : text-[#64748b]`}>
         {index != null && (
-          <span className="tabular-nums text-[#2563eb]">
+          <span className="tabular-nums text-[#238dd2]">
             {String(index).padStart(2, "0")}
           </span>
         )}
@@ -66,7 +66,7 @@ const PILL_TONES = {
   amber: "bg-[#fff8ec] border-[#f7e0b0] text-[#b45309]",
   green: "bg-[#edfcf2] border-[#bbf0cb] text-[#15803d]",
   red: "bg-[#fef2f2] border-[#fecaca] text-[#b91c1c]",
-  blue: "bg-[#eff4ff] border-[#dbe6fe] text-[#1d4ed8]",
+  blue: "bg-[#eff4ff] border-[#dbe6fe] text-[#238dd2]",
   neutral: "bg-white border-[#e6eaf2] text-[#475569]",
 } as const;
 
@@ -74,7 +74,7 @@ const DOT_TONES = {
   amber: "bg-[#d97706]",
   green: "bg-[#15803d]",
   red: "bg-[#b91c1c]",
-  blue: "bg-[#2563eb]",
+  blue: "bg-[#238dd2]",
   neutral: "bg-[#94a3b8]",
 } as const;
 
@@ -100,7 +100,7 @@ function StatusPill({
 
 function CodeChip({ code }: { code?: string }) {
   return (
-    <span className="h-fit whitespace-nowrap rounded-md border border-[#dbe6fe] bg-[#eff4ff] px-[7px] py-px text-[12.5px] font-semibold tabular-nums text-[#1d4ed8]">
+    <span className="h-fit whitespace-nowrap rounded-md border border-[#dbe6fe] bg-[#eff4ff] px-[7px] py-px text-[12.5px] font-semibold tabular-nums text-[#238dd2]">
       {code}
     </span>
   );
@@ -111,7 +111,7 @@ const BlueCheckIcon = (
     <circle cx="10" cy="10" r="9" fill="#eff4ff" stroke="#dbe6fe" />
     <path
       d="M6.4 10.3l2.4 2.4L13.8 7.6"
-      stroke="#2563eb"
+      stroke="#238dd2"
       strokeWidth="1"
       strokeLinecap="round"
       strokeLinejoin="round"
@@ -129,7 +129,7 @@ function FindingsList({ items }: { items?: (string | undefined)[] }) {
           key={i}
           className="relative pl-[22px] text-[14.5px] leading-[1.55] text-[#283142]"
         >
-          <span className="absolute left-[2px] top-[8px] h-[7px] w-[7px] rounded-full border-[1.5px] border-[#2563eb] bg-[#dbe6fe]" />
+          <span className="absolute left-[2px] top-[8px] h-[7px] w-[7px] rounded-full border-[1.5px] border-[#238dd2] bg-[#dbe6fe]" />
           {t}
         </li>
       ))}
@@ -388,7 +388,7 @@ function CitationChip({
 }) {
   const label = type ? `${type} ${id}` : id;
   const base =
-    "inline-flex items-center gap-1 rounded-md border border-[#dbe6fe] bg-[#eff4ff] px-2 py-0.5 text-[11.5px] font-semibold tabular-nums text-[#1d4ed8]";
+    "inline-flex items-center gap-1 rounded-md border border-[#dbe6fe] bg-[#eff4ff] px-2 py-0.5 text-[11.5px] font-semibold tabular-nums text-[#238dd2]";
   if (!href) return <span className={base}>{label}</span>;
   return (
     <a
@@ -467,7 +467,7 @@ export function MedicarePoliciesCard({
                           href={src}
                           target="_blank"
                           rel="noopener noreferrer"
-                          className="mt-2.5 inline-flex items-center gap-1 text-xs font-medium text-[#2563eb] hover:underline"
+                          className="mt-2.5 inline-flex items-center gap-1 text-xs font-medium text-[#238dd2] hover:underline"
                         >
                           View on CMS Medicare Coverage Database
                           {ExternalLinkIcon}
@@ -794,7 +794,7 @@ export function DisclaimerBlock({ disclaimer }: { disclaimer?: string }) {
           {disclaimer}
         </p>
       ) : null}
-      <div className="flex items-start gap-2.5 rounded-[11px] border border-[#dbe6fe] bg-[#eff4ff] px-4 py-3.5 text-[13.5px] italic leading-[1.55] text-[#1d4ed8]">
+      <div className="flex items-start gap-2.5 rounded-[11px] border border-[#dbe6fe] bg-[#eff4ff] px-4 py-3.5 text-[13.5px] italic leading-[1.55] text-[#238dd2]">
         <svg
           viewBox="0 0 24 24"
           fill="none"

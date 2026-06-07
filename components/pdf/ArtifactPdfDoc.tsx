@@ -43,7 +43,7 @@ const TONE: Record<Tone, { bg: string; border: string; text: string; dot: string
   green: { bg: "#edfcf2", border: "#bbf0cb", text: "#15803d", dot: "#15803d" },
   amber: { bg: "#fff8ec", border: "#f7e0b0", text: "#b45309", dot: "#d97706" },
   red: { bg: "#fef2f2", border: "#fecaca", text: "#b91c1c", dot: "#b91c1c" },
-  blue: { bg: "#eff4ff", border: "#dbe6fe", text: "#1d4ed8", dot: "#2563eb" },
+  blue: { bg: "#eff4ff", border: "#dbe6fe", text: "#238dd2", dot: "#238dd2" },
   neutral: { bg: "#ffffff", border: "#e6eaf2", text: "#475569", dot: "#94a3b8" },
 };
 
@@ -55,8 +55,8 @@ const CARD_BORDER = "#e6eaf2";
 const DIVIDER = "#edf0f6";
 const SUBCARD_BG = "#f8fafc";
 const SUBCARD_BORDER = "#eef1f7";
-const BLUE = "#2563eb";
-const BLUE_DARK = "#1d4ed8";
+const BLUE = "#238dd2";
+const BLUE_DARK = "#238dd2";
 
 const styles = StyleSheet.create({
   page: {

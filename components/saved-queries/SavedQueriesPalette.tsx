@@ -35,6 +35,7 @@ import {
   type SavedQuery,
 } from '@/lib/savedQueries/db'
 import { type Determination } from '@/lib/priorAuth/artifactSchema'
+import { GUIDELINE_LABEL } from '@/lib/priorAuth/artifactPresentation'
 
 dayjs.extend(relativeTime)
 
@@ -144,7 +145,7 @@ export function SavedQueriesPalette({
 
   return (
     <Dialog open={open} onOpenChange={handleOpenChange}>
-      <DialogContent className="top-[18%] max-w-xl translate-y-0 gap-0 overflow-hidden rounded-2xl border border-gray-200 p-0">
+      <DialogContent className="top-[18%] max-w-2xl translate-y-0 gap-0 overflow-hidden rounded-2xl border border-gray-200 p-0">
         <DialogTitle className="sr-only">Saved Queries</DialogTitle>
 
         {pendingSave && !editing ? (
@@ -260,6 +261,26 @@ function PaletteRow({
       fn()
     }
 
+  // One-line request summary under the title: treatment — diagnosis from the
+  // form snapshot, falling back to the saved user message for chat saves.
+  const detail =
+    [q.formFields?.treatment, q.formFields?.diagnosis]
+      .filter(Boolean)
+      .join(' — ') ||
+    q.userPreview ||
+    ''
+
+  // Compact meta facts; rendered dot-separated after the origin chip.
+  const guidelines =
+    (q.guidelineBasis && GUIDELINE_LABEL[q.guidelineBasis]) ||
+    q.formFields?.guidelines ||
+    ''
+  const facts = [
+    guidelines,
+    q.formFields?.state,
+    q.formFields?.cptCodes && `CPT ${q.formFields.cptCodes}`,
+  ].filter(Boolean) as string[]
+
   return (
     <CommandItem
       // Title + key fields so typing filters across all of them; the id
@@ -269,6 +290,9 @@ function PaletteRow({
         q.formFields?.guidelines,
         q.formFields?.treatment,
         q.formFields?.diagnosis,
+        q.formFields?.cptCodes,
+        q.formFields?.state,
+        q.userPreview,
         q.id,
       ]
         .filter(Boolean)
@@ -301,10 +325,15 @@ function PaletteRow({
             </span>
           ) : null}
         </div>
-        <div className="mt-1 flex items-center gap-2 text-[11px] text-gray-500">
+        {detail ? (
+          <p className="mt-1 truncate text-xs leading-snug text-gray-600">
+            {detail}
+          </p>
+        ) : null}
+        <div className="mt-1 flex min-w-0 items-center gap-2 text-[11px] text-gray-500">
           <span
             className={cn(
-              'rounded-full border px-1.5 py-px text-[10px] font-semibold uppercase tracking-wide',
+              'shrink-0 rounded-full border px-1.5 py-px text-[10px] font-semibold uppercase tracking-wide',
               q.origin === 'form'
                 ? 'border-blue-100 bg-blue-50 text-blue-600'
                 : 'border-gray-200 bg-gray-50 text-gray-500',
@@ -312,7 +341,14 @@ function PaletteRow({
           >
             {q.origin}
           </span>
-          <span>{dayjs(q.createdAt).fromNow()}</span>
+          {facts.length > 0 ? (
+            <span className="truncate text-gray-500">
+              {facts.join(' · ')}
+            </span>
+          ) : null}
+          <span className="shrink-0 text-gray-400">
+            {dayjs(q.createdAt).fromNow()}
+          </span>
         </div>
       </div>
 
