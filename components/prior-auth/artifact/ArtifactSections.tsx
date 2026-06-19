@@ -39,6 +39,7 @@ function SectionCard({
   title,
   blue,
   children,
+  theme = "neutral",
 }: {
   id?: string;
   index?: number;
@@ -49,9 +50,9 @@ function SectionCard({
 }) {
   return (
     <section id={id} className={cn(CARD, blue && "border-[#dbe6fe]", "scroll-mt-4")}>
-      <h3 className={`mb-[18px] flex items-center gap-2.5 text-[11.5px] font-bold uppercase tracking-[0.09em] theme ==== "danger" ? red : text-[#64748b]`}>
+      <h3 className={`mb-[18px] flex items-center gap-2.5 text-[11.5px] font-bold uppercase tracking-[0.09em] ${theme === "danger" ? "text-[#dc2626]" : theme === "success" ? "text-[#15803d]" : "text-[#64748b]"}`}>
         {index != null && (
-          <span className="tabular-nums text-[#238dd2]">
+          <span className={cn("tabular-nums", theme === "danger" || theme === "success" ? "text-[#0f172a]" : "text-[#238dd2]")}>
             {String(index).padStart(2, "0")}
           </span>
         )}
@@ -119,9 +120,19 @@ const BlueCheckIcon = (
   </svg>
 );
 
-/** Blue-ring bullet list (key findings, limitations). */
-function FindingsList({ items }: { items?: (string | undefined)[] }) {
+/** Ring-bullet list (key findings, limitations). Defaults to blue rings; `tone="danger"` renders red rings to match the danger header. */
+function FindingsList({
+  items,
+  tone = "blue",
+}: {
+  items?: (string | undefined)[];
+  tone?: "blue" | "danger";
+}) {
   const list = (items ?? []).filter(Boolean);
+  const ring =
+    tone === "danger"
+      ? "border-[#dc2626] bg-[#fee2e2]"
+      : "border-[#238dd2] bg-[#dbe6fe]";
   return (
     <ul className="mt-1.5 flex flex-col gap-[11px] pl-0 list-none">
       {list.map((t, i) => (
@@ -129,7 +140,9 @@ function FindingsList({ items }: { items?: (string | undefined)[] }) {
           key={i}
           className="relative pl-[22px] text-[14.5px] leading-[1.55] text-[#283142]"
         >
-          <span className="absolute left-[2px] top-[8px] h-[7px] w-[7px] rounded-full border-[1.5px] border-[#238dd2] bg-[#dbe6fe]" />
+          <span
+            className={`absolute left-[2px] top-[8px] h-[7px] w-[7px] rounded-full border-[1.5px] ${ring}`}
+          />
           {t}
         </li>
       ))}
@@ -659,7 +672,7 @@ export function DocumentationCard({
   const interactive = Boolean(messageId && docChecks);
   const list = (groups ?? []).filter(Boolean);
   return (
-    <SectionCard id={id} index={index} title="Required Documentation">
+    <SectionCard id={id} index={index} title="Required Documentation" theme="success">
       <div className="flex flex-col gap-[22px]">
         {list.map((g, gi) => {
           const items = (g?.items ?? []).filter(Boolean);
@@ -683,16 +696,16 @@ export function DocumentationCard({
                         type="checkbox"
                         {...(interactive
                           ? {
-                              checked: provided,
-                              onChange: (
-                                e: React.ChangeEvent<HTMLInputElement>,
-                              ) =>
-                                docChecks!.setDocCheck(
-                                  messageId!,
-                                  key,
-                                  e.target.checked,
-                                ),
-                            }
+                            checked: provided,
+                            onChange: (
+                              e: React.ChangeEvent<HTMLInputElement>,
+                            ) =>
+                              docChecks!.setDocCheck(
+                                messageId!,
+                                key,
+                                e.target.checked,
+                              ),
+                          }
                           : { defaultChecked: provided })}
                         aria-label={provided ? "Provided" : "Not in record"}
                         className="mt-0.5 h-4 w-4 flex-none cursor-pointer rounded border-[#cbd5e1] accent-[#15803d]"
@@ -732,7 +745,7 @@ export function LimitationsCard({
 }) {
   return (
     <SectionCard id={id} index={index} title="Limitations & Exclusions" theme="danger">
-      <FindingsList items={items} />
+      <FindingsList items={items} tone="danger" />
     </SectionCard>
   );
 }

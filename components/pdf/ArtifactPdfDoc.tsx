@@ -246,6 +246,16 @@ const styles = StyleSheet.create({
     marginTop: 3,
     marginRight: 8,
   },
+  bulletRingDanger: {
+    width: 6,
+    height: 6,
+    borderRadius: 999,
+    borderWidth: 1.2,
+    borderColor: "#dc2626",
+    backgroundColor: "#fee2e2",
+    marginTop: 3,
+    marginRight: 8,
+  },
   bulletText: {
     flex: 1,
     fontSize: 9.5,
@@ -503,22 +513,39 @@ function SectionCard({
   index,
   title,
   blue,
+  danger,
+  success,
   children,
 }: {
   index?: number;
   title: string;
   blue?: boolean;
+  danger?: boolean;
+  success?: boolean;
   children: React.ReactNode;
 }) {
   return (
     <View style={[styles.card, blue ? { borderColor: TONE.blue.border } : {}]}>
       <View style={styles.cardTitleRow} minPresenceAhead={40}>
         {index != null ? (
-          <Text style={styles.cardTitleIndex}>
+          <Text
+            style={[
+              styles.cardTitleIndex,
+              danger || success ? { color: INK } : {},
+            ]}
+          >
             {String(index).padStart(2, "0")}
           </Text>
         ) : null}
-        <Text style={styles.cardTitle}>{title.toUpperCase()}</Text>
+        <Text
+          style={[
+            styles.cardTitle,
+            danger ? { color: "#dc2626" } : {},
+            success ? { color: TONE.green.text } : {},
+          ]}
+        >
+          {title.toUpperCase()}
+        </Text>
       </View>
       {children}
     </View>
@@ -544,14 +571,22 @@ function Field({
   );
 }
 
-/** Blue-ring bullet list (key findings, limitations). */
-function RingBulletList({ items }: { items?: (string | undefined)[] }) {
+/** Ring-bullet list (key findings, limitations). Defaults to blue rings; `tone="danger"` renders red rings to match the danger header. */
+function RingBulletList({
+  items,
+  tone = "blue",
+}: {
+  items?: (string | undefined)[];
+  tone?: "blue" | "danger";
+}) {
   const list = (items ?? []).filter(Boolean);
+  const ringStyle =
+    tone === "danger" ? styles.bulletRingDanger : styles.bulletRing;
   return (
     <View>
       {list.map((t, i) => (
         <View key={i} style={styles.bulletRow} wrap={false}>
-          <View style={styles.bulletRing} />
+          <View style={ringStyle} />
           <Text style={styles.bulletText}>{t}</Text>
         </View>
       ))}
@@ -891,11 +926,11 @@ function CriteriaSection({
             i === 0
               ? { paddingBottom: 8 }
               : {
-                  borderTopWidth: 1,
-                  borderTopColor: DIVIDER,
-                  paddingTop: 8,
-                  paddingBottom: 8,
-                }
+                borderTopWidth: 1,
+                borderTopColor: DIVIDER,
+                paddingTop: 8,
+                paddingBottom: 8,
+              }
           }
         >
           <CriterionBlock c={c} />
@@ -991,7 +1026,7 @@ function DocumentationSection({
 }) {
   const list = (groups ?? []).filter(Boolean);
   return (
-    <SectionCard index={index} title="Required Documentation">
+    <SectionCard index={index} title="Required Documentation" success>
       {list.map((g, gi) => {
         const items = (g?.items ?? []).filter(Boolean);
         return (
@@ -1090,7 +1125,7 @@ const ArtifactPdfDocument: React.FC<ArtifactPdfDocumentProps> = ({
   ));
   add(
     has(data.requestOverview?.medicalHistory) ||
-      has(data.requestOverview?.keyFindings),
+    has(data.requestOverview?.keyFindings),
     (i) => (
       <ClinicalContextSection key="context" index={i} ov={data.requestOverview} />
     ),
@@ -1128,8 +1163,8 @@ const ArtifactPdfDocument: React.FC<ArtifactPdfDocumentProps> = ({
     />
   ));
   add(has(data.limitations), (i) => (
-    <SectionCard key="limitations" index={i} title="Limitations & Exclusions">
-      <RingBulletList items={data.limitations} />
+    <SectionCard key="limitations" index={i} title="Limitations & Exclusions" danger>
+      <RingBulletList items={data.limitations} tone="danger" />
     </SectionCard>
   ));
   add(has(data.summary), (i) => (
