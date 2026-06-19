@@ -28,6 +28,11 @@ import {
   policySourceUrl,
 } from "@/lib/priorAuth/artifactPresentation";
 import { logoBase64 } from "./logo";
+import {
+  pdfSectionTitleColor,
+  pdfSectionIndexColor,
+  pdfRingColors,
+} from "./pdfTheme";
 
 type P<T> = DeepPartial<T>;
 
@@ -241,8 +246,8 @@ const styles = StyleSheet.create({
     height: 6,
     borderRadius: 999,
     borderWidth: 1.2,
-    borderColor: BLUE,
-    backgroundColor: TONE.blue.border,
+    borderColor: pdfRingColors("blue").border,
+    backgroundColor: pdfRingColors("blue").background,
     marginTop: 3,
     marginRight: 8,
   },
@@ -251,8 +256,8 @@ const styles = StyleSheet.create({
     height: 6,
     borderRadius: 999,
     borderWidth: 1.2,
-    borderColor: "#dc2626",
-    backgroundColor: "#fee2e2",
+    borderColor: pdfRingColors("danger").border,
+    backgroundColor: pdfRingColors("danger").background,
     marginTop: 3,
     marginRight: 8,
   },
@@ -531,7 +536,7 @@ function SectionCard({
           <Text
             style={[
               styles.cardTitleIndex,
-              danger || success ? { color: INK } : {},
+              { color: pdfSectionIndexColor({ danger, success }) },
             ]}
           >
             {String(index).padStart(2, "0")}
@@ -540,8 +545,7 @@ function SectionCard({
         <Text
           style={[
             styles.cardTitle,
-            danger ? { color: "#dc2626" } : {},
-            success ? { color: TONE.green.text } : {},
+            { color: pdfSectionTitleColor({ danger, success }) },
           ]}
         >
           {title.toUpperCase()}
