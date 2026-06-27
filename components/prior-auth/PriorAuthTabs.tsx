@@ -1,5 +1,6 @@
 "use client";
 
+import { Bookmark } from "lucide-react";
 import { cn } from "@/utils/cn";
 import { usePriorAuthUi } from "@/components/providers/PriorAuthProvider";
 
@@ -9,7 +10,7 @@ interface PriorAuthTabsProps {
 }
 
 export function PriorAuthTabs({ isLayoutSwapped, setIsLayoutSwapped }: PriorAuthTabsProps) {
-  const { activeFormTab, setActiveFormTab } = usePriorAuthUi();
+  const { activeFormTab, setActiveFormTab, setSavedSheetOpen } = usePriorAuthUi();
 
   return (
     <div className="px-4 md:px-6 pt- pb-0 flex-shrink-0">
@@ -54,6 +55,15 @@ export function PriorAuthTabs({ isLayoutSwapped, setIsLayoutSwapped }: PriorAuth
         </div>
 
         <div className="flex items-center gap-2 pb-3">
+          <button
+            onClick={() => setSavedSheetOpen(true)}
+            className="flex items-center gap-2 px-3 py-1.5 mt-2 bg-white border border-gray-200 rounded-lg shadow-sm hover:bg-gray-50 transition-all duration-200"
+            title="Saved"
+            aria-label="Saved"
+          >
+            <Bookmark size={16} strokeWidth={1.7} className="shrink-0 text-gray-700" />
+            <span className="text-xs font-medium text-gray-700">Saved</span>
+          </button>
           <button
             onClick={() => setIsLayoutSwapped(!isLayoutSwapped)}
             className="hidden md:flex items-center gap-2.5 px-3 py-1.5 mt-2 bg-white border border-gray-200 rounded-lg shadow-sm hover:bg-gray-50 transition-all duration-200 group"

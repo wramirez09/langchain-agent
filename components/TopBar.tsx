@@ -1,5 +1,6 @@
 'use client';
 import Image from "next/image";
+import Link from "next/link";
 import logo from "@/public/images/ndLogo.png";
 import * as React from 'react';
 import { Menu } from 'lucide-react';
@@ -80,22 +81,21 @@ const TopBar: React.FC = () => {
         )}
       </div>
 
-      {/* Center — logo stacked over the wordmark, always centered */}
-      <div className="flex flex-col items-center justify-center gap-2">
+      {/* Center — logo + wordmark; links to the home dashboard when signed in,
+          otherwise to the public welcome page. */}
+      <Link
+        href={isLoggedIn ? "/agents" : "/"}
+        aria-label={isLoggedIn ? "Go to home" : "Go to welcome page"}
+        className="flex items-center justify-center gap-2"
+      >
         <Image src={logo} alt="NoteDoctor.ai Logo" className="h-8 w-auto" />
-        <span className="text-md font-bold text-gray-800">
-          NoteDoctor<span className="text-primary">.Ai</span>
-        </span>
-      </div>
+        <span className="text-md font-bold text-gray-800">NoteDoctorAi</span>
+      </Link>
 
       {/* Right — user info */}
       <div className="flex-1 flex items-center justify-end">
         {isLoggedIn && (
           <div className="flex items-center gap-3">
-            <div className="hidden md:flex flex-col text-right">
-              <span className="text-sm font-medium text-gray-700">{displayName}</span>
-              <span className="text-xs text-gray-500">{displayEmail}</span>
-            </div>
             <div className="w-9 h-9 bg-blue-600 rounded-full flex items-center justify-center flex-shrink-0">
               <span className="text-sm font-semibold text-white">{initials || 'U'}</span>
             </div>

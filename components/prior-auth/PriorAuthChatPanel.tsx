@@ -104,7 +104,7 @@ export function PriorAuthChatPanel({
         {messages.length === 0 && !isRestoring ? (
           <div className="flex flex-col items-center justify-center h-full text-center px-4 py-8">
             <div className="size-10 bg-blue-100 rounded-full flex items-center justify-center mb-3">
-              <span className="text-sm font-bold text-blue-600 p-3">NoteDoctor.Ai</span>
+              <span className="text-sm font-bold text-blue-600 p-3">NoteDoctorAi</span>
             </div>
             <p className="text-md font-medium text-gray-700 mb-1">
               Hello! I&apos;m here to help you with your prior authorization request.

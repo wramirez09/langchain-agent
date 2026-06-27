@@ -3,26 +3,19 @@ import {
   FileText,
   FileDown,
   LogOut,
-  CreditCard,
   Scale,
   Shield,
   Mail,
   Pin,
-  Bookmark,
   ChevronRight,
 } from 'lucide-react';
 import { cn } from '@/utils/cn';
 import { createClient } from '@/utils/client';
 import { useRouter } from 'next/navigation';
 import { useMobileSidebar } from '@/components/providers/MobileSidebarProvider';
-import {
-  usePriorAuthChat,
-  usePriorAuthUi,
-} from '@/components/providers/PriorAuthProvider';
+import { usePriorAuthChat } from '@/components/providers/PriorAuthProvider';
 import { useEffect, useState } from 'react';
 import Link from 'next/link';
-import Image from 'next/image';
-import logoMark from '@/public/images/logo-main.svg';
 
 export type AppView = 'auth' | 'upload' | 'export';
 
@@ -32,7 +25,7 @@ interface AppSidebarProps {
 }
 
 const navItems: { id: AppView; icon: React.ElementType; label: string }[] = [
-  { id: 'auth',   icon: FileText, label: 'Requests' },
+  { id: 'auth', icon: FileText, label: 'Requests' },
   // { id: 'upload', icon: Upload,   label: 'Upload File' },
   { id: 'export', icon: FileDown, label: 'Export' },
 ];
@@ -73,8 +66,6 @@ export function AppSidebar({ activeView, onViewChange }: AppSidebarProps) {
   // lifecycle. Driving the gate from a single explicit latch avoids the
   // pitfalls of inferring "done" from message contents or useChat.isLoading.
   const hasResponse = responseReady;
-  const { setSavedSheetOpen } = usePriorAuthUi();
-  const [billingLoading, setBillingLoading] = useState(false);
 
   // Desktop fly-out: hovering (or keyboard focus inside) floats the rail open
   // over the content; the pin toggle locks it open as a static sidebar.
@@ -112,21 +103,16 @@ export function AppSidebar({ activeView, onViewChange }: AppSidebarProps) {
     collapseFlyout();
   };
 
-  // Opens the saved-queries palette (rendered inside PriorAuthView, which
-  // stays mounted). Jump to the Requests view first so re-applying a query
-  // lands on a visible chat.
-  const handleSavedClick = () => {
-    onViewChange('auth');
-    setSavedSheetOpen(true);
-    collapseFlyout();
-  };
-
   const handleBilling = async () => {
+    // Open the tab synchronously (inside the click handler) so the browser
+    // treats it as user-initiated and doesn't block the popup; we redirect it
+    // once the Stripe portal URL resolves.
+    const billingTab = window.open("", "_blank");
     try {
-      setBillingLoading(true);
       const res = await fetch("/api/stripe/billing", { method: "POST" });
       const data = await res.json();
       if (!res.ok) {
+        billingTab?.close();
         if (res.status === 404) {
           alert("No billing account found. Please complete your subscription first.");
         } else if (res.status === 401) {
@@ -136,12 +122,16 @@ export function AppSidebar({ activeView, onViewChange }: AppSidebarProps) {
         }
         return;
       }
-      if (data.url) window.location.href = data.url;
+      if (data.url) {
+        if (billingTab) billingTab.location.href = data.url;
+        else window.open(data.url, "_blank", "noopener,noreferrer");
+      } else {
+        billingTab?.close();
+      }
     } catch (err) {
+      billingTab?.close();
       console.error("Portal error:", err);
       alert("Unable to open billing portal. Please try again later.");
-    } finally {
-      setBillingLoading(false);
     }
   };
 
@@ -204,22 +194,6 @@ export function AppSidebar({ activeView, onViewChange }: AppSidebarProps) {
           )}
         >
           <aside className="flyout-rail h-full flex flex-col bg-white border-r border-[#ebedf1] pt-4 px-3 pb-3.5">
-            {/* Brand — real logo mark; wordmark hides when collapsed. px-3
-                keeps the small mark centered on the rail's icon column. */}
-            <div className="flex items-center gap-[11px] px-3 pb-3">
-              <Image
-                src={logoMark}
-                alt="NoteDoctor.Ai"
-                width={22}
-                height={22}
-                className="shrink-0 rounded-md"
-                priority
-                unoptimized
-              />
-              <span className="fb-label text-[17px] font-extrabold tracking-tight text-[#1c2333]">
-                NoteDoctor<span className="text-primary">.Ai</span>
-              </span>
-            </div>
 
             <nav aria-label="Primary" className="flex-1 flex flex-col gap-[3px] overflow-hidden pt-1.5">
               <SectionHead>Workspace</SectionHead>
@@ -257,34 +231,6 @@ export function AppSidebar({ activeView, onViewChange }: AppSidebarProps) {
                   </button>
                 );
               })}
-
-              <button
-                onClick={handleSavedClick}
-                aria-label="Saved"
-                className={cn(rowClass, 'text-[#737b89] hover:bg-[#f4f5f8]')}
-              >
-                <Bookmark size={21} strokeWidth={1.7} className="shrink-0" />
-                <span className="fb-label text-sm font-semibold text-[#3f4654]">
-                  Saved
-                </span>
-              </button>
-
-              <button
-                onClick={handleBilling}
-                disabled={billingLoading}
-                aria-label="Billing"
-                className={cn(
-                  rowClass,
-                  billingLoading
-                    ? 'text-gray-300 cursor-not-allowed'
-                    : 'text-[#15a06b] hover:bg-[#f4f5f8]',
-                )}
-              >
-                <CreditCard size={21} strokeWidth={1.7} className="shrink-0" />
-                <span className="fb-label text-sm font-semibold">
-                  {billingLoading ? 'Loading…' : 'Billing'}
-                </span>
-              </button>
 
               <div className="h-3.5" />
 

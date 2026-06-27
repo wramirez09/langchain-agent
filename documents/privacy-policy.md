@@ -165,9 +165,7 @@ In the event of a data breach that affects your personal information, we will no
 
 For questions or concerns about this Privacy Policy or our data practices, please contact us:
 
-- **Email:** sales@notedoctor.ai
-- **Support:** sales@notedoctor.ai
-
+- **Email:** sales@NoteDoctorAi- **Support:** sales@NoteDoctorAi
 
 ## 16. Consent
 

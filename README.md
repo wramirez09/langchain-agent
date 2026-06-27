@@ -1,5 +1,4 @@
-# NoteDoctor.ai
-
+# NoteDoctorAi
 ## Authorization Readiness Screening for Healthcare Providers
 
 ![NoteDoctor.ai Landing Page](./public/images/og-image.png)

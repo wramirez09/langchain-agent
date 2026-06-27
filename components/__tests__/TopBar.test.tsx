@@ -42,20 +42,23 @@ describe('TopBar', () => {
     mockToggleIsOpen.mockReset()
   })
 
-  it('renders the logo always', async () => {
+  it('renders the logo and wordmark always', async () => {
     mockGetSession.mockResolvedValue({ data: { session: null } })
     render(<TopBar />)
     expect(screen.getByAltText('NoteDoctor.ai Logo')).toBeInTheDocument()
-    // Wordmark is split across spans (".Ai" carries the accent color) — match
-    // on the innermost element whose full text is the wordmark.
-    expect(
-      screen.getByText(
-        (_, el) => el?.tagName === 'SPAN' && el.textContent === 'NoteDoctor.Ai'
-      )
-    ).toBeInTheDocument()
+    expect(screen.getByText('NoteDoctorAi')).toBeInTheDocument()
   })
 
-  it('shows email + computed initials when logged in', async () => {
+  it('brand links to the welcome page when signed out', async () => {
+    mockGetSession.mockResolvedValue({ data: { session: null } })
+    render(<TopBar />)
+    expect(screen.getByRole('link', { name: 'Go to welcome page' })).toHaveAttribute(
+      'href',
+      '/'
+    )
+  })
+
+  it('brand links to home and shows computed initials when logged in', async () => {
     mockGetSession.mockResolvedValue({
       data: { session: { user: { id: 'u1', email: 'will.smith@example.com' } } },
     })
@@ -63,11 +66,11 @@ describe('TopBar', () => {
       data: { full_name: 'Will Smith', email: 'will.smith@example.com' },
     })
     render(<TopBar />)
-    await waitFor(() =>
-      expect(screen.getByText('Will Smith')).toBeInTheDocument()
+    await waitFor(() => expect(screen.getByText('WS')).toBeInTheDocument())
+    expect(screen.getByRole('link', { name: 'Go to home' })).toHaveAttribute(
+      'href',
+      '/agents'
     )
-    expect(screen.getByText('will.smith@example.com')).toBeInTheDocument()
-    expect(screen.getByText('WS')).toBeInTheDocument()
   })
 
   it('hamburger toggles the mobile sidebar', async () => {

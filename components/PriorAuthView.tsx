@@ -493,7 +493,11 @@ export function PriorAuthView({
       <div className="flex-1 overflow-hidden">
         {(activeFormTab === "pre-auth" || activeFormTab === "chat" || activeFormTab === "input") && (
           <LayoutGroup>
-            <div className="h-full flex flex-col md:grid md:grid-cols-2 gap-4 md:gap-6 p-4 md:p-6 overflow-hidden relative">
+            <div
+              className={`h-full flex flex-col md:grid gap-4 md:gap-6 p-4 md:p-6 overflow-hidden relative ${
+                isLayoutSwapped ? "md:grid-cols-[3fr_2fr]" : "md:grid-cols-[2fr_3fr]"
+              }`}
+            >
               <PriorAuthFormPanel
                 guidelinesOptions={guidelinesOptions}
                 isProcessing={isProcessing}
