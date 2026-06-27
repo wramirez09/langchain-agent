@@ -58,15 +58,22 @@ function buildCorsHeaders(req: NextRequest): Record<string, string> {
 /* -------------------- VALIDATION -------------------- */
 // Vercel AI SDK `useChat` sends messages with a `parts` array and an empty
 // `content` string. Accept either shape so the web client isn't rejected.
+//
+// Per-message ceiling is generous: a single agent turn can carry extracted
+// policy/PDF content or a long assistant answer that easily exceeds a few
+// thousand characters. 100k chars (~25k tokens) bounds payload abuse without
+// rejecting legitimate conversation history on follow-up turns.
+const MAX_MESSAGE_CHARS = 100_000;
+
 const MessagePartSchema = z.object({
   type: z.string(),
-  text: z.string().max(10_000).optional(),
+  text: z.string().max(MAX_MESSAGE_CHARS).optional(),
 });
 
 const ChatMessageSchema = z
   .object({
     role: z.enum(["user", "assistant", "system"]),
-    content: z.string().max(10_000).optional(),
+    content: z.string().max(MAX_MESSAGE_CHARS).optional(),
     parts: z.array(MessagePartSchema).max(50).optional(),
   })
   .refine(
@@ -76,8 +83,11 @@ const ChatMessageSchema = z
     { message: "message must have content or parts" },
   );
 
+// A live conversation can accumulate many turns. The cap is a generous abuse
+// bound only; the full history is sent to the LLM, which has ample context
+// window for a normal conversation.
 const RequestBodySchema = z.object({
-  messages: z.array(ChatMessageSchema).min(1).max(50),
+  messages: z.array(ChatMessageSchema).min(1).max(200),
   threadId: z.string().uuid().optional(),
 });
 

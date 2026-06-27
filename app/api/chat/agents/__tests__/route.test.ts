@@ -231,8 +231,8 @@ describe('input validation', () => {
     expect((await res.json()).error).toBe('INVALID_REQUEST_BODY')
   })
 
-  it('rejects more than 50 messages', async () => {
-    const messages = Array.from({ length: 51 }, () => ({
+  it('rejects more than 200 messages', async () => {
+    const messages = Array.from({ length: 201 }, () => ({
       role: 'user',
       content: 'x',
     }))
@@ -241,13 +241,29 @@ describe('input validation', () => {
     expect((await res.json()).error).toBe('INVALID_REQUEST_BODY')
   })
 
-  it('rejects content > 10,000 chars', async () => {
-    const big = 'x'.repeat(10_001)
+  it('rejects content > 100,000 chars', async () => {
+    const big = 'x'.repeat(100_001)
     const res: any = await POST(
       makeReq({ messages: [{ role: 'user', content: big }] }),
     )
     expect(res.status).toBe(400)
     expect((await res.json()).error).toBe('INVALID_REQUEST_BODY')
+  })
+
+  it('accepts a large assistant turn up to 100,000 chars in history', async () => {
+    streamEventsMock.mockReturnValue(eventsFromContent(['ok']))
+    const bigAssistant = 'x'.repeat(100_000)
+    const res = await POST(
+      makeReq({
+        messages: [
+          { role: 'user', content: 'first question' },
+          { role: 'assistant', content: bigAssistant },
+          { role: 'user', content: 'follow-up question' },
+        ],
+      }),
+    )
+    expect(streamEventsMock).toHaveBeenCalled()
+    await consumeStream((res as any).body)
   })
 
   it('rejects non-uuid threadId', async () => {
@@ -276,6 +292,89 @@ describe('input validation', () => {
         threadId: 'aaaaaaaa-bbbb-4ccc-8ddd-eeeeeeeeeee1',
       }),
     )
+    expect(streamEventsMock).toHaveBeenCalled()
+    await consumeStream((res as any).body)
+  })
+})
+
+describe('multi-turn conversation', () => {
+  it('forwards the full user/assistant history to the agent', async () => {
+    streamEventsMock.mockReturnValue(eventsFromContent(['ok']))
+    await POST(
+      makeReq({
+        messages: [
+          { role: 'user', content: 'q1' },
+          { role: 'assistant', content: 'a1' },
+          { role: 'user', content: 'q2' },
+          { role: 'assistant', content: 'a2' },
+          { role: 'user', content: 'q3' },
+        ],
+        threadId: 'aaaaaaaa-bbbb-4ccc-8ddd-eeeeeeeeeee1',
+      }),
+    )
+    const forwarded = streamEventsMock.mock.calls[0][0].messages
+    expect(forwarded).toHaveLength(5)
+    expect(forwarded[0].content).toBe('q1')
+    expect(forwarded[4].content).toBe('q3')
+  })
+
+  it('drops non user/assistant roles before forwarding to the agent', async () => {
+    streamEventsMock.mockReturnValue(eventsFromContent(['ok']))
+    await POST(
+      makeReq({
+        messages: [
+          { role: 'system', content: 'sys' },
+          { role: 'user', content: 'q1' },
+          { role: 'assistant', content: 'a1' },
+          { role: 'user', content: 'q2' },
+        ],
+      }),
+    )
+    const forwarded = streamEventsMock.mock.calls[0][0].messages
+    expect(forwarded).toHaveLength(3)
+    expect(forwarded.map((m: any) => m.content)).toEqual(['q1', 'a1', 'q2'])
+  })
+
+  it('persists the latest user turn, not the first, on a follow-up', async () => {
+    streamEventsMock.mockReturnValue(eventsFromContent(['ok']))
+    const res = await POST(
+      makeReq({
+        messages: [
+          { role: 'user', content: 'first question' },
+          { role: 'assistant', content: 'first answer' },
+          { role: 'user', content: 'latest question' },
+        ],
+        threadId: 'aaaaaaaa-bbbb-4ccc-8ddd-eeeeeeeeeee1',
+      }),
+    )
+    await consumeStream((res as any).body)
+    const userCall = insertMock.mock.calls.find((c) => c[0].role === 'user')!
+    expect(userCall[0].content).toBe('latest question')
+  })
+
+  it('accepts the Vercel useChat parts shape across turns', async () => {
+    streamEventsMock.mockReturnValue(eventsFromContent(['ok']))
+    await POST(
+      makeReq({
+        messages: [
+          { role: 'user', content: '', parts: [{ type: 'text', text: 'q1' }] },
+          { role: 'assistant', content: '', parts: [{ type: 'text', text: 'a1' }] },
+          { role: 'user', content: '', parts: [{ type: 'text', text: 'q2' }] },
+        ],
+      }),
+    )
+    const forwarded = streamEventsMock.mock.calls[0][0].messages
+    expect(forwarded).toHaveLength(3)
+    expect(forwarded.map((m: any) => m.content)).toEqual(['q1', 'a1', 'q2'])
+  })
+
+  it('accepts exactly 200 messages', async () => {
+    streamEventsMock.mockReturnValue(eventsFromContent(['ok']))
+    const messages = Array.from({ length: 200 }, (_, i) => ({
+      role: i % 2 === 0 ? 'user' : 'assistant',
+      content: `m${i}`,
+    }))
+    const res = await POST(makeReq({ messages }))
     expect(streamEventsMock).toHaveBeenCalled()
     await consumeStream((res as any).body)
   })
