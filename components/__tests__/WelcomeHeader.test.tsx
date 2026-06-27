@@ -3,14 +3,14 @@ import { WelcomeHeader } from '../WelcomeHeader'
 
 describe('WelcomeHeader', () => {
   it('renders when visible', () => {
-    render(<WelcomeHeader isVisible={true} onFadeOut={() => {}} />)
-    expect(screen.getByText('NoteDoctor.ai')).toBeInTheDocument()
+    render(<WelcomeHeader isVisible={true} onFadeOut={() => { }} />)
+    expect(screen.getByText('NoteDoctorAI')).toBeInTheDocument()
     expect(screen.getByText(/HIPAA Compliant/)).toBeInTheDocument()
   })
 
   it('returns null when not visible', () => {
     const { container } = render(
-      <WelcomeHeader isVisible={false} onFadeOut={() => {}} />
+      <WelcomeHeader isVisible={false} onFadeOut={() => { }} />
     )
     expect(container.firstChild).toBeNull()
   })

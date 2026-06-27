@@ -2,20 +2,11 @@
 
 import { cn } from '@/utils/cn'
 import { createClient } from '@/utils/client'
-import { Button } from '@/components/ui/button'
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from '@/components/ui/card'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
 import { useState } from 'react'
-import { Container } from 'lucide-react';
 import { SubscribeButton } from './ui/SubscribeButton';
 
 export function SignUpForm({ className, ...props }: React.ComponentPropsWithoutRef<'div'>) {
@@ -61,59 +52,57 @@ export function SignUpForm({ className, ...props }: React.ComponentPropsWithoutR
   }
 
   return (
-    <div className='min-h-screen flex items-center justify-center'>
-      <div className={cn('flex flex-col gap-6 w-full max-w-lg', className)} {...props}>
-        <Card>
-          <CardHeader>
-            <CardTitle className="text-2xl text-dark font-semibold">Sign up</CardTitle>
-            <CardDescription className="text-dark font-semibold">Create a new account</CardDescription>
-          </CardHeader>
-          <CardContent>
-            <form onSubmit={handleSignUp}>
-              <div className="flex flex-col gap-6">
-                <div className="grid gap-2">
-                  <Label htmlFor="name">Displayed User Name</Label>
-                  <Input
-                    id="name"
-                    type="name"
-                    placeholder="Michael Jordan"
-                    required
-                    value={name}
-                    onChange={(e) => setName(e.target.value)}
-                  />
-                </div>
-                <div className="grid gap-2">
-                  <Label htmlFor="email">Email</Label>
-                  <Input
-                    id="email"
-                    type="email"
-                    placeholder="m@example.com"
-                    required
-                    value={email}
-                    onChange={(e) => setEmail(e.target.value)}
-                  />
-                </div>
-
-                {error && <p className="text-sm text-red-500">{error}</p>}
-
-
-                <SubscribeButton
-                  name={name}
-                  email={email}
-                  disabled={!email || isLoading}
-                />
-
-
-              </div>
-              <div className="mt-4 text-center text-sm font-semi-bold">
-                Already have an account?{' '}
-                <Link href="/auth/login" className="underline underline-offset-4">
-                  Login
-                </Link>
-              </div>
-            </form>
-          </CardContent>
-        </Card>
+    <div className={cn('relative space-y-6', className)} {...props}>
+      <form onSubmit={handleSignUp}>
+        <div className="space-y-4">
+          <div className="space-y-2">
+            <Label htmlFor="name" className="text-sm font-medium">
+              Display Name
+            </Label>
+            <Input
+              id="name"
+              type="text"
+              placeholder="Michael Jordan"
+              value={name}
+              onChange={(e) => setName(e.target.value)}
+              disabled={isLoading}
+              required
+            />
+          </div>
+          <div className="space-y-2">
+            <Label htmlFor="email" className="text-sm font-medium">
+              Email
+            </Label>
+            <Input
+              id="email"
+              type="email"
+              placeholder="name@example.com"
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
+              disabled={isLoading}
+              required
+            />
+          </div>
+          {error && (
+            <div className="rounded-md bg-red-50 p-4 text-sm text-red-600">
+              {error}
+            </div>
+          )}
+          <SubscribeButton
+            name={name}
+            email={email}
+            disabled={!email || isLoading}
+          />
+        </div>
+      </form>
+      <div className="text-center text-sm text-dark">
+        Already have an account?{' '}
+        <Link
+          href="/auth/login"
+          className="font-medium text-blue-600 hover:underline"
+        >
+          Sign in
+        </Link>
       </div>
     </div>
   )

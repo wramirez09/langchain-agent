@@ -1,8 +1,8 @@
-# NoteDoctor.AI Subscription Agreement
+# NoteDoctorAiSubscription Agreement
 
 **Last Updated:** April 11, 2026
 
-This Agreement is between you and NOTEDOCTOR.AI LLC ("AI") and describes the terms and conditions under which AI will make available certain Services, and you will be permitted to use those Services. If you register for a free trial of our Service, all applicable terms and conditions of this Agreement will apply. If you have questions about these terms, please email us at sales@NoteDoctorAi
+This Agreement is between you and NoteDoctorAiLLC ("AI") and describes the terms and conditions under which AI will make available certain Services, and you will be permitted to use those Services. If you register for a free trial of our Service, all applicable terms and conditions of this Agreement will apply. If you have questions about these terms, please email us at sales@NoteDoctorAi
 BY ACCEPTING THIS AGREEMENT, EITHER BY CLICKING A BOX INDICATING YOUR ACCEPTANCE OR BY EXECUTING A SALES ORDER THAT REFERENCES THIS AGREEMENT, YOU AGREE TO THESE TERMS AND CONDITIONS. IF YOU ARE ENTERING INTO THIS AGREEMENT ON BEHALF OF A CUSTOMER, YOU REPRESENT THAT YOU HAVE THE AUTHORITY TO BIND THAT CUSTOMER TO THESE TERMS AND CONDITIONS. IF YOU DO NOT HAVE SUCH AUTHORITY OR DO NOT AGREE WITH THESE TERMS AND CONDITIONS, YOU SHOULD NOT ACCEPT THIS AGREEMENT AND YOU MAY NOT USE THE SERVICES. IN THE EVENT YOU REJECT THIS AGREEMENT WITHIN TEN (10) DAYS OF PURCHASE, YOU MAY REQUEST A FULL REFUND OF THE PURCHASE PRICE.
 
 ## DEFINITIONS

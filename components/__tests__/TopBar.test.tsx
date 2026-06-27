@@ -45,7 +45,7 @@ describe('TopBar', () => {
   it('renders the logo and wordmark always', async () => {
     mockGetSession.mockResolvedValue({ data: { session: null } })
     render(<TopBar />)
-    expect(screen.getByAltText('NoteDoctor.ai Logo')).toBeInTheDocument()
+    expect(screen.getByAltText('NoteDoctorAiLogo')).toBeInTheDocument()
     expect(screen.getByText('NoteDoctorAi')).toBeInTheDocument()
   })
 

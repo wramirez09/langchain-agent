@@ -1,9 +1,9 @@
 # NoteDoctorAi
 ## Authorization Readiness Screening for Healthcare Providers
 
-![NoteDoctor.ai Landing Page](./public/images/og-image.png)
+![NoteDoctorAiLanding Page](./public/images/og-image.png)
 
-NoteDoctor.ai is a web application designed to streamline the prior authorization process for healthcare providers. Leveraging intelligent agent development with LangChain, it significantly reduces the administrative burden associated with obtaining necessary approvals from payers like Medicare and Cigna.
+NoteDoctorAiis a web application designed to streamline the prior authorization process for healthcare providers. Leveraging intelligent agent development with LangChain, it significantly reduces the administrative burden associated with obtaining necessary approvals from payers like Medicare and Cigna.
 
 ### Key Features:
 
@@ -19,7 +19,7 @@ NoteDoctor.ai is a web application designed to streamline the prior authorizatio
 
 ### Technology Stack:
 
-NoteDoctor.ai is built with modern, scalable web technologies:
+NoteDoctorAiis built with modern, scalable web technologies:
 
 * **Next.js:** A powerful React framework for building fast, server-rendered, and highly scalable web applications.
 * **LangChain:** Utilized for advanced **agent development**, enabling the application to intelligently interact with various data sources (internal knowledge bases, external APIs, parsed documents) to reason and provide accurate authorization guidance.
@@ -45,7 +45,7 @@ The application functions by accepting details about a patient's service, diagno
 
 **Landing Page**
 
-![NoteDoctor.ai Welcome Screen](./public/images/og-image.png)
+![NoteDoctorAiWelcome Screen](./public/images/og-image.png)
 
 The landing page provides a clean, professional interface with clear calls-to-action for healthcare providers to get started.
 
@@ -61,7 +61,7 @@ The main interface features:
 
 ### Setup and Installation:
 
-To set up NoteDoctor.ai locally, follow these steps:
+To set up NoteDoctorAilocally, follow these steps:
 
 1.  **Clone the Repository:**
     ```bash

@@ -1176,7 +1176,7 @@ const ArtifactPdfDocument: React.FC<ArtifactPdfDocumentProps> = ({
       <Page size="A4" style={styles.page}>
         <View style={styles.brandHeader}>
           <Image src={logoBase64} style={styles.logo} cache={false} />
-          <Text style={styles.brandName}>NoteDoctor.ai</Text>
+          <Text style={styles.brandName}>NoteDoctorAI</Text>
           <Text style={styles.brandDate}>Generated {generatedAt}</Text>
         </View>
 
@@ -1189,7 +1189,7 @@ const ArtifactPdfDocument: React.FC<ArtifactPdfDocumentProps> = ({
         ) : null}
 
         <View style={styles.footer} fixed>
-          <Text style={styles.footerText}>NoteDoctor.ai · Prior Authorization Summary</Text>
+          <Text style={styles.footerText}>NoteDoctorAi· Prior Authorization Summary</Text>
           <Text
             style={styles.footerText}
             render={({ pageNumber, totalPages }) =>

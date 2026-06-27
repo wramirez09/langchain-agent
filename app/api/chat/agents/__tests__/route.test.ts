@@ -54,7 +54,7 @@ jest.mock('../../../../../lib/auth/getUserFromRequest', () => ({
 
 jest.mock('@vercel/functions', () => ({
   waitUntil: (p: Promise<any>) => {
-    void p.catch(() => {})
+    void p.catch(() => { })
   },
 }))
 
@@ -69,15 +69,15 @@ jest.mock('@langchain/langgraph/prebuilt', () => ({
 }))
 
 jest.mock('@/lib/llm', () => ({ llmAgent: () => ({}) }))
-jest.mock('@langchain/community/tools/serpapi', () => ({ SerpAPI: class {} }))
-jest.mock('../tools/NCDCoverageSearchTool', () => ({ NCDCoverageSearchTool: class {} }))
+jest.mock('@langchain/community/tools/serpapi', () => ({ SerpAPI: class { } }))
+jest.mock('../tools/NCDCoverageSearchTool', () => ({ NCDCoverageSearchTool: class { } }))
 jest.mock('../tools/localLcdSearchTool', () => ({ localLcdSearchTool: {} }))
 jest.mock('../tools/localArticleSearchTool', () => ({ localCoverageArticleSearchTool: {} }))
 jest.mock('../tools/policyContentExtractorTool', () => ({ policyContentExtractorTool: {} }))
 jest.mock('../tools/CommercialGuidelineSearchTool', () => ({
   createCommercialGuidelineSearchTool: () => ({}),
 }))
-jest.mock('../tools/fileUploadTool', () => ({ FileUploadTool: class {} }))
+jest.mock('../tools/fileUploadTool', () => ({ FileUploadTool: class { } }))
 jest.mock('../agentPrompt', () => ({ AGENT_SYSTEM_CONTENT: 'sys' }))
 
 jest.mock('ai', () => ({
@@ -132,7 +132,7 @@ async function consumeStream(stream: ReadableStream<Uint8Array>): Promise<string
   const reader = stream.getReader()
   const decoder = new TextDecoder()
   let out = ''
-  for (;;) {
+  for (; ;) {
     const { value, done } = await reader.read()
     if (done) break
     out += decoder.decode(value)
@@ -160,11 +160,11 @@ describe('CORS', () => {
     const res = await POST(
       makeReq(
         { messages: [{ role: 'user', content: 'hi' }] },
-        { origin: 'https://app.notedoctor.ai' },
+        { origin: 'https://app.NoteDoctorAI' },
       ),
     )
     expect(res.headers.get('Access-Control-Allow-Origin')).toBe(
-      'https://app.notedoctor.ai',
+      'https://app.NoteDoctorAI',
     )
     expect(res.headers.get('Vary')).toBe('Origin')
     await consumeStream((res as any).body)
@@ -202,11 +202,11 @@ describe('CORS', () => {
 
   it('OPTIONS from allowed origin returns 200 with matching CORS', async () => {
     const res = await OPTIONS(
-      makeReq(null, { origin: 'https://app.notedoctor.ai' }),
+      makeReq(null, { origin: 'https://app.NoteDoctorAI' }),
     )
     expect(res.status).toBe(200)
     expect(res.headers.get('Access-Control-Allow-Origin')).toBe(
-      'https://app.notedoctor.ai',
+      'https://app.NoteDoctorAI',
     )
     expect(res.headers.get('Access-Control-Allow-Methods')).toBe(
       'POST, OPTIONS',
@@ -403,7 +403,7 @@ describe('error response shape', () => {
 
   it('outer exception returns INTERNAL_ERROR with requestId only', async () => {
     const { getUserFromRequest } = require('../../../../../lib/auth/getUserFromRequest')
-    ;(getUserFromRequest as jest.Mock).mockRejectedValueOnce(new Error('auth fail'))
+      ; (getUserFromRequest as jest.Mock).mockRejectedValueOnce(new Error('auth fail'))
 
     const res: any = await POST(makeReq({ messages: [{ role: 'user', content: 'hi' }] }))
     const json = await res.json()
@@ -456,13 +456,13 @@ describe('POST /api/chat/agents — web (streaming)', () => {
     const res = await POST(
       makeReq(
         { messages: [{ role: 'user', content: 'hi' }] },
-        { origin: 'https://app.notedoctor.ai' },
+        { origin: 'https://app.NoteDoctorAI' },
       ),
     )
 
     expect(res.headers.get('Content-Type')).toBe('text/plain; charset=utf-8')
     expect(res.headers.get('Access-Control-Allow-Origin')).toBe(
-      'https://app.notedoctor.ai',
+      'https://app.NoteDoctorAI',
     )
     expect(res.headers.get('x-thread-id')).toMatch(/[0-9a-f-]{36}/i)
 

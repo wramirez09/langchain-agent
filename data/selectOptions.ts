@@ -33,7 +33,7 @@ export const defaultInsuranceProvidersOptions: SelectOption[] = [
 ];
 
 const allowedEmails = [
-  "miteshp@notedoctor.ai",
+  "miteshp@NoteDoctorAI",
   "wramirez1980@gmail.com",
 
 ];

@@ -1,5 +1,5 @@
 /**
- * NoteDoctor.ai logo as a base64 data URL, shared by every PDF renderer.
+ * NoteDoctorAilogo as a base64 data URL, shared by every PDF renderer.
  * Single source of truth — earlier per-file copies had drifted (the
  * FileExportView copy was truncated mid-base64, producing a broken image).
  */

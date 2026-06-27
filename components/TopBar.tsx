@@ -67,7 +67,7 @@ const TopBar: React.FC = () => {
   }, []);
 
   return (
-    <div className="h-20 bg-white border-b border-gray-200 flex items-center px-4 md:px-6 z-50 flex-shrink-0">
+    <div className="h-16 bg-white border-b border-gray-200 flex items-center px-4 md:px-6 z-50 flex-shrink-0">
       {/* Left — hamburger on mobile, spacer on desktop */}
       <div className="flex-1 flex items-center">
         {isLoggedIn && (
@@ -88,7 +88,7 @@ const TopBar: React.FC = () => {
         aria-label={isLoggedIn ? "Go to home" : "Go to welcome page"}
         className="flex items-center justify-center gap-2"
       >
-        <Image src={logo} alt="NoteDoctor.ai Logo" className="h-8 w-auto" />
+        <Image src={logo} alt="NoteDoctorAiLogo" className="h-8 w-auto" />
         <span className="text-md font-bold text-gray-800">NoteDoctorAi</span>
       </Link>
 

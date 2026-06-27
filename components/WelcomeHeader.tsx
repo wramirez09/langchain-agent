@@ -30,7 +30,7 @@ export function WelcomeHeader({ isVisible, onFadeOut }: WelcomeHeaderProps) {
     >
       <div className="max-w-3xl mx-auto space-y-6">
         <h1 className="text-3xl md:text-4xl font-bold text-gray-900 leading-tight" id="welcome-header-title">
-          Welcome to <span className="text-blue-500">NoteDoctor.ai</span>
+          Welcome to <span className="text-blue-500">NoteDoctorAI</span>
         </h1>
         <p className="text-lg md:text-xl text-gray-600 leading-relaxed max-w-xl mx-auto">
           Structured prior authorization analysis and medical policy lookup that saves time, reduces errors, and ensures compliance.
@@ -51,7 +51,7 @@ export function WelcomeHeader({ isVisible, onFadeOut }: WelcomeHeaderProps) {
         </div>
         <div className="pt-6 border-t border-gray-400">
           <p className="text-sm text-gray-500 italic">
-            Start by asking a question, uploading a document or fill out a form to begin your analysis.<br/><strong>Always verify with payer portal guidelines prior to submission. This analysis is based on publicly available information.</strong>
+            Start by asking a question, uploading a document or fill out a form to begin your analysis.<br /><strong>Always verify with payer portal guidelines prior to submission. This analysis is based on publicly available information.</strong>
           </p>
         </div>
       </div>

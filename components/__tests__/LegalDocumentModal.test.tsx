@@ -29,6 +29,10 @@ describe('LegalDocumentModal', () => {
         onClose={() => {}}
         title="Privacy"
         content="body text"
+        accepted={false}
+        onAcceptedChange={() => {}}
+        checkboxLabel="I agree"
+        checkboxId="agree"
       />
     )
     expect(screen.getByText('Privacy')).toBeInTheDocument()
@@ -42,6 +46,10 @@ describe('LegalDocumentModal', () => {
         onClose={() => {}}
         title="x"
         content="y"
+        accepted={false}
+        onAcceptedChange={() => {}}
+        checkboxLabel="I agree"
+        checkboxId="agree"
       />
     )
     expect(container.firstChild).toBeNull()
@@ -56,6 +64,10 @@ describe('LegalDocumentModal', () => {
         onClose={onClose}
         title="x"
         content="y"
+        accepted={false}
+        onAcceptedChange={() => {}}
+        checkboxLabel="I agree"
+        checkboxId="agree"
       />
     )
     await user.click(screen.getByRole('button', { name: 'Close' }))
@@ -71,6 +83,10 @@ describe('LegalDocumentModal', () => {
         onClose={onClose}
         title="x"
         content="y"
+        accepted={false}
+        onAcceptedChange={() => {}}
+        checkboxLabel="I agree"
+        checkboxId="agree"
       />
     )
     await user.click(screen.getByTestId('close-dialog'))

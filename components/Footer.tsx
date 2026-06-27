@@ -20,10 +20,10 @@ export function Footer() {
       <div className="max-w-7xl mx-auto">
         <div className="flex flex-col sm:flex-row items-center justify-between gap-4">
           <div className="text-xs sm:text-sm text-gray-600">
-            © {currentYear} NoteDoctor.Ai. All rights reserved.
+            © {currentYear} NoteDoctorAi. All rights reserved.
           </div>
 
-          <div className="hidden sm:flex items-center gap-6 text-xs sm:text-sm">
+          <div className="hidden sm:flex items-center gap-6 text-[11px] sm:text-xs">
             <Link
               href="/legal/terms-of-service"
               className="text-blue-600 underline hover:text-blue-900 transition-colors underline-offset-2"
@@ -39,7 +39,7 @@ export function Footer() {
               Privacy Policy
             </Link>
             <a
-              href="mailto:sales@notedoctor.ai"
+              href="mailto:sales@NoteDoctorAI"
               className="text-blue-600 underline hover:text-blue-900 transition-colors underline-offset-2"
             >
               Contact

@@ -9,6 +9,6 @@ export default function robots(): MetadataRoute.Robots {
         disallow: ["/api/", "/protected/", "/pdf/", "/auth/confirm/", "/auth/update-password/"],
       },
     ],
-    sitemap: "https://app.notedoctor.ai/sitemap.xml",
+    sitemap: "https://app.NoteDoctorAI/sitemap.xml",
   };
 }

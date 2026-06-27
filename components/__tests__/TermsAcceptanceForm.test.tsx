@@ -2,15 +2,21 @@ jest.mock('sonner', () => ({
   toast: { error: jest.fn(), success: jest.fn() },
 }))
 jest.mock('../LegalDocumentModal', () => ({
-  LegalDocumentModal: ({ isOpen, title, onScrolledToBottom }: any) =>
+  LegalDocumentModal: ({
+    isOpen,
+    title,
+    accepted,
+    onAcceptedChange,
+    checkboxId,
+  }: any) =>
     isOpen ? (
       <div data-testid={`modal-${title}`}>
-        <button
-          onClick={() => onScrolledToBottom?.()}
-          data-testid={`scroll-${title}`}
-        >
-          scroll
-        </button>
+        <input
+          type="checkbox"
+          id={checkboxId}
+          checked={accepted}
+          onChange={(e) => onAcceptedChange?.(e.target.checked)}
+        />
       </div>
     ) : null,
 }))
@@ -31,10 +37,10 @@ describe('TermsAcceptanceForm', () => {
     expect(btn).toBeDisabled()
   })
 
-  it('checkbox is disabled until docs are scrolled to bottom', () => {
+  it('checkbox lives inside the modal, not the form', () => {
     render(<TermsAcceptanceForm email="a@b" name="A" onAccepted={jest.fn()} />)
-    const checkbox = document.getElementById('terms-agreement') as HTMLInputElement
-    expect(checkbox).toBeDisabled()
+    // Modals are closed initially, so no acceptance checkbox is rendered yet.
+    expect(document.getElementById('terms-agreement')).toBeNull()
   })
 
   it('calls onAccepted on success', async () => {
@@ -45,14 +51,12 @@ describe('TermsAcceptanceForm', () => {
     const onAccepted = jest.fn()
     render(<TermsAcceptanceForm email="a@b" name="A" onAccepted={onAccepted} />)
 
-    // Open and "scroll" each modal so checkboxes enable
+    // Open each modal and check its in-modal acceptance box
     fireEvent.click(screen.getByText('Terms of Service', { selector: 'p' }))
-    fireEvent.click(screen.getByTestId('scroll-Terms of Service'))
-    fireEvent.click(screen.getByText('Privacy Policy', { selector: 'p' }))
-    fireEvent.click(screen.getByTestId('scroll-Privacy Policy'))
-
     fireEvent.click(document.getElementById('terms-agreement')!)
+    fireEvent.click(screen.getByText('Privacy Policy', { selector: 'p' }))
     fireEvent.click(document.getElementById('privacy-agreement')!)
+    fireEvent.click(screen.getByText('AI Subscription Agreement', { selector: 'p' }))
     fireEvent.click(document.getElementById('ai-agreement')!)
 
     fireEvent.click(screen.getByRole('button', { name: /Continue to Payment/ }))
@@ -71,11 +75,10 @@ describe('TermsAcceptanceForm', () => {
     })
     render(<TermsAcceptanceForm email="a@b" name="A" onAccepted={jest.fn()} />)
     fireEvent.click(screen.getByText('Terms of Service', { selector: 'p' }))
-    fireEvent.click(screen.getByTestId('scroll-Terms of Service'))
-    fireEvent.click(screen.getByText('Privacy Policy', { selector: 'p' }))
-    fireEvent.click(screen.getByTestId('scroll-Privacy Policy'))
     fireEvent.click(document.getElementById('terms-agreement')!)
+    fireEvent.click(screen.getByText('Privacy Policy', { selector: 'p' }))
     fireEvent.click(document.getElementById('privacy-agreement')!)
+    fireEvent.click(screen.getByText('AI Subscription Agreement', { selector: 'p' }))
     fireEvent.click(document.getElementById('ai-agreement')!)
     fireEvent.click(screen.getByRole('button', { name: /Continue to Payment/ }))
     await waitFor(() => expect(toast.error).toHaveBeenCalledWith('nope'))

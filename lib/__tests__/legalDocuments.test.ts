@@ -18,7 +18,7 @@ describe('legalDocuments', () => {
     expect(PRIVACY_POLICY).toMatch(/GDPR/)
   })
 
-  it('AI_SUBSCRIPTION_AGREEMENT references NoteDoctor.AI LLC', () => {
+  it('AI_SUBSCRIPTION_AGREEMENT references NoteDoctorAiLLC', () => {
     expect(AI_SUBSCRIPTION_AGREEMENT).toMatch(/NOTEDOCTOR\.AI LLC/)
     expect(AI_SUBSCRIPTION_AGREEMENT).toMatch(/Subscription Agreement/)
   })

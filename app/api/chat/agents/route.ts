@@ -37,7 +37,7 @@ export const maxDuration = 300;
 
 /* -------------------- CORS -------------------- */
 const ALLOWED_ORIGINS = new Set<string>([
-  "https://app.notedoctor.ai",
+  "https://app.NoteDoctorAI",
   "https://preauthproduction-git-dev-center-point-digital.vercel.app",
   ...(process.env.NODE_ENV !== "production"
     ? ["http://localhost:3000", "http://localhost:8081"]
@@ -351,7 +351,7 @@ export async function POST(req: NextRequest) {
         userId: userId!,
         usageType: "orchestrator",
         quantity: 1,
-      }).catch(() => {});
+      }).catch(() => { });
 
       // Get last user + last assistant messages
       const lastUser = [...result.messages]
@@ -409,25 +409,25 @@ export async function POST(req: NextRequest) {
           messages: [
             ...(lastUser
               ? [
-                  {
-                    role: "user",
-                    content:
-                      typeof lastUser.content === "string"
-                        ? lastUser.content
-                        : JSON.stringify(lastUser.content),
-                  },
-                ]
+                {
+                  role: "user",
+                  content:
+                    typeof lastUser.content === "string"
+                      ? lastUser.content
+                      : JSON.stringify(lastUser.content),
+                },
+              ]
               : []),
             ...(lastAssistant
               ? [
-                  {
-                    role: "assistant",
-                    content:
-                      typeof lastAssistant.content === "string"
-                        ? lastAssistant.content
-                        : JSON.stringify(lastAssistant.content),
-                  },
-                ]
+                {
+                  role: "assistant",
+                  content:
+                    typeof lastAssistant.content === "string"
+                      ? lastAssistant.content
+                      : JSON.stringify(lastAssistant.content),
+                },
+              ]
               : []),
           ],
         },
@@ -527,7 +527,7 @@ export async function POST(req: NextRequest) {
               userId: userId!,
               usageType: "orchestrator",
               quantity: 1,
-            }).catch(() => {});
+            }).catch(() => { });
           }
           if (accumulated) {
             try {

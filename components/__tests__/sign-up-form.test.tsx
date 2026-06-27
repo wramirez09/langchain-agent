@@ -21,9 +21,9 @@ import { SignUpForm } from '../sign-up-form'
 describe('SignUpForm', () => {
   it('renders required fields and link to login', () => {
     render(<SignUpForm />)
-    expect(screen.getByLabelText(/Displayed User Name/i)).toBeInTheDocument()
+    expect(screen.getByLabelText(/Display Name/i)).toBeInTheDocument()
     expect(screen.getByLabelText(/Email/i)).toBeInTheDocument()
-    expect(screen.getByText('Login')).toHaveAttribute('href', '/auth/login')
+    expect(screen.getByText('Sign in')).toHaveAttribute('href', '/auth/login')
   })
 
   it('Subscribe is disabled until email is entered', async () => {

@@ -4,11 +4,11 @@ export const TERMS_OF_SERVICE = `# Terms of Service
 
 ## 1. Acceptance of Terms
 
-By accessing or using NoteDoctor.AI (the "Service"), you agree to be bound by these Terms of Service ("Terms"). If you do not agree to these Terms, you may not access or use the Service.
+By accessing or using NoteDoctorAi(the "Service"), you agree to be bound by these Terms of Service ("Terms"). If you do not agree to these Terms, you may not access or use the Service.
 
 ## 2. Description of Service
 
-NoteDoctor.AI provides authorization readiness analysis and documentation review tools for healthcare professionals. The Service assists with prior authorization workflows but does not replace professional medical judgment or guarantee authorization approval.
+NoteDoctorAiprovides authorization readiness analysis and documentation review tools for healthcare professionals. The Service assists with prior authorization workflows but does not replace professional medical judgment or guarantee authorization approval.
 
 ## 3. User Accounts
 
@@ -149,7 +149,7 @@ These Terms are governed by the laws of the United States, without regard to con
 ## 16. Contact Information
 
 For questions about these Terms, please contact us at:
-- Email: [sales@notedoctor.ai](mailto:sales@notedoctor.ai)
+- Email: [sales@NoteDoctorAI](mailto:sales@NoteDoctorAI)
 
 ---
 
@@ -162,7 +162,7 @@ export const PRIVACY_POLICY = `# Privacy Policy
 
 ## 1. Introduction
 
-NoteDoctor.AI ("we," "our," or "us") is committed to protecting your privacy. This Privacy Policy explains how we collect, use, disclose, and safeguard your information when you use our Service.
+NoteDoctorAi("we," "our," or "us") is committed to protecting your privacy. This Privacy Policy explains how we collect, use, disclose, and safeguard your information when you use our Service.
 
 ## 2. Information We Collect
 
@@ -291,7 +291,7 @@ If you are a California resident, you have additional rights under the Californi
 - Right to request deletion of personal information
 - Right to non-discrimination for exercising your rights
 
-To exercise these rights, contact us at [sales@notedoctor.ai](mailto:sales@notedoctor.ai).
+To exercise these rights, contact us at [sales@NoteDoctorAI](mailto:sales@NoteDoctorAI).
 
 ## 12. European Privacy Rights
 
@@ -304,7 +304,7 @@ If you are in the European Economic Area (EEA), you have rights under the Genera
 - Right to object to processing
 - Right to withdraw consent
 
-To exercise these rights, contact us at [sales@notedoctor.ai](mailto:sales@notedoctor.ai).
+To exercise these rights, contact us at [sales@NoteDoctorAI](mailto:sales@NoteDoctorAI).
 
 ## 13. Changes to This Privacy Policy
 
@@ -323,8 +323,8 @@ In the event of a data breach that affects your personal information, we will no
 
 For questions or concerns about this Privacy Policy or our data practices, please contact us:
 
-- **Email:** [sales@notedoctor.ai](mailto:sales@notedoctor.ai)
-- **Support:** [sales@notedoctor.ai](mailto:sales@notedoctor.ai)
+- **Email:** [sales@NoteDoctorAI](mailto:sales@NoteDoctorAI)
+- **Support:** [sales@NoteDoctorAI](mailto:sales@NoteDoctorAI)
 
 
 ## 16. Consent
@@ -338,15 +338,15 @@ By using the Service, you consent to the collection, use, and sharing of your in
 This Privacy Policy was last updated on the date indicated above. Please review it periodically for any changes.
 `;
 
-export const AI_SUBSCRIPTION_AGREEMENT = `# NoteDoctor.AI Subscription Agreement
+export const AI_SUBSCRIPTION_AGREEMENT = `# NoteDoctorAiSubscription Agreement
 
 **Last Updated:** April 11, 2026
 
-This Agreement is between you and NOTEDOCTOR.AI LLC ("AI") and describes the terms and conditions under which AI will make available certain Services, and you will be permitted to use those Services.
+This Agreement is between you and NoteDoctorAiLLC ("AI") and describes the terms and conditions under which AI will make available certain Services, and you will be permitted to use those Services.
 
 BY ACCEPTING THIS AGREEMENT, YOU AGREE TO THESE TERMS AND CONDITIONS. IF YOU DO NOT AGREE, YOU MAY NOT USE THE SERVICES. IN THE EVENT YOU REJECT THIS AGREEMENT WITHIN TEN (10) DAYS OF PURCHASE, YOU MAY REQUEST A FULL REFUND.
 
-For complete terms, please contact [sales@notedoctor.ai](mailto:sales@notedoctor.ai)
+For complete terms, please contact [sales@NoteDoctorAI](mailto:sales@NoteDoctorAI)
 
 This is a comprehensive subscription agreement covering service usage, payment terms, confidentiality, warranties, indemnification, and AI-specific supplemental terms including provisions for artificial intelligence features and acceptable use policies.
 `;

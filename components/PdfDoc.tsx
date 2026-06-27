@@ -260,7 +260,7 @@ const PdfDoc: React.FC<PdfProps> = React.memo(({ name, role, messages }) => {
           // else fall through — line has inline bold but is regular content
         }
       }
-      
+
       // Handle markdown headers
       if (line.startsWith('## ')) {
         renderedLines.push(<Text key={i} style={styles.heading2}>{line.replace('## ', '')}</Text>);
@@ -275,13 +275,13 @@ const PdfDoc: React.FC<PdfProps> = React.memo(({ name, role, messages }) => {
         // Handle bullets at any indentation level (matches ChatMessageBubble li component)
         const content = line.replace(/^\s*[\-\*]\s+/, '');
         const indentLevel = (line.match(/^\s*/)?.[0].length || 0) / 2;
-        
+
         // Skip empty bullets or bullets with only whitespace/special chars
         const cleanContent = content.trim().replace(/[\u200B-\u200D\uFEFF]/g, ''); // Remove zero-width spaces
         if (!cleanContent || cleanContent.length === 0) {
           return;
         }
-        
+
         // Medical Necessity Zone - green text with green checkboxes
         if (sectionTracker.current === 'medical-necessity-zone') {
           renderedLines.push(
@@ -292,7 +292,7 @@ const PdfDoc: React.FC<PdfProps> = React.memo(({ name, role, messages }) => {
           );
           return;
         }
-        
+
         // Limitations/Exclusions - red text with red X
         if (sectionTracker.current === 'exclusions') {
           renderedLines.push(
@@ -303,7 +303,7 @@ const PdfDoc: React.FC<PdfProps> = React.memo(({ name, role, messages }) => {
           );
           return;
         }
-        
+
         // All other sections - default rendering
         renderedLines.push(
           <View key={i} style={[styles.listItem, { marginLeft: indentLevel * 10 }]}>
@@ -332,7 +332,7 @@ const PdfDoc: React.FC<PdfProps> = React.memo(({ name, role, messages }) => {
         renderedLines.push(<Text key={i} style={styles.messageContent}>{renderInlineBold(line)}</Text>);
       }
     });
-    
+
     return (
       <View key={index} style={styles.messageContainer}>
         <View style={styles.messageContent}>
@@ -341,7 +341,7 @@ const PdfDoc: React.FC<PdfProps> = React.memo(({ name, role, messages }) => {
       </View>
     );
   };
-  
+
   return (
     <PDFViewer width="100%" height="100%">
       <Document>
@@ -349,7 +349,7 @@ const PdfDoc: React.FC<PdfProps> = React.memo(({ name, role, messages }) => {
           <View style={styles.header}>
             <Image src={logoBase64} style={styles.logo} cache={false} />
             <View>
-              <Text style={styles.companyName}>NoteDoctor.ai</Text>
+              <Text style={styles.companyName}>NoteDoctorAI</Text>
             </View>
           </View>
 
