@@ -10,6 +10,11 @@ export type UsageLogPayload = {
   metered_item_id?: string | null
   subscription_item_id?: string | null
   metadata?: Record<string, unknown>
+  // Multi-tenant attribution. `org_id` is the billing tenant; `source`
+  // distinguishes first-party clients from public API-key traffic.
+  org_id?: string | null
+  api_key_id?: string | null
+  source?: "web" | "mobile" | "api"
 }
 
 export type Subscription = {
@@ -35,4 +40,24 @@ export async function getSubscriptionByUserId(
     .maybeSingle()
 
   return (data as Subscription) ?? null
+}
+
+/**
+ * Resolve the metered subscription for a tenant. Billing hangs off the org's
+ * owner: org → owner membership → that user's Stripe subscription. Keeps the
+ * existing per-user `subscriptions` table and the Stripe webhook untouched.
+ */
+export async function getSubscriptionByOrgId(
+  orgId: string,
+): Promise<Subscription | null> {
+  const { data: owner } = await supabaseAdmin
+    .from("organization_members")
+    .select("user_id")
+    .eq("org_id", orgId)
+    .eq("role", "owner")
+    .maybeSingle()
+
+  if (!owner?.user_id) return null
+
+  return getSubscriptionByUserId(owner.user_id as string)
 }

@@ -1,12 +1,20 @@
 import { NextResponse } from "next/server";
+import { cookies } from "next/headers";
 
-
-
+/**
+ * Diagnostic endpoint. Previously public and leaked env-var names + Stripe key
+ * presence (information disclosure). Now gated behind the admin session and
+ * returns 404 (not 401) to unauthenticated callers so it isn't discoverable.
+ * The env-key enumeration has been removed entirely.
+ */
 export async function GET() {
-    return NextResponse.json({
-        stripeKeyDefined: !!process.env.STRIPE_SECRET_KEY,
-        vercelEnv: process.env.VERCEL_ENV,
-        stripeKeys: Object.keys(process.env).filter((k) => k.startsWith("STRIPE")),
-        nextKeys: Object.keys(process.env).filter((k) => k.startsWith("NEXT")),
-    });
+  const store = await cookies();
+  if (store.get("admin_session")?.value !== "1") {
+    return NextResponse.json({ error: "Not found" }, { status: 404 });
+  }
+
+  return NextResponse.json({
+    stripeKeyDefined: !!process.env.STRIPE_SECRET_KEY,
+    vercelEnv: process.env.VERCEL_ENV ?? null,
+  });
 }

@@ -58,6 +58,9 @@ async function warmEmbeddings(records: any[] | null) {
 let warmupStarted = false;
 
 export function startCmsWarmup(): void {
+  // Skip under test: the fetch/embed work creates async handles that outlive
+  // the jest run and crash teardown. Production and dev are unaffected.
+  if (process.env.NODE_ENV === "test") return;
   if (warmupStarted) return;
   warmupStarted = true;
 

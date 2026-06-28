@@ -1,0 +1,170 @@
+openapi: 3.1.0
+info:
+  title: NoteDoctor Public API
+  version: "1.0.0"
+  description: |
+    Programmatic access to the NoteDoctor medical insurance pre-authorization
+    AI agent.
+
+    ## Authentication
+    Send your API key as a bearer token:
+
+    ```
+    Authorization: Bearer sk_live_xxxxxxxxxxxxxxxxxxxx
+    ```
+
+    Keys are **server-side secrets** — never embed one in a browser or mobile
+    app. Manage keys from your account's **API Keys** page. The full key is shown
+    only once, at creation.
+
+    ## Rate limits
+    Limits are enforced per organization (with a finer per-key sub-limit) and
+    surfaced via `X-RateLimit-Limit` / `X-RateLimit-Remaining` headers. A `429`
+    response includes `Retry-After` (seconds).
+
+    ## Errors
+    Every error is a JSON envelope:
+
+    ```json
+    { "error": { "code": "rate_limited", "message": "Rate limit exceeded.", "requestId": null } }
+    ```
+servers:
+  - url: https://app.notedoctor.ai
+    description: Production
+security:
+  - apiKey: []
+paths:
+  /api/v1/agents:
+    post:
+      operationId: runAgent
+      summary: Run the medical pre-authorization research agent
+      description: |
+        Executes the tool-using LangGraph agent (Medicare NCD/LCD/LCA + commercial
+        guideline search + web search). Streams `text/plain` by default; pass
+        `"stream": false` for a single JSON response.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/AgentRequest"
+      responses:
+        "200":
+          description: Agent response (streamed text, or JSON when `stream` is false).
+          headers:
+            x-thread-id:
+              schema: { type: string, format: uuid }
+              description: Conversation thread id (pass back to continue a thread).
+            X-RateLimit-Remaining:
+              schema: { type: integer }
+          content:
+            text/plain:
+              schema: { type: string }
+            application/json:
+              schema: { $ref: "#/components/schemas/AgentJsonResponse" }
+        "400": { $ref: "#/components/responses/Error" }
+        "401": { $ref: "#/components/responses/Error" }
+        "403": { $ref: "#/components/responses/Error" }
+        "429": { $ref: "#/components/responses/RateLimited" }
+        "500": { $ref: "#/components/responses/Error" }
+  /api/v1/chat:
+    post:
+      operationId: runChat
+      summary: Simple chat completion
+      description: Streams a `text/plain` completion from the pre-auth assistant.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/ChatRequest"
+      responses:
+        "200":
+          description: Streamed text completion.
+          content:
+            text/plain:
+              schema: { type: string }
+        "400": { $ref: "#/components/responses/Error" }
+        "401": { $ref: "#/components/responses/Error" }
+        "403": { $ref: "#/components/responses/Error" }
+        "429": { $ref: "#/components/responses/RateLimited" }
+        "502": { $ref: "#/components/responses/Error" }
+components:
+  securitySchemes:
+    apiKey:
+      type: http
+      scheme: bearer
+      bearerFormat: sk_live_… / sk_test_…
+  schemas:
+    Message:
+      type: object
+      required: [role, content]
+      properties:
+        role:
+          type: string
+          enum: [user, assistant, system]
+        content:
+          type: string
+          maxLength: 10000
+    AgentRequest:
+      type: object
+      required: [messages]
+      properties:
+        messages:
+          type: array
+          minItems: 1
+          maxItems: 50
+          items: { $ref: "#/components/schemas/Message" }
+        threadId:
+          type: string
+          format: uuid
+          description: Continue an existing conversation.
+        stream:
+          type: boolean
+          default: true
+          description: When false, returns a single JSON response instead of streaming.
+    ChatRequest:
+      type: object
+      required: [messages]
+      properties:
+        messages:
+          type: array
+          minItems: 1
+          maxItems: 50
+          items: { $ref: "#/components/schemas/Message" }
+    AgentJsonResponse:
+      type: object
+      properties:
+        threadId: { type: string, format: uuid }
+        messages:
+          type: array
+          items: { $ref: "#/components/schemas/Message" }
+    Error:
+      type: object
+      properties:
+        error:
+          type: object
+          properties:
+            code: { type: string }
+            message: { type: string }
+            requestId:
+              type: [string, "null"]
+  responses:
+    Error:
+      description: Error envelope.
+      content:
+        application/json:
+          schema: { $ref: "#/components/schemas/Error" }
+    RateLimited:
+      description: Rate limit exceeded.
+      headers:
+        Retry-After:
+          schema: { type: integer }
+          description: Seconds until the next request is allowed.
+        X-RateLimit-Limit:
+          schema: { type: integer }
+        X-RateLimit-Remaining:
+          schema: { type: integer }
+      content:
+        application/json:
+          schema: { $ref: "#/components/schemas/Error" }

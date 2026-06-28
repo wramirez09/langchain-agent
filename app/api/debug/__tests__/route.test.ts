@@ -2,32 +2,53 @@
  * @jest-environment node
  */
 
+// Mock the cookie store so we can simulate admin vs unauthenticated callers.
+let adminCookie: string | undefined
+jest.mock('next/headers', () => ({
+  cookies: async () => ({
+    get: (name: string) =>
+      name === 'admin_session' && adminCookie ? { value: adminCookie } : undefined,
+  }),
+}))
+
 import { GET } from '../route'
 
-describe('debug GET', () => {
-  it('reports stripe key presence and exposes env keys with prefixes', async () => {
-    const oldStripe = process.env.STRIPE_SECRET_KEY
-    process.env.STRIPE_SECRET_KEY = 'sk'
-    process.env.STRIPE_FOO = 'x'
-    process.env.NEXT_BAR = 'y'
-
-    const r = await GET()
-    const body = await r.json()
-    expect(body.stripeKeyDefined).toBe(true)
-    expect(body.stripeKeys).toEqual(expect.arrayContaining(['STRIPE_SECRET_KEY', 'STRIPE_FOO']))
-    expect(body.nextKeys).toEqual(expect.arrayContaining(['NEXT_BAR']))
-
-    process.env.STRIPE_SECRET_KEY = oldStripe
-    delete process.env.STRIPE_FOO
-    delete process.env.NEXT_BAR
+describe('debug GET (hardened)', () => {
+  beforeEach(() => {
+    adminCookie = undefined
   })
 
-  it('reports stripe key absence when unset', async () => {
+  it('returns 404 to unauthenticated callers and leaks nothing', async () => {
+    const r = await GET()
+    expect(r.status).toBe(404)
+    const body = await r.json()
+    expect(body.stripeKeyDefined).toBeUndefined()
+    expect(body.stripeKeys).toBeUndefined() // env-key enumeration removed
+  })
+
+  it('reports minimal status to an admin session', async () => {
+    adminCookie = '1'
+    const old = process.env.STRIPE_SECRET_KEY
+    process.env.STRIPE_SECRET_KEY = 'sk'
+
+    const r = await GET()
+    expect(r.status).toBe(200)
+    const body = await r.json()
+    expect(body.stripeKeyDefined).toBe(true)
+    expect(body.stripeKeys).toBeUndefined() // no enumeration even when authed
+
+    process.env.STRIPE_SECRET_KEY = old
+  })
+
+  it('reports stripe key absence to an admin session', async () => {
+    adminCookie = '1'
     const old = process.env.STRIPE_SECRET_KEY
     delete process.env.STRIPE_SECRET_KEY
+
     const r = await GET()
     const body = await r.json()
     expect(body.stripeKeyDefined).toBe(false)
+
     process.env.STRIPE_SECRET_KEY = old
   })
 })

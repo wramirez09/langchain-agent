@@ -5,20 +5,32 @@ import { withRetry, RETRY_CONFIGS } from "./retry";
 import { errorTracker, trackRetryError } from "./error-tracking";
 import {
     getSubscriptionByUserId,
+    getSubscriptionByOrgId,
     insertUsageLog,
 } from "./db/repositories/usage.repo";
 
 export async function reportUsage({
     userId,
+    orgId,
+    apiKeyId,
+    source = "web",
     quantity = 1,
     usageType,
 }: {
     userId: string;
+    // When billing a tenant directly (public API), pass orgId; the meter event
+    // is resolved via the org's owner subscription. Internal callers omit it and
+    // bill the user's own subscription.
+    orgId?: string;
+    apiKeyId?: string;
+    source?: "web" | "mobile" | "api";
     quantity?: number;
     usageType: string;
     }): Promise<Stripe.Billing.MeterEvent | null | undefined> {
     const stripe = getStripe();
-    const subscription = await getSubscriptionByUserId(userId);
+    const subscription = orgId
+        ? await getSubscriptionByOrgId(orgId)
+        : await getSubscriptionByUserId(userId);
 
     if (!subscription) return null;
 
@@ -91,6 +103,9 @@ export async function reportUsage({
                 async () => {
                     await insertUsageLog({
                         user_id: userId,
+                        org_id: orgId ?? null,
+                        api_key_id: apiKeyId ?? null,
+                        source,
                         usage_type: usageType,
                         quantity,
                         stripe_reported: true,
