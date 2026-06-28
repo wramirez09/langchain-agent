@@ -33,7 +33,7 @@ const navItems: { id: AppView; icon: React.ElementType; label: string }[] = [
 const supportLinks = [
   { href: '/legal/terms-of-service', icon: Scale, label: 'Terms', isLink: true },
   { href: '/legal/privacy-policy', icon: Shield, label: 'Privacy', isLink: true },
-  { href: 'mailto:sales@NoteDoctorAI', icon: Mail, label: 'Contact', isLink: false },
+  { href: 'mailto:sales@notedoctor.ai', icon: Mail, label: 'Contact', isLink: false },
 ] as const;
 
 // Fly-out rail row: the icon stays put in the slim rail while the label

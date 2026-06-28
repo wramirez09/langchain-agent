@@ -1,0 +1,274 @@
+/* Shared legal-document styling, ported from the imported "Terms of Service.html"
+   Claude Design. Scoped via CSS Modules; tokens live on .page so nothing leaks globally. */
+
+.page {
+  --brand: #238dd2;
+  --brand-hover: #1c79b8;
+  --ink: #1d2330;
+  --text: #454c5b;
+  --muted: #7c8492;
+  --faint: #9aa2b1;
+  --surface: #ffffff;
+  --bg: #f7f9fb;
+  --line: #edeef2;
+
+  height: 100%;
+  overflow-y: auto;
+  scroll-behavior: smooth;
+  background: var(--bg);
+  color: var(--text);
+  line-height: 1.6;
+  -webkit-font-smoothing: antialiased;
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+}
+
+/* back link row (the global TopBar provides the logo/wordmark) */
+.backRow {
+  display: flex;
+  align-items: center;
+  padding: 16px 32px 0;
+  max-width: 1080px;
+  margin: 0 auto;
+}
+.back {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--brand);
+  text-decoration: none;
+  padding: 8px 14px;
+  border-radius: 8px;
+  transition: background 0.15s;
+}
+.back:hover {
+  background: #eef6fc;
+}
+.back svg {
+  width: 16px;
+  height: 16px;
+}
+
+/* layout */
+.wrap {
+  max-width: 1080px;
+  margin: 0 auto;
+  padding: 28px 32px 80px;
+  display: grid;
+  grid-template-columns: 240px 1fr;
+  gap: 48px;
+  align-items: start;
+}
+
+/* TOC */
+.toc {
+  position: sticky;
+  top: 28px;
+}
+.tocTitle {
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--faint);
+  margin: 0 0 12px;
+}
+.toc ol {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  counter-reset: toc;
+}
+.toc li {
+  counter-increment: toc;
+}
+.toc a {
+  display: block;
+  padding: 6px 10px 6px 12px;
+  font-size: 13.5px;
+  color: var(--muted);
+  text-decoration: none;
+  border-left: 2px solid var(--line);
+  border-radius: 0 6px 6px 0;
+  transition: color 0.15s, border-color 0.15s, background 0.15s;
+}
+.toc a::before {
+  content: counter(toc) '. ';
+  color: var(--faint);
+}
+.toc a:hover {
+  color: var(--ink);
+  background: #fff;
+}
+.toc a.active {
+  color: var(--brand);
+  border-left-color: var(--brand);
+  background: #fff;
+  font-weight: 600;
+}
+.toc a.active::before {
+  color: var(--brand);
+}
+
+/* content */
+.doc {
+  background: var(--surface);
+  border: 1px solid var(--line);
+  border-radius: 14px;
+  padding: 48px 52px;
+  box-shadow: 0 1px 2px rgba(20, 30, 60, 0.04);
+}
+.docHead {
+  border-bottom: 1px solid var(--line);
+  padding-bottom: 24px;
+  margin-bottom: 8px;
+}
+.doc h1 {
+  font-size: 36px;
+  font-weight: 800;
+  color: var(--ink);
+  letter-spacing: -0.025em;
+  margin: 0 0 14px;
+}
+.updated {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--brand);
+  background: #eef6fc;
+  border: 1px solid #d8ebf8;
+  padding: 5px 12px;
+  border-radius: 999px;
+}
+.updated svg {
+  width: 14px;
+  height: 14px;
+}
+
+.section {
+  padding-top: 32px;
+  scroll-margin-top: 24px;
+}
+.doc h2 {
+  font-size: 21px;
+  font-weight: 700;
+  color: var(--ink);
+  letter-spacing: -0.01em;
+  margin: 0 0 14px;
+  display: flex;
+  align-items: baseline;
+  gap: 12px;
+}
+.doc h2 .num {
+  font-size: 14px;
+  font-weight: 700;
+  color: var(--brand);
+  min-width: 26px;
+}
+.doc h3 {
+  font-size: 15.5px;
+  font-weight: 700;
+  color: var(--ink);
+  margin: 24px 0 10px;
+}
+.doc p {
+  margin: 0 0 14px;
+  font-size: 15px;
+  color: var(--text);
+}
+.doc ul {
+  margin: 0 0 14px;
+  padding-left: 0;
+  list-style: none;
+}
+.doc li {
+  position: relative;
+  padding-left: 22px;
+  margin-bottom: 9px;
+  font-size: 15px;
+  color: var(--text);
+}
+.doc li::before {
+  content: '';
+  position: absolute;
+  left: 4px;
+  top: 10px;
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: var(--brand);
+  opacity: 0.55;
+}
+.doc strong {
+  color: var(--ink);
+  font-weight: 700;
+}
+.doc a {
+  color: var(--brand);
+  text-decoration: none;
+}
+.doc a:hover {
+  text-decoration: underline;
+}
+
+.callout {
+  background: #fbf4f3;
+  border: 1px solid #f1d9d6;
+  border-left: 3px solid #d9534f;
+  border-radius: 8px;
+  padding: 14px 18px;
+  margin: 0 0 14px;
+}
+.callout p {
+  margin: 0;
+}
+.callout strong {
+  color: #b5302b;
+}
+
+.legalbox {
+  background: var(--bg);
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  padding: 14px 18px;
+  margin: 0 0 14px;
+  font-size: 13px;
+  letter-spacing: 0.02em;
+  color: var(--muted);
+  text-transform: uppercase;
+  font-weight: 600;
+}
+
+.docFoot {
+  margin-top: 40px;
+  padding-top: 24px;
+  border-top: 1px solid var(--line);
+}
+.docFoot p {
+  font-size: 14px;
+  color: var(--muted);
+  font-style: italic;
+}
+
+@media (max-width: 860px) {
+  .backRow {
+    padding: 14px 18px 0;
+  }
+  .wrap {
+    grid-template-columns: 1fr;
+    gap: 0;
+    padding: 16px 18px 60px;
+  }
+  .toc {
+    display: none;
+  }
+  .doc {
+    padding: 32px 24px;
+  }
+  .doc h1 {
+    font-size: 29px;
+  }
+}

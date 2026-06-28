@@ -15,38 +15,25 @@ export function Footer() {
 
   if (!mounted || pathname.startsWith('/agents') || pathname.startsWith('/protected')) return null
 
-  return (
-    <footer className="fixed bottom-0 left-0 right-0 z-40 bg-white border-t border-gray-200 py-3 px-4">
-      <div className="max-w-7xl mx-auto">
-        <div className="flex flex-col sm:flex-row items-center justify-between gap-4">
-          <div className="text-xs sm:text-sm text-gray-600">
-            © {currentYear} NoteDoctorAi. All rights reserved.
-          </div>
+  // Footer text + link styling ported from the imported legal-page design.
+  const linkClass = 'text-[13px] text-[#238dd2] hover:underline'
 
-          <div className="hidden sm:flex items-center gap-6 text-[11px] sm:text-xs">
-            <Link
-              href="/legal/terms-of-service"
-              className="text-blue-600 underline hover:text-blue-900 transition-colors underline-offset-2"
-              prefetch={true}
-            >
-              Terms of Service
-            </Link>
-            <Link
-              href="/legal/privacy-policy"
-              className="text-blue-600 underline hover:text-blue-900 transition-colors underline-offset-2"
-              prefetch={true}
-            >
-              Privacy Policy
-            </Link>
-            <a
-              href="mailto:sales@NoteDoctorAI"
-              className="text-blue-600 underline hover:text-blue-900 transition-colors underline-offset-2"
-            >
-              Contact
-            </a>
-          </div>
-        </div>
+  return (
+    <footer className="flex flex-wrap items-center justify-between gap-4 bg-white border-t border-[#eef0f3] px-10 py-4 max-[860px]:justify-center max-[860px]:px-4">
+      <div className="text-[13px] text-[#7c8492]">
+        © {currentYear} NoteDoctorAi. All rights reserved.
       </div>
+      <nav className="flex gap-7">
+        <Link href="/legal/terms-of-service" className={linkClass} prefetch={true}>
+          Terms of Service
+        </Link>
+        <Link href="/legal/privacy-policy" className={linkClass} prefetch={true}>
+          Privacy Policy
+        </Link>
+        <a href="mailto:sales@notedoctor.ai.com" className={linkClass}>
+          Contact
+        </a>
+      </nav>
     </footer>
   )
 }

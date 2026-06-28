@@ -31,7 +31,7 @@ export default function TermsPage() {
         <div className="mt-8 text-center text-sm text-gray-600">
           <p>
             Questions about these terms?{' '}
-            <a href="mailto:sales@NoteDoctorAI" className="text-blue-600 hover:underline">
+            <a href="mailto:sales@notedoctor.ai" className="text-blue-600 hover:underline">
               Contact Support
             </a>
           </p>

@@ -149,7 +149,7 @@ These Terms are governed by the laws of the United States, without regard to con
 ## 16. Contact Information
 
 For questions about these Terms, please contact us at:
-- Email: sales@NoteDoctorAi
+- Email: sales@notedoctor.ai
 ---
 
 By using the Service, you acknowledge that you have read, understood, and agree to be bound by these Terms of Service.

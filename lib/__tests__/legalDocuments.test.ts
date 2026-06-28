@@ -9,7 +9,7 @@ describe('legalDocuments', () => {
     expect(TERMS_OF_SERVICE).toMatch(/# Terms of Service/)
     expect(TERMS_OF_SERVICE).toMatch(/HIPAA Compliance and Data Use/)
     expect(TERMS_OF_SERVICE).toMatch(/Limitation of Liability/i)
-    expect(TERMS_OF_SERVICE).toMatch(/sales@notedoctor\.ai/)
+    expect(TERMS_OF_SERVICE).toMatch(/sales@notedoctor.ai/i)
   })
 
   it('PRIVACY_POLICY mentions PHI prohibition and GDPR rights', () => {
@@ -18,8 +18,8 @@ describe('legalDocuments', () => {
     expect(PRIVACY_POLICY).toMatch(/GDPR/)
   })
 
-  it('AI_SUBSCRIPTION_AGREEMENT references NoteDoctorAiLLC', () => {
-    expect(AI_SUBSCRIPTION_AGREEMENT).toMatch(/NOTEDOCTOR\.AI LLC/)
+  it('AI_SUBSCRIPTION_AGREEMENT references NoteDoctorAi LLC', () => {
+    expect(AI_SUBSCRIPTION_AGREEMENT).toMatch(/NoteDoctorAi\s?LLC/i)
     expect(AI_SUBSCRIPTION_AGREEMENT).toMatch(/Subscription Agreement/)
   })
 

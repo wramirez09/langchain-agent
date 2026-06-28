@@ -31,7 +31,7 @@ export default function PrivacyPage() {
         <div className="mt-8 text-center text-sm text-gray-600">
           <p>
             Questions about our privacy practices?{' '}
-            <a href="mailto:sales@NoteDoctorAI" className="text-blue-600 hover:underline">
+            <a href="mailto:sales@notedoctor.ai" className="text-blue-600 hover:underline">
               Contact Privacy Team
             </a>
           </p>
