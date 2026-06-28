@@ -1,9 +1,9 @@
 # NoteDoctorAi
 ## Authorization Readiness Screening for Healthcare Providers
 
-![NoteDoctorAiLanding Page](./public/images/og-image.png)
+![NoteDoctorAi Landing Page](./public/images/screenshots/landing.png)
 
-NoteDoctorAiis a web application designed to streamline the prior authorization process for healthcare providers. Leveraging intelligent agent development with LangChain, it significantly reduces the administrative burden associated with obtaining necessary approvals from payers like Medicare and Cigna.
+NoteDoctorAi is a web application designed to streamline the prior authorization process for healthcare providers. Leveraging intelligent agent development with LangChain, it significantly reduces the administrative burden associated with obtaining necessary approvals from payers like Medicare and Cigna.
 
 ### Key Features:
 
@@ -15,16 +15,16 @@ NoteDoctorAiis a web application designed to streamline the prior authorization 
 * **Reduced Administrative Burden:** Automate the time-consuming research phase of prior authorizations, allowing healthcare staff to focus on patient care.
 * **HIPAA Compliant:** Built with healthcare compliance in mind, with clear warnings to avoid including patient-specific PHI.
 
-![Application Interface](./public/images/ui.png)
-
 ### Technology Stack:
 
-NoteDoctorAiis built with modern, scalable web technologies:
+NoteDoctorAi is built with modern, scalable web technologies:
 
-* **Next.js:** A powerful React framework for building fast, server-rendered, and highly scalable web applications.
-* **LangChain:** Utilized for advanced **agent development**, enabling the application to intelligently interact with various data sources (internal knowledge bases, external APIs, parsed documents) to reason and provide accurate authorization guidance.
-* **Supabase:** Authentication and user management.
+* **Next.js (App Router):** A powerful React framework for building fast, server-rendered, and highly scalable web applications.
+* **LangChain / LangGraph:** Utilized for advanced **agent development** (`createReactAgent`), enabling the application to intelligently interact with various data sources (internal knowledge bases, external APIs, parsed documents) to reason and provide accurate authorization guidance.
+* **Supabase:** Cookie-based SSR authentication and user management (Bearer token for mobile).
+* **Stripe:** Subscription and metered billing.
 * **TypeScript:** Ensures type safety and improves code quality and maintainability.
+* **Tailwind CSS + shadcn/ui + Radix UI:** Component library and styling for a consistent, accessible interface.
 * **Zod:** Used for robust schema validation of API inputs and outputs.
 * **`pdf-parse` (via API Route):** A Node.js library employed in a dedicated Next.js API route to fetch and extract text content from PDF policy documents (e.g., Cigna's PDF guidelines).
 * **CMS APIs:** Integration with official Medicare APIs for programmatic access to coverage data.
@@ -45,23 +45,33 @@ The application functions by accepting details about a patient's service, diagno
 
 **Landing Page**
 
-![NoteDoctorAiWelcome Screen](./public/images/og-image.png)
+![NoteDoctorAi Welcome Screen](./public/images/screenshots/landing.png)
 
 The landing page provides a clean, professional interface with clear calls-to-action for healthcare providers to get started.
+
+**Sign In**
+
+![Sign In](./public/images/screenshots/sign-in.png)
+
+**Sign Up**
+
+![Sign Up](./public/images/screenshots/sign-up.png)
+
+Authentication is handled by Supabase, with a consistent, themed experience across the sign-in, sign-up, and password-reset flows.
 
 **Main Application Interface**
 
 ![Request Details and Chat Assistant](./public/images/ui.png)
 
 The main interface features:
-- **Request Details Form:** Input fields for guidelines, state, pre-auth request status, CPT codes, diagnosis, and medical history
+- **Request Details Form:** Input fields for guidelines, state, pre-auth request, CPT/HCPCS codes, diagnosis, and medical history
 - **Chat Assistant:** Interactive chat interface for authorization analysis and guidance
 - **HIPAA Compliance Warnings:** Prominent reminders to avoid including patient-specific PHI
 - **Document Upload:** Support for uploading relevant medical history documents
 
 ### Setup and Installation:
 
-To set up NoteDoctorAilocally, follow these steps:
+To set up NoteDoctorAi locally, follow these steps:
 
 1.  **Clone the Repository:**
     ```bash
@@ -70,24 +80,41 @@ To set up NoteDoctorAilocally, follow these steps:
     ```
 2.  **Install Dependencies:**
     ```bash
-    npm install
-    # or
     yarn install
+    # or
+    npm install
     ```
 3.  **Environment Variables:**
-    Create a `.env.local` file in the root directory and add your API keys:
+    Create a `.env.development.local` file in the root directory and add your keys:
     ```
-    # OpenAI API Key
+    # OpenAI
     OPENAI_API_KEY=your_openai_api_key_here
 
-    # Supabase Configuration
+    # Supabase
     NEXT_PUBLIC_SUPABASE_URL=your_supabase_url
     NEXT_PUBLIC_SUPABASE_ANON_KEY=your_supabase_anon_key
+    SUPABASE_SERVICE_ROLE_KEY=your_supabase_service_role_key
+
+    # Stripe
+    STRIPE_SECRET_KEY=your_stripe_secret_key
+    NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY=your_stripe_publishable_key
+    STRIPE_WEBHOOK_SECRET=your_stripe_webhook_secret
     ```
 4.  **Run the Application:**
     ```bash
-    npm run dev
-    # or
     yarn dev
+    # or
+    npm run dev
     ```
-    The application will be accessible at `http://localhost:3000`. The `/api/parse-pdf` route will also be available for local testing.
+    The application will be accessible at `http://localhost:3000`.
+
+### Available Scripts:
+
+```bash
+yarn dev          # Start development server
+yarn build        # Production build
+yarn start        # Start production server
+yarn lint         # Run ESLint
+yarn format       # Prettier-format the app/ directory
+yarn test         # Run the Jest test suite
+```
