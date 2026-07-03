@@ -43,6 +43,36 @@ export async function getSubscriptionByUserId(
 }
 
 /**
+ * Per-org usage summary since a given timestamp. Uses head/count queries (no
+ * row transfer) so it stays cheap as usage_logs grows. Counts are per request
+ * (quantity is 1 per call in practice), which is the meaningful figure for the
+ * public usage endpoint.
+ */
+export async function getUsageSummaryByOrgId(
+  orgId: string,
+  sinceISO: string,
+): Promise<{ total: number; agents: number; chat: number }> {
+  const base = () =>
+    supabaseAdmin
+      .from("usage_logs")
+      .select("id", { count: "exact", head: true })
+      .eq("org_id", orgId)
+      .gte("created_at", sinceISO)
+
+  const [total, agents, chat] = await Promise.all([
+    base(),
+    base().eq("usage_type", "orchestrator"),
+    base().eq("usage_type", "chat"),
+  ])
+
+  return {
+    total: total.count ?? 0,
+    agents: agents.count ?? 0,
+    chat: chat.count ?? 0,
+  }
+}
+
+/**
  * Resolve the metered subscription for a tenant. Billing hangs off the org's
  * owner: org → owner membership → that user's Stripe subscription. Keeps the
  * existing per-user `subscriptions` table and the Stripe webhook untouched.

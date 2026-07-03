@@ -74,6 +74,12 @@ export async function runAgent(params: RunAgentParams): Promise<Response> {
   const { userId } = identity;
   const streamStartTime = Date.now();
 
+  // The public API runs stateless: external clients send full history per
+  // request and manage their own threads, so we do NOT persist their queries
+  // or answers to chat_messages. This keeps us out of PHI custody for API
+  // traffic. First-party web/mobile still persist for the history UI.
+  const persistMessages = identity.source !== "api";
+
   const messages = rawMessages
     .filter((m) => m.role === "user" || m.role === "assistant")
     .map(convertVercelMessageToLangChainMessage);
@@ -87,7 +93,7 @@ export async function runAgent(params: RunAgentParams): Promise<Response> {
   const lastUserMsg = [...rawMessages].reverse().find((m) => m.role === "user");
   const lastUserContent = extractText(lastUserMsg ?? {});
 
-  if (lastUserContent) {
+  if (persistMessages && lastUserContent) {
     try {
       let isThreadStarter = isNewThread;
       if (!isNewThread) {
@@ -198,7 +204,7 @@ export async function runAgent(params: RunAgentParams): Promise<Response> {
           ? JSON.stringify(lastAssistant.content)
           : "";
 
-    if (assistantContent) {
+    if (persistMessages && assistantContent) {
       const persistUserId = userId;
       waitUntil(
         (async () => {
@@ -313,7 +319,7 @@ export async function runAgent(params: RunAgentParams): Promise<Response> {
         controller.error(err);
       } finally {
         if (streamCompleted) meterUsage();
-        if (accumulated) {
+        if (persistMessages && accumulated) {
           try {
             await supabaseAdmin.from("chat_messages").insert({
               user_id: userId,

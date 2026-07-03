@@ -89,6 +89,43 @@ paths:
         "403": { $ref: "#/components/responses/Error" }
         "429": { $ref: "#/components/responses/RateLimited" }
         "502": { $ref: "#/components/responses/Error" }
+  /api/v1/me:
+    get:
+      operationId: getMe
+      summary: Key introspection
+      description: Returns the calling key's org, environment, scopes, and tier.
+      responses:
+        "200":
+          description: Key context.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  org_id: { type: string, format: uuid }
+                  environment: { type: string, enum: [live, test] }
+                  scopes: { type: array, items: { type: string } }
+                  rate_limit_tier: { type: string }
+        "401": { $ref: "#/components/responses/Error" }
+  /api/v1/usage:
+    get:
+      operationId: getUsage
+      summary: Current-month usage
+      description: Per-org request totals for the current calendar month (UTC), with a breakdown by endpoint.
+      responses:
+        "200":
+          description: Usage summary.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  period_start: { type: string, format: date-time }
+                  total: { type: integer }
+                  agents: { type: integer }
+                  chat: { type: integer }
+        "401": { $ref: "#/components/responses/Error" }
+        "429": { $ref: "#/components/responses/RateLimited" }
 components:
   securitySchemes:
     apiKey:
