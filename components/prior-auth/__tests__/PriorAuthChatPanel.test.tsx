@@ -38,7 +38,9 @@ describe('PriorAuthChatPanel', () => {
 
   it('shows empty-state greeting when no messages', () => {
     render(wrap(<PriorAuthChatPanel {...baseProps} />))
-    expect(screen.getByText(/Hello! I'm here to help/)).toBeInTheDocument()
+    expect(
+      screen.getByText(/check your prior authorization readiness/i)
+    ).toBeInTheDocument()
     // Clear button should not show without messages
     expect(screen.queryByText('Clear')).toBeNull()
   })

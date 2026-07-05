@@ -2,7 +2,7 @@ import type { Metadata } from "next";
 
 export const metadata: Metadata = {
   title: "AI Agent",
-  description: "Interact with the NoteDoctor.ai agent for real-time prior authorization guidance and payer policy lookup.",
+  description: "Interact with the NoteDoctorAiagent for real-time prior authorization guidance and payer policy lookup.",
   robots: { index: false, follow: false },
 };
 

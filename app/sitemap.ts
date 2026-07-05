@@ -1,6 +1,6 @@
 import type { MetadataRoute } from "next";
 
-const BASE_URL = "https://app.notedoctor.ai";
+const BASE_URL = "https://app.NoteDoctorAI";
 
 export default function sitemap(): MetadataRoute.Sitemap {
   return [

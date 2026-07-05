@@ -301,7 +301,7 @@ export function ChatMessageBubble(props: {
             !props.bare &&
               (isUser
                 ? USER_CARD
-                : "rounded-2xl rounded-tl-none border border-blue-100 bg-white px-4 py-2.5 text-gray-900 shadow-sm hover:bg-blue-50"),
+                : "rounded-2xl border border-blue-100 bg-white px-4 py-2.5 text-gray-900 shadow-sm hover:bg-blue-50"),
           )}
         >
           {isUser && !props.bare && (

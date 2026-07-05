@@ -7,32 +7,32 @@ const preAuthSteps = [
   {
     id: 'welcome-step',
     selector: '#welcome-header-title',
-    content: 'Welcome to NoteDoctor.ai! Let us guide you through the platform features that will help you streamline your prior authorization process.',
+    content: 'Welcome to NoteDoctorAI! Let us guide you through the platform features that will help you streamline your prior authorization process.',
     position: 'left' as const
   },
 
 
-  
+
   {
     id: 'pre-auth-step',
     selector: '#pre-auth-button',
     content: 'Click this button to open Pre-Authorization form. Fill out patient and procedure details to start a prior authorization request.',
-    position: 'top' as const, 
+    position: 'top' as const,
     actionAfter: () => {
       const element = document.querySelector('#pre-auth-button');
       if (element) (element as HTMLElement).click();
     }
   },
-  
+
   {
     id: "form-open",
     selector: "#inner-form-flyout-content",
     highlightedSelectors: ['#inner-form-flyout-content'],
-    mutationObservables:["#inner-form-flyout-content"],
-    resizeObservables:["#inner-form-flyout-content"],
+    mutationObservables: ["#inner-form-flyout-content"],
+    resizeObservables: ["#inner-form-flyout-content"],
     content: "This is the Pre-Authorization form. Fill out patient and procedure details to start a prior authorization request.",
     position: "center" as const,
-    
+
   },
   {
     id: 'upload-file-step',
@@ -79,7 +79,7 @@ const preAuthSteps = [
     content: 'You\'re all set! Start by asking a question, uploading a document, or filling out the pre-authorization form to begin your analysis.',
     position: "center" as const
   },
-    
+
 ];
 
 interface PreAuthTourProps {
@@ -94,7 +94,7 @@ function TourManager({ children }: PreAuthTourProps) {
     const tourDisplayedOnce = localStorage.getItem('preauth-tour-displayed-once');
     const tourCompleted = localStorage.getItem('preauth-tour-completed');
     const tourDismissed = localStorage.getItem('preauth-tour-dismissed');
-    
+
     // Only auto-start tour if it has never been displayed before
     if (!tourDisplayedOnce && !tourCompleted && !tourDismissed) {
       // Show tour after a longer delay and ensure page is fully loaded
@@ -105,7 +105,7 @@ function TourManager({ children }: PreAuthTourProps) {
         // Mark that tour has been displayed once
         localStorage.setItem('preauth-tour-displayed-once', 'true');
       }, 4000); // Increased delay to ensure all elements and modals are loaded
-      
+
       return () => clearTimeout(timer);
     }
   }, [setIsOpen, setCurrentStep]);
@@ -119,11 +119,11 @@ function TourManager({ children }: PreAuthTourProps) {
   // Handle window resize to ensure proper highlighting
   React.useEffect(() => {
     let resizeTimeout: NodeJS.Timeout;
-    
+
     const handleResize = () => {
       // Clear existing timeout
       if (resizeTimeout) clearTimeout(resizeTimeout);
-      
+
       // Wait for resize to complete before re-evaluating tour
       resizeTimeout = setTimeout(() => {
         // Force tour to re-evaluate positions after resize
@@ -159,7 +159,7 @@ function TourManager({ children }: PreAuthTourProps) {
 
 export function PreAuthTour({ children }: PreAuthTourProps) {
   return (
-    <TourProvider 
+    <TourProvider
       steps={preAuthSteps}
       prevButton={() => null}
       styles={{
@@ -184,7 +184,7 @@ export function PreAuthTour({ children }: PreAuthTourProps) {
 // Hook to manually control tour
 export function usePreAuthTour() {
   const { setIsOpen, setCurrentStep, steps } = useTour();
-  
+
   const startTour = React.useCallback(() => {
     // Reset all tour state flags when manually starting
     localStorage.removeItem('preauth-tour-completed');
@@ -193,13 +193,13 @@ export function usePreAuthTour() {
     setIsOpen(true);
     setCurrentStep(0);
   }, [setIsOpen, setCurrentStep]);
-  
+
   const resetTour = React.useCallback(() => {
     localStorage.removeItem('preauth-tour-completed');
     localStorage.removeItem('preauth-tour-dismissed');
     localStorage.removeItem('preauth-tour-displayed-once');
   }, []);
-  
+
   return {
     startTour,
     resetTour,

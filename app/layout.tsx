@@ -9,9 +9,9 @@ import TopBar from "@/components/TopBar";
 import { Footer } from "@/components/Footer";
 import { MobileSidebarProvider } from "@/components/providers/MobileSidebarProvider";
 
-const BASE_URL = "https://app.notedoctor.ai";
-const SITE_NAME = "NoteDoctor.ai";
-const DEFAULT_TITLE = "NoteDoctor.ai | Authorization Readiness Screening for Healthcare";
+const BASE_URL = "https://app.NoteDoctorAI";
+const SITE_NAME = "NoteDoctorAI";
+const DEFAULT_TITLE = "NoteDoctorAi| Authorization Readiness Screening for Healthcare";
 const DEFAULT_DESCRIPTION =
   "AI-powered authorization readiness screening that saves time, reduces errors, and ensures compliance for healthcare providers. Instant Medicare NCD/LCD insights and payer policy guidance.";
 
@@ -90,10 +90,10 @@ const webAppSchema = {
 const howToSchema = {
   "@context": "https://schema.org",
   "@type": "HowTo",
-  name: "How to Screen for Prior Authorization with NoteDoctor.ai",
-  description: "Use NoteDoctor.ai to quickly assess authorization readiness before submitting a prior auth request.",
+  name: "How to Screen for Prior Authorization with NoteDoctorAI",
+  description: "Use NoteDoctorAito quickly assess authorization readiness before submitting a prior auth request.",
   step: [
-    { "@type": "HowToStep", position: 1, name: "Sign in", text: "Log in to your NoteDoctor.ai account." },
+    { "@type": "HowToStep", position: 1, name: "Sign in", text: "Log in to your NoteDoctorAiaccount." },
     { "@type": "HowToStep", position: 2, name: "Describe the procedure", text: "Enter a generic description of the procedure or service — no patient PHI required." },
     { "@type": "HowToStep", position: 3, name: "Review AI guidance", text: "Receive instant Medicare NCD/LCD and payer policy insights." },
     { "@type": "HowToStep", position: 4, name: "Verify and submit", text: "Confirm findings against payer portal guidelines before submitting the authorization request." },
@@ -111,18 +111,18 @@ const faqSchema = {
     },
     {
       "@type": "Question",
-      name: "Is NoteDoctor.ai HIPAA compliant?",
-      acceptedAnswer: { "@type": "Answer", text: "NoteDoctor.ai is designed for HIPAA compliance. Users should never enter patient-specific PHI into the system; only generic clinical descriptions are required." },
+      name: "Is NoteDoctorAiHIPAA compliant?",
+      acceptedAnswer: { "@type": "Answer", text: "NoteDoctorAiis designed for HIPAA compliance. Users should never enter patient-specific PHI into the system; only generic clinical descriptions are required." },
     },
     {
       "@type": "Question",
-      name: "Which payers and policies does NoteDoctor.ai support?",
-      acceptedAnswer: { "@type": "Answer", text: "NoteDoctor.ai provides guidance on Medicare National Coverage Determinations (NCDs), Local Coverage Determinations (LCDs), and Cigna commercial insurance policies." },
+      name: "Which payers and policies does NoteDoctorAisupport?",
+      acceptedAnswer: { "@type": "Answer", text: "NoteDoctorAiprovides guidance on Medicare National Coverage Determinations (NCDs), Local Coverage Determinations (LCDs), and Cigna commercial insurance policies." },
     },
     {
       "@type": "Question",
       name: "How accurate is the AI guidance?",
-      acceptedAnswer: { "@type": "Answer", text: "NoteDoctor.ai leverages LLM-based agents trained on current policy documents. All results should be verified against the payer portal prior to submission." },
+      acceptedAnswer: { "@type": "Answer", text: "NoteDoctorAileverages LLM-based agents trained on current policy documents. All results should be verified against the payer portal prior to submission." },
     },
   ],
 };

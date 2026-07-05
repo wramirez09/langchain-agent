@@ -107,7 +107,7 @@ describe('AppSidebar', () => {
     expect(mockPush).toHaveBeenCalledWith('/auth/login')
   })
 
-  it('Manage Billing redirects on success', async () => {
+  it('Manage Billing opens the portal in a new tab on success', async () => {
     const user = userEvent.setup()
     const fetchMock = jest.fn().mockResolvedValue({
       ok: true,
@@ -115,31 +115,20 @@ describe('AppSidebar', () => {
       json: async () => ({ url: 'https://billing.example/portal' }),
     })
     global.fetch = fetchMock as any
-    const setHref = jest.fn()
-    const original = Object.getOwnPropertyDescriptor(window, 'location')
-    try {
-      Object.defineProperty(window, 'location', {
-        configurable: true,
-        value: {
-          get href() {
-            return ''
-          },
-          set href(v: string) {
-            setHref(v)
-          },
-        },
-      })
-    } catch {
-      // jsdom may forbid reassign
-    }
+    // Billing is reached from the account-settings card, which opens a blank
+    // tab synchronously and redirects it once the Stripe URL resolves.
+    const billingTab = { location: { href: '' }, close: jest.fn() }
+    const openSpy = jest
+      .spyOn(window, 'open')
+      .mockReturnValue(billingTab as unknown as Window)
     await renderSidebar(<AppSidebar activeView="auth" onViewChange={() => {}} />)
-    await user.click(screen.getAllByText('Billing')[0].closest('button')!)
+    await user.click(screen.getByRole('button', { name: 'Account settings' }))
     await waitFor(() => expect(fetchMock).toHaveBeenCalled())
-    if (original) {
-      try {
-        Object.defineProperty(window, 'location', original)
-      } catch {}
-    }
+    await waitFor(() =>
+      expect(billingTab.location.href).toBe('https://billing.example/portal')
+    )
+    expect(openSpy).toHaveBeenCalledWith('', '_blank')
+    openSpy.mockRestore()
   })
 
   it('Manage Billing alerts on 404', async () => {
@@ -149,15 +138,21 @@ describe('AppSidebar', () => {
       status: 404,
       json: async () => ({}),
     }) as any
+    const billingTab = { location: { href: '' }, close: jest.fn() }
+    const openSpy = jest
+      .spyOn(window, 'open')
+      .mockReturnValue(billingTab as unknown as Window)
     const alertSpy = jest.spyOn(window, 'alert').mockImplementation(() => {})
     await renderSidebar(<AppSidebar activeView="auth" onViewChange={() => {}} />)
-    await user.click(screen.getAllByText('Billing')[0].closest('button')!)
+    await user.click(screen.getByRole('button', { name: 'Account settings' }))
     await waitFor(() =>
       expect(alertSpy).toHaveBeenCalledWith(
         expect.stringContaining('No billing account')
       )
     )
+    expect(billingTab.close).toHaveBeenCalled()
     alertSpy.mockRestore()
+    openSpy.mockRestore()
   })
 
   it('clicking nav switches view', async () => {

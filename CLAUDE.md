@@ -26,7 +26,7 @@ No test suite is configured. Use `yarn lint` for static checks.
 
 ## Architecture
 
-NoteDoctor.ai is a healthcare prior authorization (PA) readiness screening platform. An AI agent helps providers determine PA requirements from Medicare and commercial payers.
+NoteDoctorAiis a healthcare prior authorization (PA) readiness screening platform. An AI agent helps providers determine PA requirements from Medicare and commercial payers.
 
 ### Application Flow
 

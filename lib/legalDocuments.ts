@@ -4,11 +4,11 @@ export const TERMS_OF_SERVICE = `# Terms of Service
 
 ## 1. Acceptance of Terms
 
-By accessing or using NoteDoctor.AI (the "Service"), you agree to be bound by these Terms of Service ("Terms"). If you do not agree to these Terms, you may not access or use the Service.
+By accessing or using NoteDoctorAi(the "Service"), you agree to be bound by these Terms of Service ("Terms"). If you do not agree to these Terms, you may not access or use the Service.
 
 ## 2. Description of Service
 
-NoteDoctor.AI provides authorization readiness analysis and documentation review tools for healthcare professionals. The Service assists with prior authorization workflows but does not replace professional medical judgment or guarantee authorization approval.
+NoteDoctorAiprovides authorization readiness analysis and documentation review tools for healthcare professionals. The Service assists with prior authorization workflows but does not replace professional medical judgment or guarantee authorization approval.
 
 ## 3. User Accounts
 
@@ -162,7 +162,7 @@ export const PRIVACY_POLICY = `# Privacy Policy
 
 ## 1. Introduction
 
-NoteDoctor.AI ("we," "our," or "us") is committed to protecting your privacy. This Privacy Policy explains how we collect, use, disclose, and safeguard your information when you use our Service.
+NoteDoctorAi("we," "our," or "us") is committed to protecting your privacy. This Privacy Policy explains how we collect, use, disclose, and safeguard your information when you use our Service.
 
 ## 2. Information We Collect
 
@@ -338,11 +338,11 @@ By using the Service, you consent to the collection, use, and sharing of your in
 This Privacy Policy was last updated on the date indicated above. Please review it periodically for any changes.
 `;
 
-export const AI_SUBSCRIPTION_AGREEMENT = `# NoteDoctor.AI Subscription Agreement
+export const AI_SUBSCRIPTION_AGREEMENT = `# NoteDoctorAiSubscription Agreement
 
 **Last Updated:** April 11, 2026
 
-This Agreement is between you and NOTEDOCTOR.AI LLC ("AI") and describes the terms and conditions under which AI will make available certain Services, and you will be permitted to use those Services.
+This Agreement is between you and NoteDoctorAiLLC ("AI") and describes the terms and conditions under which AI will make available certain Services, and you will be permitted to use those Services.
 
 BY ACCEPTING THIS AGREEMENT, YOU AGREE TO THESE TERMS AND CONDITIONS. IF YOU DO NOT AGREE, YOU MAY NOT USE THE SERVICES. IN THE EVENT YOU REJECT THIS AGREEMENT WITHIN TEN (10) DAYS OF PURCHASE, YOU MAY REQUEST A FULL REFUND.
 

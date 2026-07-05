@@ -2,13 +2,14 @@
 
 import React, { useRef } from "react";
 import { motion } from "framer-motion";
-import { Send, LoaderCircle, FileText, MapPin, Stethoscope, FileBarChart, Activity, ClipboardList, BookOpen } from "lucide-react";
+import { Send, LoaderCircle, FileText, MapPin, Stethoscope, FileBarChart, Activity, ClipboardList, BookOpen, Info } from "lucide-react";
 import Select from "react-select";
 import CreatableSelect from "react-select/creatable";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import { cn } from "@/utils/cn";
 import { data as stateData } from "@/app/agents/metaData/states";
 import { ncdOptions } from "@/data/ncdOptions";
@@ -69,7 +70,7 @@ export function PriorAuthFormPanel({
         isLayoutSwapped && "md:order-2"
       )}
     >
-      <div className="px-6 pt-6 pb-2 flex-shrink-0 bottom-1 border-b border-gray-200">
+      <div className="px-6 pt-6 pb-2 flex-shrink-0 bottom-1 border-b border-gray-200 mb-2">
         <h3 className="text-sm font-semibold text-gray-900">Request Details</h3>
       </div>
 
@@ -79,6 +80,35 @@ export function PriorAuthFormPanel({
             <label className="flex items-center gap-1.5 text-xs text-gray-600 mb-1.5">
               <FileText size={13} color="#2563EB" strokeWidth={1} />
               Guidelines
+              <TooltipProvider delayDuration={150}>
+                <Tooltip>
+                  <TooltipTrigger asChild>
+                    <button
+                      type="button"
+                      aria-label="About guidelines selection"
+                      className="ml-auto inline-flex items-center text-gray-400 hover:text-blue-600 transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 rounded-full"
+                    >
+                      <Info size={13} strokeWidth={1.75} />
+                    </button>
+                  </TooltipTrigger>
+                  <TooltipContent
+                    side="top"
+                    align="end"
+                    style={{ maxWidth: 260 }}
+                    className="whitespace-normal break-words text-xs leading-relaxed"
+                  >
+                    <p className="font-semibold mb-1">Choosing a guideline set</p>
+                    <p>
+                      Select <span className="font-medium">Medicare</span> to screen against
+                      national and local coverage determinations (NCD/LCD) for traditional
+                      Medicare. Choose <span className="font-medium">Commercial</span> to screen
+                      against private payer medical policies. Your choice sets which coverage
+                      criteria the agent applies and which fields (like State for LCDs) are
+                      relevant to the prior authorization readiness check.
+                    </p>
+                  </TooltipContent>
+                </Tooltip>
+              </TooltipProvider>
             </label>
             <Select
               isClearable
@@ -135,7 +165,10 @@ export function PriorAuthFormPanel({
               classNamePrefix="react-select"
               styles={selectStyles}
             />
-            <p className="text-xs text-gray-400 mt-1">*Can&apos;t find what you&apos;re looking for? Type to create a new option</p>
+            <p className="relative text-xs text-gray-400 mt-1">
+              <span aria-hidden="true" className="absolute -left-2.5 top-0">*</span>
+              Can&apos;t find what you&apos;re looking for? Type to create a new option
+            </p>
           </div>
           <div>
             <label className="flex items-center gap-1.5 text-xs text-gray-600 mb-1.5">
@@ -246,7 +279,7 @@ export function PriorAuthFormPanel({
           </Button>
         </div>
         <p className="text-center text-xs text-gray-300 mt-3">
-          © {new Date().getFullYear()} NoteDoctor.Ai. All rights reserved.
+          © {new Date().getFullYear()} NoteDoctorAI. All rights reserved.
         </p>
       </div>
     </motion.div>

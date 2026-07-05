@@ -122,7 +122,7 @@ All components are mobile-responsive:
    - Add your business address
 
 3. **Update branding**:
-   - Replace "NoteDoctor.AI" in Footer if needed
+   - Replace "NoteDoctorAI" in Footer if needed
    - Update support email addresses
    - Customize legal document styling if desired
 

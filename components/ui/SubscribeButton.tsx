@@ -37,7 +37,7 @@ export function SubscribeButton({ email, disabled, name }: SubscribeButtonProps)
             disabled={disabled || isLoading}
             aria-busy={isLoading}
             size={"lg"}
-            className="max-w-50 bg-gradient-to-b from-blue-500 to-blue-600 text-white"
+            className="w-full bg-gradient-to-b from-blue-500 to-blue-600 text-white"
             
         >
             {isLoading ? "Processing..." : "Subscribe"}

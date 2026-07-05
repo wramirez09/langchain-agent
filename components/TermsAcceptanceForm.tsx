@@ -2,9 +2,8 @@
 
 import { useState } from 'react';
 import { Button } from './ui/button';
-import { Checkbox } from './ui/checkbox';
 import { toast } from 'sonner';
-import { LoaderCircle, FileText, AlertTriangle } from 'lucide-react';
+import { LoaderCircle, FileText, AlertTriangle, CheckCircle2 } from 'lucide-react';
 import { cn } from '@/utils/cn';
 import { LegalDocumentModal } from './LegalDocumentModal';
 import { TERMS_OF_SERVICE, PRIVACY_POLICY, AI_SUBSCRIPTION_AGREEMENT } from '@/lib/legalDocuments';
@@ -23,12 +22,6 @@ export function TermsAcceptanceForm({ email, name, onAccepted }: TermsAcceptance
   const [showTermsModal, setShowTermsModal] = useState(false);
   const [showPrivacyModal, setShowPrivacyModal] = useState(false);
   const [showAiAgreementModal, setShowAiAgreementModal] = useState(false);
-  
-  // Track which documents have been scrolled to bottom
-  const [termsScrolledToBottom, setTermsScrolledToBottom] = useState(false);
-  const [privacyScrolledToBottom, setPrivacyScrolledToBottom] = useState(false);
-  // AI Agreement doesn't require scroll-to-bottom
-  const aiAgreementScrolledToBottom = true;
 
   const allAccepted = termsAccepted && privacyAccepted && aiAgreementAccepted;
 
@@ -69,142 +62,39 @@ export function TermsAcceptanceForm({ email, name, onAccepted }: TermsAcceptance
           <p className="font-semibold mb-1">Important: Review Before Accepting</p>
           <p>
             Please carefully review our Terms of Service and Privacy Policy before proceeding.
-            You must accept these terms to use NoteDoctor.AI.
+            You must accept these terms to use NoteDoctorAi.
           </p>
         </div>
       </div>
 
       <div className="bg-white border border-gray-200 rounded-lg p-6 space-y-4">
         <h3 className="text-lg font-semibold text-gray-900">Legal Documents</h3>
-        
+
+        <p className="text-sm text-gray-600">
+          Open each document and check the box at the bottom to agree.
+        </p>
+
         <div className="space-y-3">
-          <button
-            type="button"
+          <DocumentRow
+            title="Terms of Service"
+            description="Review our terms and conditions"
+            accepted={termsAccepted}
             onClick={() => setShowTermsModal(true)}
-            className="w-full flex items-center justify-between p-4 border border-gray-200 rounded-lg hover:bg-gray-50 transition-colors group text-left"
-          >
-            <div>
-              <p className="font-medium text-gray-900 group-hover:text-blue-600">
-                Terms of Service
-              </p>
-              <p className="text-sm text-gray-600">
-                Review our terms and conditions
-              </p>
-            </div>
-            <FileText className="h-5 w-5 text-gray-400 group-hover:text-blue-600" />
-          </button>
+          />
 
-          <button
-            type="button"
+          <DocumentRow
+            title="Privacy Policy"
+            description="Learn how we protect your data"
+            accepted={privacyAccepted}
             onClick={() => setShowPrivacyModal(true)}
-            className="w-full flex items-center justify-between p-4 border border-gray-200 rounded-lg hover:bg-gray-50 transition-colors group text-left"
-          >
-            <div>
-              <p className="font-medium text-gray-900 group-hover:text-blue-600">
-                Privacy Policy
-              </p>
-              <p className="text-sm text-gray-600">
-                Learn how we protect your data
-              </p>
-            </div>
-            <FileText className="h-5 w-5 text-gray-400 group-hover:text-blue-600" />
-          </button>
+          />
 
-          <button
-            type="button"
+          <DocumentRow
+            title="AI Subscription Agreement"
+            description="Review our AI service terms and conditions"
+            accepted={aiAgreementAccepted}
             onClick={() => setShowAiAgreementModal(true)}
-            className="w-full flex items-center justify-between p-4 border border-gray-200 rounded-lg hover:bg-gray-50 transition-colors group text-left"
-          >
-            <div>
-              <p className="font-medium text-gray-900 group-hover:text-blue-600">
-                AI Subscription Agreement
-              </p>
-              <p className="text-sm text-gray-600">
-                Review our AI service terms and conditions
-              </p>
-            </div>
-            <FileText className="h-5 w-5 text-gray-400 group-hover:text-blue-600" />
-          </button>
-        </div>
-      </div>
-
-      <div className="bg-gray-50 border border-gray-200 rounded-lg p-6 space-y-4">
-        <div className="flex items-start gap-3">
-          <Checkbox
-            id="terms-agreement"
-            checked={termsAccepted}
-            onCheckedChange={(checked) => setTermsAccepted(checked === true)}
-            disabled={!termsScrolledToBottom}
-            className="mt-1"
           />
-          <label
-            htmlFor="terms-agreement"
-            className="text-sm text-gray-700 cursor-pointer flex-1"
-          >
-            I have read and agree to the{' '}
-            <button
-              type="button"
-              onClick={(e) => {
-                e.preventDefault();
-                setShowTermsModal(true);
-              }}
-              className="text-blue-600 hover:underline font-medium inline"
-            >
-              Terms of Service
-            </button>
-          </label>
-        </div>
-
-        <div className="flex items-start gap-3">
-          <Checkbox
-            id="privacy-agreement"
-            checked={privacyAccepted}
-            onCheckedChange={(checked) => setPrivacyAccepted(checked === true)}
-            disabled={!privacyScrolledToBottom}
-            className="mt-1"
-          />
-          <label
-            htmlFor="privacy-agreement"
-            className="text-sm text-gray-700 cursor-pointer flex-1"
-          >
-            I have read and agree to the{' '}
-            <button
-              type="button"
-              onClick={(e) => {
-                e.preventDefault();
-                setShowPrivacyModal(true);
-              }}
-              className="text-blue-600 hover:underline font-medium inline"
-            >
-              Privacy Policy
-            </button>
-          </label>
-        </div>
-
-        <div className="flex items-start gap-3">
-          <Checkbox
-            id="ai-agreement"
-            checked={aiAgreementAccepted}
-            onCheckedChange={(checked) => setAiAgreementAccepted(checked === true)}
-            disabled={!aiAgreementScrolledToBottom}
-            className="mt-1"
-          />
-          <label
-            htmlFor="ai-agreement"
-            className="text-sm text-gray-700 cursor-pointer flex-1"
-          >
-            I have read and agree to the{' '}
-            <button
-              type="button"
-              onClick={(e) => {
-                e.preventDefault();
-                setShowAiAgreementModal(true);
-              }}
-              className="text-blue-600 hover:underline font-medium inline"
-            >
-              AI Subscription Agreement
-            </button>
-          </label>
         </div>
       </div>
 
@@ -238,7 +128,7 @@ export function TermsAcceptanceForm({ email, name, onAccepted }: TermsAcceptance
       </div>
 
       <p className="text-xs text-gray-500 text-center">
-        By continuing, you authorize NoteDoctor.AI to charge your payment method for the subscription fees.
+        By continuing, you authorize NoteDoctorAito charge your payment method for the subscription fees.
       </p>
 
       <LegalDocumentModal
@@ -247,7 +137,10 @@ export function TermsAcceptanceForm({ email, name, onAccepted }: TermsAcceptance
         onClose={() => setShowTermsModal(false)}
         title="Terms of Service"
         content={TERMS_OF_SERVICE}
-        onScrolledToBottom={() => setTermsScrolledToBottom(true)}
+        accepted={termsAccepted}
+        onAcceptedChange={setTermsAccepted}
+        checkboxId="terms-agreement"
+        checkboxLabel="I have read and agree to the Terms of Service"
       />
 
       <LegalDocumentModal
@@ -256,7 +149,10 @@ export function TermsAcceptanceForm({ email, name, onAccepted }: TermsAcceptance
         onClose={() => setShowPrivacyModal(false)}
         title="Privacy Policy"
         content={PRIVACY_POLICY}
-        onScrolledToBottom={() => setPrivacyScrolledToBottom(true)}
+        accepted={privacyAccepted}
+        onAcceptedChange={setPrivacyAccepted}
+        checkboxId="privacy-agreement"
+        checkboxLabel="I have read and agree to the Privacy Policy"
       />
 
       <LegalDocumentModal
@@ -265,7 +161,47 @@ export function TermsAcceptanceForm({ email, name, onAccepted }: TermsAcceptance
         onClose={() => setShowAiAgreementModal(false)}
         title="AI Subscription Agreement"
         content={AI_SUBSCRIPTION_AGREEMENT}
+        accepted={aiAgreementAccepted}
+        onAcceptedChange={setAiAgreementAccepted}
+        checkboxId="ai-agreement"
+        checkboxLabel="I have read and agree to the AI Subscription Agreement"
       />
     </div>
+  );
+}
+
+interface DocumentRowProps {
+  title: string;
+  description: string;
+  accepted: boolean;
+  onClick: () => void;
+}
+
+function DocumentRow({ title, description, accepted, onClick }: DocumentRowProps) {
+  return (
+    <button
+      type="button"
+      onClick={onClick}
+      className={cn(
+        'w-full flex items-center justify-between p-4 border rounded-lg transition-colors group text-left',
+        accepted
+          ? 'border-green-300 bg-green-50 hover:bg-green-100'
+          : 'border-gray-200 hover:bg-gray-50'
+      )}
+    >
+      <div>
+        <p className="font-medium text-gray-900 group-hover:text-blue-600">
+          {title}
+        </p>
+        <p className="text-sm text-gray-600">
+          {accepted ? 'Agreed' : description}
+        </p>
+      </div>
+      {accepted ? (
+        <CheckCircle2 className="h-5 w-5 text-green-600 flex-shrink-0" />
+      ) : (
+        <FileText className="h-5 w-5 text-gray-400 group-hover:text-blue-600 flex-shrink-0" />
+      )}
+    </button>
   );
 }

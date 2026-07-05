@@ -1,45 +1,25 @@
-"use client";
-import { useSearchParams } from "next/navigation";
-import { LoginForm } from "@/components/login-form";
-import { Suspense, useEffect } from "react";
+import { redirect } from "next/navigation";
+import { createClient } from "@/utils/server";
+import { LoginClient } from "./LoginClient";
 
-function LoginContent() {
-  const searchParams = useSearchParams();
+export default async function Page({
+  searchParams,
+}: {
+  searchParams: Promise<{ mobile?: string; redirect?: string }>;
+}) {
+  const { mobile, redirect: redirectParam } = await searchParams;
+  const isMobileDeepLink = mobile === "true" && redirectParam === "login";
 
-  const isMobile = searchParams.get("mobile") === "true";
-  const redirect = searchParams.get("redirect");
-
-  useEffect(() => {
-    if (isMobile && redirect === "login") {
-      window.location.href = "notedoctoraiapp://login?billing=success";
-    }
-  }, [isMobile, redirect]);
-
-  if (isMobile && redirect === "login") {
-    return null; // Prevent rendering the rest of the component
+  // Authenticated web users must never see the sign-in form — send them to
+  // the app. Skip this for the mobile deep-link hand-off, which the client
+  // component resolves to the native app instead.
+  if (!isMobileDeepLink) {
+    const supabase = await createClient();
+    const {
+      data: { session },
+    } = await supabase.auth.getSession();
+    if (session) redirect("/protected/preAuth");
   }
 
-  return (
-    <div className="h-full flex items-center justify-center bg-gradient-light p-6">
-      <div className="w-full max-w-md">
-        <div className="text-center mb-8">
-          <h1 className="text-4xl font-bold text-gray-900 mb-2">Welcome Back</h1>
-          <p className="text-dark">Sign in to your account to continue</p>
-        </div>
-        <div className="bg-white rounded-xl shadow-md p-8">
-          <LoginForm />
-        </div>
-      </div>
-    </div>
-  );
-}
-
-export default function Page() {
-  return (
-    <Suspense fallback={<div className="min-h-screen flex items-center justify-center bg-gradient-light p-6">
-      <div className="text-center">Loading...</div>
-    </div>}>
-      <LoginContent />
-    </Suspense>
-  );
+  return <LoginClient />;
 }

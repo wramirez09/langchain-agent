@@ -5,8 +5,8 @@ import { ArrowLeft } from 'lucide-react';
 import { TERMS_OF_SERVICE } from '@/lib/legalDocuments';
 
 export const metadata = {
-  title: 'Terms of Service | NoteDoctor.AI',
-  description: 'Terms of Service for NoteDoctor.AI authorization readiness platform',
+  title: 'Terms of Service | NoteDoctorAI',
+  description: 'Terms of Service for NoteDoctorAiauthorization readiness platform',
   robots: { index: true, follow: true },
 };
 

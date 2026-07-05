@@ -42,7 +42,7 @@ const styles = StyleSheet.create({
     fontFamily: 'Helvetica-Bold',
     marginBottom: 4,
   },
-  
+
   aiMessage: {
     color: '#333',
   },
@@ -234,7 +234,7 @@ const PdfDocument: React.FC<PdfDocumentProps> = ({ name, role, messages, logoBas
           // else fall through — line has inline bold but is regular content
         }
       }
-      
+
       // Handle markdown headers
       if (line.startsWith('## ')) {
         renderedLines.push(<Text key={i} style={styles.heading2}>{line.replace('## ', '')}</Text>);
@@ -312,7 +312,7 @@ const PdfDocument: React.FC<PdfDocumentProps> = ({ name, role, messages, logoBas
         );
       }
     });
-    
+
     return (
       <View key={index} style={styles.messageContainer}>
         <View style={styles.messageContent}>
@@ -321,14 +321,14 @@ const PdfDocument: React.FC<PdfDocumentProps> = ({ name, role, messages, logoBas
       </View>
     );
   };
-  
+
   return (
     <Document>
       <Page style={styles.page}>
         <View style={styles.header}>
           <Image src={logoBase64} style={styles.logo} cache={false} />
           <View>
-            <Text style={styles.companyName}>NoteDoctor.ai</Text>
+            <Text style={styles.companyName}>NoteDoctorAI</Text>
           </View>
         </View>
 

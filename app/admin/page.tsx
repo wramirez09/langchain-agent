@@ -20,7 +20,7 @@ export default async function AdminPage() {
             </svg>
           </div>
           <h1 className="text-2xl font-bold text-gray-900">Admin Access</h1>
-          <p className="text-sm text-gray-500 mt-1">NoteDoctor.ai internal dashboard</p>
+          <p className="text-sm text-gray-500 mt-1">NoteDoctorAiinternal dashboard</p>
         </div>
         <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-8">
           <AdminLoginForm />

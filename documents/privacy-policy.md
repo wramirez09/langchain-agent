@@ -4,7 +4,7 @@
 
 ## 1. Introduction
 
-NoteDoctor.AI ("we," "our," or "us") is committed to protecting your privacy. This Privacy Policy explains how we collect, use, disclose, and safeguard your information when you use our Service.
+NoteDoctorAi("we," "our," or "us") is committed to protecting your privacy. This Privacy Policy explains how we collect, use, disclose, and safeguard your information when you use our Service.
 
 ## 2. Information We Collect
 
@@ -165,9 +165,7 @@ In the event of a data breach that affects your personal information, we will no
 
 For questions or concerns about this Privacy Policy or our data practices, please contact us:
 
-- **Email:** sales@notedoctor.ai
-- **Support:** sales@notedoctor.ai
-
+- **Email:** sales@notedoctor.ai- **Support:** sales@notedoctor.ai
 
 ## 16. Consent
 
