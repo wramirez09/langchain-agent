@@ -61,6 +61,7 @@ export default function ApiKeysManager() {
   const [keys, setKeys] = useState<ApiKey[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [role, setRole] = useState<string | null>(null);
 
   // create dialog
   const [open, setOpen] = useState(false);
@@ -75,10 +76,11 @@ export default function ApiKeysManager() {
     setLoading(true);
     setError(null);
     try {
-      const res = await fetch("/api/keys");
-      if (!res.ok) throw new Error(`Failed to load keys (${res.status})`);
-      const data = await res.json();
+      const [keysRes, orgRes] = await Promise.all([fetch("/api/keys"), fetch("/api/org")]);
+      if (!keysRes.ok) throw new Error(`Failed to load keys (${keysRes.status})`);
+      const data = await keysRes.json();
       setKeys(data.keys ?? []);
+      if (orgRes.ok) setRole((await orgRes.json()).role ?? null);
     } catch (e) {
       setError((e as Error).message);
     } finally {
@@ -151,6 +153,7 @@ export default function ApiKeysManager() {
   };
 
   const activeCount = keys.filter((k) => !k.revoked_at).length;
+  const canManage = role === "owner" || role === "admin";
 
   return (
     <div className="flex flex-col gap-4">
@@ -160,9 +163,15 @@ export default function ApiKeysManager() {
           <h2 className="text-sm font-medium">Your keys</h2>
           <p className="text-xs text-muted-foreground">{loading ? " " : `${activeCount} active`}</p>
         </div>
-        <Button onClick={() => setOpen(true)}>
-          <IconPlus /> Create key
-        </Button>
+        {canManage ? (
+          <Button onClick={() => setOpen(true)}>
+            <IconPlus /> Create key
+          </Button>
+        ) : (
+          !loading && (
+            <span className="text-xs text-muted-foreground">Read-only · members can&apos;t create keys</span>
+          )
+        )}
       </div>
 
       {error && !open && (
@@ -196,9 +205,11 @@ export default function ApiKeysManager() {
                 Create a key to start calling the NoteDoctor public API.
               </p>
             </div>
-            <Button variant="outline" size="sm" onClick={() => setOpen(true)}>
-              <IconPlus /> Create your first key
-            </Button>
+            {canManage && (
+              <Button variant="outline" size="sm" onClick={() => setOpen(true)}>
+                <IconPlus /> Create your first key
+              </Button>
+            )}
           </div>
         ) : (
           <div className="divide-y">
@@ -242,7 +253,7 @@ export default function ApiKeysManager() {
                       {k.last_used_at ? `last used ${fmtDate(k.last_used_at)}` : "never used"}
                     </div>
                   </div>
-                  {!revoked && (
+                  {!revoked && canManage && (
                     <Button
                       variant="ghost"
                       size="sm"

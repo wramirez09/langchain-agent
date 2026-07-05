@@ -45,6 +45,19 @@ default. Pass <code>"stream": false</code> for a single JSON response.</p>
   }'</code></pre>
 <p class="muted">The response includes an <code>x-thread-id</code> header. Pass it back as
 <code>"threadId"</code> to continue the conversation.</p>
+<p>Default (<code>stream: true</code>) — the answer arrives as a <code>text/plain</code>
+stream of tokens, no envelope:</p>
+<pre><code>For a Medicare patient with chronic knee pain, an MRI is generally
+covered when conservative therapy has failed and the LCD criteria for...</code></pre>
+<p>With <code>"stream": false</code> — a single JSON response echoing the last
+user turn and the agent's reply:</p>
+<pre><code>{
+  "threadId": "b1d9f0c2-7e4a-4a1b-9c3e-2f6d5a8b1c0d",
+  "messages": [
+    { "role": "user", "content": "Is a knee MRI covered for a Medicare patient with chronic knee pain?" },
+    { "role": "assistant", "content": "For a Medicare patient with chronic knee pain, an MRI is generally covered when conservative therapy has failed and the applicable LCD criteria are met..." }
+  ]
+}</code></pre>
 
 <h2>Simple chat</h2>
 <p><span class="endpoint">POST /api/v1/chat</span> — streams a <code>text/plain</code> completion.</p>
@@ -52,6 +65,33 @@ default. Pass <code>"stream": false</code> for a single JSON response.</p>
   -H "Authorization: Bearer sk_live_xxx" \\
   -H "Content-Type: application/json" \\
   -d '{ "messages": [ { "role": "user", "content": "Summarize the CMS rules for a sleep study." } ] }'</code></pre>
+<p>Response — a <code>text/plain</code> token stream:</p>
+<pre><code>CMS covers attended in-lab polysomnography when a patient has symptoms of
+obstructive sleep apnea and meets the documented clinical criteria. Home
+sleep testing may be used as an alternative when...</code></pre>
+
+<h2>Key info</h2>
+<p><span class="endpoint">GET /api/v1/me</span> — introspect the calling key. No scope required.</p>
+<pre><code>curl https://app.notedoctor.ai/api/v1/me \\
+  -H "Authorization: Bearer sk_live_xxx"</code></pre>
+<pre><code>{
+  "org_id": "org_8f3a2b1c",
+  "environment": "live",
+  "scopes": ["agents", "chat"],
+  "rate_limit_tier": "pro"
+}</code></pre>
+
+<h2>Usage</h2>
+<p><span class="endpoint">GET /api/v1/usage</span> — request counts for the current
+calendar month (UTC), broken down by endpoint.</p>
+<pre><code>curl https://app.notedoctor.ai/api/v1/usage \\
+  -H "Authorization: Bearer sk_live_xxx"</code></pre>
+<pre><code>{
+  "period_start": "2026-07-01T00:00:00.000Z",
+  "total": 1284,
+  "agents": 902,
+  "chat": 382
+}</code></pre>
 
 <h2>Rate limits</h2>
 <p>Limits are enforced per organization with a finer per-key sub-limit. Each response
@@ -59,7 +99,9 @@ carries <code>X-RateLimit-Limit</code> and <code>X-RateLimit-Remaining</code>. A
 <code>429</code> includes <code>Retry-After</code> (seconds).</p>
 
 <h2>Errors</h2>
-<p>Every error is a JSON envelope:</p>
+<p>Every error is a JSON envelope. A <code>401</code> from a revoked key, for example:</p>
+<pre><code>{ "error": { "code": "unauthorized", "message": "Missing, malformed, revoked, or expired key.", "requestId": null } }</code></pre>
+<p>And a <code>429</code>, carrying <code>Retry-After</code> and the rate-limit headers:</p>
 <pre><code>{ "error": { "code": "rate_limited", "message": "Rate limit exceeded.", "requestId": null } }</code></pre>
 <table>
   <tr><th>Status</th><th>code</th><th>Meaning</th></tr>

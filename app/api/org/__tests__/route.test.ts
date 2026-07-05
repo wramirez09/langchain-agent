@@ -32,7 +32,7 @@ describe('/api/org', () => {
     const r = await GET()
     expect(r.status).toBe(200)
     const body = await r.json()
-    expect(body).toEqual({ org: { id: 'org1', name: 'Acme' }, role: 'member' })
+    expect(body).toEqual({ org: { id: 'org1', name: 'Acme' }, role: 'member', userId: 'u1' })
   })
 
   it('GET 401 when unauthenticated', async () => {

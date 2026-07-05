@@ -13,7 +13,7 @@ export async function GET() {
   if (s instanceof Response) return s;
 
   const org = await getOrg(s.orgId);
-  return NextResponse.json({ org, role: s.role });
+  return NextResponse.json({ org, role: s.role, userId: s.userId });
 }
 
 const PatchSchema = z.object({ name: z.string().trim().min(1).max(120) });
