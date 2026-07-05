@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
 
 import { supabaseAdmin } from "@/lib/supabaseAdmin";
-import { getSessionOrg } from "@/lib/api/sessionOrg";
+import { getSessionOrg, canManage } from "@/lib/api/sessionOrg";
 
 export const dynamic = "force-dynamic";
 
@@ -20,6 +20,9 @@ export async function DELETE(
     return NextResponse.json({ error: "No organization for user" }, { status: 500 });
   }
   if (!session) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+  if (!canManage(session.role)) {
+    return NextResponse.json({ error: "Forbidden" }, { status: 403 });
+  }
 
   const { id } = await params;
 

@@ -2,7 +2,10 @@
  * @jest-environment node
  */
 
-jest.mock('@/lib/api/sessionOrg', () => ({ getSessionOrg: jest.fn() }))
+jest.mock('@/lib/api/sessionOrg', () => ({
+  getSessionOrg: jest.fn(),
+  canManage: (r: string) => r === 'owner' || r === 'admin',
+}))
 jest.mock('@/lib/supabaseAdmin', () => ({ supabaseAdmin: { from: jest.fn() } }))
 
 import { DELETE } from '../route'
@@ -40,7 +43,7 @@ describe('DELETE /api/keys/[id]', () => {
   })
 
   it('revokes a key scoped to the org', async () => {
-    sessionMock.mockResolvedValue({ userId: 'u1', orgId: 'org1' })
+    sessionMock.mockResolvedValue({ userId: 'u1', orgId: 'org1', role: 'owner' })
     const { chain, calls } = updateChain({ data: { id: 'k1' }, error: null })
     fromMock.mockReturnValue(chain)
 
@@ -52,11 +55,18 @@ describe('DELETE /api/keys/[id]', () => {
   })
 
   it('404 when the key is not in the caller’s org', async () => {
-    sessionMock.mockResolvedValue({ userId: 'u1', orgId: 'org1' })
+    sessionMock.mockResolvedValue({ userId: 'u1', orgId: 'org1', role: 'owner' })
     const { chain } = updateChain({ data: null, error: null })
     fromMock.mockReturnValue(chain)
 
     const r = await DELETE({} as any, params('k1') as any)
     expect(r.status).toBe(404)
+  })
+
+  it('403 when the caller is a read-only member', async () => {
+    sessionMock.mockResolvedValue({ userId: 'u1', orgId: 'org1', role: 'member' })
+    const r = await DELETE({} as any, params('k1') as any)
+    expect(r.status).toBe(403)
+    expect(fromMock).not.toHaveBeenCalled()
   })
 })

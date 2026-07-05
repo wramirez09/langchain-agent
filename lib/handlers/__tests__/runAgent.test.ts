@@ -5,8 +5,8 @@
 // Verifies the stateless public path: runAgent must NOT write chat_messages
 // when source === 'api', but still persists for first-party (web/mobile).
 
-const insertMock = jest.fn().mockResolvedValue({ data: null, error: null })
-const fromMock = jest.fn(() => ({
+const insertMock = jest.fn((..._a: any[]) => Promise.resolve({ data: null, error: null }))
+const fromMock = jest.fn((..._a: any[]) => ({
   insert: (...a: any[]) => insertMock(...a),
   select: () => ({
     eq: () => ({ eq: () => ({ limit: () => Promise.resolve({ data: [] }) }) }),

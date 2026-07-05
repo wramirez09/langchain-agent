@@ -2,7 +2,10 @@
  * @jest-environment node
  */
 
-jest.mock('@/lib/api/sessionOrg', () => ({ getSessionOrg: jest.fn() }))
+jest.mock('@/lib/api/sessionOrg', () => ({
+  getSessionOrg: jest.fn(),
+  canManage: (r: string) => r === 'owner' || r === 'admin',
+}))
 jest.mock('@/lib/supabaseAdmin', () => ({ supabaseAdmin: { from: jest.fn() } }))
 
 import { GET, POST } from '../route'
@@ -26,7 +29,7 @@ describe('/api/keys', () => {
     })
 
     it("lists the caller's org keys (prefixes only)", async () => {
-      sessionMock.mockResolvedValue({ userId: 'u1', orgId: 'org1' })
+      sessionMock.mockResolvedValue({ userId: 'u1', orgId: 'org1', role: 'owner' })
       const eq = jest.fn(() => ({
         order: () => Promise.resolve({ data: [{ id: 'k1', key_prefix: 'sk_live_ab12' }], error: null }),
       }))
@@ -42,7 +45,7 @@ describe('/api/keys', () => {
 
   describe('POST', () => {
     it('mints a key for the org and returns the plaintext once', async () => {
-      sessionMock.mockResolvedValue({ userId: 'u1', orgId: 'org1' })
+      sessionMock.mockResolvedValue({ userId: 'u1', orgId: 'org1', role: 'owner' })
       let inserted: any
       fromMock.mockReturnValue({
         insert: (payload: any) => {
@@ -75,6 +78,13 @@ describe('/api/keys', () => {
       sessionMock.mockResolvedValue(null)
       const r = await POST({ json: async () => ({}) } as any)
       expect(r.status).toBe(401)
+    })
+
+    it('403 when the caller is a read-only member', async () => {
+      sessionMock.mockResolvedValue({ userId: 'u1', orgId: 'org1', role: 'member' })
+      const r = await POST({ json: async () => ({ environment: 'live', scopes: ['agents'] }) } as any)
+      expect(r.status).toBe(403)
+      expect(fromMock).not.toHaveBeenCalled() // never touches the DB
     })
   })
 })

@@ -2,7 +2,7 @@ import { NextResponse } from "next/server";
 import { z } from "zod";
 
 import { supabaseAdmin } from "@/lib/supabaseAdmin";
-import { getSessionOrg } from "@/lib/api/sessionOrg";
+import { getSessionOrg, canManage } from "@/lib/api/sessionOrg";
 import { generateApiKey } from "@/lib/auth/apiKeys";
 
 export const dynamic = "force-dynamic";
@@ -51,6 +51,9 @@ export async function POST(req: Request) {
     return NextResponse.json({ error: "No organization for user" }, { status: 500 });
   }
   if (!session) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+  if (!canManage(session.role)) {
+    return NextResponse.json({ error: "Forbidden" }, { status: 403 });
+  }
 
   let rawBody: unknown = {};
   try {
