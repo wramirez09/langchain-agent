@@ -10,6 +10,7 @@ import {
   Pin,
   Bookmark,
   ChevronRight,
+  KeyRound,
 } from 'lucide-react';
 import { cn } from '@/utils/cn';
 import { createClient } from '@/utils/client';
@@ -285,6 +286,18 @@ export function AppSidebar({ activeView, onViewChange }: AppSidebarProps) {
                   {billingLoading ? 'Loading…' : 'Billing'}
                 </span>
               </button>
+
+              <Link
+                href="/agents/api-keys"
+                onClick={collapseFlyout}
+                aria-label="API Keys"
+                className={cn(rowClass, 'text-[#737b89] hover:bg-[#f4f5f8]')}
+              >
+                <KeyRound size={21} strokeWidth={1.7} className="shrink-0" />
+                <span className="fb-label text-sm font-semibold text-[#3f4654]">
+                  API Keys
+                </span>
+              </Link>
 
               <div className="h-3.5" />
 
