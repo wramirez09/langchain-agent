@@ -11,23 +11,25 @@ jest.mock('@/lib/db/repositories/org.repo', () => ({
   findUserIdByEmail: jest.fn(),
   getMembership: jest.fn(),
   setMembership: jest.fn(),
+  inviteMemberByEmail: jest.fn(),
 }))
 
 import { GET, POST } from '../route'
 import { getSessionOrg } from '@/lib/api/sessionOrg'
-import { listMembers, findUserIdByEmail, getMembership, setMembership } from '@/lib/db/repositories/org.repo'
+import { listMembers, findUserIdByEmail, getMembership, setMembership, inviteMemberByEmail } from '@/lib/db/repositories/org.repo'
 
 const sessionMock = getSessionOrg as jest.Mock
 const listMock = listMembers as jest.Mock
 const findMock = findUserIdByEmail as jest.Mock
 const memMock = getMembership as jest.Mock
 const setMock = setMembership as jest.Mock
+const inviteMock = inviteMemberByEmail as jest.Mock
 
 const owner = { userId: 'u1', orgId: 'org1', role: 'owner' }
 
 describe('/api/org/members', () => {
   beforeEach(() => {
-    sessionMock.mockReset(); listMock.mockReset(); findMock.mockReset(); memMock.mockReset(); setMock.mockReset()
+    sessionMock.mockReset(); listMock.mockReset(); findMock.mockReset(); memMock.mockReset(); setMock.mockReset(); inviteMock.mockReset()
   })
 
   it('GET lists members (any member)', async () => {
@@ -55,11 +57,22 @@ describe('/api/org/members', () => {
     expect(findMock).not.toHaveBeenCalled()
   })
 
-  it('POST 404 when no account exists for the email', async () => {
+  it('POST invites a new user by email when no account exists', async () => {
     sessionMock.mockResolvedValue(owner)
     findMock.mockResolvedValue(null)
-    const r = await POST({ json: async () => ({ email: 'ghost@x.com' }) } as any)
-    expect(r.status).toBe(404)
+    inviteMock.mockResolvedValue({ error: null })
+    const r = await POST({
+      json: async () => ({ email: 'ghost@x.com', role: 'member' }),
+      headers: { get: () => 'https://app.test' },
+    } as any)
+    expect(r.status).toBe(201)
+    expect((await r.json()).invited).toBe(true)
+    expect(inviteMock).toHaveBeenCalledWith(
+      'ghost@x.com',
+      'org1',
+      'member',
+      expect.stringContaining('/auth/update-password'),
+    )
   })
 
   it('POST 409 when already a member', async () => {

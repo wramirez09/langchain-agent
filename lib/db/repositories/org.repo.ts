@@ -54,6 +54,24 @@ export async function listMembers(orgId: string): Promise<OrgMember[]> {
   }))
 }
 
+/**
+ * Invite a brand-new user by email via Supabase Auth. Creates the auth.users
+ * row and emails a set-password link. The `invited_org_id`/`invited_role`
+ * metadata is read by the handle_new_user_org trigger, which joins them to the
+ * org (instead of creating a solo org) once they accept.
+ */
+export async function inviteMemberByEmail(
+  email: string,
+  orgId: string,
+  role: OrgRole,
+  redirectTo?: string,
+) {
+  return supabaseAdmin.auth.admin.inviteUserByEmail(email, {
+    data: { invited_org_id: orgId, invited_role: role },
+    redirectTo,
+  })
+}
+
 /** Look up an existing user id by email (case-insensitive). */
 export async function findUserIdByEmail(email: string): Promise<string | null> {
   const target = email.trim().toLowerCase()

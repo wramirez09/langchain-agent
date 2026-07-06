@@ -59,6 +59,7 @@ export default function OrgManager() {
   const [inviteEmail, setInviteEmail] = useState("");
   const [inviteRole, setInviteRole] = useState<"admin" | "member">("member");
   const [inviting, setInviting] = useState(false);
+  const [notice, setNotice] = useState<string | null>(null);
 
   const canManage = role === "owner" || role === "admin";
 
@@ -112,6 +113,7 @@ export default function OrgManager() {
     if (!inviteEmail.trim()) return;
     setInviting(true);
     setError(null);
+    setNotice(null);
     try {
       const res = await fetch("/api/org/members", {
         method: "POST",
@@ -120,7 +122,11 @@ export default function OrgManager() {
       });
       const data = await res.json().catch(() => ({}));
       if (!res.ok) throw new Error(data.error || `Failed to add member (${res.status})`);
+      const invitedEmail = inviteEmail.trim();
       setInviteEmail("");
+      if (data.invited) {
+        setNotice(`Invitation emailed to ${invitedEmail}. They'll appear here once they accept.`);
+      }
       await load();
     } catch (e) {
       setError((e as Error).message);
@@ -265,6 +271,12 @@ export default function OrgManager() {
             <Button onClick={invite} disabled={inviting}>
               <IconUserPlus /> {inviting ? "Adding…" : "Add"}
             </Button>
+          </div>
+        )}
+
+        {notice && (
+          <div className="mb-3 rounded-lg border border-emerald-300/60 bg-emerald-50 px-3 py-2 text-sm text-emerald-800 dark:bg-emerald-500/10 dark:text-emerald-300">
+            {notice}
           </div>
         )}
 

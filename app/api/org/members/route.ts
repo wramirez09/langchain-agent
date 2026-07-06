@@ -3,7 +3,13 @@ import { z } from "zod";
 
 import { requireOrg } from "@/lib/api/requireOrg";
 import { canManage } from "@/lib/api/sessionOrg";
-import { listMembers, findUserIdByEmail, getMembership, setMembership } from "@/lib/db/repositories/org.repo";
+import {
+  listMembers,
+  findUserIdByEmail,
+  getMembership,
+  setMembership,
+  inviteMemberByEmail,
+} from "@/lib/db/repositories/org.repo";
 
 export const dynamic = "force-dynamic";
 
@@ -22,9 +28,11 @@ const InviteSchema = z.object({
 });
 
 /**
- * POST /api/org/members — add an existing user to the org by email (owner/admin).
- * The invitee must already have an account; a full email-invite flow is a
- * follow-up. Each user belongs to one org, so this moves them into this org.
+ * POST /api/org/members — add a member by email (owner/admin).
+ *  - Existing account → add the membership now (moves them into this org).
+ *  - No account yet   → Supabase Auth invite (creates the user + emails a
+ *    set-password link); the invite-aware trigger joins them to the org on accept.
+ * Each user belongs to one org.
  */
 export async function POST(req: Request) {
   const s = await requireOrg();
@@ -40,11 +48,18 @@ export async function POST(req: Request) {
   const { email, role } = parsed.data;
 
   const userId = await findUserIdByEmail(email);
+
   if (!userId) {
-    return NextResponse.json(
-      { error: "No account exists for that email. Ask them to sign up first." },
-      { status: 404 },
-    );
+    // New person — invite them via Supabase Auth. They land on the app's
+    // update-password page to set a password, then the trigger adds them.
+    const origin =
+      req.headers.get("origin") ?? process.env.NEXT_PUBLIC_SITE_URL ?? "";
+    const redirectTo = origin ? `${origin}/auth/update-password` : undefined;
+    const { error } = await inviteMemberByEmail(email, s.orgId, role, redirectTo);
+    if (error) {
+      return NextResponse.json({ error: "Failed to send invite" }, { status: 500 });
+    }
+    return NextResponse.json({ success: true, invited: true, email }, { status: 201 });
   }
 
   const existing = await getMembership(s.orgId, userId);
