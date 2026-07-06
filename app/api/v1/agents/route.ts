@@ -61,8 +61,9 @@ export async function POST(req: NextRequest) {
     return apiError("invalid_request", "Request body failed validation.", 400, rlHeaders);
   }
 
-  // Stream by default; allow JSON via `stream: false`.
-  const wantsJson = rawBody?.stream === false;
+  // Return structured JSON by default — the same { threadId, messages } shape
+  // the app produces. Opt into token streaming with `"stream": true`.
+  const wantsStream = rawBody?.stream === true;
 
   waitUntil(touchApiKey(auth.apiKeyId));
 
@@ -74,8 +75,9 @@ export async function POST(req: NextRequest) {
     return await runAgent({
       messages: parsed.data.messages,
       threadId: parsed.data.threadId ?? null,
-      // "mobile" client type yields the non-streaming JSON branch.
-      clientType: wantsJson ? "mobile" : "api",
+      // "mobile" client type yields the non-streaming JSON branch (default);
+      // "api" streams text/plain when the caller opts in.
+      clientType: wantsStream ? "api" : "mobile",
       identity: {
         userId: auth.createdBy,
         orgId: auth.orgId,

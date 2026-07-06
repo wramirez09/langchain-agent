@@ -33,8 +33,8 @@ never embed one in a browser or mobile app. Create and revoke keys on your
 <pre><code>Authorization: Bearer sk_live_xxxxxxxxxxxxxxxxxxxx</code></pre>
 
 <h2>Run the agent</h2>
-<p><span class="endpoint">POST /api/v1/agents</span> — streams <code>text/plain</code> by
-default. Pass <code>"stream": false</code> for a single JSON response.</p>
+<p><span class="endpoint">POST /api/v1/agents</span> — returns a single JSON response by
+default. Pass <code>"stream": true</code> for a <code>text/plain</code> token stream.</p>
 <pre><code>curl -N https://app.notedoctor.ai/api/v1/agents \\
   -H "Authorization: Bearer sk_live_xxx" \\
   -H "Content-Type: application/json" \\
@@ -43,14 +43,10 @@ default. Pass <code>"stream": false</code> for a single JSON response.</p>
       { "role": "user", "content": "Is a knee MRI covered for a Medicare patient with chronic knee pain?" }
     ]
   }'</code></pre>
-<p class="muted">The response includes an <code>x-thread-id</code> header. Pass it back as
-<code>"threadId"</code> to continue the conversation.</p>
-<p>Default (<code>stream: true</code>) — the answer arrives as a <code>text/plain</code>
-stream of tokens, no envelope:</p>
-<pre><code>For a Medicare patient with chronic knee pain, an MRI is generally
-covered when conservative therapy has failed and the LCD criteria for...</code></pre>
-<p>With <code>"stream": false</code> — a single JSON response echoing the last
-user turn and the agent's reply:</p>
+<p class="muted">The response includes an <code>x-thread-id</code> header (also in the body).
+Pass <code>threadId</code> back to continue the conversation.</p>
+<p>Default — a single JSON response echoing the last user turn and the agent's reply
+(the same shape the app uses):</p>
 <pre><code>{
   "threadId": "b1d9f0c2-7e4a-4a1b-9c3e-2f6d5a8b1c0d",
   "messages": [
@@ -58,6 +54,8 @@ user turn and the agent's reply:</p>
     { "role": "assistant", "content": "For a Medicare patient with chronic knee pain, an MRI is generally covered when conservative therapy has failed and the applicable LCD criteria are met..." }
   ]
 }</code></pre>
+<p class="muted">Prefer streaming? Add <code>"stream": true</code> to the request body and the
+answer arrives as a <code>text/plain</code> token stream instead.</p>
 
 <h2>Simple chat</h2>
 <p><span class="endpoint">POST /api/v1/chat</span> — streams a <code>text/plain</code> completion.</p>

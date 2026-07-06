@@ -40,8 +40,9 @@ paths:
       summary: Run the medical pre-authorization research agent
       description: |
         Executes the tool-using LangGraph agent (Medicare NCD/LCD/LCA + commercial
-        guideline search + web search). Streams `text/plain` by default; pass
-        `"stream": false` for a single JSON response.
+        guideline search + web search). Returns a single JSON response by default
+        (the same { threadId, messages } shape the app uses); pass `"stream": true`
+        for a `text/plain` token stream.
       requestBody:
         required: true
         content:
@@ -50,7 +51,7 @@ paths:
               $ref: "#/components/schemas/AgentRequest"
       responses:
         "200":
-          description: Agent response (streamed text, or JSON when `stream` is false).
+          description: Agent response (JSON by default, or a text/plain token stream when `stream` is true).
           headers:
             x-thread-id:
               schema: { type: string, format: uuid }
@@ -158,8 +159,8 @@ components:
           description: Continue an existing conversation.
         stream:
           type: boolean
-          default: true
-          description: When false, returns a single JSON response instead of streaming.
+          default: false
+          description: When true, returns a text/plain token stream instead of the default JSON response.
     ChatRequest:
       type: object
       required: [messages]
