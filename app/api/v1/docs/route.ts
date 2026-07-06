@@ -31,6 +31,9 @@ const HTML = `<!doctype html>
 never embed one in a browser or mobile app. Create and revoke keys on your
 <a href="/agents/api-keys">API Keys</a> page; the full key is shown only once.</p>
 <pre><code>Authorization: Bearer sk_live_xxxxxxxxxxxxxxxxxxxx</code></pre>
+<p class="muted">Each key is scoped (<code>agents</code>, <code>chat</code>). Calling an
+endpoint a key isn't scoped for returns <code>403</code>. API access also depends on your
+plan — see <code>402</code> below.</p>
 
 <h2>Run the agent</h2>
 <p><span class="endpoint">POST /api/v1/agents</span> — returns a single JSON response by
@@ -68,6 +71,16 @@ answer arrives as a <code>text/plain</code> token stream instead.</p>
 obstructive sleep apnea and meets the documented clinical criteria. Home
 sleep testing may be used as an alternative when...</code></pre>
 
+<h2>Account &amp; usage</h2>
+<p><span class="endpoint">GET /api/v1/me</span> — the calling key's org, environment, scopes, and tier.</p>
+<pre><code>curl https://app.notedoctor.ai/api/v1/me -H "Authorization: Bearer sk_live_xxx"
+
+{ "org_id": "…uuid…", "environment": "live", "scopes": ["agents","chat"], "rate_limit_tier": "standard" }</code></pre>
+<p><span class="endpoint">GET /api/v1/usage</span> — request totals for your org for the current calendar month (UTC).</p>
+<pre><code>curl https://app.notedoctor.ai/api/v1/usage -H "Authorization: Bearer sk_live_xxx"
+
+{ "period_start": "2026-07-01T00:00:00.000Z", "total": 128, "agents": 90, "chat": 38 }</code></pre>
+
 <h2>Rate limits</h2>
 <p>Limits are enforced per organization with a finer per-key sub-limit. Each response
 carries <code>X-RateLimit-Limit</code> and <code>X-RateLimit-Remaining</code>. A
@@ -82,6 +95,7 @@ carries <code>X-RateLimit-Limit</code> and <code>X-RateLimit-Remaining</code>. A
   <tr><th>Status</th><th>code</th><th>Meaning</th></tr>
   <tr><td>400</td><td>invalid_json / invalid_request</td><td>Body was malformed or failed validation.</td></tr>
   <tr><td>401</td><td>unauthorized</td><td>Missing, malformed, revoked, or expired key.</td></tr>
+  <tr><td>402</td><td>payment_required</td><td>API access is not included in your current plan.</td></tr>
   <tr><td>403</td><td>forbidden</td><td>Key is not scoped for this endpoint.</td></tr>
   <tr><td>429</td><td>rate_limited</td><td>Too many requests — retry after the given delay.</td></tr>
   <tr><td>502</td><td>upstream_error</td><td>The model could not complete the request.</td></tr>
