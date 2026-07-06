@@ -70,29 +70,6 @@ user turn and the agent's reply:</p>
 obstructive sleep apnea and meets the documented clinical criteria. Home
 sleep testing may be used as an alternative when...</code></pre>
 
-<h2>Key info</h2>
-<p><span class="endpoint">GET /api/v1/me</span> — introspect the calling key. No scope required.</p>
-<pre><code>curl https://app.notedoctor.ai/api/v1/me \\
-  -H "Authorization: Bearer sk_live_xxx"</code></pre>
-<pre><code>{
-  "org_id": "org_8f3a2b1c",
-  "environment": "live",
-  "scopes": ["agents", "chat"],
-  "rate_limit_tier": "pro"
-}</code></pre>
-
-<h2>Usage</h2>
-<p><span class="endpoint">GET /api/v1/usage</span> — request counts for the current
-calendar month (UTC), broken down by endpoint.</p>
-<pre><code>curl https://app.notedoctor.ai/api/v1/usage \\
-  -H "Authorization: Bearer sk_live_xxx"</code></pre>
-<pre><code>{
-  "period_start": "2026-07-01T00:00:00.000Z",
-  "total": 1284,
-  "agents": 902,
-  "chat": 382
-}</code></pre>
-
 <h2>Rate limits</h2>
 <p>Limits are enforced per organization with a finer per-key sub-limit. Each response
 carries <code>X-RateLimit-Limit</code> and <code>X-RateLimit-Remaining</code>. A

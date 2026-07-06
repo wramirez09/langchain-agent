@@ -31,10 +31,27 @@ export async function POST(req: Request) {
             let licensedItemId: string | null = null;
             let meteredItemId: string | null = null;
 
+            // API access is derived from the plan's Stripe *product metadata*
+            // (`api_access: "true"`, optional `api_tier`), so tiers can be
+            // configured entirely in Stripe. Requires `product` to be expanded
+            // (checkout path). When products aren't expanded we return null and
+            // the caller omits the field, leaving the stored value unchanged.
+            let sawExpandedProduct = false;
+            let apiGranted = false;
+            let apiTier: string | null = null;
+
             for (const item of subs.items.data) {
                 const usageType = item.price.recurring?.usage_type;
                 if (usageType === "metered") meteredItemId = item.id;
                 else licensedItemId = item.id;
+
+                const product = (item.price as unknown as { product?: unknown }).product;
+                if (product && typeof product === "object" && "metadata" in product) {
+                    sawExpandedProduct = true;
+                    const md = (product as { metadata?: Record<string, string> }).metadata ?? {};
+                    if (md.api_access === "true") apiGranted = true;
+                    if (md.api_tier) apiTier = md.api_tier;
+                }
             }
 
             const currentPeriodStart = (subs as any).current_period_start
@@ -51,6 +68,9 @@ export async function POST(req: Request) {
                 meteredItemId,
                 current_period_start: currentPeriodStart,
                 current_period_end: currentPeriodEnd,
+                // null => undeterminable (products not expanded); caller omits it.
+                api_access: sawExpandedProduct ? apiGranted : null,
+                tier: apiTier,
             };
         };
 
@@ -70,7 +90,7 @@ export async function POST(req: Request) {
             /* --- Fetch subscription ---------------------------------- */
             const subs = await stripe.subscriptions.retrieve(
                 stripeSubscriptionId,
-                { expand: ["items.data.price"] }
+                { expand: ["items.data.price.product"] }
             );
 
             const normalized = normalizeSubscription(subs);
@@ -138,6 +158,11 @@ export async function POST(req: Request) {
                         status: normalized.status,
                         current_period_start: normalized.current_period_start,
                         current_period_end: normalized.current_period_end,
+                        // Only write API-access fields when derivable (product expanded);
+                        // otherwise omit so the stored value is left unchanged.
+                        ...(normalized.api_access !== null
+                            ? { api_access: normalized.api_access, tier: normalized.tier }
+                            : {}),
                         updated_at: new Date().toISOString(),
                     },
                     { onConflict: "stripe_subscription_id" }

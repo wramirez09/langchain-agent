@@ -10,6 +10,9 @@ jest.mock('@/lib/db/repositories/org.repo', () => ({
   getOrg: jest.fn(),
   updateOrgName: jest.fn(),
 }))
+jest.mock('@/lib/billing/apiAccess', () => ({
+  orgHasApiAccess: jest.fn().mockResolvedValue({ allowed: true, reason: 'ok' }),
+}))
 
 import { GET, PATCH } from '../route'
 import { getSessionOrg } from '@/lib/api/sessionOrg'
@@ -32,7 +35,8 @@ describe('/api/org', () => {
     const r = await GET()
     expect(r.status).toBe(200)
     const body = await r.json()
-    expect(body).toEqual({ org: { id: 'org1', name: 'Acme' }, role: 'member', userId: 'u1' })
+    // apiAccess defaults true (API_ACCESS_MODE=open in tests)
+    expect(body).toEqual({ org: { id: 'org1', name: 'Acme' }, role: 'member', userId: 'u1', apiAccess: true })
   })
 
   it('GET 401 when unauthenticated', async () => {

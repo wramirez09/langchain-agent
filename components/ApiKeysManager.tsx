@@ -62,6 +62,7 @@ export default function ApiKeysManager() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [role, setRole] = useState<string | null>(null);
+  const [apiAccess, setApiAccess] = useState(true);
 
   // create dialog
   const [open, setOpen] = useState(false);
@@ -80,7 +81,11 @@ export default function ApiKeysManager() {
       if (!keysRes.ok) throw new Error(`Failed to load keys (${keysRes.status})`);
       const data = await keysRes.json();
       setKeys(data.keys ?? []);
-      if (orgRes.ok) setRole((await orgRes.json()).role ?? null);
+      if (orgRes.ok) {
+        const o = await orgRes.json();
+        setRole(o.role ?? null);
+        setApiAccess(o.apiAccess !== false);
+      }
     } catch (e) {
       setError((e as Error).message);
     } finally {
@@ -154,6 +159,7 @@ export default function ApiKeysManager() {
 
   const activeCount = keys.filter((k) => !k.revoked_at).length;
   const canManage = role === "owner" || role === "admin";
+  const canCreate = canManage && apiAccess;
 
   return (
     <div className="flex flex-col gap-4">
@@ -163,16 +169,26 @@ export default function ApiKeysManager() {
           <h2 className="text-sm font-medium">Your keys</h2>
           <p className="text-xs text-muted-foreground">{loading ? " " : `${activeCount} active`}</p>
         </div>
-        {canManage ? (
+        {canCreate ? (
           <Button onClick={() => setOpen(true)}>
             <IconPlus /> Create key
           </Button>
-        ) : (
-          !loading && (
-            <span className="text-xs text-muted-foreground">Read-only · members can&apos;t create keys</span>
-          )
-        )}
+        ) : !canManage && !loading ? (
+          <span className="text-xs text-muted-foreground">Read-only · members can&apos;t create keys</span>
+        ) : null}
       </div>
+
+      {!apiAccess && !loading && (
+        <div className="flex items-center justify-between gap-3 rounded-lg border border-amber-300/60 bg-amber-50 px-3 py-2.5 text-sm dark:bg-amber-500/10">
+          <span className="flex items-center gap-2 text-amber-800 dark:text-amber-300">
+            <IconShieldLock className="size-4 shrink-0" />
+            API access isn&apos;t included in your current plan.
+          </span>
+          <a href="/agents/org" className="shrink-0 font-medium text-amber-900 underline dark:text-amber-200">
+            Upgrade
+          </a>
+        </div>
+      )}
 
       {error && !open && (
         <div className="flex items-center gap-2 rounded-lg border border-destructive/30 bg-destructive/5 px-3 py-2 text-sm text-destructive">
@@ -205,7 +221,7 @@ export default function ApiKeysManager() {
                 Create a key to start calling the NoteDoctor public API.
               </p>
             </div>
-            {canManage && (
+            {canCreate && (
               <Button variant="outline" size="sm" onClick={() => setOpen(true)}>
                 <IconPlus /> Create your first key
               </Button>

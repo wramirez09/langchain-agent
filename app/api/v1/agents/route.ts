@@ -3,6 +3,7 @@ import { waitUntil } from "@vercel/functions";
 
 import { resolveApiAuth, touchApiKey } from "@/lib/auth/resolveApiAuth";
 import { checkRateLimit } from "@/lib/rateLimit";
+import { orgHasApiAccess } from "@/lib/billing/apiAccess";
 import { runAgent } from "@/lib/handlers/runAgent";
 import { RequestBodySchema } from "@/app/api/chat/agents/route";
 import { apiError, rateLimitHeaders, NO_STORE } from "@/lib/api/publicApi";
@@ -29,6 +30,12 @@ export async function POST(req: NextRequest) {
   /* ---------- SCOPE ---------- */
   if (!auth.scopes.includes("agents")) {
     return apiError("forbidden", "This key is not scoped for the agents endpoint.", 403);
+  }
+
+  /* ---------- PLAN / API ACCESS ---------- */
+  const access = await orgHasApiAccess(auth.orgId);
+  if (!access.allowed) {
+    return apiError("payment_required", "API access is not included in this plan.", 402);
   }
 
   /* ---------- RATE LIMIT ---------- */

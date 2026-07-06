@@ -4,16 +4,17 @@ import { z } from "zod";
 import { requireOrg } from "@/lib/api/requireOrg";
 import { canManage } from "@/lib/api/sessionOrg";
 import { getOrg, updateOrgName } from "@/lib/db/repositories/org.repo";
+import { orgHasApiAccess } from "@/lib/billing/apiAccess";
 
 export const dynamic = "force-dynamic";
 
-/** GET /api/org — the caller's org profile + their role. */
+/** GET /api/org — the caller's org profile, role, and API-access status. */
 export async function GET() {
   const s = await requireOrg();
   if (s instanceof Response) return s;
 
-  const org = await getOrg(s.orgId);
-  return NextResponse.json({ org, role: s.role, userId: s.userId });
+  const [org, access] = await Promise.all([getOrg(s.orgId), orgHasApiAccess(s.orgId)]);
+  return NextResponse.json({ org, role: s.role, userId: s.userId, apiAccess: access.allowed });
 }
 
 const PatchSchema = z.object({ name: z.string().trim().min(1).max(120) });

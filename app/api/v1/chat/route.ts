@@ -5,6 +5,7 @@ import { waitUntil } from "@vercel/functions";
 
 import { resolveApiAuth, touchApiKey } from "@/lib/auth/resolveApiAuth";
 import { checkRateLimit } from "@/lib/rateLimit";
+import { orgHasApiAccess } from "@/lib/billing/apiAccess";
 import { runChat, ChatStreamError } from "@/lib/handlers/runChat";
 import { apiError, rateLimitHeaders, NO_STORE } from "@/lib/api/publicApi";
 
@@ -35,6 +36,11 @@ export async function POST(req: NextRequest) {
 
   if (!auth.scopes.includes("chat")) {
     return apiError("forbidden", "This key is not scoped for the chat endpoint.", 403);
+  }
+
+  const access = await orgHasApiAccess(auth.orgId);
+  if (!access.allowed) {
+    return apiError("payment_required", "API access is not included in this plan.", 402);
   }
 
   const rl = await checkRateLimit(auth.orgId, auth.apiKeyId, auth.tier);

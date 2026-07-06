@@ -4,6 +4,7 @@ import { z } from "zod";
 import { supabaseAdmin } from "@/lib/supabaseAdmin";
 import { getSessionOrg, canManage } from "@/lib/api/sessionOrg";
 import { generateApiKey } from "@/lib/auth/apiKeys";
+import { orgHasApiAccess } from "@/lib/billing/apiAccess";
 
 export const dynamic = "force-dynamic";
 
@@ -53,6 +54,13 @@ export async function POST(req: Request) {
   if (!session) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   if (!canManage(session.role)) {
     return NextResponse.json({ error: "Forbidden" }, { status: 403 });
+  }
+  const access = await orgHasApiAccess(session.orgId);
+  if (!access.allowed) {
+    return NextResponse.json(
+      { error: "API access is not included in your current plan.", reason: access.reason },
+      { status: 402 },
+    );
   }
 
   let rawBody: unknown = {};
