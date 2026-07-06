@@ -17,7 +17,7 @@ import { Input } from "@/components/ui/input";
 import { cn } from "@/utils/cn";
 
 type Role = "owner" | "admin" | "member";
-type Member = { user_id: string; email: string | null; role: Role; created_at: string };
+type Member = { user_id: string; email: string | null; role: Role; created_at: string; pending?: boolean };
 type Usage = { total: number; agents: number; chat: number };
 
 const roleBadge = (r: Role) =>
@@ -125,7 +125,7 @@ export default function OrgManager() {
       const invitedEmail = inviteEmail.trim();
       setInviteEmail("");
       if (data.invited) {
-        setNotice(`Invitation emailed to ${invitedEmail}. They'll appear here once they accept.`);
+        setNotice(`Invitation emailed to ${invitedEmail} — they appear below as “pending” until they set a password.`);
       }
       await load();
     } catch (e) {
@@ -269,7 +269,7 @@ export default function OrgManager() {
               <option value="admin">Admin</option>
             </select>
             <Button onClick={invite} disabled={inviting}>
-              <IconUserPlus /> {inviting ? "Adding…" : "Add"}
+              <IconUserPlus /> {inviting ? "Inviting…" : "Invite"}
             </Button>
           </div>
         )}
@@ -292,6 +292,11 @@ export default function OrgManager() {
                   <div className="flex items-center gap-2">
                     <span className="truncate text-sm">{m.email ?? m.user_id}</span>
                     {isMe && <span className="text-[11px] text-muted-foreground">you</span>}
+                    {m.pending && (
+                      <span className="inline-flex items-center rounded-full bg-amber-50 px-1.5 py-0.5 text-[11px] font-medium text-amber-700 ring-1 ring-inset ring-amber-600/20 dark:bg-amber-500/10 dark:text-amber-400">
+                        pending
+                      </span>
+                    )}
                   </div>
                 </div>
 

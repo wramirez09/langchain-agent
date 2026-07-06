@@ -6,18 +6,23 @@ export type OrgMember = {
   email: string | null
   role: OrgRole
   created_at: string
+  /** Invited but hasn't confirmed their email / set a password yet. */
+  pending: boolean
 }
 
 /**
- * Map of user id -> email, from the auth admin API. Emails live in auth.users,
- * which PostgREST doesn't expose, so we read them through the admin API. Fine
- * for the small member lists an org has; revisit if orgs grow large.
+ * Map of user id -> { email, confirmed }, from the auth admin API. Emails live
+ * in auth.users, which PostgREST doesn't expose, so we read them through the
+ * admin API. Fine for the small member lists an org has; revisit if orgs grow.
  */
-async function emailMap(): Promise<Map<string, string>> {
-  const map = new Map<string, string>()
+async function usersMap(): Promise<Map<string, { email: string | null; confirmed: boolean }>> {
+  const map = new Map<string, { email: string | null; confirmed: boolean }>()
   const { data } = await supabaseAdmin.auth.admin.listUsers({ page: 1, perPage: 1000 })
   for (const u of data?.users ?? []) {
-    if (u.email) map.set(u.id, u.email)
+    map.set(u.id, {
+      email: u.email ?? null,
+      confirmed: Boolean((u as { email_confirmed_at?: string }).email_confirmed_at ?? u.confirmed_at),
+    })
   }
   return map
 }
@@ -45,13 +50,17 @@ export async function listMembers(orgId: string): Promise<OrgMember[]> {
   const rows = (data as { user_id: string; role: OrgRole; created_at: string }[]) ?? []
   if (rows.length === 0) return []
 
-  const emails = await emailMap()
-  return rows.map((r) => ({
-    user_id: r.user_id,
-    email: emails.get(r.user_id) ?? null,
-    role: r.role,
-    created_at: r.created_at,
-  }))
+  const users = await usersMap()
+  return rows.map((r) => {
+    const u = users.get(r.user_id)
+    return {
+      user_id: r.user_id,
+      email: u?.email ?? null,
+      role: r.role,
+      created_at: r.created_at,
+      pending: u ? !u.confirmed : false,
+    }
+  })
 }
 
 /**
