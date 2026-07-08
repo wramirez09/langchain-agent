@@ -301,26 +301,32 @@ export default function ApiKeysManager() {
                       {k.last_used_at ? `last used ${fmtDate(k.last_used_at)}` : "never used"}
                     </div>
                   </div>
-                  {canManage &&
-                    (revoked ? (
+                  {canManage && (
+                    <div className="flex items-center gap-1">
+                      {/* Revoke stays for active keys; the record remains as "revoked". */}
+                      {!revoked && (
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          className="text-muted-foreground hover:text-foreground"
+                          onClick={() => revokeKey(k.id)}
+                        >
+                          <IconBan /> Revoke
+                        </Button>
+                      )}
+                      {/* Delete removes the record altogether. */}
                       <Button
                         variant="ghost"
-                        size="sm"
+                        size="icon"
+                        aria-label="Delete key permanently"
+                        title="Delete permanently"
                         className="text-muted-foreground hover:text-destructive"
                         onClick={() => deleteKey(k.id)}
                       >
-                        <IconTrash /> Delete
+                        <IconTrash />
                       </Button>
-                    ) : (
-                      <Button
-                        variant="ghost"
-                        size="sm"
-                        className="text-muted-foreground hover:text-destructive"
-                        onClick={() => revokeKey(k.id)}
-                      >
-                        <IconBan /> Revoke
-                      </Button>
-                    ))}
+                    </div>
+                  )}
                 </div>
               );
             })}
