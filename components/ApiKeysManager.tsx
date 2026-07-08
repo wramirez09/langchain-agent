@@ -78,7 +78,10 @@ export default function ApiKeysManager() {
     setLoading(true);
     setError(null);
     try {
-      const [keysRes, orgRes] = await Promise.all([fetch("/api/keys"), fetch("/api/org")]);
+      const [keysRes, orgRes] = await Promise.all([
+        fetch("/api/keys", { cache: "no-store" }),
+        fetch("/api/org", { cache: "no-store" }),
+      ]);
       if (!keysRes.ok) throw new Error(`Failed to load keys (${keysRes.status})`);
       const data = await keysRes.json();
       setKeys(data.keys ?? []);
