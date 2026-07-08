@@ -5,6 +5,9 @@ import { supabaseAdmin } from "@/lib/supabaseAdmin";
 import { getSessionOrg, canManage } from "@/lib/api/sessionOrg";
 import { generateApiKey } from "@/lib/auth/apiKeys";
 import { orgHasApiAccess } from "@/lib/billing/apiAccess";
+import { emailsForUserIds } from "@/lib/db/repositories/org.repo";
+
+type KeyRow = { created_by?: string | null; [k: string]: unknown };
 
 export const dynamic = "force-dynamic";
 
@@ -40,7 +43,24 @@ export async function GET() {
     return NextResponse.json({ error: "Failed to list keys" }, { status: 500 });
   }
 
-  return NextResponse.json({ keys: data ?? [] });
+  const rows = (data ?? []) as KeyRow[];
+
+  // Best-effort: annotate each key with the email of the member who created it,
+  // so the dashboard can show "created by …". Never fail the listing over this.
+  let creators = new Map<string, string | null>();
+  try {
+    const ids = [...new Set(rows.map((k) => k.created_by).filter(Boolean) as string[])];
+    creators = await emailsForUserIds(ids);
+  } catch (e) {
+    console.error("Could not resolve key creators:", e);
+  }
+
+  const keys = rows.map((k) => ({
+    ...k,
+    created_by_email: k.created_by ? creators.get(k.created_by) ?? null : null,
+  }));
+
+  return NextResponse.json({ keys });
 }
 
 /** POST /api/keys — mint a key for the caller's org. Returns plaintext ONCE. */

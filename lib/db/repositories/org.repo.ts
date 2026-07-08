@@ -27,6 +27,22 @@ async function usersMap(): Promise<Map<string, { email: string | null; confirmed
   return map
 }
 
+/**
+ * Resolve a set of user ids to their emails via the auth admin API. Used to show
+ * "who created this key" in the dashboard. Best-effort — callers should tolerate
+ * a partial/empty map. Returns early (no network call) for an empty id list.
+ */
+export async function emailsForUserIds(ids: string[]): Promise<Map<string, string | null>> {
+  const map = new Map<string, string | null>()
+  if (ids.length === 0) return map
+  const wanted = new Set(ids)
+  const { data } = await supabaseAdmin.auth.admin.listUsers({ page: 1, perPage: 1000 })
+  for (const u of data?.users ?? []) {
+    if (wanted.has(u.id)) map.set(u.id, u.email ?? null)
+  }
+  return map
+}
+
 export async function getOrg(orgId: string): Promise<{ id: string; name: string } | null> {
   const { data } = await supabaseAdmin
     .from("organizations")

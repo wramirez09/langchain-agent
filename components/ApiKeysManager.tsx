@@ -35,6 +35,7 @@ type ApiKey = {
   last_used_at: string | null;
   revoked_at: string | null;
   expires_at: string | null;
+  created_by_email: string | null;
 };
 
 const ALL_SCOPES = ["agents", "chat"] as const;
@@ -127,8 +128,8 @@ export default function ApiKeysManager() {
         headers: { "content-type": "application/json" },
         body: JSON.stringify({ name: name.trim() || undefined, environment, scopes }),
       });
-      if (!res.ok) throw new Error(`Failed to create key (${res.status})`);
-      const data = await res.json();
+      const data = await res.json().catch(() => ({}));
+      if (!res.ok) throw new Error(data.error || `Failed to create key (${res.status})`);
       setCreatedKey(data.key);
       await load();
     } catch (e) {
@@ -143,7 +144,10 @@ export default function ApiKeysManager() {
     setError(null);
     try {
       const res = await fetch(`/api/keys/${id}`, { method: "DELETE" });
-      if (!res.ok) throw new Error(`Failed to revoke key (${res.status})`);
+      if (!res.ok) {
+        const data = await res.json().catch(() => ({}));
+        throw new Error(data.error || `Failed to revoke key (${res.status})`);
+      }
       await load();
     } catch (e) {
       setError((e as Error).message);
@@ -265,6 +269,7 @@ export default function ApiKeysManager() {
                     </div>
                     <div className="mt-1 text-xs text-muted-foreground">
                       Created {fmtDate(k.created_at)}
+                      {k.created_by_email ? ` by ${k.created_by_email}` : ""}
                       {" · "}
                       {k.last_used_at ? `last used ${fmtDate(k.last_used_at)}` : "never used"}
                     </div>

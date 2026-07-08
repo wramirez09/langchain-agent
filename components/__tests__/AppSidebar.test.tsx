@@ -82,6 +82,11 @@ describe('AppSidebar', () => {
     mockPush.mockReset()
     mockSignOut.mockReset()
     localStorage.clear()
+    // The sidebar's org-membership effect calls fetch('/api/org') on mount.
+    // Give every test a benign default (has-org); billing tests override it.
+    global.fetch = jest
+      .fn()
+      .mockResolvedValue({ ok: true, status: 200, json: async () => ({}) }) as any
   })
 
   it('Export nav is disabled until there is an assistant response', async () => {
