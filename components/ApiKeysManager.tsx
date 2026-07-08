@@ -98,6 +98,17 @@ export default function ApiKeysManager() {
     }
   }, []);
 
+  // Refresh just the key list without the loading skeleton (used as a fallback
+  // if a mutation response doesn't carry the row to insert locally).
+  const refetchKeys = useCallback(async () => {
+    try {
+      const res = await fetch("/api/keys", { cache: "no-store" });
+      if (res.ok) setKeys((await res.json()).keys ?? []);
+    } catch {
+      /* leave the current list in place */
+    }
+  }, []);
+
   useEffect(() => {
     void load();
   }, [load]);
@@ -135,8 +146,11 @@ export default function ApiKeysManager() {
       const data = await res.json().catch(() => ({}));
       if (!res.ok) throw new Error(data.error || `Failed to create key (${res.status})`);
       setCreatedKey(data.key);
-      // Insert the new key in place (newest first) — no refetch.
+      // Insert the new key in place (newest first). If the response somehow
+      // didn't carry the row, fall back to a silent refetch so the list still
+      // reflects the new key.
       if (data.apiKey) setKeys((prev) => [data.apiKey as ApiKey, ...prev]);
+      else void refetchKeys();
     } catch (e) {
       setError((e as Error).message);
     } finally {
