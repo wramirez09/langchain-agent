@@ -16,8 +16,10 @@ export const maxDuration = 300;
  * Public, API-key-authenticated medical pre-auth research agent.
  *
  * Server-to-server only: the key is a secret and must never ship to a browser,
- * so there is no CORS reflection here. Responses stream `text/plain` by default;
- * pass `{ "stream": false }` in the body for a single JSON response.
+ * so there is no CORS reflection here. Returns a single JSON response by default
+ * ({ threadId, messages }, assistant `content` = a PriorAuthArtifact object, the
+ * same typed shape the web app renders). Streaming is optional — pass
+ * `{ "stream": true }` (defaults to false) for a `text/plain` token stream.
  */
 export async function POST(req: NextRequest) {
   /* ---------- AUTH ---------- */

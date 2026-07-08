@@ -40,9 +40,11 @@ paths:
       summary: Run the medical pre-authorization research agent
       description: |
         Executes the tool-using LangGraph agent (Medicare NCD/LCD/LCA + commercial
-        guideline search + web search). Returns a single JSON response by default
-        (the same { threadId, messages } shape the app uses); pass `"stream": true`
-        for a `text/plain` token stream.
+        guideline search + web search). Returns a single JSON response by default —
+        the same `{ threadId, messages }` shape the app uses, where the assistant
+        turn's `content` is the structured `PriorAuthArtifact` object (or a plain
+        string for a text reply). Pass `"stream": true` for a `text/plain` token
+        stream instead. Streaming is optional and defaults to `false`.
       requestBody:
         required: true
         content:
@@ -178,7 +180,134 @@ components:
         threadId: { type: string, format: uuid }
         messages:
           type: array
-          items: { $ref: "#/components/schemas/Message" }
+          items: { $ref: "#/components/schemas/AgentResponseMessage" }
+    AgentResponseMessage:
+      type: object
+      required: [role, content]
+      properties:
+        role:
+          type: string
+          enum: [user, assistant]
+        content:
+          description: |
+            User turns are strings. The assistant turn is the structured
+            `PriorAuthArtifact` object when the agent returns its final answer as
+            the JSON artifact, or a string for a plain text/markdown reply.
+          oneOf:
+            - type: string
+            - $ref: "#/components/schemas/PriorAuthArtifact"
+    LabeledCode:
+      type: object
+      required: [code, label]
+      properties:
+        code: { type: string }
+        label: { type: string }
+        note: { type: string }
+    Criterion:
+      type: object
+      required: [title, status]
+      properties:
+        title: { type: string }
+        status: { type: string, enum: [met, not_met, unknown] }
+        detail: { type: string }
+        subCriteria:
+          type: array
+          items: { $ref: "#/components/schemas/Criterion" }
+    CoveragePolicy:
+      type: object
+      required: [type, title]
+      properties:
+        type: { type: string, enum: [NCD, LCD, LCA] }
+        policyId: { type: string }
+        title: { type: string }
+        contractor: { type: string }
+        jurisdiction: { type: string }
+        summary: { type: string }
+        criteria:
+          type: array
+          items: { $ref: "#/components/schemas/Criterion" }
+        url: { type: string }
+    DocumentationGroup:
+      type: object
+      required: [items]
+      properties:
+        title: { type: string }
+        items:
+          type: array
+          items:
+            type: object
+            required: [item]
+            properties:
+              item: { type: string }
+              provided: { type: [boolean, "null"] }
+    PriorAuthArtifact:
+      type: object
+      required:
+        - kind
+        - schemaVersion
+        - title
+        - guidelineBasis
+        - requestOverview
+        - priorAuthRequired
+        - medicalNecessityCriteria
+        - relevantCodes
+        - requiredDocumentation
+        - limitations
+        - summary
+        - disclaimer
+      properties:
+        kind: { type: string, const: prior-auth-summary }
+        schemaVersion: { type: integer, const: 1 }
+        title: { type: string }
+        phiNotice: { type: string, description: Present only if PHI was detected and removed. }
+        guidelineBasis:
+          type: string
+          enum: [medicare, commercial, commercial-fallback]
+        fallbackNotice: { type: string }
+        requestOverview:
+          type: object
+          required: [treatment, cpt, icd10, medicalHistory, keyFindings]
+          properties:
+            treatment: { type: string }
+            diagnosis: { type: string }
+            cpt: { type: array, items: { $ref: "#/components/schemas/LabeledCode" } }
+            icd10: { type: array, items: { $ref: "#/components/schemas/LabeledCode" } }
+            suggestedCpt: { type: array, items: { $ref: "#/components/schemas/LabeledCode" } }
+            suggestedIcd10: { type: array, items: { $ref: "#/components/schemas/LabeledCode" } }
+            medicalHistory: { type: string }
+            keyFindings: { type: array, items: { type: string } }
+        priorAuthRequired: { type: string, enum: [YES, NO, CONDITIONAL] }
+        priorAuthRationale: { type: string }
+        medicarePolicies:
+          type: array
+          description: Present only for `medicare` guidelineBasis with retrieved coverage data.
+          items: { $ref: "#/components/schemas/CoveragePolicy" }
+        medicalNecessityCriteria:
+          type: array
+          items: { $ref: "#/components/schemas/Criterion" }
+        relevantCodes:
+          type: object
+          required: [icd10, cpt]
+          properties:
+            icd10: { type: array, items: { $ref: "#/components/schemas/LabeledCode" } }
+            icd10Note: { type: string }
+            cpt: { type: array, items: { $ref: "#/components/schemas/LabeledCode" } }
+            cptNote: { type: string }
+        requiredDocumentation:
+          type: array
+          items: { $ref: "#/components/schemas/DocumentationGroup" }
+        limitations: { type: array, items: { type: string } }
+        summary:
+          type: object
+          required: [determination, determinationLabel, rationale, missingItems]
+          properties:
+            determination:
+              type: string
+              enum: [meets_criteria, conditional, likely_denial, not_supported, more_info_needed]
+            determinationLabel: { type: string }
+            rationale: { type: string }
+            missingItems: { type: array, items: { type: string } }
+        disclaimer: { type: string }
     Error:
       type: object
       properties:

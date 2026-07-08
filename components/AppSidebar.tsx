@@ -43,6 +43,11 @@ const supportLinks = [
 const rowClass =
   'relative w-full flex items-center gap-[15px] h-[46px] px-3.5 rounded-xl text-left transition-colors';
 
+// API Keys nested under Organization — same row, deeper left padding so it
+// reads as a child of the Organization item.
+const nestedRowClass =
+  'relative w-full flex items-center gap-[15px] h-[46px] pl-9 pr-3.5 rounded-xl text-left transition-colors';
+
 function SectionHead({ children }: { children: React.ReactNode }) {
   return (
     <div className="fb-label fb-head px-3.5 text-[11px] font-bold uppercase tracking-[0.1em] text-[#aab0bd]">
@@ -76,6 +81,10 @@ export function AppSidebar({ activeView, onViewChange }: AppSidebarProps) {
   const expanded = pinned || hovering;
   // Floating = open as an overlay (scrim + shadow). Pinned = static, reflows.
   const floating = expanded && !pinned;
+  // Rail is showing labels (desktop expanded, or the mobile overlay). The
+  // nested API Keys indent only applies here; collapsed, its icon must line
+  // up with the other rail icons.
+  const railOpen = expanded || isOpen;
 
   // Account card identity — email only, never the user id.
   const [accountEmail, setAccountEmail] = useState('');
@@ -94,6 +103,27 @@ export function AppSidebar({ activeView, onViewChange }: AppSidebarProps) {
   }, []);
   const accountHandle = accountEmail.split('@')[0] || 'Account';
   const accountInitial = (accountHandle[0] || 'U').toUpperCase();
+
+  // Org membership gates how API Keys / Organization appear in the rail.
+  // Normal case (has org): API Keys nests under Organization. Exception
+  // (no org but paid for API access): show only API Keys, hide Organization.
+  // `/api/org` returns 200 when the caller has an org; anything else (incl.
+  // the pathological no-org 500) is treated as "no org". Optimistically
+  // assume has-org so the common case renders without a flash.
+  const [hasOrg, setHasOrg] = useState(true);
+  useEffect(() => {
+    let cancelled = false;
+    fetch('/api/org')
+      .then((res) => {
+        if (!cancelled) setHasOrg(res.ok);
+      })
+      .catch(() => {
+        /* network error — keep the optimistic has-org default */
+      });
+    return () => {
+      cancelled = true;
+    };
+  }, []);
 
   const collapseFlyout = () => {
     setIsOpen(false);
@@ -234,29 +264,50 @@ export function AppSidebar({ activeView, onViewChange }: AppSidebarProps) {
                 );
               })}
 
-              <Link
-                href="/agents/api-keys"
-                onClick={collapseFlyout}
-                aria-label="API Keys"
-                className={cn(rowClass, 'text-[#737b89] hover:bg-[#f4f5f8]')}
-              >
-                <KeyRound size={21} strokeWidth={1.7} className="shrink-0" />
-                <span className="fb-label text-sm font-semibold text-[#3f4654]">
-                  API Keys
-                </span>
-              </Link>
+              {hasOrg ? (
+                <>
+                  <Link
+                    href="/agents/org"
+                    onClick={collapseFlyout}
+                    aria-label="Organization"
+                    className={cn(rowClass, 'text-[#737b89] hover:bg-[#f4f5f8]')}
+                  >
+                    <Building2 size={21} strokeWidth={1.7} className="shrink-0" />
+                    <span className="fb-label text-sm font-semibold text-[#3f4654]">
+                      Organization
+                    </span>
+                  </Link>
 
-              <Link
-                href="/agents/org"
-                onClick={collapseFlyout}
-                aria-label="Organization"
-                className={cn(rowClass, 'text-[#737b89] hover:bg-[#f4f5f8]')}
-              >
-                <Building2 size={21} strokeWidth={1.7} className="shrink-0" />
-                <span className="fb-label text-sm font-semibold text-[#3f4654]">
-                  Organization
-                </span>
-              </Link>
+                  {/* API Keys — nested under Organization */}
+                  <Link
+                    href="/agents/api-keys"
+                    onClick={collapseFlyout}
+                    aria-label="API Keys"
+                    className={cn(
+                      railOpen ? nestedRowClass : rowClass,
+                      'transition-[padding] text-[#737b89] hover:bg-[#f4f5f8]',
+                    )}
+                  >
+                    <KeyRound size={18} strokeWidth={1.7} className="shrink-0" />
+                    <span className="fb-label text-sm font-medium text-[#5b6270]">
+                      API Keys
+                    </span>
+                  </Link>
+                </>
+              ) : (
+                /* No org but API-enabled — surface API Keys on its own */
+                <Link
+                  href="/agents/api-keys"
+                  onClick={collapseFlyout}
+                  aria-label="API Keys"
+                  className={cn(rowClass, 'text-[#737b89] hover:bg-[#f4f5f8]')}
+                >
+                  <KeyRound size={21} strokeWidth={1.7} className="shrink-0" />
+                  <span className="fb-label text-sm font-semibold text-[#3f4654]">
+                    API Keys
+                  </span>
+                </Link>
+              )}
 
               <div className="h-3.5" />
 

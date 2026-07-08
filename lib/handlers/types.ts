@@ -10,6 +10,23 @@ export type CallerIdentity = {
   source: "web" | "mobile" | "api";
 };
 
+import type { PriorAuthArtifact } from "@/lib/priorAuth/artifactSchema";
+
+/**
+ * A message in the agents JSON response. The assistant's `content` mirrors the
+ * web client: a structured `PriorAuthArtifact` when the agent returns its final
+ * answer as the JSON artifact, or a plain string for a text/markdown reply.
+ */
+export type AgentResponseMessage =
+  | { role: "user"; content: string }
+  | { role: "assistant"; content: string | PriorAuthArtifact };
+
+/** Default (non-streaming) JSON body returned by the agents endpoints. */
+export type AgentJsonResponse = {
+  threadId: string;
+  messages: AgentResponseMessage[];
+};
+
 /** Lets each surface render error responses in its own envelope + headers. */
 export type ErrorResponder = (args: {
   code: string;

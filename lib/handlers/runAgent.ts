@@ -20,7 +20,9 @@ import { medicarePolicyDetailTool } from "@/app/api/chat/agents/tools/medicarePo
 import { createCommercialGuidelineSearchTool } from "@/app/api/chat/agents/tools/CommercialGuidelineSearchTool";
 import { startCmsWarmup } from "@/app/api/chat/agents/tools/warmup";
 
-import type { CallerIdentity, ErrorResponder } from "./types";
+import { isPriorAuthArtifact, type PriorAuthArtifact } from "@/lib/priorAuth/artifactSchema";
+
+import type { AgentJsonResponse, AgentResponseMessage, CallerIdentity, ErrorResponder } from "./types";
 
 // Kick off CMS fetch + embedding preload at module init so the first real
 // request finds the hybrid index hot. Idempotent — safe across both the
@@ -232,36 +234,39 @@ export async function runAgent(params: RunAgentParams): Promise<Response> {
       );
     }
 
-    return NextResponse.json(
-      {
-        threadId,
-        messages: [
-          ...(lastUser
-            ? [
-                {
-                  role: "user",
-                  content:
-                    typeof lastUser.content === "string"
-                      ? lastUser.content
-                      : JSON.stringify(lastUser.content),
-                },
-              ]
-            : []),
-          ...(lastAssistant
-            ? [
-                {
-                  role: "assistant",
-                  content:
-                    typeof lastAssistant.content === "string"
-                      ? lastAssistant.content
-                      : JSON.stringify(lastAssistant.content),
-                },
-              ]
-            : []),
-        ],
-      },
-      { headers: { ...baseHeaders, "x-thread-id": threadId } },
-    );
+    // Parse the assistant's final answer into the structured PriorAuth
+    // artifact when it is one — the same typed shape the web client renders —
+    // and fall back to raw text otherwise. Mirrors isPriorAuthArtifact() on
+    // the client.
+    const assistantPayload: string | PriorAuthArtifact = (() => {
+      if (!assistantContent) return "";
+      try {
+        const parsed = JSON.parse(assistantContent);
+        return isPriorAuthArtifact(parsed) ? parsed : assistantContent;
+      } catch {
+        return assistantContent;
+      }
+    })();
+
+    const responseMessages: AgentResponseMessage[] = [];
+    if (lastUser) {
+      responseMessages.push({
+        role: "user",
+        content:
+          typeof lastUser.content === "string"
+            ? lastUser.content
+            : JSON.stringify(lastUser.content),
+      });
+    }
+    if (lastAssistant) {
+      responseMessages.push({ role: "assistant", content: assistantPayload });
+    }
+
+    const body: AgentJsonResponse = { threadId, messages: responseMessages };
+
+    return NextResponse.json(body, {
+      headers: { ...baseHeaders, "x-thread-id": threadId },
+    });
   }
 
   /* ======================================================
