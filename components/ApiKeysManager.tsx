@@ -12,6 +12,8 @@ import {
   IconShieldLock,
 } from "@tabler/icons-react";
 
+import { toast } from "sonner";
+
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -151,8 +153,11 @@ export default function ApiKeysManager() {
       // reflects the new key.
       if (data.apiKey) setKeys((prev) => [data.apiKey as ApiKey, ...prev]);
       else void refetchKeys();
+      toast.success("API key created");
     } catch (e) {
-      setError((e as Error).message);
+      const msg = (e as Error).message;
+      setError(msg); // inline in the create dialog
+      toast.error(msg); // prominent, survives closing the dialog
     } finally {
       setCreating(false);
     }
@@ -171,9 +176,12 @@ export default function ApiKeysManager() {
         const data = await res.json().catch(() => ({}));
         throw new Error(data.error || `Failed to revoke key (${res.status})`);
       }
+      toast.success("Key revoked");
     } catch (e) {
       setKeys(prev);
-      setError((e as Error).message);
+      const msg = (e as Error).message;
+      setError(msg);
+      toast.error(msg);
     }
   };
 
@@ -189,9 +197,12 @@ export default function ApiKeysManager() {
         const data = await res.json().catch(() => ({}));
         throw new Error(data.error || `Failed to delete key (${res.status})`);
       }
+      toast.success("Key deleted");
     } catch (e) {
       setKeys(prev);
-      setError((e as Error).message);
+      const msg = (e as Error).message;
+      setError(msg);
+      toast.error(msg);
     }
   };
 
