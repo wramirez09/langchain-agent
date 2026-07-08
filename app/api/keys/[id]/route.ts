@@ -6,8 +6,9 @@ import { getSessionOrg, canManage } from "@/lib/api/sessionOrg";
 export const dynamic = "force-dynamic";
 
 /**
- * DELETE /api/keys/:id — revoke a key (soft delete via revoked_at).
- * Scoped to the caller's org so a user can't revoke another tenant's key.
+ * DELETE /api/keys/:id — permanently delete a key. Scoped to the caller's org
+ * so a user can't delete another tenant's key. usage_logs rows that referenced
+ * it keep their org attribution (the api_key_id FK is ON DELETE SET NULL).
  */
 export async function DELETE(
   _req: Request,
@@ -28,16 +29,15 @@ export async function DELETE(
 
   const { data, error } = await supabaseAdmin
     .from("api_keys")
-    .update({ revoked_at: new Date().toISOString() })
+    .delete()
     .eq("id", id)
-    .eq("org_id", session.orgId) // tenant guard — never revoke across orgs
-    .is("revoked_at", null)
+    .eq("org_id", session.orgId) // tenant guard — never delete across orgs
     .select("id")
     .maybeSingle();
 
   if (error) {
-    console.error("Failed to revoke api_key:", error);
-    return NextResponse.json({ error: "Failed to revoke key" }, { status: 500 });
+    console.error("Failed to delete api_key:", error);
+    return NextResponse.json({ error: "Failed to delete key" }, { status: 500 });
   }
   if (!data) {
     return NextResponse.json({ error: "Key not found" }, { status: 404 });

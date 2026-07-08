@@ -134,6 +134,8 @@ export default function ApiKeysManager() {
       const data = await res.json().catch(() => ({}));
       if (!res.ok) throw new Error(data.error || `Failed to create key (${res.status})`);
       setCreatedKey(data.key);
+      // Insert the new key in place (newest first) — no refetch.
+      if (data.apiKey) setKeys((prev) => [data.apiKey as ApiKey, ...prev]);
       await load();
     } catch (e) {
       setError((e as Error).message);
@@ -142,17 +144,20 @@ export default function ApiKeysManager() {
     }
   };
 
-  const revokeKey = async (id: string) => {
-    if (!confirm("Revoke this key? Applications using it will immediately lose access.")) return;
+  const deleteKey = async (id: string) => {
+    if (!confirm("Delete this key? Applications using it will immediately lose access.")) return;
     setError(null);
+    // Optimistically drop the row; restore it if the request fails.
+    const prev = keys;
+    setKeys((ks) => ks.filter((k) => k.id !== id));
     try {
       const res = await fetch(`/api/keys/${id}`, { method: "DELETE" });
       if (!res.ok) {
         const data = await res.json().catch(() => ({}));
-        throw new Error(data.error || `Failed to revoke key (${res.status})`);
+        throw new Error(data.error || `Failed to delete key (${res.status})`);
       }
-      await load();
     } catch (e) {
+      setKeys(prev);
       setError((e as Error).message);
     }
   };
@@ -164,7 +169,7 @@ export default function ApiKeysManager() {
     setTimeout(() => setCopied(false), 2000);
   };
 
-  const activeCount = keys.filter((k) => !k.revoked_at).length;
+  const activeCount = keys.length;
   const canManage = role === "owner" || role === "admin";
   const canCreate = canManage && apiAccess;
 
@@ -237,24 +242,15 @@ export default function ApiKeysManager() {
         ) : (
           <div className="divide-y">
             {keys.map((k) => {
-              const revoked = !!k.revoked_at;
               return (
                 <div
                   key={k.id}
-                  className={cn(
-                    "flex items-center gap-4 px-4 py-3.5 transition-colors hover:bg-muted/40",
-                    revoked && "opacity-60",
-                  )}
+                  className="flex items-center gap-4 px-4 py-3.5 transition-colors hover:bg-muted/40"
                 >
                   <div className="min-w-0 flex-1">
                     <div className="flex items-center gap-2">
                       <span className="truncate font-medium">{k.name || "Untitled key"}</span>
                       <EnvBadge env={k.environment} />
-                      {revoked && (
-                        <span className="inline-flex items-center rounded-full bg-red-50 px-2 py-0.5 text-[11px] font-medium text-red-700 ring-1 ring-inset ring-red-600/20 dark:bg-red-500/10 dark:text-red-400">
-                          revoked
-                        </span>
-                      )}
                     </div>
                     <div className="mt-1 flex flex-wrap items-center gap-x-2 gap-y-1">
                       <code className="rounded bg-muted px-1.5 py-0.5 font-mono text-xs text-muted-foreground">
@@ -277,14 +273,14 @@ export default function ApiKeysManager() {
                       {k.last_used_at ? `last used ${fmtDate(k.last_used_at)}` : "never used"}
                     </div>
                   </div>
-                  {!revoked && canManage && (
+                  {canManage && (
                     <Button
                       variant="ghost"
                       size="sm"
                       className="text-muted-foreground hover:text-destructive"
-                      onClick={() => revokeKey(k.id)}
+                      onClick={() => deleteKey(k.id)}
                     >
-                      <IconTrash /> Revoke
+                      <IconTrash /> Delete
                     </Button>
                   )}
                 </div>

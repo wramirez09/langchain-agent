@@ -15,13 +15,12 @@ import { supabaseAdmin } from '@/lib/supabaseAdmin'
 const sessionMock = getSessionOrg as jest.Mock
 const fromMock = supabaseAdmin.from as jest.Mock
 
-// Chainable update()...maybeSingle() that captures the org filter.
-function updateChain(result: any) {
+// Chainable delete()...maybeSingle() that captures the org filter.
+function deleteChain(result: any) {
   const calls: any = {}
   const chain: any = {
-    update: (v: any) => ((calls.update = v), chain),
+    delete: () => ((calls.deleted = true), chain),
     eq: (col: string, val: string) => ((calls[col] = val), chain),
-    is: () => chain,
     select: () => chain,
     maybeSingle: () => Promise.resolve(result),
   }
@@ -42,21 +41,21 @@ describe('DELETE /api/keys/[id]', () => {
     expect(r.status).toBe(401)
   })
 
-  it('revokes a key scoped to the org', async () => {
+  it('deletes a key scoped to the org', async () => {
     sessionMock.mockResolvedValue({ userId: 'u1', orgId: 'org1', role: 'owner' })
-    const { chain, calls } = updateChain({ data: { id: 'k1' }, error: null })
+    const { chain, calls } = deleteChain({ data: { id: 'k1' }, error: null })
     fromMock.mockReturnValue(chain)
 
     const r = await DELETE({} as any, params('k1') as any)
     expect(r.status).toBe(200)
+    expect(calls.deleted).toBe(true) // hard delete, not a soft revoke
     expect(calls.id).toBe('k1')
     expect(calls.org_id).toBe('org1') // tenant guard
-    expect(calls.update.revoked_at).toBeTruthy()
   })
 
   it('404 when the key is not in the caller’s org', async () => {
     sessionMock.mockResolvedValue({ userId: 'u1', orgId: 'org1', role: 'owner' })
-    const { chain } = updateChain({ data: null, error: null })
+    const { chain } = deleteChain({ data: null, error: null })
     fromMock.mockReturnValue(chain)
 
     const r = await DELETE({} as any, params('k1') as any)

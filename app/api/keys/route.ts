@@ -36,6 +36,7 @@ export async function GET() {
     .from("api_keys")
     .select(LIST_COLUMNS)
     .eq("org_id", session.orgId)
+    .is("revoked_at", null) // deleted keys are hard-deleted; hide any legacy revoked rows
     .order("created_at", { ascending: false });
 
   if (error) {
@@ -121,6 +122,18 @@ export async function POST(req: Request) {
     return NextResponse.json({ error: "Failed to create key" }, { status: 500 });
   }
 
+  // Annotate the creator email so the dashboard can insert the new row in place
+  // (matching the GET listing shape) without a refetch. Best-effort.
+  let created_by_email: string | null = null;
+  try {
+    created_by_email = (await emailsForUserIds([session.userId])).get(session.userId) ?? null;
+  } catch (e) {
+    console.error("Could not resolve key creator:", e);
+  }
+
   // `key` is shown exactly once — it is not retrievable again.
-  return NextResponse.json({ key: plaintext, apiKey: data }, { status: 201 });
+  return NextResponse.json(
+    { key: plaintext, apiKey: { ...data, created_by_email } },
+    { status: 201 },
+  );
 }
