@@ -31,9 +31,7 @@ describe('/api/keys', () => {
     it("lists the caller's org keys (prefixes only)", async () => {
       sessionMock.mockResolvedValue({ userId: 'u1', orgId: 'org1', role: 'owner' })
       const eq = jest.fn(() => ({
-        is: () => ({
-          order: () => Promise.resolve({ data: [{ id: 'k1', key_prefix: 'sk_live_ab12' }], error: null }),
-        }),
+        order: () => Promise.resolve({ data: [{ id: 'k1', key_prefix: 'sk_live_ab12' }], error: null }),
       }))
       fromMock.mockReturnValue({ select: () => ({ eq }) })
 

@@ -36,8 +36,7 @@ export async function GET() {
     .from("api_keys")
     .select(LIST_COLUMNS)
     .eq("org_id", session.orgId)
-    .is("revoked_at", null) // deleted keys are hard-deleted; hide any legacy revoked rows
-    .order("created_at", { ascending: false });
+    .order("created_at", { ascending: false }); // includes revoked keys (shown until deleted)
 
   if (error) {
     console.error("Failed to list api_keys:", error);
