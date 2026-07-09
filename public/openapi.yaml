@@ -164,7 +164,10 @@ components:
         stream:
           type: boolean
           default: false
-          description: When true, returns a text/plain token stream instead of the default JSON response.
+          description: >
+            When true, returns a text/plain token stream instead of the default JSON
+            response. Only a boolean `true` enables streaming; any other value is
+            treated as false (the request is not rejected).
     ChatRequest:
       type: object
       required: [messages]

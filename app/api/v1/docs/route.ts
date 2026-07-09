@@ -299,7 +299,8 @@ const HTML = `<!doctype html>
     <div class="callout">See the full artifact shape (<code>PriorAuthArtifact</code>) in the
     <a href="/openapi.yaml">OpenAPI spec</a>. Prefer streaming? It's optional — add
     <code>"stream": true</code> to the request body (defaults to <code>false</code>) and the answer
-    arrives as a <code>text/plain</code> token stream instead.</div>
+    arrives as a <code>text/plain</code> token stream instead. Only a boolean
+    <code>true</code> streams; any other value is treated as <code>false</code>, never an error.</div>
   </section>
 
   <section id="chat">
