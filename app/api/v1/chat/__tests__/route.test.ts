@@ -77,17 +77,38 @@ describe('POST /api/v1/chat — gate rails', () => {
     expect(runChatMock).not.toHaveBeenCalled()
   })
 
-  it('streams the completion as the org (source=api) on the happy path', async () => {
+  it('defaults to buffered JSON as the org (source=api)', async () => {
     resolveMock.mockResolvedValue(authFor(['chat']))
     rateMock.mockResolvedValue(okLimit)
     runChatMock.mockResolvedValue(stream())
 
     const r = await POST(req())
     expect(r.status).toBe(200)
-    expect(r.headers.get('content-type')).toContain('text/plain')
+    expect(r.headers.get('content-type')).toContain('application/json')
+    expect(await r.json()).toEqual({ message: { role: 'assistant', content: 'hi' } })
     expect(runChatMock).toHaveBeenCalledTimes(1)
     expect(runChatMock.mock.calls[0][0].identity).toMatchObject({
       orgId: 'org1', apiKeyId: 'k1', source: 'api',
     })
+  })
+
+  it('streams text/plain when the caller opts in with stream:true', async () => {
+    resolveMock.mockResolvedValue(authFor(['chat']))
+    rateMock.mockResolvedValue(okLimit)
+    runChatMock.mockResolvedValue(stream())
+
+    const r = await POST(req({ messages: [{ role: 'user', content: 'hi' }], stream: true }))
+    expect(r.status).toBe(200)
+    expect(r.headers.get('content-type')).toContain('text/plain')
+  })
+
+  it('treats a non-boolean stream value as false (buffered JSON)', async () => {
+    resolveMock.mockResolvedValue(authFor(['chat']))
+    rateMock.mockResolvedValue(okLimit)
+    runChatMock.mockResolvedValue(stream())
+
+    const r = await POST(req({ messages: [{ role: 'user', content: 'hi' }], stream: 'yes' }))
+    expect(r.status).toBe(200)
+    expect(r.headers.get('content-type')).toContain('application/json')
   })
 })

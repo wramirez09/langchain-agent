@@ -309,23 +309,24 @@ const HTML = `<!doctype html>
       <div class="route">
         <span class="method post">POST</span>
         <span class="path">/api/v1/chat</span>
-        <span class="tag">text/plain stream</span>
+        <span class="tag">JSON by default</span>
       </div>
-      <p>Streams a plain-text completion from the pre-auth assistant.</p>
+      <p>A plain-text completion from the pre-auth assistant. Returns a single JSON
+      reply by default; add <code>"stream": true</code> for a <code>text/plain</code> token stream.</p>
     </div>
     <figure class="code">
       <figcaption><span class="lang">cURL</span> request<span class="dots"><i></i><i></i><i></i></span></figcaption>
-      <pre><code>curl -N https://app.notedoctor.ai/api/v1/chat \\
+      <pre><code>curl https://app.notedoctor.ai/api/v1/chat \\
   -H "Authorization: Bearer sk_live_xxx" \\
   -H "Content-Type: application/json" \\
   -d '{ "messages": [ { "role": "user", "content": "Summarize the CMS rules for a sleep study." } ] }'</code></pre>
     </figure>
     <figure class="code">
-      <figcaption><span class="lang">TEXT</span> streamed response<span class="dots"><i></i><i></i><i></i></span></figcaption>
-      <pre><code>CMS covers attended in-lab polysomnography when a patient has symptoms of
-obstructive sleep apnea and meets the documented clinical criteria. Home
-sleep testing may be used as an alternative when...</code></pre>
+      <figcaption><span class="lang">JSON</span> 200 response<span class="dots"><i></i><i></i><i></i></span></figcaption>
+      <pre><code>{ "message": { "role": "assistant", "content": "CMS covers attended in-lab polysomnography when..." } }</code></pre>
     </figure>
+    <div class="callout">Prefer streaming? Add <code>"stream": true</code> to the body and pass
+    <code>-N</code> to curl — the reply arrives as a <code>text/plain</code> token stream instead.</div>
   </section>
 
   <section id="account">

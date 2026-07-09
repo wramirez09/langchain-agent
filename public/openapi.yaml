@@ -75,7 +75,9 @@ paths:
     post:
       operationId: runChat
       summary: Simple chat completion
-      description: Streams a `text/plain` completion from the pre-auth assistant.
+      description: >
+        Returns a single JSON reply by default ({ message: { role, content } }).
+        Pass `"stream": true` for a `text/plain` token stream instead.
       requestBody:
         required: true
         content:
@@ -84,8 +86,10 @@ paths:
               $ref: "#/components/schemas/ChatRequest"
       responses:
         "200":
-          description: Streamed text completion.
+          description: Chat reply (JSON by default, or a text/plain token stream when `stream` is true).
           content:
+            application/json:
+              schema: { $ref: "#/components/schemas/ChatResponse" }
             text/plain:
               schema: { type: string }
         "400": { $ref: "#/components/responses/Error" }
@@ -177,6 +181,21 @@ components:
           minItems: 1
           maxItems: 50
           items: { $ref: "#/components/schemas/Message" }
+        stream:
+          type: boolean
+          default: false
+          description: >
+            When true, returns a text/plain token stream instead of the default JSON
+            reply. Only a boolean `true` enables streaming; any other value is treated
+            as false (the request is not rejected).
+    ChatResponse:
+      type: object
+      properties:
+        message:
+          type: object
+          properties:
+            role: { type: string, example: assistant }
+            content: { type: string }
     AgentJsonResponse:
       type: object
       properties:

@@ -1,4 +1,4 @@
-import { NextRequest } from "next/server";
+import { NextRequest, NextResponse } from "next/server";
 import { StreamingTextResponse } from "ai";
 import { z } from "zod";
 import { waitUntil } from "@vercel/functions";
@@ -21,7 +21,24 @@ const ChatBodySchema = z.object({
     )
     .min(1)
     .max(50),
+  // Parity with /agents: buffered JSON by default, opt into a token stream with
+  // `"stream": true`. Only a boolean true streams; other values fall back to false.
+  stream: z.boolean().optional().catch(false),
 });
+
+/** Drain a byte stream to a string (buffered, non-streaming response). */
+async function streamToString(stream: ReadableStream<Uint8Array>): Promise<string> {
+  const reader = stream.getReader();
+  const decoder = new TextDecoder();
+  let out = "";
+  for (;;) {
+    const { done, value } = await reader.read();
+    if (done) break;
+    out += decoder.decode(value, { stream: true });
+  }
+  out += decoder.decode();
+  return out;
+}
 
 /**
  * Public, API-key-authenticated simple chat completion. Streams `text/plain`.
@@ -77,9 +94,20 @@ export async function POST(req: NextRequest) {
       },
     });
 
-    return new StreamingTextResponse(stream, {
-      headers: { ...NO_STORE, ...rlHeaders, "Content-Type": "text/plain; charset=utf-8" },
-    });
+    // Opt-in token stream…
+    if (parsed.data.stream === true) {
+      return new StreamingTextResponse(stream, {
+        headers: { ...NO_STORE, ...rlHeaders, "Content-Type": "text/plain; charset=utf-8" },
+      });
+    }
+
+    // …or the default: buffer to a single JSON reply (usage still meters on the
+    // stream's flush as it drains). Shape mirrors the agents endpoint's messages.
+    const content = await streamToString(stream);
+    return NextResponse.json(
+      { message: { role: "assistant", content } },
+      { headers: { ...NO_STORE, ...rlHeaders } },
+    );
   } catch (e) {
     if (e instanceof ChatStreamError) {
       return apiError("upstream_error", "The model could not complete the request.", 502, rlHeaders);
