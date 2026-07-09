@@ -93,12 +93,13 @@ describe('POST /api/v1/agents — gate rails', () => {
     expect(runAgentMock.mock.calls[0][0].clientType).toBe('api')
   })
 
-  it('400 when stream is not a boolean', async () => {
+  it('treats a non-boolean stream value as false (buffered JSON, no 400)', async () => {
     resolveMock.mockResolvedValue(authFor(['agents']))
     rateMock.mockResolvedValue(okLimit)
+    runAgentMock.mockResolvedValue(new Response('{}', { status: 200 }))
 
     const r = await POST(req({ messages: [{ role: 'user', content: 'hi' }], stream: 'yes' }))
-    expect(r.status).toBe(400)
-    expect(runAgentMock).not.toHaveBeenCalled()
+    expect(r.status).toBe(200)
+    expect(runAgentMock.mock.calls[0][0].clientType).toBe('mobile')
   })
 })
