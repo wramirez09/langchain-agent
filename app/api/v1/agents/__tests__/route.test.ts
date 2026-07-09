@@ -19,9 +19,9 @@ jest.mock('@/lib/supabaseAdmin', () => ({ supabaseAdmin: { from: jest.fn() } }))
 
 import { POST } from '../route'
 
-const req = () =>
+const req = (body: any = { messages: [{ role: 'user', content: 'hi' }] }) =>
   ({
-    json: async () => ({ messages: [{ role: 'user', content: 'hi' }] }),
+    json: async () => body,
     headers: { get: () => null },
   } as any)
 
@@ -73,5 +73,32 @@ describe('POST /api/v1/agents — gate rails', () => {
     expect(runAgentMock).toHaveBeenCalledTimes(1)
     const identity = runAgentMock.mock.calls[0][0].identity
     expect(identity).toMatchObject({ orgId: 'org1', apiKeyId: 'k1', source: 'api' })
+  })
+
+  it('defaults to buffered JSON (clientType "mobile")', async () => {
+    resolveMock.mockResolvedValue(authFor(['agents']))
+    rateMock.mockResolvedValue(okLimit)
+    runAgentMock.mockResolvedValue(new Response('{}', { status: 200 }))
+
+    await POST(req({ messages: [{ role: 'user', content: 'hi' }] }))
+    expect(runAgentMock.mock.calls[0][0].clientType).toBe('mobile')
+  })
+
+  it('streams when the caller opts in with stream:true (clientType "api")', async () => {
+    resolveMock.mockResolvedValue(authFor(['agents']))
+    rateMock.mockResolvedValue(okLimit)
+    runAgentMock.mockResolvedValue(new Response('stream', { status: 200 }))
+
+    await POST(req({ messages: [{ role: 'user', content: 'hi' }], stream: true }))
+    expect(runAgentMock.mock.calls[0][0].clientType).toBe('api')
+  })
+
+  it('400 when stream is not a boolean', async () => {
+    resolveMock.mockResolvedValue(authFor(['agents']))
+    rateMock.mockResolvedValue(okLimit)
+
+    const r = await POST(req({ messages: [{ role: 'user', content: 'hi' }], stream: 'yes' }))
+    expect(r.status).toBe(400)
+    expect(runAgentMock).not.toHaveBeenCalled()
   })
 })

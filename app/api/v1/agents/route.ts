@@ -64,8 +64,9 @@ export async function POST(req: NextRequest) {
   }
 
   // Return structured JSON by default — the same { threadId, messages } shape
-  // the app produces. Opt into token streaming with `"stream": true`.
-  const wantsStream = rawBody?.stream === true;
+  // the app produces. Opt into token streaming with `"stream": true` (a
+  // validated boolean on RequestBodySchema).
+  const wantsStream = parsed.data.stream === true;
 
   waitUntil(touchApiKey(auth.apiKeyId));
 

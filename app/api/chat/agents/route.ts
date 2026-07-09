@@ -66,6 +66,9 @@ const ChatMessageSchema = z
 export const RequestBodySchema = z.object({
   messages: z.array(ChatMessageSchema).min(1).max(200),
   threadId: z.string().uuid().optional(),
+  // Public API: opt into a text/plain token stream instead of the default
+  // buffered JSON response. The internal web/mobile clients ignore this.
+  stream: z.boolean().optional(),
 });
 
 /* -------------------- OPTIONS -------------------- */
