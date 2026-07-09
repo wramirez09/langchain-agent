@@ -91,4 +91,39 @@ describe('reportUsage', () => {
     const r = await reportUsage({ userId: 'u', usageType: 'chat' })
     expect(r).toEqual({ identifier: 'evt_2' })
   })
+
+  // Usage logging is decoupled from Stripe: usage_logs is written even when the
+  // tenant has no subscription, so /usage rollups reflect real usage, not only billed events.
+  it('logs usage even with no subscription (stripe_reported: false)', async () => {
+    mockedSub.mockResolvedValue(null)
+    mockedGetStripe.mockReturnValue(null)
+    mockedLog.mockResolvedValue(undefined)
+
+    const r = await reportUsage({ userId: 'u', source: 'api', usageType: 'orchestrator' })
+
+    expect(r).toBeNull()
+    expect(mockedLog).toHaveBeenCalledTimes(1)
+    expect(mockedLog.mock.calls[0][0]).toMatchObject({
+      source: 'api', usage_type: 'orchestrator',
+      stripe_reported: false, stripe_usage_id: null, metered_item_id: null,
+    })
+  })
+
+  it('records stripe_reported: true when the meter event succeeds', async () => {
+    mockedSub.mockResolvedValue({
+      stripe_customer_id: 'cus_1',
+      stripe_subscription_id: 'sub_1',
+      metered_item_id: 'mi_1',
+    })
+    mockedGetStripe.mockReturnValue({
+      billing: { meterEvents: { create: jest.fn().mockResolvedValue({ identifier: 'evt_9' }) } },
+    })
+    mockedLog.mockResolvedValue(undefined)
+
+    await reportUsage({ userId: 'u', source: 'api', usageType: 'chat' })
+
+    expect(mockedLog.mock.calls[0][0]).toMatchObject({
+      stripe_reported: true, stripe_usage_id: 'evt_9', metered_item_id: 'mi_1',
+    })
+  })
 })
