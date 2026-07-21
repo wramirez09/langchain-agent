@@ -37,6 +37,19 @@ missing or unreachable:
 > Fine for a first smoke test, but set the vars before real traffic — the
 > fail-open rate limiter is the one that leaves you exposed.
 
+**Verify after setting them.** Sign in to the admin console and `GET /api/debug`
+(admin-session gated; 404 otherwise). It reports booleans only — never a secret
+— and `publicApiReady: true` means every dependency that would otherwise fail
+*silently* is configured:
+
+```json
+{ "vercelEnv": "production", "publicApiReady": true,
+  "checks": { "upstashRedis": true, "stripeMeterEventName": true, "…": true } }
+```
+
+Treat `publicApiReady: false` as a launch blocker: the API will still serve
+traffic, just unprotected (no rate limit / no idempotency) or unbilled.
+
 ## 3. Verify the schema (before migrating)
 
 Run `supabase/verify_schema.sql` against the live DB (Supabase SQL editor or

@@ -127,6 +127,31 @@ describe('reportUsage', () => {
     })
   })
 
+  // A missing meter name used to be a bare `!` assertion, so Stripe received
+  // event_name: undefined and rejected every call — a billable request served
+  // and logged but never invoiced, with nothing in the logs naming the cause.
+  it('skips metering (loudly) when STRIPE_METER_EVENT_NAME is unset', async () => {
+    delete process.env.STRIPE_METER_EVENT_NAME
+    mockedSub.mockResolvedValue({
+      stripe_customer_id: 'cus_1',
+      stripe_subscription_id: 'sub_1',
+      metered_item_id: 'mi_1',
+    })
+    const create = jest.fn()
+    mockedGetStripe.mockReturnValue({ billing: { meterEvents: { create } } })
+    mockedLog.mockResolvedValue(undefined)
+    const err = jest.spyOn(console, 'error').mockImplementation(() => {})
+
+    const r = await reportUsage({ userId: 'u', source: 'api', usageType: 'chat' })
+
+    expect(r).toBeNull()
+    expect(create).not.toHaveBeenCalled() // no doomed API call
+    expect(err.mock.calls.flat().join(' ')).toContain('STRIPE_METER_EVENT_NAME')
+    // Usage is still recorded, flagged as unbilled.
+    expect(mockedLog.mock.calls[0][0]).toMatchObject({ stripe_reported: false })
+    err.mockRestore()
+  })
+
   // Billing must follow the same subject as entitlement. userHasApiAccess gates
   // on the key's created_by, so passing an orgId must NOT redirect billing to
   // the org owner — otherwise a subscribing member's usage meters to someone

@@ -41,17 +41,26 @@ export async function reportUsage({
     // usage — for the /usage rollups, analytics, and quotas — not only billed events.
     let meterEvent: Stripe.Billing.MeterEvent | null = null;
 
+    // Misconfiguration here is silent revenue loss: a billable request is served,
+    // logged, and never invoiced. Fail loudly rather than posting an event Stripe
+    // will reject — `event_name` was previously a bare `!` assertion, so an unset
+    // var meant one rejected API call per request with nothing naming the cause.
+    const meterEventName = process.env.STRIPE_METER_EVENT_NAME;
+
     if (subscription?.metered_item_id) {
-        if (!stripe) {
+        if (!stripe || !meterEventName) {
+            const cause = !stripe
+                ? "Stripe is not initialized"
+                : "STRIPE_METER_EVENT_NAME is not set";
             const errorInfo = errorTracker.trackError(
-                new Error("Stripe is not initialized"),
-                "Stripe billing initialization",
+                new Error(cause),
+                "Stripe billing configuration",
                 undefined,
                 userId,
                 undefined,
-                "reportUsage-stripe-init"
+                "reportUsage-stripe-config"
             );
-            console.error("❌ Stripe not initialized — usage logged but not billed:", errorInfo);
+            console.error(`❌ ${cause} — usage logged but NOT BILLED:`, errorInfo);
         } else {
             // Generate once outside withRetry so all retry attempts share the same key,
             // preventing Stripe from processing duplicate meter events on timeout retries.
@@ -61,7 +70,7 @@ export async function reportUsage({
                     async () =>
                         stripe.billing.meterEvents.create(
                             {
-                                event_name: process.env.STRIPE_METER_EVENT_NAME!,
+                                event_name: meterEventName,
                                 payload: {
                                     stripe_customer_id: subscription.stripe_customer_id,
                                     subscription_id: subscription.stripe_subscription_id,
