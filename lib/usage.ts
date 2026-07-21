@@ -5,7 +5,6 @@ import { withRetry, RETRY_CONFIGS } from "./retry";
 import { errorTracker, trackRetryError } from "./error-tracking";
 import {
     getSubscriptionByUserId,
-    getSubscriptionByOrgId,
     insertUsageLog,
 } from "./db/repositories/usage.repo";
 
@@ -18,9 +17,9 @@ export async function reportUsage({
     usageType,
 }: {
     userId: string;
-    // When billing a tenant directly (public API), pass orgId; the meter event
-    // is resolved via the org's owner subscription. Internal callers omit it and
-    // bill the user's own subscription.
+    // Attribution only — recorded on the usage_logs row so /usage can roll up
+    // per org. It deliberately does NOT select the billing subject: usage is
+    // always billed to `userId`'s own subscription (see below).
     orgId?: string;
     apiKeyId?: string;
     source?: "web" | "mobile" | "api";
@@ -28,9 +27,13 @@ export async function reportUsage({
     usageType: string;
     }): Promise<Stripe.Billing.MeterEvent | null | undefined> {
     const stripe = getStripe();
-    const subscription = orgId
-        ? await getSubscriptionByOrgId(orgId)
-        : await getSubscriptionByUserId(userId);
+
+    // Bill the same person we gate. Entitlement is per-user
+    // (`userHasApiAccess(created_by)`), so billing must resolve the same way —
+    // this previously resolved the ORG OWNER's subscription when an orgId was
+    // passed, which meant a subscribing member passed the gate while their
+    // usage metered to someone else's subscription (or to nothing at all).
+    const subscription = await getSubscriptionByUserId(userId);
 
     // Attempt Stripe metering when the tenant has an active metered subscription.
     // This is decoupled from the usage_logs record below: usage is ALWAYS logged

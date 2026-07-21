@@ -71,6 +71,13 @@ Consequences to verify before launch:
   from plan metadata, but **nothing reads them for entitlement**. Leave them or
   drop them; just don't reintroduce them as a gate.
 
+**Billing follows the same subject as entitlement.** `reportUsage()` meters to
+`userId`'s own subscription — for the public API that's the key's `created_by`,
+exactly who `userHasApiAccess()` gated. `orgId` is recorded on `usage_logs` for
+per-org rollups but never selects the customer. This matters for orgs with
+members: previously the meter resolved via the org *owner*, so a subscribing
+member passed the gate while their usage billed someone else (or nobody).
+
 Rate-limit tiers are a separate axis: `api_keys.rate_limit_tier` defaults to
 `standard` for everyone. Map it off the purchased plan only if you later want
 paid tiers to buy *more throughput* — that is a limits decision, not an
@@ -111,7 +118,8 @@ entitlement one.
      the latest** — invalidation is best-effort, so if that Redis `del` fails
      the entry still lapses via its TTL;
    - a `usage_logs` row with `org_id` + `api_key_id` + `source='api'`;
-   - a Stripe meter event on the org's customer;
+   - a Stripe meter event on **the calling key's creator** as customer — not
+     the org owner. Billing follows the same subject as entitlement;
    - **no `chat_messages` row** for the API call (stateless), while a web/mobile call still writes one.
 5. Merge to `dev` → promote to production once the verification matrix passes.
 

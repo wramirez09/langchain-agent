@@ -72,22 +72,8 @@ export async function getUsageSummaryByOrgId(
   }
 }
 
-/**
- * Resolve the metered subscription for a tenant. Billing hangs off the org's
- * owner: org → owner membership → that user's Stripe subscription. Keeps the
- * existing per-user `subscriptions` table and the Stripe webhook untouched.
- */
-export async function getSubscriptionByOrgId(
-  orgId: string,
-): Promise<Subscription | null> {
-  const { data: owner } = await supabaseAdmin
-    .from("organization_members")
-    .select("user_id")
-    .eq("org_id", orgId)
-    .eq("role", "owner")
-    .maybeSingle()
-
-  if (!owner?.user_id) return null
-
-  return getSubscriptionByUserId(owner.user_id as string)
-}
+// NOTE: `getSubscriptionByOrgId` (org → owner membership → that user's Stripe
+// subscription) was removed deliberately. Billing follows the same subject as
+// entitlement — the individual user — so resolving a subscription via the org
+// owner would let a subscribing member's usage meter to someone else's card.
+// Use `getSubscriptionByUserId` and pass org ids for attribution only.

@@ -126,4 +126,56 @@ describe('reportUsage', () => {
       stripe_reported: true, stripe_usage_id: 'evt_9', metered_item_id: 'mi_1',
     })
   })
+
+  // Billing must follow the same subject as entitlement. userHasApiAccess gates
+  // on the key's created_by, so passing an orgId must NOT redirect billing to
+  // the org owner — otherwise a subscribing member's usage meters to someone
+  // else's card, or to nothing at all.
+  describe('billing subject', () => {
+    it('bills the acting user, not the org, when an orgId is supplied', async () => {
+      mockedSub.mockResolvedValue({
+        stripe_customer_id: 'cus_member',
+        stripe_subscription_id: 'sub_member',
+        metered_item_id: 'mi_member',
+      })
+      const create = jest.fn().mockResolvedValue({ identifier: 'evt_1' })
+      mockedGetStripe.mockReturnValue({ billing: { meterEvents: { create } } })
+      mockedLog.mockResolvedValue(undefined)
+
+      await reportUsage({
+        userId: 'member-1',
+        orgId: 'org-owned-by-someone-else',
+        apiKeyId: 'k1',
+        source: 'api',
+        usageType: 'orchestrator',
+      })
+
+      // Subscription resolved from the acting user alone.
+      expect(mockedSub).toHaveBeenCalledWith('member-1')
+      expect(create.mock.calls[0][0].payload).toMatchObject({
+        stripe_customer_id: 'cus_member',
+        subscription_item_id: 'mi_member',
+      })
+    })
+
+    it('still records org_id on the usage row for attribution', async () => {
+      mockedSub.mockResolvedValue(null)
+      mockedGetStripe.mockReturnValue(null)
+      mockedLog.mockResolvedValue(undefined)
+
+      await reportUsage({
+        userId: 'member-1',
+        orgId: 'org-9',
+        apiKeyId: 'k1',
+        source: 'api',
+        usageType: 'chat',
+      })
+
+      expect(mockedLog.mock.calls[0][0]).toMatchObject({
+        user_id: 'member-1',
+        org_id: 'org-9',
+        api_key_id: 'k1',
+      })
+    })
+  })
 })
