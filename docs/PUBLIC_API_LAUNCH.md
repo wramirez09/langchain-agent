@@ -53,12 +53,28 @@ exist, and `usage_logs` must not already have `org_id` / `api_key_id` / `source`
 3. Confirm `subscriptions` still resolve per org (`getSubscriptionByOrgId`).
 4. Then apply to **production**.
 
-## 5. Stripe plan tiers
+## 5. Entitlement — every subscriber gets the API
 
-Create metered prices for **Standard / Pro / Enterprise** and decide the mapping
-to `api_keys.rate_limit_tier` (the limiter reads the tier; pricing is your call).
-A key with no active metered subscription still authenticates but its usage won't
-meter — confirm the billing path for each tier.
+The pricing model is flat: **an active or trialing subscription grants both the
+API endpoints and the key-management UI.** There is no API add-on, no per-tier
+entitlement, and no environment switch — `userHasApiAccess()` reads exactly one
+thing, `subscriptions.status`.
+
+Consequences to verify before launch:
+
+- A user with **no** `subscriptions` row, or one that isn't `active`/`trialing`,
+  gets **402** from `/api/v1/*` and cannot create keys at `/agents/api-keys`
+  (the page still renders with an upgrade prompt).
+- A lapsed subscription revokes access on the next request; existing keys stay
+  in the DB and start working again when the subscription is restored.
+- `subscriptions.api_access` and `.tier` are still written by the Stripe webhook
+  from plan metadata, but **nothing reads them for entitlement**. Leave them or
+  drop them; just don't reintroduce them as a gate.
+
+Rate-limit tiers are a separate axis: `api_keys.rate_limit_tier` defaults to
+`standard` for everyone. Map it off the purchased plan only if you later want
+paid tiers to buy *more throughput* — that is a limits decision, not an
+entitlement one.
 
 ## 6. Deploy + smoke test
 
@@ -110,7 +126,9 @@ meter — confirm the billing path for each tier.
 
 ## Open decisions still to confirm
 
-- Stripe tier pricing (§5).
 - BAAs + public API ToS / DPA before any real PHI traffic (legal).
+- Optional: whether paid tiers should buy extra throughput via
+  `api_keys.rate_limit_tier` (§5). Entitlement itself is settled — all
+  subscribers have the API.
 - Optional: containerize the agent — a data-driven scale trigger, not a launch
   blocker. (The Redis auth-lookup cache that used to sit here is now shipped.)

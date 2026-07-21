@@ -407,7 +407,7 @@ const HTML = `<!doctype html>
       <tr><th>Status</th><th>code</th><th>Meaning</th></tr>
       <tr><td><span class="status s-4xx">400</span></td><td><code>invalid_json</code> / <code>invalid_request</code></td><td>Body was malformed or failed validation, or the <code>Idempotency-Key</code> exceeded 255 characters.</td></tr>
       <tr><td><span class="status s-401">401</span></td><td><code>unauthorized</code></td><td>Missing, malformed, revoked, or expired key.</td></tr>
-      <tr><td><span class="status s-402">402</span></td><td><code>payment_required</code></td><td>API access is not included in your current plan.</td></tr>
+      <tr><td><span class="status s-402">402</span></td><td><code>payment_required</code></td><td>The API requires an active subscription — every plan includes it.</td></tr>
       <tr><td><span class="status s-403">403</span></td><td><code>forbidden</code></td><td>Key is not scoped for this endpoint.</td></tr>
       <tr><td><span class="status s-4xx">409</span></td><td><code>idempotency_in_progress</code></td><td>A request with this Idempotency-Key is still running.</td></tr>
       <tr><td><span class="status s-4xx">422</span></td><td><code>idempotency_key_reuse</code></td><td>This Idempotency-Key was already used with a different body.</td></tr>

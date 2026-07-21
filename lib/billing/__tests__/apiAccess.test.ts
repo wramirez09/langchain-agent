@@ -16,53 +16,48 @@ describe('userHasApiAccess', () => {
   beforeEach(() => {
     from.mockClear()
     subResult = { data: null }
-    delete process.env.API_ACCESS_MODE
   })
 
-  // Prevent the mode from leaking into other test files in the same worker.
-  afterEach(() => {
-    delete process.env.API_ACCESS_MODE
+  it('allows any active subscriber — every plan includes the API', async () => {
+    subResult = { data: { status: 'active' } }
+    expect(await userHasApiAccess('u1')).toEqual({ allowed: true, reason: 'ok' })
   })
 
-  it('open mode: always allowed, no DB hit', async () => {
-    const r = await userHasApiAccess('u1')
-    expect(r.allowed).toBe(true)
-    expect(from).not.toHaveBeenCalled()
+  it('allows a trialing subscriber', async () => {
+    subResult = { data: { status: 'trialing' } }
+    expect((await userHasApiAccess('u1')).allowed).toBe(true)
   })
 
-  describe('subscription mode', () => {
-    beforeEach(() => (process.env.API_ACCESS_MODE = 'subscription'))
-
-    it('allows an active subscription', async () => {
-      subResult = { data: { status: 'active', api_access: false, tier: null } }
-      expect((await userHasApiAccess('u1')).allowed).toBe(true)
+  it('denies when there is no subscription', async () => {
+    subResult = { data: null }
+    expect(await userHasApiAccess('u1')).toEqual({
+      allowed: false,
+      reason: 'no_subscription',
     })
+  })
 
-    it('denies when there is no subscription', async () => {
+  it.each(['canceled', 'past_due', 'unpaid', 'incomplete', 'incomplete_expired', 'paused'])(
+    'denies a %s subscription',
+    async (status) => {
+      subResult = { data: { status } }
+      expect(await userHasApiAccess('u1')).toEqual({ allowed: false, reason: 'inactive' })
+    },
+  )
+
+  it('denies a subscription with a null status rather than defaulting open', async () => {
+    subResult = { data: { status: null } }
+    expect((await userHasApiAccess('u1')).allowed).toBe(false)
+  })
+
+  // The old API_ACCESS_MODE switch is gone; no env var may re-open the gate.
+  it('ignores a stray API_ACCESS_MODE=open in the environment', async () => {
+    process.env.API_ACCESS_MODE = 'open'
+    try {
       subResult = { data: null }
-      const r = await userHasApiAccess('u1')
-      expect(r).toEqual({ allowed: false, reason: 'no_subscription' })
-    })
-
-    it('denies an inactive subscription', async () => {
-      subResult = { data: { status: 'canceled', api_access: true, tier: 'pro' } }
-      const r = await userHasApiAccess('u1')
-      expect(r).toEqual({ allowed: false, reason: 'inactive' })
-    })
-  })
-
-  describe('strict mode', () => {
-    beforeEach(() => (process.env.API_ACCESS_MODE = 'strict'))
-
-    it('allows an active subscription with api_access', async () => {
-      subResult = { data: { status: 'active', api_access: true, tier: 'pro' } }
-      expect((await userHasApiAccess('u1')).allowed).toBe(true)
-    })
-
-    it('denies an active subscription without api_access', async () => {
-      subResult = { data: { status: 'active', api_access: false, tier: 'basic' } }
-      const r = await userHasApiAccess('u1')
-      expect(r).toEqual({ allowed: false, reason: 'tier_excluded' })
-    })
+      expect((await userHasApiAccess('u1')).allowed).toBe(false)
+      expect(from).toHaveBeenCalled() // still checks the DB
+    } finally {
+      delete process.env.API_ACCESS_MODE
+    }
   })
 })

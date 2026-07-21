@@ -43,7 +43,7 @@ export async function POST(req: NextRequest) {
   /* ---------- PLAN / API ACCESS ---------- */
   const access = await userHasApiAccess(auth.createdBy);
   if (!access.allowed) {
-    return apiError("payment_required", "API access is not included in this plan.", 402);
+    return apiError("payment_required", "The API requires an active subscription.", 402);
   }
 
   /* ---------- RATE LIMIT ---------- */

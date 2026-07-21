@@ -238,10 +238,10 @@ export default function ApiKeysManager() {
         <div className="flex items-center justify-between gap-3 rounded-lg border border-amber-300/60 bg-amber-50 px-3 py-2.5 text-sm dark:bg-amber-500/10">
           <span className="flex items-center gap-2 text-amber-800 dark:text-amber-300">
             <IconShieldLock className="size-4 shrink-0" />
-            API access isn&apos;t included in your current plan.
+            An active subscription is required to create API keys — every plan includes the API.
           </span>
           <a href="/agents/org" className="shrink-0 font-medium text-amber-900 underline dark:text-amber-200">
-            Upgrade
+            Subscribe
           </a>
         </div>
       )}

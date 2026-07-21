@@ -5,7 +5,11 @@
 const resolveMock = jest.fn()
 const rateMock = jest.fn()
 const runAgentMock = jest.fn()
+const accessMock = jest.fn()
 
+jest.mock('@/lib/billing/apiAccess', () => ({
+  userHasApiAccess: (...a: any[]) => accessMock(...a),
+}))
 jest.mock('@/lib/auth/resolveApiAuth', () => ({
   resolveApiAuth: (...a: any[]) => resolveMock(...a),
   touchApiKey: jest.fn(),
@@ -36,6 +40,36 @@ describe('POST /api/v1/agents — gate rails', () => {
     resolveMock.mockReset()
     rateMock.mockReset()
     runAgentMock.mockReset()
+    accessMock.mockReset()
+    accessMock.mockResolvedValue({ allowed: true, reason: 'ok' })
+  })
+
+  it('402 when the caller has no active subscription', async () => {
+    resolveMock.mockResolvedValue(authFor(['agents']))
+    accessMock.mockResolvedValue({ allowed: false, reason: 'no_subscription' })
+    const r = await POST(req())
+    expect(r.status).toBe(402)
+    expect(rateMock).not.toHaveBeenCalled()
+    expect(runAgentMock).not.toHaveBeenCalled()
+  })
+
+  // The docs promise rate-limit headers only on responses that reached the
+  // limiter. These early rejections consume no budget, so they must not carry
+  // them — otherwise the published prose becomes a lie.
+  it.each([
+    ['401', () => resolveMock.mockResolvedValue({ ok: false, status: 401, code: 'unauthorized', message: 'x' })],
+    ['403', () => resolveMock.mockResolvedValue(authFor(['chat']))],
+    ['402', () => {
+      resolveMock.mockResolvedValue(authFor(['agents']))
+      accessMock.mockResolvedValue({ allowed: false, reason: 'no_subscription' })
+    }],
+  ])('%s carries no rate-limit headers (never reached the limiter)', async (_label, arrange) => {
+    arrange()
+    const r = await POST(req())
+    expect(r.headers.get('X-RateLimit-Limit')).toBeNull()
+    expect(r.headers.get('X-RateLimit-Remaining')).toBeNull()
+    expect(r.headers.get('X-RateLimit-Reset')).toBeNull()
+    expect(rateMock).not.toHaveBeenCalled()
   })
 
   it('401 for an invalid key (never runs the agent)', async () => {

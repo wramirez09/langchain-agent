@@ -7,6 +7,10 @@ jest.mock('@/lib/api/sessionOrg', () => ({
   canManage: (r: string) => r === 'owner' || r === 'admin',
 }))
 jest.mock('@/lib/supabaseAdmin', () => ({ supabaseAdmin: { from: jest.fn() } }))
+const accessMock = jest.fn()
+jest.mock('@/lib/billing/apiAccess', () => ({
+  userHasApiAccess: (...a: any[]) => accessMock(...a),
+}))
 
 import { GET, POST } from '../route'
 import { getSessionOrg } from '@/lib/api/sessionOrg'
@@ -19,6 +23,8 @@ describe('/api/keys', () => {
   beforeEach(() => {
     sessionMock.mockReset()
     fromMock.mockReset()
+    accessMock.mockReset()
+    accessMock.mockResolvedValue({ allowed: true, reason: 'ok' })
   })
 
   describe('GET', () => {
@@ -44,6 +50,14 @@ describe('/api/keys', () => {
   })
 
   describe('POST', () => {
+    it('402 when the caller has no active subscription', async () => {
+      sessionMock.mockResolvedValue({ userId: 'u1', orgId: 'org1', role: 'owner' })
+      accessMock.mockResolvedValue({ allowed: false, reason: 'no_subscription' })
+      const r = await POST({ json: async () => ({}) } as any)
+      expect(r.status).toBe(402)
+      expect((await r.json()).reason).toBe('no_subscription')
+    })
+
     it('mints a key for the org and returns the plaintext once', async () => {
       sessionMock.mockResolvedValue({ userId: 'u1', orgId: 'org1', role: 'owner' })
       let inserted: any

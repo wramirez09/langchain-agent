@@ -78,7 +78,7 @@ export async function POST(req: Request) {
   const access = await userHasApiAccess(session.userId);
   if (!access.allowed) {
     return NextResponse.json(
-      { error: "API access is not included in your current plan.", reason: access.reason },
+      { error: "An active subscription is required to create API keys.", reason: access.reason },
       { status: 402 },
     );
   }
