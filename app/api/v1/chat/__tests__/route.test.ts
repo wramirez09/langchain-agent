@@ -12,17 +12,37 @@ jest.mock('@/lib/auth/resolveApiAuth', () => ({
   touchApiKey: jest.fn(),
 }))
 jest.mock('@/lib/rateLimit', () => ({ checkRateLimit: (...a: any[]) => rateMock(...a) }))
-jest.mock('@/lib/billing/apiAccess', () => ({ orgHasApiAccess: (...a: any[]) => accessMock(...a) }))
+jest.mock('@/lib/billing/apiAccess', () => ({ userHasApiAccess: (...a: any[]) => accessMock(...a) }))
 jest.mock('@/lib/handlers/runChat', () => ({
   runChat: (...a: any[]) => runChatMock(...a),
   ChatStreamError: class ChatStreamError extends Error {},
 }))
 jest.mock('@vercel/functions', () => ({ waitUntil: jest.fn() }))
 
+// In-memory Upstash so the idempotency layer is exercised end-to-end.
+const redisStore = new Map<string, any>()
+jest.mock('@/lib/redis', () => ({
+  getRedis: () => ({
+    get: async (k: string) => (redisStore.has(k) ? redisStore.get(k) : null),
+    set: async (k: string, v: any, opts?: { nx?: boolean }) => {
+      if (opts?.nx && redisStore.has(k)) return null
+      redisStore.set(k, v)
+      return 'OK'
+    },
+    del: async (k: string) => (redisStore.delete(k) ? 1 : 0),
+  }),
+}))
+
 import { POST } from '../route'
 
-const req = (body: any = { messages: [{ role: 'user', content: 'hi' }] }) =>
-  ({ json: async () => body, headers: { get: () => null } } as any)
+const req = (
+  body: any = { messages: [{ role: 'user', content: 'hi' }] },
+  headers: Record<string, string> = {},
+) =>
+  ({
+    json: async () => body,
+    headers: { get: (k: string) => headers[k.toLowerCase()] ?? null },
+  }) as any
 
 const authFor = (scopes: string[]) => ({
   ok: true,
@@ -110,5 +130,62 @@ describe('POST /api/v1/chat — gate rails', () => {
     const r = await POST(req({ messages: [{ role: 'user', content: 'hi' }], stream: 'yes' }))
     expect(r.status).toBe(200)
     expect(r.headers.get('content-type')).toContain('application/json')
+  })
+})
+
+describe('POST /api/v1/chat — idempotency', () => {
+  const body = { messages: [{ role: 'user', content: 'hi' }] }
+
+  beforeEach(() => {
+    redisStore.clear()
+    resolveMock.mockReset(); rateMock.mockReset(); runChatMock.mockReset(); accessMock.mockReset()
+    accessMock.mockResolvedValue({ allowed: true, reason: 'ok' })
+    resolveMock.mockResolvedValue(authFor(['chat']))
+    rateMock.mockResolvedValue(okLimit)
+    runChatMock.mockImplementation(async () => stream())
+  })
+
+  it('replays a retried request instead of running (and billing) the model twice', async () => {
+    const first = await POST(req(body, { 'idempotency-key': 'abc' }))
+    expect(first.status).toBe(200)
+    expect(await first.json()).toEqual({ message: { role: 'assistant', content: 'hi' } })
+
+    const second = await POST(req(body, { 'idempotency-key': 'abc' }))
+    expect(second.status).toBe(200)
+    expect(second.headers.get('Idempotency-Replayed')).toBe('true')
+    expect(await second.json()).toEqual({ message: { role: 'assistant', content: 'hi' } })
+    expect(runChatMock).toHaveBeenCalledTimes(1)
+  })
+
+  it('runs normally when no Idempotency-Key is sent', async () => {
+    await POST(req(body))
+    await POST(req(body))
+    expect(runChatMock).toHaveBeenCalledTimes(2)
+  })
+
+  it('422s the same key reused with a different body', async () => {
+    await POST(req(body, { 'idempotency-key': 'abc' }))
+    const r = await POST(
+      req({ messages: [{ role: 'user', content: 'different' }] }, { 'idempotency-key': 'abc' }),
+    )
+    expect(r.status).toBe(422)
+    expect((await r.json()).error.code).toBe('idempotency_key_reuse')
+    expect(runChatMock).toHaveBeenCalledTimes(1)
+  })
+
+  it('does not store a failed run, so the same key can be retried', async () => {
+    runChatMock.mockRejectedValueOnce(new Error('upstream blew up'))
+    const failed = await POST(req(body, { 'idempotency-key': 'abc' }))
+    expect(failed.status).toBe(500)
+
+    const retry = await POST(req(body, { 'idempotency-key': 'abc' }))
+    expect(retry.status).toBe(200)
+    expect(runChatMock).toHaveBeenCalledTimes(2)
+  })
+
+  it('rejects an over-long Idempotency-Key before doing any work', async () => {
+    const r = await POST(req(body, { 'idempotency-key': 'x'.repeat(256) }))
+    expect(r.status).toBe(400)
+    expect(runChatMock).not.toHaveBeenCalled()
   })
 })

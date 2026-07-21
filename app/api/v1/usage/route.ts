@@ -3,7 +3,12 @@ import { NextRequest, NextResponse } from "next/server";
 import { resolveApiAuth } from "@/lib/auth/resolveApiAuth";
 import { checkRateLimit } from "@/lib/rateLimit";
 import { getUsageSummaryByOrgId } from "@/lib/db/repositories/usage.repo";
-import { apiError, rateLimitHeaders, NO_STORE } from "@/lib/api/publicApi";
+import {
+  apiError,
+  rateLimitHeaders,
+  rateLimitedResponse,
+  NO_STORE,
+} from "@/lib/api/publicApi";
 
 export const dynamic = "force-dynamic";
 
@@ -20,12 +25,7 @@ export async function GET(req: NextRequest) {
 
   const rl = await checkRateLimit(orgId, apiKeyId, tier);
   const rlHeaders = rateLimitHeaders(rl);
-  if (!rl.success) {
-    return apiError("rate_limited", "Rate limit exceeded.", 429, {
-      ...rlHeaders,
-      "Retry-After": String(rl.retryAfterSeconds),
-    });
-  }
+  if (!rl.success) return rateLimitedResponse(rl);
 
   const now = new Date();
   const periodStart = new Date(

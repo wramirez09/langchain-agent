@@ -3,10 +3,16 @@ import { waitUntil } from "@vercel/functions";
 
 import { resolveApiAuth, touchApiKey } from "@/lib/auth/resolveApiAuth";
 import { checkRateLimit } from "@/lib/rateLimit";
-import { orgHasApiAccess } from "@/lib/billing/apiAccess";
+import { userHasApiAccess } from "@/lib/billing/apiAccess";
 import { runAgent } from "@/lib/handlers/runAgent";
 import { RequestBodySchema } from "@/app/api/chat/agents/route";
-import { apiError, rateLimitHeaders, NO_STORE } from "@/lib/api/publicApi";
+import {
+  apiError,
+  rateLimitHeaders,
+  rateLimitedResponse,
+  NO_STORE,
+} from "@/lib/api/publicApi";
+import * as idempotency from "@/lib/api/idempotency";
 import type { ErrorResponder } from "@/lib/handlers/types";
 
 // Same Vercel ceiling as the internal agent route — runs can take 45-65s.
@@ -35,7 +41,7 @@ export async function POST(req: NextRequest) {
   }
 
   /* ---------- PLAN / API ACCESS ---------- */
-  const access = await orgHasApiAccess(auth.orgId);
+  const access = await userHasApiAccess(auth.createdBy);
   if (!access.allowed) {
     return apiError("payment_required", "API access is not included in this plan.", 402);
   }
@@ -43,11 +49,11 @@ export async function POST(req: NextRequest) {
   /* ---------- RATE LIMIT ---------- */
   const rl = await checkRateLimit(auth.orgId, auth.apiKeyId, auth.tier);
   const rlHeaders = rateLimitHeaders(rl);
-  if (!rl.success) {
-    return apiError("rate_limited", "Rate limit exceeded.", 429, {
-      ...rlHeaders,
-      "Retry-After": String(rl.retryAfterSeconds),
-    });
+  if (!rl.success) return rateLimitedResponse(rl);
+
+  const idemKey = idempotency.readIdempotencyKey(req);
+  if (idemKey && !idempotency.isValidIdempotencyKey(idemKey)) {
+    return apiError("invalid_request", "Idempotency-Key is too long.", 400, rlHeaders);
   }
 
   /* ---------- VALIDATION ---------- */
@@ -68,6 +74,18 @@ export async function POST(req: NextRequest) {
   // validated boolean on RequestBodySchema).
   const wantsStream = parsed.data.stream === true;
 
+  /* ---------- IDEMPOTENCY ---------- */
+  const idem = await idempotency.begin({
+    // Streaming responses are not replayable, so they opt out entirely.
+    key: wantsStream ? null : idemKey,
+    orgId: auth.orgId,
+    endpoint: "v1/agents",
+    body: parsed.data,
+    errorResponse: (code, message, status) => apiError(code, message, status, rlHeaders),
+  });
+  if (idem.kind === "replay" || idem.kind === "conflict") return idem.response;
+  const commit = idem.kind === "proceed" ? idem.commit : async (r: Response) => r;
+
   waitUntil(touchApiKey(auth.apiKeyId));
 
   /* ---------- EXECUTE ---------- */
@@ -75,22 +93,26 @@ export async function POST(req: NextRequest) {
     apiError(code, message, status, rlHeaders, requestId ?? null);
 
   try {
-    return await runAgent({
-      messages: parsed.data.messages,
-      threadId: parsed.data.threadId ?? null,
-      // "mobile" client type yields the non-streaming JSON branch (default);
-      // "api" streams text/plain when the caller opts in.
-      clientType: wantsStream ? "api" : "mobile",
-      identity: {
-        userId: auth.createdBy,
-        orgId: auth.orgId,
-        apiKeyId: auth.apiKeyId,
-        source: "api",
-      },
-      baseHeaders: { ...NO_STORE, ...rlHeaders },
-      respondError,
-    });
+    return await commit(
+      await runAgent({
+        messages: parsed.data.messages,
+        threadId: parsed.data.threadId ?? null,
+        // "mobile" client type yields the non-streaming JSON branch (default);
+        // "api" streams text/plain when the caller opts in.
+        clientType: wantsStream ? "api" : "mobile",
+        identity: {
+          userId: auth.createdBy,
+          orgId: auth.orgId,
+          apiKeyId: auth.apiKeyId,
+          source: "api",
+        },
+        baseHeaders: { ...NO_STORE, ...rlHeaders },
+        respondError,
+      }),
+    );
   } catch {
-    return apiError("internal_error", "The request could not be completed.", 500, rlHeaders);
+    return await commit(
+      apiError("internal_error", "The request could not be completed.", 500, rlHeaders),
+    );
   }
 }

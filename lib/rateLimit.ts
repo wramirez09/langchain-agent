@@ -1,5 +1,6 @@
 import { Ratelimit } from "@upstash/ratelimit";
-import { Redis } from "@upstash/redis";
+
+import { getRedis } from "@/lib/redis";
 
 /**
  * Durable, per-tenant rate limiting for the public API.
@@ -20,16 +21,6 @@ const TIER_LIMITS: Record<string, { org: number; perKey: number; windowSec: numb
 
 function tierConfig(tier: string) {
   return TIER_LIMITS[tier] ?? TIER_LIMITS.standard;
-}
-
-let redis: Redis | null = null;
-function getRedis(): Redis | null {
-  if (redis) return redis;
-  const url = process.env.UPSTASH_REDIS_REST_URL;
-  const token = process.env.UPSTASH_REDIS_REST_TOKEN;
-  if (!url || !token) return null;
-  redis = new Redis({ url, token });
-  return redis;
 }
 
 // One Ratelimit instance per (scope+tier+window); cached across invocations.
@@ -57,7 +48,20 @@ export type RateLimitResult = {
   remaining: number;
   /** Seconds until the client may retry (only meaningful when !success). */
   retryAfterSeconds: number;
+  /** Unix seconds at which the current window resets (`X-RateLimit-Reset`). */
+  resetAtSeconds: number;
 };
+
+/** Fail-open result: full budget, window nominally resets one window from now. */
+function allowAll(cfg: { org: number; windowSec: number }): RateLimitResult {
+  return {
+    success: true,
+    limit: cfg.org,
+    remaining: cfg.org,
+    retryAfterSeconds: 0,
+    resetAtSeconds: Math.ceil(Date.now() / 1000) + cfg.windowSec,
+  };
+}
 
 /**
  * Check the org + per-key limits for one request. Returns the more restrictive
@@ -76,7 +80,7 @@ export async function checkRateLimit(
 
   if (!orgLimiter || !keyLimiter) {
     console.warn("⚠️ Upstash not configured — rate limiting disabled (fail-open)");
-    return { success: true, limit: cfg.org, remaining: cfg.org, retryAfterSeconds: 0 };
+    return allowAll(cfg);
   }
 
   try {
@@ -92,9 +96,10 @@ export async function checkRateLimit(
       limit: Math.min(orgRes.limit, keyRes.limit),
       remaining: Math.min(orgRes.remaining, keyRes.remaining),
       retryAfterSeconds: success ? 0 : Math.max(1, Math.ceil((reset - Date.now()) / 1000)),
+      resetAtSeconds: Math.ceil(reset / 1000),
     };
   } catch (err) {
     console.warn("⚠️ Rate limiter error — failing open:", err);
-    return { success: true, limit: cfg.org, remaining: cfg.org, retryAfterSeconds: 0 };
+    return allowAll(cfg);
   }
 }

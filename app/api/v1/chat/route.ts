@@ -5,9 +5,15 @@ import { waitUntil } from "@vercel/functions";
 
 import { resolveApiAuth, touchApiKey } from "@/lib/auth/resolveApiAuth";
 import { checkRateLimit } from "@/lib/rateLimit";
-import { orgHasApiAccess } from "@/lib/billing/apiAccess";
+import { userHasApiAccess } from "@/lib/billing/apiAccess";
 import { runChat, ChatStreamError } from "@/lib/handlers/runChat";
-import { apiError, rateLimitHeaders, NO_STORE } from "@/lib/api/publicApi";
+import {
+  apiError,
+  rateLimitHeaders,
+  rateLimitedResponse,
+  NO_STORE,
+} from "@/lib/api/publicApi";
+import * as idempotency from "@/lib/api/idempotency";
 
 export const maxDuration = 180;
 
@@ -55,18 +61,18 @@ export async function POST(req: NextRequest) {
     return apiError("forbidden", "This key is not scoped for the chat endpoint.", 403);
   }
 
-  const access = await orgHasApiAccess(auth.orgId);
+  const access = await userHasApiAccess(auth.createdBy);
   if (!access.allowed) {
     return apiError("payment_required", "API access is not included in this plan.", 402);
   }
 
   const rl = await checkRateLimit(auth.orgId, auth.apiKeyId, auth.tier);
   const rlHeaders = rateLimitHeaders(rl);
-  if (!rl.success) {
-    return apiError("rate_limited", "Rate limit exceeded.", 429, {
-      ...rlHeaders,
-      "Retry-After": String(rl.retryAfterSeconds),
-    });
+  if (!rl.success) return rateLimitedResponse(rl);
+
+  const idemKey = idempotency.readIdempotencyKey(req);
+  if (idemKey && !idempotency.isValidIdempotencyKey(idemKey)) {
+    return apiError("invalid_request", "Idempotency-Key is too long.", 400, rlHeaders);
   }
 
   let rawBody: unknown;
@@ -81,6 +87,19 @@ export async function POST(req: NextRequest) {
     return apiError("invalid_request", "Request body failed validation.", 400, rlHeaders);
   }
 
+  const wantsStream = parsed.data.stream === true;
+
+  const idem = await idempotency.begin({
+    // Streaming responses are not replayable, so they opt out entirely.
+    key: wantsStream ? null : idemKey,
+    orgId: auth.orgId,
+    endpoint: "v1/chat",
+    body: parsed.data,
+    errorResponse: (code, message, status) => apiError(code, message, status, rlHeaders),
+  });
+  if (idem.kind === "replay" || idem.kind === "conflict") return idem.response;
+  const commit = idem.kind === "proceed" ? idem.commit : async (r: Response) => r;
+
   waitUntil(touchApiKey(auth.apiKeyId));
 
   try {
@@ -94,8 +113,8 @@ export async function POST(req: NextRequest) {
       },
     });
 
-    // Opt-in token stream…
-    if (parsed.data.stream === true) {
+    // Opt-in token stream… (never idempotency-stored — a stream can't be replayed)
+    if (wantsStream) {
       return new StreamingTextResponse(stream, {
         headers: { ...NO_STORE, ...rlHeaders, "Content-Type": "text/plain; charset=utf-8" },
       });
@@ -104,14 +123,20 @@ export async function POST(req: NextRequest) {
     // …or the default: buffer to a single JSON reply (usage still meters on the
     // stream's flush as it drains). Shape mirrors the agents endpoint's messages.
     const content = await streamToString(stream);
-    return NextResponse.json(
-      { message: { role: "assistant", content } },
-      { headers: { ...NO_STORE, ...rlHeaders } },
+    return await commit(
+      NextResponse.json(
+        { message: { role: "assistant", content } },
+        { headers: { ...NO_STORE, ...rlHeaders } },
+      ),
     );
   } catch (e) {
     if (e instanceof ChatStreamError) {
-      return apiError("upstream_error", "The model could not complete the request.", 502, rlHeaders);
+      return await commit(
+        apiError("upstream_error", "The model could not complete the request.", 502, rlHeaders),
+      );
     }
-    return apiError("internal_error", "The request could not be completed.", 500, rlHeaders);
+    return await commit(
+      apiError("internal_error", "The request could not be completed.", 500, rlHeaders),
+    );
   }
 }

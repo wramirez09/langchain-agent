@@ -225,6 +225,7 @@ const HTML = `<!doctype html>
     <a href="#chat">Simple chat</a>
     <a href="#account">Account &amp; usage</a>
     <a href="#limits">Rate limits</a>
+    <a href="#idempotency">Idempotency</a>
     <a href="#errors">Errors</a>
     <a href="#spec">OpenAPI</a>
   </nav>
@@ -361,9 +362,38 @@ const HTML = `<!doctype html>
 
   <section id="limits">
     <h2><span class="dot"></span>Rate limits</h2>
-    <p class="lead">Limits are enforced per organization with a finer per-key sub-limit. Each response
-    carries <code>X-RateLimit-Limit</code> and <code>X-RateLimit-Remaining</code>. A
-    <code>429</code> includes <code>Retry-After</code> (seconds).</p>
+    <p class="lead">Limits are enforced per organization with a finer per-key sub-limit. Any response
+    that reached the limiter — every success and every <code>429</code> — carries
+    <code>X-RateLimit-Limit</code>, <code>X-RateLimit-Remaining</code>, and
+    <code>X-RateLimit-Reset</code> (unix seconds at which the window resets). A
+    <code>429</code> also includes <code>Retry-After</code> (seconds). Requests rejected earlier
+    (<code>401</code>, <code>402</code>, <code>403</code>) don't consume budget and carry no
+    rate-limit headers.</p>
+  </section>
+
+  <section id="idempotency">
+    <h2><span class="dot"></span>Idempotency</h2>
+    <p class="lead">Send an <code>Idempotency-Key</code> header on any <code>POST</code> so a retry
+    after a network timeout can't run — or bill for — the same request twice. Use any unique string
+    up to 255 characters.</p>
+    <figure class="code">
+      <figcaption><span class="lang">cURL</span> retry-safe request<span class="dots"><i></i><i></i><i></i></span></figcaption>
+      <pre><code>curl https://app.notedoctor.ai/api/v1/agents \\
+  -H "Authorization: Bearer $NOTEDOCTOR_API_KEY" \\
+  -H "Content-Type: application/json" \\
+  -H "Idempotency-Key: 2f8a1c0e-run-42" \\
+  -d '{"messages":[{"role":"user","content":"Is a knee MRI covered for Medicare?"}]}'</code></pre>
+    </figure>
+    <table>
+      <tr><th>Repeat with…</th><th>Result</th></tr>
+      <tr><td>the same body</td><td>The original response, plus <code>Idempotency-Replayed: true</code>. The request is not re-run.</td></tr>
+      <tr><td>a different body</td><td><span class="status s-4xx">422</span> <code>idempotency_key_reuse</code> — a key identifies one request.</td></tr>
+      <tr><td>the first still running</td><td><span class="status s-4xx">409</span> <code>idempotency_in_progress</code> — retry shortly.</td></tr>
+      <tr><td>a key over 255 characters</td><td><span class="status s-4xx">400</span> <code>invalid_request</code> — rejected before the request runs.</td></tr>
+    </table>
+    <p class="lead">Failed requests are not stored, so the same key can be retried after an error.
+    Stored responses expire after 24 hours. Idempotency does not apply when
+    <code>"stream": true</code> — a token stream can't be replayed.</p>
   </section>
 
   <section id="errors">
@@ -375,10 +405,12 @@ const HTML = `<!doctype html>
     </figure>
     <table>
       <tr><th>Status</th><th>code</th><th>Meaning</th></tr>
-      <tr><td><span class="status s-4xx">400</span></td><td><code>invalid_json</code> / <code>invalid_request</code></td><td>Body was malformed or failed validation.</td></tr>
+      <tr><td><span class="status s-4xx">400</span></td><td><code>invalid_json</code> / <code>invalid_request</code></td><td>Body was malformed or failed validation, or the <code>Idempotency-Key</code> exceeded 255 characters.</td></tr>
       <tr><td><span class="status s-401">401</span></td><td><code>unauthorized</code></td><td>Missing, malformed, revoked, or expired key.</td></tr>
       <tr><td><span class="status s-402">402</span></td><td><code>payment_required</code></td><td>API access is not included in your current plan.</td></tr>
       <tr><td><span class="status s-403">403</span></td><td><code>forbidden</code></td><td>Key is not scoped for this endpoint.</td></tr>
+      <tr><td><span class="status s-4xx">409</span></td><td><code>idempotency_in_progress</code></td><td>A request with this Idempotency-Key is still running.</td></tr>
+      <tr><td><span class="status s-4xx">422</span></td><td><code>idempotency_key_reuse</code></td><td>This Idempotency-Key was already used with a different body.</td></tr>
       <tr><td><span class="status s-429">429</span></td><td><code>rate_limited</code></td><td>Too many requests — retry after the given delay.</td></tr>
       <tr><td><span class="status s-5xx">502</span></td><td><code>upstream_error</code></td><td>The model could not complete the request.</td></tr>
     </table>

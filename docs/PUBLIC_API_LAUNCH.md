@@ -25,8 +25,17 @@ Confirm these already exist (the API reuses them):
 `NEXT_PUBLIC_SUPABASE_ANON_KEY`, `STRIPE_SECRET_KEY` (+ live key),
 `STRIPE_METER_EVENT_NAME`, `STRIPE_WEBHOOK_SECRET`, `OPENAI_API_KEY`, SerpAPI key.
 
-> Without the Upstash vars the rate limiter **fails open** (no limiting) — fine
-> for a first smoke test, but set them before real traffic.
+Upstash backs three things, each of which degrades independently if Redis is
+missing or unreachable:
+
+| Layer | Without Redis |
+|---|---|
+| Rate limiting (`lib/rateLimit.ts`) | **Fails open** — no limiting at all. |
+| API-key auth cache (`lib/auth/apiKeyCache.ts`) | Every request pays a Supabase round-trip. Auth stays correct. |
+| Idempotency (`lib/api/idempotency.ts`) | `Idempotency-Key` is ignored; retries re-run and re-bill. |
+
+> Fine for a first smoke test, but set the vars before real traffic — the
+> fail-open rate limiter is the one that leaves you exposed.
 
 ## 3. Verify the schema (before migrating)
 
@@ -69,11 +78,22 @@ meter — confirm the billing path for each tier.
    curl $BASE/api/v1/me    -H "Authorization: Bearer $KEY"
    curl $BASE/api/v1/usage -H "Authorization: Bearer $KEY"
 
+   # idempotency — the second call must NOT re-run the agent
+   curl -i $BASE/api/v1/chat -H "Authorization: Bearer $KEY" \
+     -H "content-type: application/json" -H "Idempotency-Key: smoke-1" \
+     -d '{"messages":[{"role":"user","content":"hello"}]}'
+   # repeat verbatim → same body + `Idempotency-Replayed: true`
+   # repeat with a different body → 422 idempotency_key_reuse
+
    # negative paths
    curl -i $BASE/api/v1/agents                         # 401 (no key)
    curl -i $BASE/api/v1/agents -H "Authorization: Bearer sk_test_bad"  # 401
    ```
 4. Confirm in the DB / Stripe:
+   - revoking a key at `/agents/api-keys` makes it 401 **typically on the next
+     call** (the revoke path invalidates the auth cache), and **within 60s at
+     the latest** — invalidation is best-effort, so if that Redis `del` fails
+     the entry still lapses via its TTL;
    - a `usage_logs` row with `org_id` + `api_key_id` + `source='api'`;
    - a Stripe meter event on the org's customer;
    - **no `chat_messages` row** for the API call (stateless), while a web/mobile call still writes one.
@@ -82,7 +102,9 @@ meter — confirm the billing path for each tier.
 ## 7. Post-launch monitoring (the ongoing API operations)
 
 - Vercel: function **duration** + **concurrency** (the scale ceiling).
-- Upstash health; Stripe meter delivery.
+- Upstash health; Stripe meter delivery. Watch for the `⚠️ Upstash not
+  configured` / fail-open warnings in the function logs — they mean limits,
+  auth caching, and idempotency are all silently off.
 - OpenAI / SerpAPI error + rate-limit rates.
 - Per-org cost; a runaway-usage alert per org.
 
@@ -90,5 +112,5 @@ meter — confirm the billing path for each tier.
 
 - Stripe tier pricing (§5).
 - BAAs + public API ToS / DPA before any real PHI traffic (legal).
-- Optional: pull the Redis auth-lookup cache forward, or containerize the agent
-  — both are data-driven scale triggers, not launch blockers.
+- Optional: containerize the agent — a data-driven scale trigger, not a launch
+  blocker. (The Redis auth-lookup cache that used to sit here is now shipped.)

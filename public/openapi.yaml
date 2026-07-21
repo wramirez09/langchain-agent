@@ -19,8 +19,29 @@ info:
 
     ## Rate limits
     Limits are enforced per organization (with a finer per-key sub-limit) and
-    surfaced via `X-RateLimit-Limit` / `X-RateLimit-Remaining` headers. A `429`
-    response includes `Retry-After` (seconds).
+    surfaced via `X-RateLimit-Limit`, `X-RateLimit-Remaining`, and
+    `X-RateLimit-Reset` (unix seconds at which the window resets) on any
+    response that reached the limiter — that is, every success and every `429`.
+    Requests rejected earlier (`401`, `402`, `403`) never consume budget and
+    carry no rate-limit headers. A `429` also includes `Retry-After` (seconds).
+
+    ## Idempotency
+    `POST` endpoints accept an optional `Idempotency-Key` header (any unique
+    string, up to 255 characters) so a retry after a network timeout cannot run
+    — or bill for — the same request twice.
+
+    * Repeating the key with the **same** body returns the original stored
+      response, with `Idempotency-Replayed: true`.
+    * Repeating it with a **different** body returns `422 idempotency_key_reuse`.
+    * Repeating it while the first request is still running returns
+      `409 idempotency_in_progress`; retry shortly.
+    * Failed requests (`4xx`/`5xx`) are not stored, so the same key can be
+      retried after an error.
+    * A key longer than 255 characters returns `400 invalid_request` before the
+      request runs.
+
+    Stored responses expire after 24 hours. Idempotency does not apply to
+    streaming requests (`"stream": true`), which cannot be replayed.
 
     ## Errors
     Every error is a JSON envelope:
@@ -45,6 +66,8 @@ paths:
         turn's `content` is the structured `PriorAuthArtifact` object (or a plain
         string for a text reply). Pass `"stream": true` for a `text/plain` token
         stream instead. Streaming is optional and defaults to `false`.
+      parameters:
+        - $ref: "#/components/parameters/IdempotencyKey"
       requestBody:
         required: true
         content:
@@ -69,6 +92,8 @@ paths:
         "401": { $ref: "#/components/responses/Error" }
         "402": { $ref: "#/components/responses/Error" }
         "403": { $ref: "#/components/responses/Error" }
+        "409": { $ref: "#/components/responses/Error" }
+        "422": { $ref: "#/components/responses/Error" }
         "429": { $ref: "#/components/responses/RateLimited" }
         "500": { $ref: "#/components/responses/Error" }
   /api/v1/chat:
@@ -78,6 +103,8 @@ paths:
       description: >
         Returns a single JSON reply by default ({ message: { role, content } }).
         Pass `"stream": true` for a `text/plain` token stream instead.
+      parameters:
+        - $ref: "#/components/parameters/IdempotencyKey"
       requestBody:
         required: true
         content:
@@ -96,6 +123,8 @@ paths:
         "401": { $ref: "#/components/responses/Error" }
         "402": { $ref: "#/components/responses/Error" }
         "403": { $ref: "#/components/responses/Error" }
+        "409": { $ref: "#/components/responses/Error" }
+        "422": { $ref: "#/components/responses/Error" }
         "429": { $ref: "#/components/responses/RateLimited" }
         "502": { $ref: "#/components/responses/Error" }
   /api/v1/me:
@@ -116,6 +145,7 @@ paths:
                   scopes: { type: array, items: { type: string } }
                   rate_limit_tier: { type: string }
         "401": { $ref: "#/components/responses/Error" }
+        "429": { $ref: "#/components/responses/RateLimited" }
   /api/v1/usage:
     get:
       operationId: getUsage
@@ -141,6 +171,18 @@ components:
       type: http
       scheme: bearer
       bearerFormat: sk_live_… / sk_test_…
+  parameters:
+    IdempotencyKey:
+      name: Idempotency-Key
+      in: header
+      required: false
+      description: >
+        Optional unique string that makes this request safely retryable. A repeat
+        with the same key and body replays the original response instead of
+        re-running it. Ignored for streaming requests.
+      schema:
+        type: string
+        maxLength: 255
   schemas:
     Message:
       type: object
@@ -356,6 +398,9 @@ components:
           schema: { type: integer }
         X-RateLimit-Remaining:
           schema: { type: integer }
+        X-RateLimit-Reset:
+          schema: { type: integer }
+          description: Unix seconds at which the current window resets.
       content:
         application/json:
           schema: { $ref: "#/components/schemas/Error" }

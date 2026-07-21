@@ -55,6 +55,15 @@ describe("checkRateLimit", () => {
     const r = await checkRateLimit("org-1", "key-1", "standard");
     expect(r.success).toBe(false);
     expect(r.retryAfterSeconds).toBeGreaterThanOrEqual(1);
+    // X-RateLimit-Reset is unix *seconds*, not the limiter's millisecond reset.
+    expect(r.resetAtSeconds).toBeCloseTo(Math.ceil((Date.now() + 5000) / 1000), -1);
+  });
+
+  it("reports a reset one window out when failing open", async () => {
+    const { checkRateLimit } = loadModule();
+    const r = await checkRateLimit("org-1", "key-1", "standard");
+    // standard tier is a 60s window; the header must still be a sane future time.
+    expect(r.resetAtSeconds).toBeGreaterThan(Math.floor(Date.now() / 1000));
   });
 
   it("fails open if the limiter throws", async () => {

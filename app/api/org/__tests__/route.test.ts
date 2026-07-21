@@ -11,7 +11,7 @@ jest.mock('@/lib/db/repositories/org.repo', () => ({
   updateOrgName: jest.fn(),
 }))
 jest.mock('@/lib/billing/apiAccess', () => ({
-  orgHasApiAccess: jest.fn().mockResolvedValue({ allowed: true, reason: 'ok' }),
+  userHasApiAccess: jest.fn().mockResolvedValue({ allowed: true, reason: 'ok' }),
 }))
 
 import { GET, PATCH } from '../route'

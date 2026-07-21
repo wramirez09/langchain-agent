@@ -4,7 +4,7 @@ import { z } from "zod";
 import { supabaseAdmin } from "@/lib/supabaseAdmin";
 import { getSessionOrg, canManage } from "@/lib/api/sessionOrg";
 import { generateApiKey } from "@/lib/auth/apiKeys";
-import { orgHasApiAccess } from "@/lib/billing/apiAccess";
+import { userHasApiAccess } from "@/lib/billing/apiAccess";
 import { emailsForUserIds } from "@/lib/db/repositories/org.repo";
 
 type KeyRow = { created_by?: string | null; [k: string]: unknown };
@@ -75,7 +75,7 @@ export async function POST(req: Request) {
   if (!canManage(session.role)) {
     return NextResponse.json({ error: "Forbidden" }, { status: 403 });
   }
-  const access = await orgHasApiAccess(session.orgId);
+  const access = await userHasApiAccess(session.userId);
   if (!access.allowed) {
     return NextResponse.json(
       { error: "API access is not included in your current plan.", reason: access.reason },

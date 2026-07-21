@@ -4,7 +4,7 @@ import { z } from "zod";
 import { requireOrg } from "@/lib/api/requireOrg";
 import { canManage } from "@/lib/api/sessionOrg";
 import { getOrg, updateOrgName } from "@/lib/db/repositories/org.repo";
-import { orgHasApiAccess } from "@/lib/billing/apiAccess";
+import { userHasApiAccess } from "@/lib/billing/apiAccess";
 
 export const dynamic = "force-dynamic";
 
@@ -13,7 +13,7 @@ export async function GET() {
   const s = await requireOrg();
   if (s instanceof Response) return s;
 
-  const [org, access] = await Promise.all([getOrg(s.orgId), orgHasApiAccess(s.orgId)]);
+  const [org, access] = await Promise.all([getOrg(s.orgId), userHasApiAccess(s.userId)]);
   return NextResponse.json({ org, role: s.role, userId: s.userId, apiAccess: access.allowed });
 }
 

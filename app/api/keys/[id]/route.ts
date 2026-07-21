@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 
 import { supabaseAdmin } from "@/lib/supabaseAdmin";
 import { getSessionOrg, canManage } from "@/lib/api/sessionOrg";
+import { invalidateApiKeyCache } from "@/lib/auth/apiKeyCache";
 
 export const dynamic = "force-dynamic";
 
@@ -34,7 +35,7 @@ export async function PATCH(
     .eq("id", id)
     .eq("org_id", session.orgId) // tenant guard — never revoke across orgs
     .is("revoked_at", null) // no-op if already revoked
-    .select("id")
+    .select("id, key_hash")
     .maybeSingle();
 
   if (error) {
@@ -44,6 +45,10 @@ export async function PATCH(
   if (!data) {
     return NextResponse.json({ error: "Key not found" }, { status: 404 });
   }
+
+  // Awaited, not fire-and-forget: revocation must take effect before we tell
+  // the caller it did, otherwise the key keeps authenticating from cache.
+  await invalidateApiKeyCache(data.key_hash as string);
 
   return NextResponse.json({ success: true, revoked_at });
 }
@@ -75,7 +80,7 @@ export async function DELETE(
     .delete()
     .eq("id", id)
     .eq("org_id", session.orgId) // tenant guard — never delete across orgs
-    .select("id")
+    .select("id, key_hash")
     .maybeSingle();
 
   if (error) {
@@ -85,6 +90,8 @@ export async function DELETE(
   if (!data) {
     return NextResponse.json({ error: "Key not found" }, { status: 404 });
   }
+
+  await invalidateApiKeyCache(data.key_hash as string);
 
   return NextResponse.json({ success: true });
 }
