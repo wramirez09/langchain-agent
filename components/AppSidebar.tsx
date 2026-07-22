@@ -9,6 +9,7 @@ import {
   Pin,
   ChevronRight,
   KeyRound,
+  FlaskConical,
   Building2,
 } from 'lucide-react';
 import { cn } from '@/utils/cn';
@@ -293,6 +294,22 @@ export function AppSidebar({ activeView, onViewChange }: AppSidebarProps) {
                       API Keys
                     </span>
                   </Link>
+
+                  {/* API Playground — nested under Organization, beside API Keys */}
+                  <Link
+                    href="/agents/api-playground"
+                    onClick={collapseFlyout}
+                    aria-label="API Playground"
+                    className={cn(
+                      railOpen ? nestedRowClass : rowClass,
+                      'transition-[padding] text-[#737b89] hover:bg-[#f4f5f8]',
+                    )}
+                  >
+                    <FlaskConical size={18} strokeWidth={1.7} className="shrink-0" />
+                    <span className="fb-label text-sm font-medium text-[#5b6270]">
+                      API Playground
+                    </span>
+                  </Link>
                 </>
               ) : (
                 /* No org but API-enabled — surface API Keys on its own */
@@ -305,6 +322,22 @@ export function AppSidebar({ activeView, onViewChange }: AppSidebarProps) {
                   <KeyRound size={21} strokeWidth={1.7} className="shrink-0" />
                   <span className="fb-label text-sm font-semibold text-[#3f4654]">
                     API Keys
+                  </span>
+                </Link>
+              )}
+
+              {/* API Playground on its own, mirroring the standalone API Keys row
+                  (the has-org branch nests its own Playground link above). */}
+              {!hasOrg && (
+                <Link
+                  href="/agents/api-playground"
+                  onClick={collapseFlyout}
+                  aria-label="API Playground"
+                  className={cn(rowClass, 'text-[#737b89] hover:bg-[#f4f5f8]')}
+                >
+                  <FlaskConical size={21} strokeWidth={1.7} className="shrink-0" />
+                  <span className="fb-label text-sm font-semibold text-[#3f4654]">
+                    API Playground
                   </span>
                 </Link>
               )}
