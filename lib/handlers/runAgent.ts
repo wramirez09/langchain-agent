@@ -161,6 +161,7 @@ export async function runAgent(params: RunAgentParams): Promise<Response> {
       orgId: identity.orgId,
       apiKeyId: identity.apiKeyId,
       source: identity.source,
+      environment: identity.environment,
       usageType: "orchestrator",
       quantity: 1,
     }).catch(() => {});

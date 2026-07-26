@@ -8,6 +8,10 @@ export type CallerIdentity = {
   orgId?: string;
   apiKeyId?: string;
   source: "web" | "mobile" | "api";
+  /** The calling API key's environment. `test` keys are served identically but
+   *  never metered to Stripe (see `reportUsage`). Absent for first-party
+   *  web/mobile traffic, which is always treated as live. */
+  environment?: "live" | "test";
 };
 
 import type { PriorAuthArtifact } from "@/lib/priorAuth/artifactSchema";

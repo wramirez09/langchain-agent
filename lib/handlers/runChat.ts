@@ -83,6 +83,7 @@ export async function runChat(params: {
         orgId: identity.orgId,
         apiKeyId: identity.apiKeyId,
         source: identity.source,
+        environment: identity.environment,
         usageType: "chat",
         quantity: 1,
       }).catch((err) => console.error("Failed to report usage from chat:", err));

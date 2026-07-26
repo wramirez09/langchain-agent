@@ -105,6 +105,7 @@ export async function POST(req: NextRequest) {
           orgId: auth.orgId,
           apiKeyId: auth.apiKeyId,
           source: "api",
+          environment: auth.environment,
         },
         baseHeaders: { ...NO_STORE, ...rlHeaders },
         respondError,

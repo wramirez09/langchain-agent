@@ -15,6 +15,7 @@ export async function reportUsage({
     source = "web",
     quantity = 1,
     usageType,
+    environment = "live",
 }: {
     userId: string;
     // Attribution only — recorded on the usage_logs row so /usage can roll up
@@ -25,15 +26,23 @@ export async function reportUsage({
     source?: "web" | "mobile" | "api";
     quantity?: number;
     usageType: string;
+    // Environment of the API key that made the call. `test` keys are served
+    // exactly like live ones (same data, same models, same rate limits) but are
+    // never metered to Stripe. Defaults to "live" so first-party web/mobile
+    // traffic — and any caller that forgets to pass it — still bills.
+    environment?: "live" | "test";
     }): Promise<Stripe.Billing.MeterEvent | null | undefined> {
     const stripe = getStripe();
+    const isTest = environment === "test";
 
     // Bill the same person we gate. Entitlement is per-user
     // (`userHasApiAccess(created_by)`), so billing must resolve the same way —
     // this previously resolved the ORG OWNER's subscription when an orgId was
     // passed, which meant a subscribing member passed the gate while their
     // usage metered to someone else's subscription (or to nothing at all).
-    const subscription = await getSubscriptionByUserId(userId);
+    // Test keys skip the subscription lookup entirely — nothing downstream of
+    // it is used when we are not going to meter.
+    const subscription = isTest ? null : await getSubscriptionByUserId(userId);
 
     // Attempt Stripe metering when the tenant has an active metered subscription.
     // This is decoupled from the usage_logs record below: usage is ALWAYS logged
@@ -109,6 +118,8 @@ export async function reportUsage({
         }
     } else if (subscription) {
         console.warn("No metered item → usage logged but not billed");
+    } else if (isTest) {
+        console.log("🧪 Test-environment key → usage logged but not billed");
     }
 
     // Always record usage (best-effort) — the source of truth for usage.
@@ -125,6 +136,11 @@ export async function reportUsage({
                     stripe_reported: meterEvent !== null,
                     stripe_usage_id: meterEvent?.identifier ?? null,
                     metered_item_id: subscription?.metered_item_id ?? null,
+                    // Tagged on every row so rollups and revenue reconciliation
+                    // can separate unbilled test traffic from live traffic —
+                    // `stripe_reported: false` alone can't, since billing
+                    // failures and unsubscribed users produce it too.
+                    metadata: { environment },
                 });
             },
             RETRY_CONFIGS.DATABASE,

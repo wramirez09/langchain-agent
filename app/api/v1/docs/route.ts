@@ -242,6 +242,15 @@ const HTML = `<!doctype html>
     <div class="scopes"><span class="tag">scope: agents</span><span class="tag">scope: chat</span></div>
     <div class="callout">Each key is scoped. Calling an endpoint a key isn't scoped for returns
     <code>403</code>. API access also depends on your plan — see <code>402</code> under Errors.</div>
+    <p>Each key belongs to one environment, fixed at creation and visible in its prefix:
+    <code>sk_live_…</code> bills your subscription per request, while <code>sk_test_…</code>
+    is <strong>never metered</strong> — use test keys for integration tests and CI so a test
+    suite can't run up your invoice.</p>
+    <div class="scopes"><span class="tag">sk_live_ · metered</span><span class="tag">sk_test_ · not metered</span></div>
+    <div class="callout">A test key is <strong>not a sandbox</strong>: it reads and writes the
+    same production data, runs the same models, shares the same rate limits, and still requires
+    an active subscription. Only the billing meter is skipped — usage is still recorded and
+    still counts in <code>/v1/usage</code>.</div>
   </section>
 
   <section id="agents">

@@ -430,6 +430,11 @@ export default function ApiKeysManager() {
                       </button>
                     ))}
                   </div>
+                  <p className="text-xs text-muted-foreground">
+                    {environment === "live"
+                      ? "Requests are metered and billed to your subscription."
+                      : "Requests are never billed. Same production data, models, and rate limits — only metering is skipped."}
+                  </p>
                 </div>
 
                 <div className="flex flex-col gap-1.5">

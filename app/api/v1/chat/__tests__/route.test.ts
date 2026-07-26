@@ -44,9 +44,9 @@ const req = (
     headers: { get: (k: string) => headers[k.toLowerCase()] ?? null },
   }) as any
 
-const authFor = (scopes: string[]) => ({
+const authFor = (scopes: string[], environment: 'live' | 'test' = 'live') => ({
   ok: true,
-  auth: { orgId: 'org1', apiKeyId: 'k1', createdBy: 'u1', environment: 'live', scopes, tier: 'standard' },
+  auth: { orgId: 'org1', apiKeyId: 'k1', createdBy: 'u1', environment, scopes, tier: 'standard' },
 })
 const okLimit = { success: true, limit: 60, remaining: 59, retryAfterSeconds: 0 }
 const stream = () => new ReadableStream({ start(c) { c.enqueue(new TextEncoder().encode('hi')); c.close() } })
@@ -110,6 +110,18 @@ describe('POST /api/v1/chat — gate rails', () => {
     expect(runChatMock.mock.calls[0][0].identity).toMatchObject({
       orgId: 'org1', apiKeyId: 'k1', source: 'api',
     })
+  })
+
+  // reportUsage decides whether to meter from identity.environment, so the
+  // route dropping it would silently bill test-key traffic.
+  it.each(['live', 'test'] as const)('forwards the key environment (%s) to the handler', async (env) => {
+    resolveMock.mockResolvedValue(authFor(['chat'], env))
+    rateMock.mockResolvedValue(okLimit)
+    runChatMock.mockResolvedValue(stream())
+
+    await POST(req())
+
+    expect(runChatMock.mock.calls[0][0].identity.environment).toBe(env)
   })
 
   it('streams text/plain when the caller opts in with stream:true', async () => {

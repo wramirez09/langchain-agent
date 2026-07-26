@@ -29,9 +29,9 @@ const req = (body: any = { messages: [{ role: 'user', content: 'hi' }] }) =>
     headers: { get: () => null },
   } as any)
 
-const authFor = (scopes: string[]) => ({
+const authFor = (scopes: string[], environment: 'live' | 'test' = 'live') => ({
   ok: true,
-  auth: { orgId: 'org1', apiKeyId: 'k1', createdBy: 'u1', environment: 'live', scopes, tier: 'standard' },
+  auth: { orgId: 'org1', apiKeyId: 'k1', createdBy: 'u1', environment, scopes, tier: 'standard' },
 })
 const okLimit = { success: true, limit: 60, remaining: 59, retryAfterSeconds: 0 }
 
@@ -107,6 +107,18 @@ describe('POST /api/v1/agents — gate rails', () => {
     expect(runAgentMock).toHaveBeenCalledTimes(1)
     const identity = runAgentMock.mock.calls[0][0].identity
     expect(identity).toMatchObject({ orgId: 'org1', apiKeyId: 'k1', source: 'api' })
+  })
+
+  // The key's environment must reach the handler — reportUsage decides whether
+  // to meter from it, so dropping it here silently bills test-key traffic.
+  it.each(['live', 'test'] as const)('forwards the key environment (%s) to the handler', async (env) => {
+    resolveMock.mockResolvedValue(authFor(['agents'], env))
+    rateMock.mockResolvedValue(okLimit)
+    runAgentMock.mockResolvedValue(new Response('ok', { status: 200 }))
+
+    await POST(req())
+
+    expect(runAgentMock.mock.calls[0][0].identity.environment).toBe(env)
   })
 
   it('defaults to buffered JSON (clientType "mobile")', async () => {

@@ -152,6 +152,82 @@ describe('reportUsage', () => {
     err.mockRestore()
   })
 
+  // Test-environment keys are served exactly like live ones but must never
+  // reach the Stripe meter — otherwise a CI suite silently bills the customer.
+  describe('test-environment keys', () => {
+    it('never meters, even with a fully billable subscription', async () => {
+      mockedSub.mockResolvedValue({
+        stripe_customer_id: 'cus_1',
+        stripe_subscription_id: 'sub_1',
+        metered_item_id: 'mi_1',
+      })
+      const create = jest.fn().mockResolvedValue({ identifier: 'evt_should_not_happen' })
+      mockedGetStripe.mockReturnValue({ billing: { meterEvents: { create } } })
+      mockedLog.mockResolvedValue(undefined)
+
+      const r = await reportUsage({
+        userId: 'u',
+        source: 'api',
+        usageType: 'orchestrator',
+        environment: 'test',
+      })
+
+      expect(create).not.toHaveBeenCalled()
+      expect(r).toBeNull()
+    })
+
+    it('skips the subscription lookup entirely', async () => {
+      mockedGetStripe.mockReturnValue({ billing: { meterEvents: { create: jest.fn() } } })
+      mockedLog.mockResolvedValue(undefined)
+
+      await reportUsage({ userId: 'u', usageType: 'chat', environment: 'test' })
+
+      expect(mockedSub).not.toHaveBeenCalled()
+    })
+
+    it('still records usage, flagged unbilled and tagged test', async () => {
+      mockedGetStripe.mockReturnValue({ billing: { meterEvents: { create: jest.fn() } } })
+      mockedLog.mockResolvedValue(undefined)
+
+      await reportUsage({
+        userId: 'u',
+        orgId: 'org-1',
+        apiKeyId: 'k1',
+        source: 'api',
+        usageType: 'chat',
+        environment: 'test',
+      })
+
+      expect(mockedLog).toHaveBeenCalledTimes(1)
+      expect(mockedLog.mock.calls[0][0]).toMatchObject({
+        org_id: 'org-1',
+        api_key_id: 'k1',
+        stripe_reported: false,
+        stripe_usage_id: null,
+        metered_item_id: null,
+        metadata: { environment: 'test' },
+      })
+    })
+
+    // The default must be "live": a caller that forgets to thread the field
+    // through would otherwise stop billing silently.
+    it('defaults to live when environment is omitted', async () => {
+      mockedSub.mockResolvedValue({
+        stripe_customer_id: 'cus_1',
+        stripe_subscription_id: 'sub_1',
+        metered_item_id: 'mi_1',
+      })
+      const create = jest.fn().mockResolvedValue({ identifier: 'evt_1' })
+      mockedGetStripe.mockReturnValue({ billing: { meterEvents: { create } } })
+      mockedLog.mockResolvedValue(undefined)
+
+      await reportUsage({ userId: 'u', usageType: 'chat' })
+
+      expect(create).toHaveBeenCalled()
+      expect(mockedLog.mock.calls[0][0]).toMatchObject({ metadata: { environment: 'live' } })
+    })
+  })
+
   // Billing must follow the same subject as entitlement. userHasApiAccess gates
   // on the key's created_by, so passing an orgId must NOT redirect billing to
   // the org owner — otherwise a subscribing member's usage meters to someone
