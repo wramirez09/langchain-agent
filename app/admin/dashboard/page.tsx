@@ -1,6 +1,6 @@
 import { cookies } from 'next/headers'
 import { redirect } from 'next/navigation'
-import Stripe from 'stripe'
+import { getStripe } from '@/lib/stripe'
 import { AdminDashboard } from '@/components/admin/AdminDashboard'
 import type { UsageRow } from '@/components/admin/UsageTable'
 
@@ -12,15 +12,11 @@ export default async function AdminDashboardPage() {
     redirect('/admin')
   }
 
-  // Use live Stripe key for admin dashboard
-  const liveSecretKey = process.env.STRIPE_LIVE_SECRET_KEY
-  if (!liveSecretKey) {
-    throw new Error('STRIPE_LIVE_SECRET_KEY is not set in environment variables')
-  }
-
-  const stripe = new Stripe(liveSecretKey, {
-    apiVersion: '2025-10-29.clover',
-  })
+  // Shares the app-wide client rather than a second STRIPE_LIVE_SECRET_KEY.
+  // That variable was set in no environment, so this page threw on render —
+  // a hard 500 for the whole admin dashboard. The environment now decides
+  // live vs test, which is the same invariant every other Stripe caller uses.
+  const stripe = getStripe()
 
   const [
     customersRes,
@@ -57,6 +53,9 @@ export default async function AdminDashboardPage() {
   const usageRows: UsageRow[] = []
 
   if (meters.length > 0) {
+    // Async Server Component, not a React render: this runs once per request
+    // while fetching Stripe usage, so a wall-clock read is correct here.
+    // eslint-disable-next-line react-hooks/purity
     const now = Math.floor(Date.now() / 1000)
     // Use a 30-day window ending now
     const windowStart = now - 30 * 24 * 60 * 60

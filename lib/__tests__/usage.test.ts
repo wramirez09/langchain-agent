@@ -91,4 +91,26 @@ describe('reportUsage', () => {
     const r = await reportUsage({ userId: 'u', usageType: 'chat' })
     expect(r).toEqual({ identifier: 'evt_2' })
   })
+
+  // A missing meter name used to be a bare `!` assertion, so Stripe received
+  // event_name: undefined and rejected every call — a billable request served
+  // but never invoiced, with nothing in the logs naming the cause.
+  it('skips metering (loudly) when STRIPE_METER_EVENT_NAME is unset', async () => {
+    delete process.env.STRIPE_METER_EVENT_NAME
+    mockedSub.mockResolvedValue({
+      stripe_customer_id: 'cus_1',
+      stripe_subscription_id: 'sub_1',
+      metered_item_id: 'mi_1',
+    })
+    const create = jest.fn()
+    mockedGetStripe.mockReturnValue({ billing: { meterEvents: { create } } })
+    const err = jest.spyOn(console, 'error').mockImplementation(() => {})
+
+    const r = await reportUsage({ userId: 'u', usageType: 'chat' })
+
+    expect(r).toBeNull()
+    expect(create).not.toHaveBeenCalled() // no doomed API call
+    expect(err.mock.calls.flat().join(' ')).toContain('STRIPE_METER_EVENT_NAME')
+    err.mockRestore()
+  })
 })

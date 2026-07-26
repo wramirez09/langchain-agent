@@ -30,6 +30,13 @@ const FlyoutForm: React.FC<{
   onStateFormStateChange,
   chatOnChange,
 }) => {
+    // Driven by `openSheet` at the top level rather than from the Cancel
+    // handler: a hook call inside an event handler is an invalid hook call, and
+    // it only covered one of the several ways the sheet can close (Cancel, but
+    // not Escape, overlay click, or submit). Keying it to the open state
+    // restores body pointer-events on every close path.
+    useBodyPointerEvents(openSheet);
+
     const handleSubmit = React.useCallback(
       (e: any) => {
         e.preventDefault();
@@ -84,10 +91,7 @@ const FlyoutForm: React.FC<{
                 </Button>
                 <SheetClose asChild>
                   <Button
-                    onClick={() => {
-                      setOpenSheet(false);
-                      useBodyPointerEvents(false);
-                    }}
+                    onClick={() => setOpenSheet(false)}
                     className="flex-1 button-ghost text-red-500"
                   >
                     Cancel
