@@ -22,9 +22,13 @@ export function ForgotPasswordForm({ className, ...props }: React.ComponentProps
     setError(null)
 
     try {
-      // The url which will be included in the email. This URL needs to be configured in your redirect URLs in the Supabase dashboard at https://supabase.com/dashboard/project/_/auth/url-configuration
+      // The URL included in the email. Supabase issues a PKCE `?code=` link, so
+      // it must land on /auth/callback to exchange the code for a session before
+      // the password form can call updateUser. This URL (and the origin) must be
+      // in the Supabase Redirect URLs allowlist:
+      // https://supabase.com/dashboard/project/_/auth/url-configuration
       const { error } = await supabase.auth.resetPasswordForEmail(email, {
-        redirectTo: `${window.location.origin}/auth/update-password`,
+        redirectTo: `${window.location.origin}/auth/callback?next=/auth/update-password`,
       })
       if (error) throw error
       setSuccess(true)
