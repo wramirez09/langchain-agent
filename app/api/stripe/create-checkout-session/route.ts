@@ -3,6 +3,8 @@ import { NextResponse } from "next/server";
 import { z } from "zod";
 import Stripe from "stripe";
 
+import { resolveBaseUrl } from "@/lib/api/baseUrl";
+
 
 
 const CheckoutSessionSchema = z.object({
@@ -59,10 +61,7 @@ export async function POST(req: Request) {
         /* ------------------------------------------------------------
          * Base URL
          * ------------------------------------------------------------ */
-        const baseUrl =
-            process.env.NODE_ENV === "development"
-                ? "http://localhost:3000"
-                : `https://${process.env.NEXT_PUBLIC_BASE_URL_PROD}`;
+        const baseUrl = resolveBaseUrl();
 
         /* ------------------------------------------------------------
          * Success & cancel URLs (ORIGINAL PATH)
