@@ -67,8 +67,14 @@ const nextConfig = {
         source: "/api/:path*",
         headers: [
           {
+            // API responses are authenticated / per-tenant / mutating — they must
+            // never sit in a shared (or even the browser's) cache. A prior
+            // `public, max-age=300` here served stale data after mutations (e.g.
+            // a revoked API key still showed as active) and risked a shared cache
+            // handing one org's data to another. Any genuinely-public endpoint
+            // must opt into caching with its own Cache-Control header.
             key: "Cache-Control",
-            value: "public, max-age=300, s-maxage=300", // 5 minutes
+            value: "private, no-store, max-age=0, must-revalidate",
           },
           ...securityHeaders,
         ],

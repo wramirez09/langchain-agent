@@ -9,12 +9,9 @@ jest.mock('next/headers', () => ({
 
 const subsList = jest.fn()
 const meterEventsCreate = jest.fn()
-jest.mock('stripe', () => ({
-  __esModule: true,
-  default: jest.fn().mockImplementation(() => ({
-    subscriptions: { list: subsList },
-    billing: { meterEvents: { create: meterEventsCreate } },
-  })),
+const getStripe = jest.fn()
+jest.mock('@/lib/stripe', () => ({
+  getStripe: () => getStripe(),
 }))
 
 const insertUsageLog = jest.fn()
@@ -30,7 +27,10 @@ function makeReq(body: any) {
 
 beforeEach(() => {
   jest.clearAllMocks()
-  process.env.STRIPE_LIVE_SECRET_KEY = 'sk_live'
+  getStripe.mockReturnValue({
+    subscriptions: { list: subsList },
+    billing: { meterEvents: { create: meterEventsCreate } },
+  })
   process.env.STRIPE_METER_EVENT_NAME = 'preauthmeter'
 })
 

@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { cookies } from 'next/headers'
-import Stripe from 'stripe'
+import { getStripe } from '@/lib/stripe'
 import { insertUsageLog } from '@/lib/db/repositories/usage.repo'
 
 /**
@@ -20,14 +20,12 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: 'customerId required' }, { status: 400 })
   }
 
-  const liveSecretKey = process.env.STRIPE_LIVE_SECRET_KEY
-  if (!liveSecretKey) {
-    return NextResponse.json({ error: 'STRIPE_LIVE_SECRET_KEY not configured' }, { status: 500 })
+  let stripe
+  try {
+    stripe = getStripe()
+  } catch {
+    return NextResponse.json({ error: 'STRIPE_SECRET_KEY not configured' }, { status: 500 })
   }
-
-  const stripe = new Stripe(liveSecretKey, {
-    apiVersion: '2025-10-29.clover',
-  })
 
   try {
     // 1. Get customer's active subscription
@@ -124,14 +122,12 @@ export async function GET(req: NextRequest) {
     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
   }
 
-  const liveSecretKey = process.env.STRIPE_LIVE_SECRET_KEY
-  if (!liveSecretKey) {
-    return NextResponse.json({ error: 'STRIPE_LIVE_SECRET_KEY not configured' }, { status: 500 })
+  let stripe
+  try {
+    stripe = getStripe()
+  } catch {
+    return NextResponse.json({ error: 'STRIPE_SECRET_KEY not configured' }, { status: 500 })
   }
-
-  const stripe = new Stripe(liveSecretKey, {
-    apiVersion: '2025-10-29.clover',
-  })
 
   try {
     // Get all active subscriptions

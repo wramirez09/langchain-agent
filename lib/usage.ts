@@ -47,6 +47,27 @@ export async function reportUsage({
         return null;
     }
 
+    // Misconfiguration here is silent revenue loss: a billable request is served
+    // and never invoiced. Fail loudly rather than posting an event Stripe will
+    // reject — this was a bare `!` assertion, so an unset var meant one rejected
+    // API call per request with nothing in the logs naming the cause.
+    const meterEventName = process.env.STRIPE_METER_EVENT_NAME;
+    if (!meterEventName) {
+        const errorInfo = errorTracker.trackError(
+            new Error("STRIPE_METER_EVENT_NAME is not set"),
+            "Stripe billing configuration",
+            undefined,
+            userId,
+            undefined,
+            "reportUsage-stripe-config"
+        );
+        console.error(
+            "❌ STRIPE_METER_EVENT_NAME is not set — usage served but NOT BILLED:",
+            errorInfo,
+        );
+        return null;
+    }
+
     // Generate once outside withRetry so all retry attempts share the same key,
     // preventing Stripe from processing duplicate meter events on timeout retries.
     const idempotencyKey = `usage-${userId}-${Date.now()}-${Math.random().toString(36).slice(2, 9)}`;
@@ -56,7 +77,7 @@ export async function reportUsage({
             async () => {
                 const event = await stripe.billing.meterEvents.create(
                     {
-                        event_name: process.env.STRIPE_METER_EVENT_NAME!, // your usage type
+                        event_name: meterEventName,
                         payload: {
                             stripe_customer_id,        // REQUIRED
                             subscription_id: stripe_subscription_id,

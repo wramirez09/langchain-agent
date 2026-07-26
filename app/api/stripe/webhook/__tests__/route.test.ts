@@ -16,10 +16,16 @@ jest.mock('@/lib/stripe', () => ({
 
 const fromMock = jest.fn()
 const adminCreateUser = jest.fn()
+const adminListUsers = jest.fn()
 jest.mock('@/lib/supabaseAdmin', () => ({
   supabaseAdmin: {
     from: (...a: any[]) => fromMock(...a),
-    auth: { admin: { createUser: (...a: any[]) => adminCreateUser(...a) } },
+    auth: {
+      admin: {
+        createUser: (...a: any[]) => adminCreateUser(...a),
+        listUsers: (...a: any[]) => adminListUsers(...a),
+      },
+    },
   },
 }))
 
@@ -35,6 +41,8 @@ function makeReq(body: string, sig = 'sig') {
 beforeEach(() => {
   jest.clearAllMocks()
   process.env.STRIPE_WEBHOOK_SECRET = 'whsec'
+  // Default: no pre-existing auth user, so the create path is exercised.
+  adminListUsers.mockResolvedValue({ data: { users: [] }, error: null })
 })
 
 describe('stripe webhook POST', () => {
@@ -80,19 +88,17 @@ describe('stripe webhook POST', () => {
 
     const profilesSelectMaybe = jest.fn().mockResolvedValue({ data: null })
     const profilesEqSelect = jest.fn(() => ({ maybeSingle: profilesSelectMaybe }))
-    const profilesSelect = jest.fn(() => ({ eq: profilesEqSelect }))
-    const profilesInsert = jest.fn().mockResolvedValue({ error: null })
-    const profilesUpdateEq = jest.fn().mockResolvedValue({ error: null })
-    const profilesUpdate = jest.fn(() => ({ eq: profilesUpdateEq }))
+    const profilesIlike = jest.fn(() => ({ maybeSingle: profilesSelectMaybe }))
+    const profilesSelect = jest.fn(() => ({
+      eq: profilesEqSelect,
+      ilike: profilesIlike,
+    }))
+    const profilesUpsert = jest.fn().mockResolvedValue({ error: null })
     const subsUpsert = jest.fn().mockResolvedValue({ error: null })
 
     fromMock.mockImplementation((tbl: string) => {
       if (tbl === 'profiles') {
-        return {
-          select: profilesSelect,
-          insert: profilesInsert,
-          update: profilesUpdate,
-        }
+        return { select: profilesSelect, upsert: profilesUpsert }
       }
       if (tbl === 'subscriptions') {
         return { upsert: subsUpsert }
@@ -109,17 +115,77 @@ describe('stripe webhook POST', () => {
     expect(adminCreateUser).toHaveBeenCalledWith(
       expect.objectContaining({ email: 'a@b.com', email_confirm: true }),
     )
-    expect(profilesInsert).toHaveBeenCalledWith(
+    expect(profilesUpsert).toHaveBeenCalledWith(
       expect.objectContaining({
         id: 'new-user',
         stripe_customer_id: 'cus_1',
         is_active: true,
         term_of_agreement: true,
       }),
+      { onConflict: 'id' },
     )
     expect(subsUpsert).toHaveBeenCalledWith(
       expect.objectContaining({
         stripe_subscription_id: 'sub_1',
+        subscription_item_id: 'si_lic',
+        metered_item_id: 'si_met',
+        status: 'active',
+      }),
+      { onConflict: 'stripe_subscription_id' },
+    )
+  })
+
+  // Regression: a Dashboard-created / invoice-billed subscription emits no
+  // checkout.session.completed. Before this branch existed, such a customer
+  // was charged but never provisioned — .updated only UPDATEs a row keyed on
+  // stripe_subscription_id, which matched nothing.
+  it('provisions a subscription created outside Checkout', async () => {
+    constructEvent.mockReturnValue({
+      type: 'customer.subscription.created',
+      data: { object: { id: 'sub_dash', customer: 'cus_dash' } },
+    })
+    subsRetrieve.mockResolvedValue({
+      id: 'sub_dash',
+      status: 'active',
+      items: {
+        data: [
+          { id: 'si_lic', price: { recurring: { usage_type: 'licensed' } } },
+          { id: 'si_met', price: { recurring: { usage_type: 'metered' } } },
+        ],
+      },
+      current_period_start: 1700000000,
+      current_period_end: 1702000000,
+    })
+    customersRetrieve.mockResolvedValue({ email: 'dash@b.com', metadata: {} })
+
+    // No profiles row, but the auth user already exists — the common shape
+    // for someone who signed up before being subscribed manually.
+    const profilesSelectMaybe = jest.fn().mockResolvedValue({ data: null })
+    const profilesSelect = jest.fn(() => ({
+      eq: jest.fn(() => ({ maybeSingle: profilesSelectMaybe })),
+      ilike: jest.fn(() => ({ maybeSingle: profilesSelectMaybe })),
+    }))
+    const profilesUpsert = jest.fn().mockResolvedValue({ error: null })
+    const subsUpsert = jest.fn().mockResolvedValue({ error: null })
+    fromMock.mockImplementation((tbl: string) => {
+      if (tbl === 'profiles') return { select: profilesSelect, upsert: profilesUpsert }
+      if (tbl === 'subscriptions') return { upsert: subsUpsert }
+      throw new Error('unknown table ' + tbl)
+    })
+    adminListUsers.mockResolvedValue({
+      data: { users: [{ id: 'existing-user', email: 'dash@b.com' }] },
+      error: null,
+    })
+
+    const r = await POST(makeReq('{}'))
+    expect(r.status).toBe(200)
+    // Reused the existing auth user rather than trying to create a duplicate.
+    expect(adminCreateUser).not.toHaveBeenCalled()
+    expect(subsUpsert).toHaveBeenCalledWith(
+      expect.objectContaining({
+        user_id: 'existing-user',
+        stripe_customer_id: 'cus_dash',
+        stripe_subscription_id: 'sub_dash',
         subscription_item_id: 'si_lic',
         metered_item_id: 'si_met',
         status: 'active',
