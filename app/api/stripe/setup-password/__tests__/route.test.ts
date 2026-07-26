@@ -5,7 +5,7 @@
 const listUsers = jest.fn()
 const updateUserById = jest.fn()
 const upsert = jest.fn()
-const fromMock = jest.fn(() => ({ upsert }))
+const fromMock = jest.fn((..._a: any[]) => ({ upsert }))
 
 jest.mock('@/lib/supabaseAdmin', () => ({
   supabaseAdmin: {

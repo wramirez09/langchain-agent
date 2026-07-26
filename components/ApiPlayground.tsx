@@ -100,7 +100,9 @@ export default function ApiPlayground() {
   }, []);
 
   // Reset the editor to the selected endpoint's example whenever it changes.
+  // Deliberate reset-on-selection-change; editor is uncontrolled between switches.
   useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     setBody(endpoint.defaultBody ?? "");
     setResult(null);
     setError(null);

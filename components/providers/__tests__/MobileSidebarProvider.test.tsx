@@ -1,3 +1,4 @@
+import { useEffect } from 'react'
 import { render, screen, act } from '@testing-library/react'
 import {
   MobileSidebarProvider,
@@ -6,7 +7,12 @@ import {
 
 function Probe() {
   const ctx = useMobileSidebar()
-  ;(globalThis as any).__msb = ctx
+  // Published from an effect rather than during render — writing to an
+  // external binding mid-render is a side effect React may discard or replay.
+  // No dep array, so `__msb` tracks the latest context after every commit.
+  useEffect(() => {
+    ;(globalThis as any).__msb = ctx
+  })
   return <div data-testid="open">{String(ctx.isOpen)}</div>
 }
 

@@ -73,6 +73,40 @@ describe('debug GET (hardened)', () => {
     })
   })
 
+  // The failure this check exists for: a test key in production reports
+  // "configured", but every customer/subscription lookup targets the wrong
+  // Stripe account, so webhooks never match and nothing gets provisioned.
+  it('is not ready when production is running on a test Stripe key', async () => {
+    adminCookie = '1'
+    setAll()
+    const savedEnv = process.env.VERCEL_ENV
+    process.env.VERCEL_ENV = 'production'
+    process.env.STRIPE_SECRET_KEY = 'sk_test_abc123'
+
+    const body = await (await GET()).json()
+    expect(body.checks.stripeSecretKey).toBe(true) // present...
+    expect(body.checks.stripeKeyMode).toBe(false) // ...but wrong mode
+    expect(body.publicApiReady).toBe(false)
+
+    if (savedEnv === undefined) delete process.env.VERCEL_ENV
+    else process.env.VERCEL_ENV = savedEnv
+  })
+
+  it('accepts a live Stripe key in production', async () => {
+    adminCookie = '1'
+    setAll()
+    const savedEnv = process.env.VERCEL_ENV
+    process.env.VERCEL_ENV = 'production'
+    process.env.STRIPE_SECRET_KEY = 'sk_live_abc123'
+
+    const body = await (await GET()).json()
+    expect(body.checks.stripeKeyMode).toBe(true)
+    expect(body.publicApiReady).toBe(true)
+
+    if (savedEnv === undefined) delete process.env.VERCEL_ENV
+    else process.env.VERCEL_ENV = savedEnv
+  })
+
   it('is not ready when Upstash is missing — the silent fail-open case', async () => {
     adminCookie = '1'
     setAll()

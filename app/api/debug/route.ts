@@ -26,6 +26,14 @@ export async function GET() {
   const upstashRedis = isRedisConfigured();
   const stripeMeterEventName = Boolean(process.env.STRIPE_METER_EVENT_NAME);
   const stripeSecretKey = Boolean(process.env.STRIPE_SECRET_KEY);
+  // Presence alone isn't enough: a *test* key in production reports healthy
+  // while every lookup silently targets the wrong Stripe account — customers
+  // exist, webhooks never match, and no subscription is ever provisioned.
+  // Only assert the mode where it's knowable; elsewhere presence is the bar.
+  const stripeKeyMode =
+    process.env.VERCEL_ENV === "production"
+      ? Boolean(process.env.STRIPE_SECRET_KEY?.startsWith("sk_live_"))
+      : stripeSecretKey;
   const stripeWebhookSecret = Boolean(process.env.STRIPE_WEBHOOK_SECRET);
   const supabaseServiceRole = Boolean(process.env.SUPABASE_SERVICE_ROLE_KEY);
   const openaiApiKey = Boolean(process.env.OPENAI_API_KEY);
@@ -37,6 +45,8 @@ export async function GET() {
     // Unset => billable requests are served and logged but never invoiced.
     stripeMeterEventName,
     stripeSecretKey,
+    // False when production is running on a test key.
+    stripeKeyMode,
     stripeWebhookSecret,
     supabaseServiceRole,
     openaiApiKey,

@@ -24,6 +24,11 @@ const SuspendedPDFInner = () => {
   const [pdfGenerated, setPdfGenerated] = React.useState(false);
   const [pdfUrl, setPdfUrl] = React.useState<string | null>(null);
 
+  // Stamped when the blob is built, not read during render. Calling Date.now()
+  // inline in the download attribute produced a different filename on every
+  // re-render, so the saved name depended on when React last painted.
+  const [downloadName, setDownloadName] = React.useState("medauth-chat.pdf");
+
   // Memoize messages to prevent useEffect re-running
   const messages = React.useMemo(() => {
     let parsedMessages: Message[] = [];
@@ -94,6 +99,7 @@ const SuspendedPDFInner = () => {
           
           // Set the URL for download
           setPdfUrl(url);
+          setDownloadName(`medauth-chat-${Date.now()}.pdf`);
           setPdfGenerated(true);
           console.log('=== PDF Generation Complete ===');
         } catch (error) {
@@ -129,7 +135,7 @@ const SuspendedPDFInner = () => {
             <div className="space-y-3">
               <a 
                 href={pdfUrl}
-                download={`medauth-chat-${Date.now()}.pdf`}
+                download={downloadName}
                 className="inline-block bg-blue-600 text-white px-6 py-3 rounded-md hover:bg-blue-700 font-medium"
               >
                 📄 Download PDF

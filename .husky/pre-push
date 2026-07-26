@@ -21,6 +21,21 @@ yarn jest --no-coverage --passWithNoTests || {
   exit 1
 }
 
+# Lint and types gate every push too. Both were silently broken for a while —
+# `next lint` was removed in Next 16, and nothing ran tsc outside `next build`,
+# which only fires for protected branches below.
+echo "[pre-push] Running typecheck..."
+yarn typecheck || {
+  echo "[pre-push] Typecheck failed. Push aborted."
+  exit 1
+}
+
+echo "[pre-push] Running lint..."
+yarn lint || {
+  echo "[pre-push] Lint failed. Push aborted."
+  exit 1
+}
+
 if [ "$should_build" -eq 1 ]; then
   echo "[pre-push] Pushing to $target — running next build..."
   yarn build || {

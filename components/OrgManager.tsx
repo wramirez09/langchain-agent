@@ -88,6 +88,8 @@ export default function OrgManager() {
   }, []);
 
   useEffect(() => {
+    // Mount-time fetch; `load` flips the loading flag before awaiting.
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     void load();
   }, [load]);
 

@@ -15,7 +15,8 @@ jest.mock('@react-pdf/renderer', () => ({
 // Dynamic imports (PdfDoc / ArtifactPdfPreview) resolve to a stub that
 // surfaces its props, so tests can assert WHICH document the view routed to
 // (artifact vs markdown transcript) and with what data.
-jest.mock('next/dynamic', () => () => (props: any) => (
+jest.mock('next/dynamic', () => () => {
+  const PdfViewerStub = (props: any) => (
   <div
     data-testid="pdf-viewer"
     data-artifact={props.artifact ? JSON.stringify(props.artifact) : undefined}
@@ -25,7 +26,10 @@ jest.mock('next/dynamic', () => () => (props: any) => (
         : undefined
     }
   />
-))
+  )
+  PdfViewerStub.displayName = 'PdfViewerStub'
+  return PdfViewerStub
+})
 jest.mock('@/components/pdf/pdf-generator', () => ({
   __esModule: true,
   default: () => null,

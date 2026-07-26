@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { cookies } from 'next/headers'
-import Stripe from 'stripe'
+import { getStripe } from '@/lib/stripe'
 
 /**
  * Cancel a meter event by its identifier
@@ -19,14 +19,12 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: 'meterName and eventIdentifier required' }, { status: 400 })
   }
 
-  const liveSecretKey = process.env.STRIPE_LIVE_SECRET_KEY
-  if (!liveSecretKey) {
-    return NextResponse.json({ error: 'STRIPE_LIVE_SECRET_KEY not configured' }, { status: 500 })
+  let stripe
+  try {
+    stripe = getStripe()
+  } catch {
+    return NextResponse.json({ error: 'STRIPE_SECRET_KEY not configured' }, { status: 500 })
   }
-
-  const stripe = new Stripe(liveSecretKey, {
-    apiVersion: '2025-10-29.clover',
-  })
 
   try {
     // Cancel the meter event

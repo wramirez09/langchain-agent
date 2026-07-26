@@ -111,19 +111,21 @@ export function PriorAuthView({
 
   const { errors, addError, dismissError, retryError } = useErrorNotifications();
 
-  const chatFetchRef = useRef<typeof fetch | null>(null);
-  if (!chatFetchRef.current) {
-    chatFetchRef.current = createChatFetchWithRetry({
+  // A lazy `useState` initializer rather than assigning into a ref during
+  // render: both build the fetch wrapper exactly once, but writing to a ref
+  // mid-render is a side effect React is free to discard or replay.
+  const [chatFetch] = useState<typeof fetch>(() =>
+    createChatFetchWithRetry({
       onRetry: (attempt, reason) => {
         console.warn(`[chat] retry ${attempt} — ${reason}`);
       },
-    });
-  }
+    }),
+  );
 
   const chat = useChat({
     api: "/api/chat/agents",
     streamMode: "text",
-    fetch: chatFetchRef.current,
+    fetch: chatFetch,
     onFinish(assistantMessage) {
       setIntermediateStepsLoading(false);
       setIsLoading(false);

@@ -8,11 +8,9 @@ jest.mock('next/headers', () => ({
 }))
 
 const adjustmentsCreate = jest.fn()
-jest.mock('stripe', () => ({
-  __esModule: true,
-  default: jest.fn().mockImplementation(() => ({
-    billing: { meterEventAdjustments: { create: adjustmentsCreate } },
-  })),
+const getStripe = jest.fn()
+jest.mock('@/lib/stripe', () => ({
+  getStripe: () => getStripe(),
 }))
 
 import { POST } from '../route'
@@ -23,7 +21,9 @@ function makeReq(body: any) {
 
 beforeEach(() => {
   jest.clearAllMocks()
-  process.env.STRIPE_LIVE_SECRET_KEY = 'sk_live'
+  getStripe.mockReturnValue({
+    billing: { meterEventAdjustments: { create: adjustmentsCreate } },
+  })
 })
 
 describe('admin reverse-usage POST', () => {

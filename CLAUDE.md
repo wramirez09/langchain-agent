@@ -65,12 +65,25 @@ All `/agents/*` and `/protected/*` routes require authentication. Terms acceptan
 
 ## Environment Variables
 
-Requires `.env.development.local` / `.env.production.local` with:
-- `OPENAI_API_KEY`
-- `NEXT_PUBLIC_SUPABASE_URL`, `NEXT_PUBLIC_SUPABASE_ANON_KEY`, `SUPABASE_SERVICE_ROLE_KEY`
-- `STRIPE_SECRET_KEY`, `NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY`, `STRIPE_WEBHOOK_SECRET`
-- `LANGCHAIN_*` tracing keys (optional)
-- `NEXT_PUBLIC_DEMO` — set to enable demo mode
+See `.env.example` for the full contract — every variable with a one-line
+purpose. Copy it to `.env.development.local` / `.env.production.local`.
+
+The deployed source of truth is Vercel (Production / Preview / Development);
+keep `.env.example` in sync when adding or removing a variable.
+
+Four that fail quietly and are worth knowing:
+- `STRIPE_SECRET_KEY` — one key per environment, the environment decides live
+  vs test. A test key in production resolves customers but never matches
+  webhooks, so no subscription is ever provisioned.
+- `STRIPE_METER_EVENT_NAME` — unset means requests are served and logged but
+  never billed.
+- `UPSTASH_REDIS_REST_URL` / `_TOKEN` — unset means the rate limiter fails
+  OPEN, the API-key cache is bypassed, and `Idempotency-Key` is ignored.
+- `NEXT_PUBLIC_SITE_URL` — needed in *every* environment, not just production:
+  it is the Stripe portal `return_url` and the org invite-email redirect base.
+
+Verify a deployment with `GET /api/debug` (admin session required): it returns
+per-dependency booleans plus `publicApiReady` and `stripeKeyMode`.
 
 ## Code Conventions
 
