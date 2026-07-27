@@ -27,7 +27,10 @@ describe('ForgotPasswordForm', () => {
     expect(await screen.findByText(/Check Your Email/i)).toBeInTheDocument()
     expect(mockReset).toHaveBeenCalledWith(
       'a@b.com',
-      expect.objectContaining({ redirectTo: expect.stringContaining('/auth/update-password') })
+      expect.objectContaining({
+        // Must route through the PKCE code-exchange callback, forwarding to the form.
+        redirectTo: expect.stringContaining('/auth/callback?next=/auth/update-password'),
+      })
     )
   })
 

@@ -1,17 +1,64 @@
 import { NextResponse } from "next/server";
 import { supabaseAdmin } from "@/lib/supabaseAdmin";
 import { createClient } from "@/app/utils/server";
+import { getStripe } from "@/lib/stripe";
 
 
 
 export async function POST(req: Request) {
     try {
-        const { email, password } = await req.json();
+        const { email, password, session_id } = await req.json();
 
         if (!email || !password) {
             return NextResponse.json(
                 { error: "Email and password are required" },
                 { status: 400 }
+            );
+        }
+
+        // Proof of purchase gate. This endpoint sets a password via the admin
+        // API, so without a check anyone could POST an email + password and seize
+        // that account. Require the Stripe Checkout session issued at signup,
+        // verify it is paid, and confirm it belongs to this email. Password
+        // *resets* don't come through here — they use the recovery session and
+        // supabase.auth.updateUser() client-side.
+        if (!session_id) {
+            return NextResponse.json(
+                { error: "Missing checkout session." },
+                { status: 400 }
+            );
+        }
+
+        let sessionEmail: string | null = null;
+        try {
+            const stripe = getStripe();
+            const session = await stripe.checkout.sessions.retrieve(session_id);
+            const paid =
+                session.payment_status === "paid" ||
+                session.payment_status === "no_payment_required" ||
+                session.status === "complete";
+            sessionEmail = (
+                session.customer_details?.email ??
+                session.customer_email ??
+                null
+            );
+            if (!paid || !sessionEmail) {
+                return NextResponse.json(
+                    { error: "Checkout session is not valid." },
+                    { status: 403 }
+                );
+            }
+        } catch {
+            return NextResponse.json(
+                { error: "Checkout session could not be verified." },
+                { status: 403 }
+            );
+        }
+
+        if (sessionEmail.toLowerCase() !== String(email).toLowerCase()) {
+            return NextResponse.json(
+                { error: "Email does not match the checkout session." },
+                { status: 403 }
             );
         }
 
