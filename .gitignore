@@ -46,3 +46,9 @@ next-env.d.ts
 !.yarn/sdks
 !.yarn/versions
 .env
+# Playwright
+/e2e/.auth/
+/test-results/
+/playwright-report/
+/blob-report/
+/playwright/.cache/
