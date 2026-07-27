@@ -1,4 +1,4 @@
-import { render, screen, waitFor, within } from '@testing-library/react'
+import { render, screen, waitFor } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import ApiKeysManager from '../ApiKeysManager'
 
@@ -51,16 +51,18 @@ describe('ApiKeysManager — create updates the list', () => {
     // Empty state after initial load.
     await screen.findByText('No API keys yet')
 
-    // Open the create dialog (toolbar button), then submit it.
+    // The create form is inline, below the list. A name is required.
+    await user.type(screen.getByLabelText('Name'), 'Prod server')
     await user.click(screen.getByRole('button', { name: 'Create key' }))
-    const dialog = await screen.findByRole('dialog')
-    await user.click(within(dialog).getByRole('button', { name: 'Create key' }))
 
-    // Reveal view shows the plaintext exactly once.
+    // Reveal panel shows the plaintext exactly once.
     await screen.findByText('sk_live_PLAINTEXT_ONCE')
 
-    // Close the dialog — the new key must now be in the list (optimistic, no refetch).
-    await user.click(screen.getByRole('button', { name: 'Done' }))
+    // Done is gated on confirming the secret was stored.
+    const done = screen.getByRole('button', { name: 'Done' })
+    expect(done).toBeDisabled()
+    await user.click(screen.getByLabelText("I've stored this key in a safe place"))
+    await user.click(done)
     await waitFor(() => expect(screen.getByText('Prod server')).toBeInTheDocument())
 
     // POST fired once; GET /api/keys was NOT re-fetched after create (only the

@@ -47,7 +47,7 @@ export async function POST() {
         if (!profile?.stripe_customer_id) {
             console.error("No stripe_customer_id found for user:", user.id);
             return NextResponse.json(
-                { error: "No billing account found for this user." },
+                { error: "No billing account found. Please complete your subscription first." },
                 { status: 404 }
             );
         }
@@ -67,9 +67,25 @@ export async function POST() {
             }
             console.log("Customer verified:", customer.id);
         } catch (customerError: any) {
-            console.error("Customer not found in Stripe:", customerError.message);
+            // Almost always an environment mismatch rather than missing data:
+            // one database is shared across Stripe environments, so a customer
+            // created by live Checkout is invisible to a test key (and vice
+            // versa) and retrieve() 404s. Name the mode — "contact support"
+            // sent people chasing a support ticket for a local-only condition.
+            const mode = process.env.STRIPE_SECRET_KEY?.startsWith("sk_live_")
+                ? "live"
+                : "test";
+            console.error(
+                `Customer ${customerId} not found in the ${mode}-mode Stripe account:`,
+                customerError.message,
+            );
             return NextResponse.json(
-                { error: `Customer not found in Stripe. Please contact support. (Customer ID: ${customerId})` },
+                {
+                    error:
+                        `This account's billing lives in a different Stripe environment than this ` +
+                        `deployment (currently ${mode} mode), so the portal can't be opened here. ` +
+                        `If you're seeing this in production, contact support. (Customer ID: ${customerId})`,
+                },
                 { status: 404 }
             );
         }

@@ -12,6 +12,10 @@ jest.mock('@/utils/client', () => ({
   }),
 }))
 jest.mock('next/navigation', () => ({ useRouter: () => ({ push: mockPush }) }))
+// Billing failures surface as a toast, not a blocking window.alert.
+jest.mock('sonner', () => ({
+  toast: { error: jest.fn(), success: jest.fn() },
+}))
 jest.mock('next/link', () => ({
   __esModule: true,
   default: ({ children, href, onClick }: any) => (
@@ -36,6 +40,7 @@ jest.mock('@/components/ui/tooltip', () => ({
 import { render, screen, waitFor, fireEvent } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { AppSidebar } from '../AppSidebar'
+import { toast } from 'sonner'
 import {
   PriorAuthProvider,
   usePriorAuthChat,
@@ -81,6 +86,8 @@ describe('AppSidebar', () => {
   beforeEach(() => {
     mockPush.mockReset()
     mockSignOut.mockReset()
+    // Shared module mock — reset so one billing test can't satisfy the next.
+    ;(toast.error as jest.Mock).mockReset()
     localStorage.clear()
     // The sidebar's org-membership effect calls fetch('/api/org') on mount.
     // Give every test a benign default (has-org); billing tests override it.
@@ -120,14 +127,14 @@ describe('AppSidebar', () => {
       json: async () => ({ url: 'https://billing.example/portal' }),
     })
     global.fetch = fetchMock as any
-    // Billing is reached from the account-settings card, which opens a blank
-    // tab synchronously and redirects it once the Stripe URL resolves.
+    // Billing is reached from the account card, which opens a blank tab
+    // synchronously and redirects it once the Stripe URL resolves.
     const billingTab = { location: { href: '' }, close: jest.fn() }
     const openSpy = jest
       .spyOn(window, 'open')
       .mockReturnValue(billingTab as unknown as Window)
     await renderSidebar(<AppSidebar activeView="auth" onViewChange={() => {}} />)
-    await user.click(screen.getByRole('button', { name: 'Account settings' }))
+    await user.click(screen.getByRole('button', { name: 'Billing' }))
     await waitFor(() => expect(fetchMock).toHaveBeenCalled())
     await waitFor(() =>
       expect(billingTab.location.href).toBe('https://billing.example/portal')
@@ -136,7 +143,36 @@ describe('AppSidebar', () => {
     openSpy.mockRestore()
   })
 
-  it('Manage Billing alerts on 404', async () => {
+  // A 404 covers several distinct causes (no customer on the profile, deleted
+  // customer, customer belonging to another Stripe environment). The client
+  // used to collapse them into "complete your subscription", which told paying
+  // subscribers to subscribe again and hid the real reason — so it must relay
+  // whatever the server said.
+  it('Manage Billing surfaces the server message on 404', async () => {
+    const user = userEvent.setup()
+    global.fetch = jest.fn().mockResolvedValue({
+      ok: false,
+      status: 404,
+      json: async () => ({
+        error: "This account's billing lives in a different Stripe environment",
+      }),
+    }) as any
+    const billingTab = { location: { href: '' }, close: jest.fn() }
+    const openSpy = jest
+      .spyOn(window, 'open')
+      .mockReturnValue(billingTab as unknown as Window)
+    await renderSidebar(<AppSidebar activeView="auth" onViewChange={() => {}} />)
+    await user.click(screen.getByRole('button', { name: 'Billing' }))
+    await waitFor(() =>
+      expect(toast.error).toHaveBeenCalledWith(
+        expect.stringContaining('different Stripe environment')
+      )
+    )
+    expect(billingTab.close).toHaveBeenCalled()
+    openSpy.mockRestore()
+  })
+
+  it('Manage Billing falls back to a generic message when the body has none', async () => {
     const user = userEvent.setup()
     global.fetch = jest.fn().mockResolvedValue({
       ok: false,
@@ -147,16 +183,14 @@ describe('AppSidebar', () => {
     const openSpy = jest
       .spyOn(window, 'open')
       .mockReturnValue(billingTab as unknown as Window)
-    const alertSpy = jest.spyOn(window, 'alert').mockImplementation(() => {})
     await renderSidebar(<AppSidebar activeView="auth" onViewChange={() => {}} />)
-    await user.click(screen.getByRole('button', { name: 'Account settings' }))
+    await user.click(screen.getByRole('button', { name: 'Billing' }))
     await waitFor(() =>
-      expect(alertSpy).toHaveBeenCalledWith(
-        expect.stringContaining('No billing account')
+      expect(toast.error).toHaveBeenCalledWith(
+        expect.stringContaining('Unable to open billing portal')
       )
     )
     expect(billingTab.close).toHaveBeenCalled()
-    alertSpy.mockRestore()
     openSpy.mockRestore()
   })
 
@@ -236,7 +270,7 @@ describe('AppSidebar', () => {
     await renderSidebar(<AppSidebar activeView="auth" onViewChange={() => {}} />)
     expect(screen.getByText('wramirez1980')).toBeInTheDocument()
     expect(
-      screen.getByRole('button', { name: 'Account settings' })
+      screen.getByRole('button', { name: 'Billing' })
     ).toBeInTheDocument()
   })
 })

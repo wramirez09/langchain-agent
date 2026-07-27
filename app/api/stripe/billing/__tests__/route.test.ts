@@ -65,6 +65,29 @@ describe('stripe billing POST', () => {
     expect(r.status).toBe(404)
   })
 
+  // The common cause of a retrieve() 404: one database shared across Stripe
+  // environments, so a live-mode customer is invisible to a test key. The
+  // message must name that, not tell a paying subscriber to subscribe again.
+  it('explains the environment mismatch when the customer is not in this Stripe account', async () => {
+    process.env.STRIPE_SECRET_KEY = 'sk_test_abc'
+    getUser.mockResolvedValue({ data: { user: { id: 'u1' } }, error: null })
+    profileSingle.mockResolvedValue({
+      data: { stripe_customer_id: 'cus_live_only' },
+      error: null,
+    })
+    customersRetrieve.mockRejectedValue(new Error("No such customer: 'cus_live_only'"))
+    const err = jest.spyOn(console, 'error').mockImplementation(() => {})
+
+    const r = await POST()
+
+    expect(r.status).toBe(404)
+    const body = await r.json()
+    expect(body.error).toContain('test mode')
+    expect(body.error).toContain('cus_live_only')
+    expect(body.error).not.toContain('complete your subscription')
+    err.mockRestore()
+  })
+
   it('creates billing portal session on happy path', async () => {
     getUser.mockResolvedValue({ data: { user: { id: 'u1' } }, error: null })
     profileSingle.mockResolvedValue({

@@ -10,7 +10,7 @@ import {
   ChevronRight,
   KeyRound,
   FlaskConical,
-  Building2,
+  Code2,
 } from 'lucide-react';
 import { cn } from '@/utils/cn';
 import { createClient } from '@/utils/client';
@@ -19,6 +19,7 @@ import { useMobileSidebar } from '@/components/providers/MobileSidebarProvider';
 import { usePriorAuthChat } from '@/components/providers/PriorAuthProvider';
 import { useEffect, useState } from 'react';
 import Link from 'next/link';
+import { toast } from 'sonner';
 
 export type AppView = 'auth' | 'upload' | 'export';
 
@@ -44,8 +45,8 @@ const supportLinks = [
 const rowClass =
   'relative w-full flex items-center gap-[15px] h-[46px] px-3.5 rounded-xl text-left transition-colors';
 
-// API Keys nested under Organization — same row, deeper left padding so it
-// reads as a child of the Organization item.
+// API rows nested under the Developer group — same row, deeper left padding
+// so they read as children of the Developer header.
 const nestedRowClass =
   'relative w-full flex items-center gap-[15px] h-[46px] pl-9 pr-3.5 rounded-xl text-left transition-colors';
 
@@ -105,13 +106,16 @@ export function AppSidebar({ activeView, onViewChange }: AppSidebarProps) {
   const accountHandle = accountEmail.split('@')[0] || 'Account';
   const accountInitial = (accountHandle[0] || 'U').toUpperCase();
 
-  // Org membership gates how API Keys / Organization appear in the rail.
-  // Normal case (has org): API Keys nests under Organization. Exception
-  // (no org but paid for API access): show only API Keys, hide Organization.
+  // Org membership gates how the API rows appear in the rail. Normal case
+  // (has org): they nest under the Developer group. Exception (no org but paid
+  // for API access): show API Keys and API Playground on their own.
   // `/api/org` returns 200 when the caller has an org; anything else (incl.
   // the pathological no-org 500) is treated as "no org". Optimistically
   // assume has-org so the common case renders without a flash.
   const [hasOrg, setHasOrg] = useState(true);
+  // "Developer" is a collapsible group header, not a link — it only expands
+  // and collapses its children. Open by default so the API rows are visible.
+  const [devOpen, setDevOpen] = useState(true);
   useEffect(() => {
     let cancelled = false;
     fetch('/api/org')
@@ -146,12 +150,15 @@ export function AppSidebar({ activeView, onViewChange }: AppSidebarProps) {
       const data = await res.json();
       if (!res.ok) {
         billingTab?.close();
-        if (res.status === 404) {
-          alert("No billing account found. Please complete your subscription first.");
-        } else if (res.status === 401) {
-          alert("Please log in to access billing.");
+        // Prefer the server's message: a 404 here covers several distinct
+        // causes (no customer on the profile, a deleted customer, or a customer
+        // that belongs to a different Stripe account than the running key), and
+        // collapsing them all into "complete your subscription" told subscribed
+        // users to subscribe again and hid the real reason.
+        if (res.status === 401) {
+          toast.error('Please log in to access billing.');
         } else {
-          alert(data.error || "Unable to open billing portal.");
+          toast.error(data.error || 'Unable to open billing portal.');
         }
         return;
       }
@@ -163,8 +170,8 @@ export function AppSidebar({ activeView, onViewChange }: AppSidebarProps) {
       }
     } catch (err) {
       billingTab?.close();
-      console.error("Portal error:", err);
-      alert("Unable to open billing portal. Please try again later.");
+      console.error('Portal error:', err);
+      toast.error('Unable to open billing portal. Please try again later.');
     }
   };
 
@@ -267,49 +274,62 @@ export function AppSidebar({ activeView, onViewChange }: AppSidebarProps) {
 
               {hasOrg ? (
                 <>
-                  <Link
-                    href="/agents/org"
-                    onClick={collapseFlyout}
-                    aria-label="Organization"
+                  <button
+                    type="button"
+                    onClick={() => setDevOpen((o) => !o)}
+                    aria-expanded={devOpen}
+                    aria-label="Developer"
                     className={cn(rowClass, 'text-[#737b89] hover:bg-[#f4f5f8]')}
                   >
-                    <Building2 size={21} strokeWidth={1.7} className="shrink-0" />
+                    <Code2 size={21} strokeWidth={1.7} className="shrink-0" />
                     <span className="fb-label text-sm font-semibold text-[#3f4654]">
-                      Organization
+                      Developer
                     </span>
-                  </Link>
+                    <ChevronRight
+                      size={16}
+                      strokeWidth={2}
+                      aria-hidden
+                      className={cn(
+                        'fb-label ml-auto shrink-0 text-[#aab0bd] transition-transform',
+                        devOpen && 'rotate-90',
+                      )}
+                    />
+                  </button>
 
-                  {/* API Keys — nested under Organization */}
-                  <Link
-                    href="/agents/api-keys"
-                    onClick={collapseFlyout}
-                    aria-label="API Keys"
-                    className={cn(
-                      railOpen ? nestedRowClass : rowClass,
-                      'transition-[padding] text-[#737b89] hover:bg-[#f4f5f8]',
-                    )}
-                  >
-                    <KeyRound size={18} strokeWidth={1.7} className="shrink-0" />
-                    <span className="fb-label text-sm font-medium text-[#5b6270]">
-                      API Keys
-                    </span>
-                  </Link>
+                  {/* Children of the Developer group — hidden when collapsed. */}
+                  {devOpen && (
+                    <>
+                      <Link
+                        href="/agents/api-keys"
+                        onClick={collapseFlyout}
+                        aria-label="API Keys"
+                        className={cn(
+                          railOpen ? nestedRowClass : rowClass,
+                          'transition-[padding] text-[#737b89] hover:bg-[#f4f5f8]',
+                        )}
+                      >
+                        <KeyRound size={18} strokeWidth={1.7} className="shrink-0" />
+                        <span className="fb-label text-sm font-medium text-[#5b6270]">
+                          API Keys
+                        </span>
+                      </Link>
 
-                  {/* API Playground — nested under Organization, beside API Keys */}
-                  <Link
-                    href="/agents/api-playground"
-                    onClick={collapseFlyout}
-                    aria-label="API Playground"
-                    className={cn(
-                      railOpen ? nestedRowClass : rowClass,
-                      'transition-[padding] text-[#737b89] hover:bg-[#f4f5f8]',
-                    )}
-                  >
-                    <FlaskConical size={18} strokeWidth={1.7} className="shrink-0" />
-                    <span className="fb-label text-sm font-medium text-[#5b6270]">
-                      API Playground
-                    </span>
-                  </Link>
+                      <Link
+                        href="/agents/api-playground"
+                        onClick={collapseFlyout}
+                        aria-label="API Playground"
+                        className={cn(
+                          railOpen ? nestedRowClass : rowClass,
+                          'transition-[padding] text-[#737b89] hover:bg-[#f4f5f8]',
+                        )}
+                      >
+                        <FlaskConical size={18} strokeWidth={1.7} className="shrink-0" />
+                        <span className="fb-label text-sm font-medium text-[#5b6270]">
+                          API Playground
+                        </span>
+                      </Link>
+                    </>
+                  )}
                 </>
               ) : (
                 /* No org but API-enabled — surface API Keys on its own */
@@ -380,11 +400,11 @@ export function AppSidebar({ activeView, onViewChange }: AppSidebarProps) {
             <div className="h-px bg-[#eef0f3] mx-2 my-3" />
 
             {/* Account card — avatar stays in the slim rail; text + chevron
-                reveal on expand. Opens the billing portal (our account
-                management surface). */}
+                reveal on expand. Opens the Stripe billing portal, so the row
+                is labelled for what it actually does. */}
             <button
               onClick={handleBilling}
-              aria-label="Account settings"
+              aria-label="Billing"
               className="flex items-center gap-[11px] h-[52px] px-1.5 rounded-xl text-left hover:bg-[#f4f5f8] transition-colors"
             >
               <span className="shrink-0 grid place-items-center w-9 h-9 rounded-full bg-primary/10 text-primary text-sm font-bold">
@@ -395,7 +415,7 @@ export function AppSidebar({ activeView, onViewChange }: AppSidebarProps) {
                   {accountHandle}
                 </span>
                 <span className="block text-[11.5px] text-[#aab0bd]">
-                  Account settings
+                  Billing
                 </span>
               </span>
               <ChevronRight
