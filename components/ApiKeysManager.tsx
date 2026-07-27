@@ -660,6 +660,7 @@ export default function ApiKeysManager() {
               return (
                 <div
                   key={k.id}
+                  data-testid="api-key-row"
                   className={cn(
                     GRID,
                     "relative flex flex-col gap-2.5 border-b px-4 py-4 transition-colors last:border-b-0 md:px-[18px]",
