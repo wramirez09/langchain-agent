@@ -22,6 +22,9 @@ function AcceptTermsContent() {
       const storedName = localStorage.getItem('signup_name');
 
       if (storedEmail && storedName) {
+        // Reads localStorage, unavailable during SSR, so this cannot be a
+        // lazy state initializer.
+        // eslint-disable-next-line react-hooks/set-state-in-effect
         setEmail(storedEmail);
         setName(storedName);
         setIsLoading(false);

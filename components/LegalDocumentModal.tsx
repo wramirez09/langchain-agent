@@ -55,6 +55,8 @@ export function LegalDocumentModal({
   // Measure once the modal opens and its content is laid out.
   useEffect(() => {
     if (!isOpen) {
+      // Clears the read-to-bottom latch so reopening re-measures from scratch.
+      // eslint-disable-next-line react-hooks/set-state-in-effect
       setIsScrollable(false);
       setScrolledToBottom(false);
       return;

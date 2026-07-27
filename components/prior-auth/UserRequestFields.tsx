@@ -42,7 +42,7 @@ function parseRequest(raw: string): {
   // Split the serialized form part from any trailing free-text question.
   const sepIdx = content.indexOf(" | ");
   const formPart = sepIdx >= 0 ? content.slice(0, sepIdx) : content;
-  let notes: string | null =
+  const notes: string | null =
     sepIdx >= 0 ? content.slice(sepIdx + 3).trim() || null : null;
 
   // Locate each known label within the form part.

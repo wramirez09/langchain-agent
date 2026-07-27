@@ -9,6 +9,9 @@ const customJestConfig = {
   testEnvironment: 'jsdom',
   moduleNameMapper: {
     '^@/(.*)$': '<rootDir>/$1',
+    // `uncrypto` (via @upstash/redis) resolves to an ESM build under the jsdom
+    // "browser" condition, which Jest can't parse. Point at its CJS twin.
+    '^uncrypto$': '<rootDir>/node_modules/uncrypto/dist/crypto.web.cjs',
   },
   testPathIgnorePatterns: ['/node_modules/', '/.next/'],
   transformIgnorePatterns: [

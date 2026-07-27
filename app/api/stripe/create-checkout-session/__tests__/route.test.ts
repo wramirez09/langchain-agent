@@ -28,7 +28,8 @@ beforeEach(() => {
   process.env.STRIPE_SECRET_KEY = 'sk_test'
   process.env.STRIPE_SUBSCRIPTION_PRICE_ID = 'price_sub'
   process.env.STRIPE_METERED_PRICE_ID = 'price_met'
-  process.env.NEXT_PUBLIC_BASE_URL_PROD = 'example.com'
+  process.env.NEXT_PUBLIC_SITE_URL = 'https://example.com'
+  delete process.env.VERCEL_URL
 })
 
 describe('create-checkout-session POST', () => {
@@ -70,6 +71,34 @@ describe('create-checkout-session POST', () => {
     )
     const args = sessionsCreate.mock.calls[0][0]
     expect(args.success_url).toMatch(/UpdatePassword\?mobile=true/)
+  })
+
+  // Regression: NEXT_PUBLIC_BASE_URL_PROD was stored as "app.notedoctor.ai/",
+  // so `https://${it}` + "/auth/..." produced a doubled slash in the URL Stripe
+  // redirects the buyer to after paying.
+  it('builds redirect URLs with no doubled slash when the origin has a trailing slash', async () => {
+    process.env.NEXT_PUBLIC_SITE_URL = 'https://example.com/'
+    customersList.mockResolvedValue({ data: [{ id: 'cus_1' }] })
+    sessionsCreate.mockResolvedValue({ url: 'https://checkout/y' })
+    await POST(makeReq({ email: 'a@b.com', name: 'A' }))
+    const args = sessionsCreate.mock.calls[0][0]
+    expect(args.success_url).toContain('https://example.com/auth/update-password')
+    expect(args.success_url).not.toContain('example.com//')
+    expect(args.cancel_url).not.toContain('example.com//')
+  })
+
+  // Regression: preview deployments run with NODE_ENV=production, so the old
+  // ternary sent them to the production origin — a checkout begun on a preview
+  // build returned the buyer to the live site with a real session_id.
+  it('returns preview deployments to themselves, not to production', async () => {
+    delete process.env.NEXT_PUBLIC_SITE_URL
+    process.env.VERCEL_URL = 'feat-branch-abc123.vercel.app'
+    customersList.mockResolvedValue({ data: [{ id: 'cus_1' }] })
+    sessionsCreate.mockResolvedValue({ url: 'https://checkout/p' })
+    await POST(makeReq({ email: 'a@b.com', name: 'A' }))
+    const args = sessionsCreate.mock.calls[0][0]
+    expect(args.success_url).toContain('https://feat-branch-abc123.vercel.app/')
+    expect(args.cancel_url).toContain('https://feat-branch-abc123.vercel.app/')
   })
 
   it('returns 500 when stripe omits checkout url', async () => {

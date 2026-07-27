@@ -58,7 +58,7 @@ function shrinkToFit(
       2,
     );
 
-  let top = [...output.topMatches];
+  const top = [...output.topMatches];
   let related = [...output.relatedMatches];
   let json = measure(top, related);
   if (json.length <= OUTPUT_BUDGET_CHARS)

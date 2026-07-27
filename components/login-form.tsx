@@ -100,7 +100,7 @@ export function LoginForm({ className, ...props }: React.ComponentPropsWithoutRe
         </div>
       </form>
       <div className="text-center text-sm text-dark">
-        Don't have an account?{' '}
+        Don&apos;t have an account?{' '}
         <Link
           href="/auth/sign-up"
           className="font-medium text-blue-600 hover:underline"

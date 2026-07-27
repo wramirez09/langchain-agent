@@ -160,11 +160,11 @@ describe('CORS', () => {
     const res = await POST(
       makeReq(
         { messages: [{ role: 'user', content: 'hi' }] },
-        { origin: 'https://app.NoteDoctorAI' },
+        { origin: 'https://app.notedoctor.ai' },
       ),
     )
     expect(res.headers.get('Access-Control-Allow-Origin')).toBe(
-      'https://app.NoteDoctorAI',
+      'https://app.notedoctor.ai',
     )
     expect(res.headers.get('Vary')).toBe('Origin')
     await consumeStream((res as any).body)
@@ -202,11 +202,11 @@ describe('CORS', () => {
 
   it('OPTIONS from allowed origin returns 200 with matching CORS', async () => {
     const res = await OPTIONS(
-      makeReq(null, { origin: 'https://app.NoteDoctorAI' }),
+      makeReq(null, { origin: 'https://app.notedoctor.ai' }),
     )
     expect(res.status).toBe(200)
     expect(res.headers.get('Access-Control-Allow-Origin')).toBe(
-      'https://app.NoteDoctorAI',
+      'https://app.notedoctor.ai',
     )
     expect(res.headers.get('Access-Control-Allow-Methods')).toBe(
       'POST, OPTIONS',
@@ -456,13 +456,13 @@ describe('POST /api/chat/agents — web (streaming)', () => {
     const res = await POST(
       makeReq(
         { messages: [{ role: 'user', content: 'hi' }] },
-        { origin: 'https://app.NoteDoctorAI' },
+        { origin: 'https://app.notedoctor.ai' },
       ),
     )
 
     expect(res.headers.get('Content-Type')).toBe('text/plain; charset=utf-8')
     expect(res.headers.get('Access-Control-Allow-Origin')).toBe(
-      'https://app.NoteDoctorAI',
+      'https://app.notedoctor.ai',
     )
     expect(res.headers.get('x-thread-id')).toMatch(/[0-9a-f-]{36}/i)
 

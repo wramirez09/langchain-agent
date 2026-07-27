@@ -13,57 +13,129 @@ jest.mock('next/headers', () => ({
 
 import { GET } from '../route'
 
+const CONFIG_VARS = [
+  'STRIPE_SECRET_KEY',
+  'STRIPE_METER_EVENT_NAME',
+  'STRIPE_WEBHOOK_SECRET',
+  'SUPABASE_SERVICE_ROLE_KEY',
+  'OPENAI_API_KEY',
+  'UPSTASH_REDIS_REST_URL',
+  'UPSTASH_REDIS_REST_TOKEN',
+] as const
+
 describe('debug GET (hardened)', () => {
+  const saved: Record<string, string | undefined> = {}
+
   beforeEach(() => {
     adminCookie = undefined
+    for (const k of CONFIG_VARS) {
+      saved[k] = process.env[k]
+      delete process.env[k]
+    }
   })
+
+  afterEach(() => {
+    for (const k of CONFIG_VARS) {
+      if (saved[k] === undefined) delete process.env[k]
+      else process.env[k] = saved[k]
+    }
+  })
+
+  const setAll = () => {
+    for (const k of CONFIG_VARS) process.env[k] = `value-for-${k}`
+  }
 
   it('returns 404 to unauthenticated callers and leaks nothing', async () => {
-    // Even with secrets present, an anonymous caller must learn nothing.
-    const oldStripe = process.env.STRIPE_SECRET_KEY
-    process.env.STRIPE_SECRET_KEY = 'sk'
-    process.env.STRIPE_FOO = 'x'
-    process.env.NEXT_BAR = 'y'
-
+    setAll()
     const r = await GET()
     expect(r.status).toBe(404)
-    const raw = await r.text()
-    // No enumeration, no presence flags, no variable names of any kind.
-    expect(raw).not.toContain('STRIPE')
-    expect(raw).not.toContain('NEXT')
-    expect(raw).not.toContain('stripeKeyDefined')
-
-    process.env.STRIPE_SECRET_KEY = oldStripe
-    delete process.env.STRIPE_FOO
-    delete process.env.NEXT_BAR
+    const body = await r.json()
+    expect(body.checks).toBeUndefined()
+    expect(body.publicApiReady).toBeUndefined()
+    expect(body.stripeKeys).toBeUndefined() // env-key enumeration removed
   })
 
-  it('reports minimal status to an admin session (no enumeration)', async () => {
+  it('reports every dependency as ready when all are configured', async () => {
     adminCookie = '1'
-    const old = process.env.STRIPE_SECRET_KEY
-    process.env.STRIPE_SECRET_KEY = 'sk'
-    process.env.STRIPE_FOO = 'x'
+    setAll()
 
     const r = await GET()
     expect(r.status).toBe(200)
     const body = await r.json()
-    expect(body.stripeKeyDefined).toBe(true)
-    expect(body.stripeKeys).toBeUndefined() // enumeration removed even when authed
-    expect(body.nextKeys).toBeUndefined()
-
-    process.env.STRIPE_SECRET_KEY = old
-    delete process.env.STRIPE_FOO
+    expect(body.publicApiReady).toBe(true)
+    expect(body.checks).toMatchObject({
+      upstashRedis: true,
+      stripeMeterEventName: true,
+      stripeSecretKey: true,
+      stripeWebhookSecret: true,
+      supabaseServiceRole: true,
+      openaiApiKey: true,
+    })
   })
 
-  it('reports stripe key absence to an admin session', async () => {
+  // The failure this check exists for: a test key in production reports
+  // "configured", but every customer/subscription lookup targets the wrong
+  // Stripe account, so webhooks never match and nothing gets provisioned.
+  it('is not ready when production is running on a test Stripe key', async () => {
     adminCookie = '1'
-    const old = process.env.STRIPE_SECRET_KEY
-    delete process.env.STRIPE_SECRET_KEY
+    setAll()
+    const savedEnv = process.env.VERCEL_ENV
+    process.env.VERCEL_ENV = 'production'
+    process.env.STRIPE_SECRET_KEY = 'sk_test_abc123'
 
-    const r = await GET()
-    const body = await r.json()
-    expect(body.stripeKeyDefined).toBe(false)
+    const body = await (await GET()).json()
+    expect(body.checks.stripeSecretKey).toBe(true) // present...
+    expect(body.checks.stripeKeyMode).toBe(false) // ...but wrong mode
+    expect(body.publicApiReady).toBe(false)
 
-    process.env.STRIPE_SECRET_KEY = old
+    if (savedEnv === undefined) delete process.env.VERCEL_ENV
+    else process.env.VERCEL_ENV = savedEnv
+  })
+
+  it('accepts a live Stripe key in production', async () => {
+    adminCookie = '1'
+    setAll()
+    const savedEnv = process.env.VERCEL_ENV
+    process.env.VERCEL_ENV = 'production'
+    process.env.STRIPE_SECRET_KEY = 'sk_live_abc123'
+
+    const body = await (await GET()).json()
+    expect(body.checks.stripeKeyMode).toBe(true)
+    expect(body.publicApiReady).toBe(true)
+
+    if (savedEnv === undefined) delete process.env.VERCEL_ENV
+    else process.env.VERCEL_ENV = savedEnv
+  })
+
+  it('is not ready when Upstash is missing — the silent fail-open case', async () => {
+    adminCookie = '1'
+    setAll()
+    delete process.env.UPSTASH_REDIS_REST_TOKEN
+
+    const body = await (await GET()).json()
+    expect(body.checks.upstashRedis).toBe(false)
+    expect(body.publicApiReady).toBe(false)
+  })
+
+  it('is not ready when the meter event name is missing — the silent unbilled case', async () => {
+    adminCookie = '1'
+    setAll()
+    delete process.env.STRIPE_METER_EVENT_NAME
+
+    const body = await (await GET()).json()
+    expect(body.checks.stripeMeterEventName).toBe(false)
+    expect(body.publicApiReady).toBe(false)
+  })
+
+  // The whole point of booleans: an admin session must never become a way to
+  // read the secrets themselves.
+  it('never emits a secret value, even to an admin', async () => {
+    adminCookie = '1'
+    setAll()
+
+    const raw = await (await GET()).text()
+    for (const k of CONFIG_VARS) {
+      expect(raw).not.toContain(`value-for-${k}`)
+    }
   })
 })

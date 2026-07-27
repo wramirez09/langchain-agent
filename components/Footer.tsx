@@ -10,6 +10,8 @@ export function Footer() {
   const [mounted, setMounted] = useState(false)
 
   useEffect(() => {
+    // Hydration guard: `pathname` differs server vs client on first paint.
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     setMounted(true)
   }, [])
 

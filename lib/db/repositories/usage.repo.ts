@@ -10,6 +10,11 @@ export type UsageLogPayload = {
   metered_item_id?: string | null
   subscription_item_id?: string | null
   metadata?: Record<string, unknown>
+  // Multi-tenant attribution. `org_id` is the billing tenant; `source`
+  // distinguishes first-party clients from public API-key traffic.
+  org_id?: string | null
+  api_key_id?: string | null
+  source?: "web" | "mobile" | "api"
 }
 
 export type Subscription = {
@@ -36,3 +41,39 @@ export async function getSubscriptionByUserId(
 
   return (data as Subscription) ?? null
 }
+
+/**
+ * Per-org usage summary since a given timestamp. Uses head/count queries (no
+ * row transfer) so it stays cheap as usage_logs grows. Counts are per request
+ * (quantity is 1 per call in practice), which is the meaningful figure for the
+ * public usage endpoint.
+ */
+export async function getUsageSummaryByOrgId(
+  orgId: string,
+  sinceISO: string,
+): Promise<{ total: number; agents: number; chat: number }> {
+  const base = () =>
+    supabaseAdmin
+      .from("usage_logs")
+      .select("id", { count: "exact", head: true })
+      .eq("org_id", orgId)
+      .gte("created_at", sinceISO)
+
+  const [total, agents, chat] = await Promise.all([
+    base(),
+    base().eq("usage_type", "orchestrator"),
+    base().eq("usage_type", "chat"),
+  ])
+
+  return {
+    total: total.count ?? 0,
+    agents: agents.count ?? 0,
+    chat: chat.count ?? 0,
+  }
+}
+
+// NOTE: `getSubscriptionByOrgId` (org → owner membership → that user's Stripe
+// subscription) was removed deliberately. Billing follows the same subject as
+// entitlement — the individual user — so resolving a subscription via the org
+// owner would let a subscribing member's usage meter to someone else's card.
+// Use `getSubscriptionByUserId` and pass org ids for attribution only.

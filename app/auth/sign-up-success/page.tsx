@@ -12,7 +12,7 @@ export default function Page() {
           </div>
           <h1 className="text-2xl font-bold text-gray-900 mb-2">Account created successfully!</h1>
           <p className="text-gray-600 mb-6">
-            We've sent a confirmation email to your inbox. Please check your email and verify your account to continue.
+            We&apos;ve sent a confirmation email to your inbox. Please check your email and verify your account to continue.
           </p>
           <div className="space-y-4">
             <Button asChild className="w-full h-11">
@@ -21,7 +21,7 @@ export default function Page() {
               </Link>
             </Button>
             <p className="text-sm text-gray-500">
-              Didn't receive an email?{' '}
+              Didn&apos;t receive an email?{' '}
               <Link href="/auth/sign-up" className="font-medium text-blue-600 hover:underline">
                 Try again
               </Link>

@@ -8,18 +8,16 @@ jest.mock('next/headers', () => ({
 }))
 
 const metersList = jest.fn()
-jest.mock('stripe', () => ({
-  __esModule: true,
-  default: jest.fn().mockImplementation(() => ({
-    billing: { meters: { list: metersList } },
-  })),
+const getStripe = jest.fn()
+jest.mock('@/lib/stripe', () => ({
+  getStripe: () => getStripe(),
 }))
 
 import { GET } from '../route'
 
 beforeEach(() => {
   jest.clearAllMocks()
-  process.env.STRIPE_LIVE_SECRET_KEY = 'sk_live'
+  getStripe.mockReturnValue({ billing: { meters: { list: metersList } } })
 })
 
 describe('admin meters GET', () => {
@@ -29,8 +27,10 @@ describe('admin meters GET', () => {
     expect(r.status).toBe(401)
   })
 
-  it('returns 500 when STRIPE_LIVE_SECRET_KEY missing', async () => {
-    delete process.env.STRIPE_LIVE_SECRET_KEY
+  it('returns 500 when STRIPE_SECRET_KEY missing', async () => {
+    getStripe.mockImplementation(() => {
+      throw new Error('STRIPE_SECRET_KEY is not set in environment variables')
+    })
     cookieGet.mockReturnValue({ value: '1' })
     const r = await GET()
     expect(r.status).toBe(500)

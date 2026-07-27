@@ -1,0 +1,406 @@
+openapi: 3.1.0
+info:
+  title: NoteDoctor Public API
+  version: "1.0.0"
+  description: |
+    Programmatic access to the NoteDoctor medical insurance pre-authorization
+    AI agent.
+
+    ## Authentication
+    Send your API key as a bearer token:
+
+    ```
+    Authorization: Bearer sk_live_xxxxxxxxxxxxxxxxxxxx
+    ```
+
+    Keys are **server-side secrets** — never embed one in a browser or mobile
+    app. Manage keys from your account's **API Keys** page. The full key is shown
+    only once, at creation.
+
+    ## Rate limits
+    Limits are enforced per organization (with a finer per-key sub-limit) and
+    surfaced via `X-RateLimit-Limit`, `X-RateLimit-Remaining`, and
+    `X-RateLimit-Reset` (unix seconds at which the window resets) on any
+    response that reached the limiter — that is, every success and every `429`.
+    Requests rejected earlier (`401`, `402`, `403`) never consume budget and
+    carry no rate-limit headers. A `429` also includes `Retry-After` (seconds).
+
+    ## Idempotency
+    `POST` endpoints accept an optional `Idempotency-Key` header (any unique
+    string, up to 255 characters) so a retry after a network timeout cannot run
+    — or bill for — the same request twice.
+
+    * Repeating the key with the **same** body returns the original stored
+      response, with `Idempotency-Replayed: true`.
+    * Repeating it with a **different** body returns `422 idempotency_key_reuse`.
+    * Repeating it while the first request is still running returns
+      `409 idempotency_in_progress`; retry shortly.
+    * Failed requests (`4xx`/`5xx`) are not stored, so the same key can be
+      retried after an error.
+    * A key longer than 255 characters returns `400 invalid_request` before the
+      request runs.
+
+    Stored responses expire after 24 hours. Idempotency does not apply to
+    streaming requests (`"stream": true`), which cannot be replayed.
+
+    ## Errors
+    Every error is a JSON envelope:
+
+    ```json
+    { "error": { "code": "rate_limited", "message": "Rate limit exceeded.", "requestId": null } }
+    ```
+servers:
+  - url: https://app.notedoctor.ai
+    description: Production
+security:
+  - apiKey: []
+paths:
+  /api/v1/agents:
+    post:
+      operationId: runAgent
+      summary: Run the medical pre-authorization research agent
+      description: |
+        Executes the tool-using LangGraph agent (Medicare NCD/LCD/LCA + commercial
+        guideline search + web search). Returns a single JSON response by default —
+        the same `{ threadId, messages }` shape the app uses, where the assistant
+        turn's `content` is the structured `PriorAuthArtifact` object (or a plain
+        string for a text reply). Pass `"stream": true` for a `text/plain` token
+        stream instead. Streaming is optional and defaults to `false`.
+      parameters:
+        - $ref: "#/components/parameters/IdempotencyKey"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/AgentRequest"
+      responses:
+        "200":
+          description: Agent response (JSON by default, or a text/plain token stream when `stream` is true).
+          headers:
+            x-thread-id:
+              schema: { type: string, format: uuid }
+              description: Conversation thread id (pass back to continue a thread).
+            X-RateLimit-Remaining:
+              schema: { type: integer }
+          content:
+            text/plain:
+              schema: { type: string }
+            application/json:
+              schema: { $ref: "#/components/schemas/AgentJsonResponse" }
+        "400": { $ref: "#/components/responses/Error" }
+        "401": { $ref: "#/components/responses/Error" }
+        "402": { $ref: "#/components/responses/Error" }
+        "403": { $ref: "#/components/responses/Error" }
+        "409": { $ref: "#/components/responses/Error" }
+        "422": { $ref: "#/components/responses/Error" }
+        "429": { $ref: "#/components/responses/RateLimited" }
+        "500": { $ref: "#/components/responses/Error" }
+  /api/v1/chat:
+    post:
+      operationId: runChat
+      summary: Simple chat completion
+      description: >
+        Returns a single JSON reply by default ({ message: { role, content } }).
+        Pass `"stream": true` for a `text/plain` token stream instead.
+      parameters:
+        - $ref: "#/components/parameters/IdempotencyKey"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/ChatRequest"
+      responses:
+        "200":
+          description: Chat reply (JSON by default, or a text/plain token stream when `stream` is true).
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/ChatResponse" }
+            text/plain:
+              schema: { type: string }
+        "400": { $ref: "#/components/responses/Error" }
+        "401": { $ref: "#/components/responses/Error" }
+        "402": { $ref: "#/components/responses/Error" }
+        "403": { $ref: "#/components/responses/Error" }
+        "409": { $ref: "#/components/responses/Error" }
+        "422": { $ref: "#/components/responses/Error" }
+        "429": { $ref: "#/components/responses/RateLimited" }
+        "502": { $ref: "#/components/responses/Error" }
+  /api/v1/me:
+    get:
+      operationId: getMe
+      summary: Key introspection
+      description: Returns the calling key's org, environment, scopes, and tier.
+      responses:
+        "200":
+          description: Key context.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  org_id: { type: string, format: uuid }
+                  environment: { type: string, enum: [live, test] }
+                  scopes: { type: array, items: { type: string } }
+                  rate_limit_tier: { type: string }
+        "401": { $ref: "#/components/responses/Error" }
+        "429": { $ref: "#/components/responses/RateLimited" }
+  /api/v1/usage:
+    get:
+      operationId: getUsage
+      summary: Current-month usage
+      description: Per-org request totals for the current calendar month (UTC), with a breakdown by endpoint.
+      responses:
+        "200":
+          description: Usage summary.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  period_start: { type: string, format: date-time }
+                  total: { type: integer }
+                  agents: { type: integer }
+                  chat: { type: integer }
+        "401": { $ref: "#/components/responses/Error" }
+        "429": { $ref: "#/components/responses/RateLimited" }
+components:
+  securitySchemes:
+    apiKey:
+      type: http
+      scheme: bearer
+      bearerFormat: sk_live_… / sk_test_…
+  parameters:
+    IdempotencyKey:
+      name: Idempotency-Key
+      in: header
+      required: false
+      description: >
+        Optional unique string that makes this request safely retryable. A repeat
+        with the same key and body replays the original response instead of
+        re-running it. Ignored for streaming requests.
+      schema:
+        type: string
+        maxLength: 255
+  schemas:
+    Message:
+      type: object
+      required: [role, content]
+      properties:
+        role:
+          type: string
+          enum: [user, assistant, system]
+        content:
+          type: string
+          maxLength: 10000
+    AgentRequest:
+      type: object
+      required: [messages]
+      properties:
+        messages:
+          type: array
+          minItems: 1
+          maxItems: 50
+          items: { $ref: "#/components/schemas/Message" }
+        threadId:
+          type: string
+          format: uuid
+          description: Continue an existing conversation.
+        stream:
+          type: boolean
+          default: false
+          description: >
+            When true, returns a text/plain token stream instead of the default JSON
+            response. Only a boolean `true` enables streaming; any other value is
+            treated as false (the request is not rejected).
+    ChatRequest:
+      type: object
+      required: [messages]
+      properties:
+        messages:
+          type: array
+          minItems: 1
+          maxItems: 50
+          items: { $ref: "#/components/schemas/Message" }
+        stream:
+          type: boolean
+          default: false
+          description: >
+            When true, returns a text/plain token stream instead of the default JSON
+            reply. Only a boolean `true` enables streaming; any other value is treated
+            as false (the request is not rejected).
+    ChatResponse:
+      type: object
+      properties:
+        message:
+          type: object
+          properties:
+            role: { type: string, example: assistant }
+            content: { type: string }
+    AgentJsonResponse:
+      type: object
+      properties:
+        threadId: { type: string, format: uuid }
+        messages:
+          type: array
+          items: { $ref: "#/components/schemas/AgentResponseMessage" }
+    AgentResponseMessage:
+      type: object
+      required: [role, content]
+      properties:
+        role:
+          type: string
+          enum: [user, assistant]
+        content:
+          description: |
+            User turns are strings. The assistant turn is the structured
+            `PriorAuthArtifact` object when the agent returns its final answer as
+            the JSON artifact, or a string for a plain text/markdown reply.
+          oneOf:
+            - type: string
+            - $ref: "#/components/schemas/PriorAuthArtifact"
+    LabeledCode:
+      type: object
+      required: [code, label]
+      properties:
+        code: { type: string }
+        label: { type: string }
+        note: { type: string }
+    Criterion:
+      type: object
+      required: [title, status]
+      properties:
+        title: { type: string }
+        status: { type: string, enum: [met, not_met, unknown] }
+        detail: { type: string }
+        subCriteria:
+          type: array
+          items: { $ref: "#/components/schemas/Criterion" }
+    CoveragePolicy:
+      type: object
+      required: [type, title]
+      properties:
+        type: { type: string, enum: [NCD, LCD, LCA] }
+        policyId: { type: string }
+        title: { type: string }
+        contractor: { type: string }
+        jurisdiction: { type: string }
+        summary: { type: string }
+        criteria:
+          type: array
+          items: { $ref: "#/components/schemas/Criterion" }
+        url: { type: string }
+    DocumentationGroup:
+      type: object
+      required: [items]
+      properties:
+        title: { type: string }
+        items:
+          type: array
+          items:
+            type: object
+            required: [item]
+            properties:
+              item: { type: string }
+              provided: { type: [boolean, "null"] }
+    PriorAuthArtifact:
+      type: object
+      required:
+        - kind
+        - schemaVersion
+        - title
+        - guidelineBasis
+        - requestOverview
+        - priorAuthRequired
+        - medicalNecessityCriteria
+        - relevantCodes
+        - requiredDocumentation
+        - limitations
+        - summary
+        - disclaimer
+      properties:
+        kind: { type: string, const: prior-auth-summary }
+        schemaVersion: { type: integer, const: 1 }
+        title: { type: string }
+        phiNotice: { type: string, description: Present only if PHI was detected and removed. }
+        guidelineBasis:
+          type: string
+          enum: [medicare, commercial, commercial-fallback]
+        fallbackNotice: { type: string }
+        requestOverview:
+          type: object
+          required: [treatment, cpt, icd10, medicalHistory, keyFindings]
+          properties:
+            treatment: { type: string }
+            diagnosis: { type: string }
+            cpt: { type: array, items: { $ref: "#/components/schemas/LabeledCode" } }
+            icd10: { type: array, items: { $ref: "#/components/schemas/LabeledCode" } }
+            suggestedCpt: { type: array, items: { $ref: "#/components/schemas/LabeledCode" } }
+            suggestedIcd10: { type: array, items: { $ref: "#/components/schemas/LabeledCode" } }
+            medicalHistory: { type: string }
+            keyFindings: { type: array, items: { type: string } }
+        priorAuthRequired: { type: string, enum: [YES, NO, CONDITIONAL] }
+        priorAuthRationale: { type: string }
+        medicarePolicies:
+          type: array
+          description: Present only for `medicare` guidelineBasis with retrieved coverage data.
+          items: { $ref: "#/components/schemas/CoveragePolicy" }
+        medicalNecessityCriteria:
+          type: array
+          items: { $ref: "#/components/schemas/Criterion" }
+        relevantCodes:
+          type: object
+          required: [icd10, cpt]
+          properties:
+            icd10: { type: array, items: { $ref: "#/components/schemas/LabeledCode" } }
+            icd10Note: { type: string }
+            cpt: { type: array, items: { $ref: "#/components/schemas/LabeledCode" } }
+            cptNote: { type: string }
+        requiredDocumentation:
+          type: array
+          items: { $ref: "#/components/schemas/DocumentationGroup" }
+        limitations: { type: array, items: { type: string } }
+        summary:
+          type: object
+          required: [determination, determinationLabel, rationale, missingItems]
+          properties:
+            determination:
+              type: string
+              enum: [meets_criteria, conditional, likely_denial, not_supported, more_info_needed]
+            determinationLabel: { type: string }
+            rationale: { type: string }
+            missingItems: { type: array, items: { type: string } }
+        disclaimer: { type: string }
+    Error:
+      type: object
+      properties:
+        error:
+          type: object
+          properties:
+            code: { type: string }
+            message: { type: string }
+            requestId:
+              type: [string, "null"]
+  responses:
+    Error:
+      description: Error envelope.
+      content:
+        application/json:
+          schema: { $ref: "#/components/schemas/Error" }
+    RateLimited:
+      description: Rate limit exceeded.
+      headers:
+        Retry-After:
+          schema: { type: integer }
+          description: Seconds until the next request is allowed.
+        X-RateLimit-Limit:
+          schema: { type: integer }
+        X-RateLimit-Remaining:
+          schema: { type: integer }
+        X-RateLimit-Reset:
+          schema: { type: integer }
+          description: Unix seconds at which the current window resets.
+      content:
+        application/json:
+          schema: { $ref: "#/components/schemas/Error" }

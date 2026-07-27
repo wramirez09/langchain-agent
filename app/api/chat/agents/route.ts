@@ -1,34 +1,11 @@
 import { NextRequest, NextResponse } from "next/server";
-import { Message as VercelChatMessage, StreamingTextResponse } from "ai";
-import { createReactAgent } from "@langchain/langgraph/prebuilt";
-import { llmAgent } from "@/lib/llm";
-import { SerpAPI } from "@langchain/community/tools/serpapi";
-import {
-  AIMessage,
-  ChatMessage,
-  HumanMessage,
-  SystemMessage,
-} from "@langchain/core/messages";
 import { z } from "zod";
 
-import { AGENT_SYSTEM_CONTENT } from "./agentPrompt";
-import { NCDCoverageSearchTool } from "./tools/NCDCoverageSearchTool";
-import { localLcdSearchTool } from "./tools/localLcdSearchTool";
-import { localCoverageArticleSearchTool } from "./tools/localArticleSearchTool";
-import { medicareMultiSearchTool } from "./tools/medicareMultiSearchTool";
-import { policyContentExtractorTool } from "./tools/policyContentExtractorTool";
-import { medicarePolicyDetailTool } from "./tools/medicarePolicyDetailTool";
-import { createCommercialGuidelineSearchTool } from "./tools/CommercialGuidelineSearchTool";
-import { startCmsWarmup } from "./tools/warmup";
-
-// Kick off CMS fetch + embedding preload at module init so the first
-// real request finds the hybrid index hot. Idempotent.
-startCmsWarmup();
-import { reportUsage } from "@/lib/usage";
 import { getUserFromRequest } from "../../../../lib/auth/getUserFromRequest";
 import { errorTracker } from "@/lib/error-tracking";
 import { supabaseAdmin } from "@/lib/supabaseAdmin";
-import { waitUntil } from "@vercel/functions";
+import { runAgent } from "@/lib/handlers/runAgent";
+import type { ErrorResponder } from "@/lib/handlers/types";
 
 // Vercel Pro plan ceiling. Mobile agent runs commonly take 45-65s; web
 // streaming completes faster. Raising the limit prevents the function
@@ -37,7 +14,7 @@ export const maxDuration = 300;
 
 /* -------------------- CORS -------------------- */
 const ALLOWED_ORIGINS = new Set<string>([
-  "https://app.NoteDoctorAI",
+  "https://app.notedoctor.ai",
   "https://preauthproduction-git-dev-center-point-digital.vercel.app",
   ...(process.env.NODE_ENV !== "production"
     ? ["http://localhost:3000", "http://localhost:8081"]
@@ -62,7 +39,7 @@ function buildCorsHeaders(req: NextRequest): Record<string, string> {
 // Per-message ceiling is generous: a single agent turn can carry extracted
 // policy/PDF content or a long assistant answer that easily exceeds a few
 // thousand characters. 100k chars (~25k tokens) bounds payload abuse without
-// rejecting legitimate conversation history on follow-up turns.
+// rejecting legitimate conversation history.
 const MAX_MESSAGE_CHARS = 100_000;
 
 const MessagePartSchema = z.object({
@@ -86,9 +63,13 @@ const ChatMessageSchema = z
 // A live conversation can accumulate many turns. The cap is a generous abuse
 // bound only; the full history is sent to the LLM, which has ample context
 // window for a normal conversation.
-const RequestBodySchema = z.object({
+export const RequestBodySchema = z.object({
   messages: z.array(ChatMessageSchema).min(1).max(200),
   threadId: z.string().uuid().optional(),
+  // Public API: opt into a text/plain token stream instead of the default
+  // buffered JSON response. Only a literal `true` enables streaming; any
+  // non-boolean value falls back to false rather than rejecting the request.
+  stream: z.boolean().optional().catch(false),
 });
 
 /* -------------------- OPTIONS -------------------- */
@@ -110,31 +91,18 @@ export async function GET(req: NextRequest) {
   });
 }
 
-/* -------------------- MESSAGE CONVERSION -------------------- */
-const extractText = (message: any): string => {
-  let content = message.content;
-  if ((!content || content === "") && Array.isArray(message.parts)) {
-    content = message.parts
-      .filter((p: any) => p?.type === "text")
-      .map((p: any) => p?.text ?? "")
-      .join("\n");
-  }
-  return typeof content === "string" ? content : "";
-};
-
-const convertVercelMessageToLangChainMessage = (
-  message: VercelChatMessage | any,
-) => {
-  const text = extractText(message);
-  if (message.role === "user") return new HumanMessage(text);
-  if (message.role === "assistant") return new AIMessage(text);
-  return new ChatMessage(text, message.role);
-};
-
 /* -------------------- POST -------------------- */
 export async function POST(req: NextRequest) {
   let userId: string | undefined;
   const requestStartTime = Date.now();
+  const cors = buildCorsHeaders(req);
+
+  // Legacy error envelope, preserved for the web + mobile clients.
+  const respondError: ErrorResponder = ({ code, status, requestId }) =>
+    NextResponse.json(
+      { error: code, requestId: requestId ?? null },
+      { status, headers: cors },
+    );
 
   try {
     /* ---------- AUTH ---------- */
@@ -150,10 +118,7 @@ export async function POST(req: NextRequest) {
     try {
       rawBody = await req.json();
     } catch {
-      return NextResponse.json(
-        { error: "INVALID_JSON", requestId: null },
-        { status: 400, headers: buildCorsHeaders(req) },
-      );
+      return respondError({ code: "INVALID_JSON", message: "Malformed JSON.", status: 400 });
     }
 
     const parsed = RequestBodySchema.safeParse(rawBody);
@@ -162,10 +127,11 @@ export async function POST(req: NextRequest) {
         `[Agents API] Invalid request body for user ${userId}:`,
         parsed.error.flatten(),
       );
-      return NextResponse.json(
-        { error: "INVALID_REQUEST_BODY", requestId: null },
-        { status: 400, headers: buildCorsHeaders(req) },
-      );
+      return respondError({
+        code: "INVALID_REQUEST_BODY",
+        message: "Request body failed validation.",
+        status: 400,
+      });
     }
 
     const body = parsed.data;
@@ -174,11 +140,8 @@ export async function POST(req: NextRequest) {
     /* ---------- RATE LIMIT ---------- */
     // Per-user daily cap on agent runs. Counts the user's "user"-role rows
     // in chat_messages over the last 24h. This is a cost-runaway guard,
-    // not anti-abuse — a real rate limiter would use Redis/KV. The cap
-    // is generous; legitimate clinical workflows do not approach it.
-    const RATE_LIMIT_PER_DAY = Number(
-      process.env.AGENT_RATE_LIMIT_PER_DAY ?? 200,
-    );
+    // not anti-abuse — the public API path uses the durable Upstash limiter.
+    const RATE_LIMIT_PER_DAY = Number(process.env.AGENT_RATE_LIMIT_PER_DAY ?? 200);
     if (RATE_LIMIT_PER_DAY > 0) {
       const since = new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString();
       const { count, error: rateErr } = await supabaseAdmin
@@ -188,392 +151,29 @@ export async function POST(req: NextRequest) {
         .eq("role", "user")
         .gte("created_at", since);
       if (rateErr) {
-        console.error(
-          `[Agents API] Rate-limit query failed for ${userId}:`,
-          rateErr,
-        );
+        console.error(`[Agents API] Rate-limit query failed for ${userId}:`, rateErr);
         // Fail open: a database hiccup must not lock users out of a
-        // healthcare workflow. The cost-runaway risk over a single
-        // request is bounded by recursionLimit.
+        // healthcare workflow. Cost risk over a single request is bounded
+        // by recursionLimit.
       } else if ((count ?? 0) >= RATE_LIMIT_PER_DAY) {
         console.warn(
           `[Agents API] Rate limit exceeded for ${userId}: ${count}/${RATE_LIMIT_PER_DAY}`,
         );
         return NextResponse.json(
           { error: "RATE_LIMIT_EXCEEDED", requestId: null },
-          {
-            status: 429,
-            headers: {
-              ...buildCorsHeaders(req),
-              "Retry-After": "3600",
-            },
-          },
+          { status: 429, headers: { ...cors, "Retry-After": "3600" } },
         );
       }
     }
 
-    const messages = body.messages
-      .filter((m) => m.role === "user" || m.role === "assistant")
-      .map(convertVercelMessageToLangChainMessage);
-
-    /* ---------- THREAD ID ---------- */
-    const bodyThreadId = body.threadId ?? null;
-    const threadId = bodyThreadId ?? crypto.randomUUID();
-    const isNewThread = bodyThreadId === null;
-
-    /* ---------- PERSIST USER MESSAGE ---------- */
-    const lastUserMsg = [...body.messages]
-      .reverse()
-      .find((m) => m.role === "user");
-    const lastUserContent = lastUserMsg?.content ?? "";
-
-    if (lastUserContent) {
-      try {
-        let isThreadStarter = isNewThread;
-        if (!isNewThread) {
-          const { data: existing } = await supabaseAdmin
-            .from("chat_messages")
-            .select("id")
-            .eq("user_id", userId)
-            .eq("thread_id", threadId)
-            .limit(1);
-          isThreadStarter = !existing || existing.length === 0;
-        }
-        await supabaseAdmin.from("chat_messages").insert({
-          user_id: userId,
-          thread_id: threadId,
-          role: "user",
-          content: lastUserContent,
-          status: "complete",
-          is_thread_starter: isThreadStarter,
-        });
-      } catch (persistErr) {
-        console.error("Failed to persist user message:", persistErr);
-        errorTracker.trackError(
-          persistErr as Error,
-          "chat_messages user persistence",
-          undefined,
-          userId,
-          undefined,
-          "agents-persistence",
-        );
-      }
-    }
-
-    /* ---------- TOOLS ---------- */
-    // Initialize commercial guideline search tool (documents pre-loaded at module scope)
-    const commercialGuidelineTool = createCommercialGuidelineSearchTool();
-
-    // FileUploadTool removed: response parser expects Gemini shape but
-    // calls OpenAI, so it always returned "Failed to generate a summary."
-    // It also reads arbitrary file paths from LLM input. Files reach the
-    // agent via /api/retrieval/ingest → vector store, not this tool.
-    const tools = [
-      new SerpAPI(),
-      commercialGuidelineTool,
-      // medicareMultiSearchTool runs NCD+LCD+LCA in a single parallel call.
-      // The individual tools remain registered so the agent can still issue
-      // a targeted single-source lookup if it needs to, but the prompt
-      // steers it toward the multi-search to save 2-3 round-trips.
-      medicareMultiSearchTool,
-      new NCDCoverageSearchTool(),
-      localLcdSearchTool,
-      localCoverageArticleSearchTool,
-      // medicarePolicyDetailTool is placed before policyContentExtractorTool
-      // so the agent reaches for the structured CMS API path first; the
-      // extractor only handles MAC-contractor URLs as a fallback.
-      medicarePolicyDetailTool,
-      policyContentExtractorTool,
-    ];
-
-    /* ---------- AGENT ---------- */
-    const agent = createReactAgent({
-      llm: llmAgent(),
-      tools,
-      messageModifier: new SystemMessage(AGENT_SYSTEM_CONTENT),
-    });
-
-    const agentConfig = {
-      // recursionLimit caps agent steps. Lowering this caused real
-      // production runs to terminate early and the web client to retry,
-      // adding minutes of latency. Keep at 50 until we have telemetry
-      // on actual step distribution.
-      recursionLimit: 50,
-      configurable: {
-        thread_id: `user-${userId}-${Date.now()}`,
-      },
-    };
-
-    /* ======================================================
-     MOBILE — NON-STREAMING (RN SAFE)
-     ====================================================== */
-    if (clientType === "mobile") {
-      const mobileStartTime = Date.now();
-      console.log(
-        `[Agents API] Starting mobile agent execution for user ${userId}`,
-      );
-
-      // Agent calls are expensive and non-idempotent — retrying replays
-      // SerpAPI and other side-effecting tools. Invoke directly and
-      // surface failures as a single opaque error code.
-      let result: Awaited<ReturnType<typeof agent.invoke>>;
-      try {
-        result = await agent.invoke({ messages }, agentConfig);
-      } catch (e) {
-        const error = e as Error;
-        const errorInfo = errorTracker.trackError(
-          error,
-          "Agent execution (mobile)",
-          undefined,
-          userId,
-          undefined,
-          "agents-mobile-execution",
-        );
-        return NextResponse.json(
-          {
-            error: "AGENT_EXECUTION_FAILED",
-            requestId: errorInfo?.id ?? null,
-          },
-          { status: 500, headers: buildCorsHeaders(req) },
-        );
-      }
-
-      const mobileElapsed = (
-        (Date.now() - mobileStartTime) /
-        1000
-      ).toFixed(2);
-      console.log(
-        `✅ [Agents API] Mobile agent completed in ${mobileElapsed}s for user ${userId}`,
-      );
-
-      // Report usage only after successful agent completion
-      void reportUsage({
-        userId: userId!,
-        usageType: "orchestrator",
-        quantity: 1,
-      }).catch(() => { });
-
-      // Get last user + last assistant messages
-      const lastUser = [...result.messages]
-        .reverse()
-        .find((m) => m._getType?.() === "human");
-
-      const lastAssistant = [...result.messages]
-        .reverse()
-        .find((m) => m._getType?.() === "ai");
-
-      const assistantContent =
-        typeof lastAssistant?.content === "string"
-          ? lastAssistant.content
-          : lastAssistant
-            ? JSON.stringify(lastAssistant.content)
-            : "";
-
-      if (assistantContent) {
-        // Defer the DB write so it survives client disconnect. Vercel keeps
-        // the function alive until waitUntil's promise resolves, even if the
-        // HTTP response has already been sent or the client has gone away.
-        const persistUserId = userId;
-        waitUntil(
-          (async () => {
-            try {
-              await supabaseAdmin.from("chat_messages").insert({
-                user_id: persistUserId,
-                thread_id: threadId,
-                role: "assistant",
-                content: assistantContent,
-                status: "complete",
-                is_thread_starter: false,
-              });
-            } catch (persistErr) {
-              console.error(
-                "Failed to persist assistant message:",
-                persistErr,
-              );
-              errorTracker.trackError(
-                persistErr as Error,
-                "chat_messages assistant persistence (mobile, deferred)",
-                undefined,
-                persistUserId,
-                undefined,
-                "agents-persistence-deferred",
-              );
-            }
-          })(),
-        );
-      }
-
-      return NextResponse.json(
-        {
-          threadId,
-          messages: [
-            ...(lastUser
-              ? [
-                {
-                  role: "user",
-                  content:
-                    typeof lastUser.content === "string"
-                      ? lastUser.content
-                      : JSON.stringify(lastUser.content),
-                },
-              ]
-              : []),
-            ...(lastAssistant
-              ? [
-                {
-                  role: "assistant",
-                  content:
-                    typeof lastAssistant.content === "string"
-                      ? lastAssistant.content
-                      : JSON.stringify(lastAssistant.content),
-                },
-              ]
-              : []),
-          ],
-        },
-        {
-          headers: { ...buildCorsHeaders(req), "x-thread-id": threadId },
-        },
-      );
-    }
-
-    /* ======================================================
-       WEB — STREAMING (BACKWARDS COMPATIBLE)
-       ====================================================== */
-    const encoder = new TextEncoder();
-    const streamStartTime = Date.now();
-    console.log(`[Agents API] Starting web streaming for user ${userId}`);
-
-    // Note: withRetry is intentionally not used here. ReadableStream errors propagate
-    // through controller.error(), not as rejected promises, so retry wrappers are
-    // ineffective on streaming paths. Errors are caught by the outer try/catch.
-    //
-    // streamAbort fires when the client cancels (browser tab closed, fetch
-    // aborted, navigation away). Without it the LangChain run keeps going,
-    // burning OpenAI tokens until recursionLimit — a real cost-leak vector.
-    const streamAbort = new AbortController();
-    // langgraph forwards this signal to every internal tool fetch, so the
-    // listener count climbs past Node's default 10 on multi-tool runs.
-    // Raise the cap to silence MaxListenersExceededWarning without losing
-    // the abort semantics we want.
-    {
-      const signalAsTarget = streamAbort.signal as unknown as EventTarget & {
-        setMaxListeners?: (n: number) => void;
-      };
-      if (signalAsTarget.setMaxListeners) signalAsTarget.setMaxListeners(100);
-    }
-    const eventStream = agent.streamEvents(
-      { messages },
-      {
-        version: "v2",
-        signal: streamAbort.signal,
-        ...agentConfig,
-      },
-    );
-
-    let clientCancelled = false;
-
-    const readable = new ReadableStream({
-      async start(controller) {
-        let streamCompleted = false;
-        let firstChunkTime: number | null = null;
-        let chunkCount = 0;
-        let accumulated = "";
-
-        try {
-          for await (const { event, data } of eventStream) {
-            if (
-              event === "on_chat_model_stream" &&
-              typeof data?.chunk?.content === "string" &&
-              data.chunk.content.length > 0
-            ) {
-              if (!firstChunkTime) {
-                firstChunkTime = Date.now();
-                const timeToFirstChunk = (
-                  (firstChunkTime - streamStartTime) /
-                  1000
-                ).toFixed(2);
-                console.log(
-                  `[Agents API] First chunk received after ${timeToFirstChunk}s for user ${userId}`,
-                );
-              }
-              chunkCount++;
-              accumulated += data.chunk.content;
-              controller.enqueue(encoder.encode(data.chunk.content));
-            }
-          }
-          streamCompleted = true;
-          const totalElapsed = (
-            (Date.now() - streamStartTime) /
-            1000
-          ).toFixed(2);
-          console.log(
-            `✅ [Agents API] Stream completed in ${totalElapsed}s (${chunkCount} chunks) for user ${userId}`,
-          );
-        } catch (err) {
-          const errorElapsed = (
-            (Date.now() - streamStartTime) /
-            1000
-          ).toFixed(2);
-          console.error(
-            `❌ [Agents API] Stream error after ${errorElapsed}s for user ${userId}:`,
-            err,
-          );
-          controller.error(err);
-        } finally {
-          // Report usage only after a full successful stream
-          if (streamCompleted) {
-            void reportUsage({
-              userId: userId!,
-              usageType: "orchestrator",
-              quantity: 1,
-            }).catch(() => { });
-          }
-          if (accumulated) {
-            try {
-              await supabaseAdmin.from("chat_messages").insert({
-                user_id: userId,
-                thread_id: threadId,
-                role: "assistant",
-                content: accumulated,
-                status:
-                  streamCompleted && !clientCancelled ? "complete" : "partial",
-                is_thread_starter: false,
-              });
-            } catch (persistErr) {
-              console.error(
-                "Failed to persist assistant message:",
-                persistErr,
-              );
-              errorTracker.trackError(
-                persistErr as Error,
-                "chat_messages assistant persistence (web)",
-                undefined,
-                userId,
-                undefined,
-                "agents-persistence",
-              );
-            }
-          }
-          controller.close();
-        }
-      },
-      cancel(reason) {
-        clientCancelled = true;
-        console.log(
-          `[Agents API] Client cancelled stream for user ${userId}:`,
-          reason,
-        );
-        streamAbort.abort();
-      },
-    });
-
-    return new StreamingTextResponse(readable, {
-      headers: {
-        ...buildCorsHeaders(req),
-        "Content-Type": "text/plain; charset=utf-8",
-        "x-thread-id": threadId,
-      },
+    /* ---------- EXECUTE ---------- */
+    return await runAgent({
+      messages: body.messages,
+      threadId: body.threadId ?? null,
+      clientType,
+      identity: { userId: userId!, source: clientType === "mobile" ? "mobile" : "web" },
+      baseHeaders: cors,
+      respondError,
     });
   } catch (e: unknown) {
     const error = e as Error;
@@ -593,14 +193,8 @@ export async function POST(req: NextRequest) {
     );
 
     return NextResponse.json(
-      {
-        error: "INTERNAL_ERROR",
-        requestId: errorInfo?.id ?? null,
-      },
-      {
-        status: (error as { status?: number }).status ?? 500,
-        headers: buildCorsHeaders(req),
-      },
+      { error: "INTERNAL_ERROR", requestId: errorInfo?.id ?? null },
+      { status: (error as { status?: number }).status ?? 500, headers: cors },
     );
   }
 }

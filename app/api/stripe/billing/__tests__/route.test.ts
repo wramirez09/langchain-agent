@@ -11,7 +11,7 @@ const getUser = jest.fn()
 const profileSingle = jest.fn()
 const profileEq = jest.fn(() => ({ single: profileSingle }))
 const profileSelect = jest.fn(() => ({ eq: profileEq }))
-const fromMock = jest.fn(() => ({ select: profileSelect }))
+const fromMock = jest.fn((..._a: any[]) => ({ select: profileSelect }))
 
 jest.mock('@/app/utils/server', () => ({
   createClient: jest.fn().mockResolvedValue({
