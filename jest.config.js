@@ -13,7 +13,7 @@ const customJestConfig = {
     // "browser" condition, which Jest can't parse. Point at its CJS twin.
     '^uncrypto$': '<rootDir>/node_modules/uncrypto/dist/crypto.web.cjs',
   },
-  testPathIgnorePatterns: ['/node_modules/', '/.next/'],
+  testPathIgnorePatterns: ['/node_modules/', '/.next/', '/e2e/'],
   transformIgnorePatterns: [
     '/node_modules/(?!(cheerio|cheerio-select|css-select|css-what|domelementtype|domhandler|domutils|entities|nth-check|parse5|parse5-htmlparser2-tree-adapter|htmlparser2|boolbase|undici|whatwg-url)/)',
   ],

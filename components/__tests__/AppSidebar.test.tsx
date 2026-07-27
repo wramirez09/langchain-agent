@@ -273,4 +273,50 @@ describe('AppSidebar', () => {
       screen.getByRole('button', { name: 'Billing' })
     ).toBeInTheDocument()
   })
+
+  // Organizations aren't a supported product surface, so the group header is a
+  // label that only expands and collapses — it must not navigate anywhere.
+  it('Developer is a collapsible header, not a link', async () => {
+    const user = userEvent.setup()
+    await renderSidebar(<AppSidebar activeView="auth" onViewChange={() => {}} />)
+
+    const header = await screen.findByRole('button', { name: 'Developer' })
+    expect(header).toHaveAttribute('aria-expanded', 'true')
+    expect(screen.queryByRole('link', { name: 'Organization' })).not.toBeInTheDocument()
+    expect(screen.queryByRole('link', { name: 'Developer' })).not.toBeInTheDocument()
+
+    // Collapsing hides both API rows.
+    await user.click(header)
+    expect(header).toHaveAttribute('aria-expanded', 'false')
+    expect(screen.queryByRole('link', { name: 'API Keys' })).not.toBeInTheDocument()
+    expect(
+      screen.queryByRole('link', { name: 'API Playground' })
+    ).not.toBeInTheDocument()
+
+    await user.click(header)
+    expect(screen.getByRole('link', { name: 'API Keys' })).toHaveAttribute(
+      'href',
+      '/agents/api-keys'
+    )
+    expect(
+      screen.getByRole('link', { name: 'API Playground' })
+    ).toHaveAttribute('href', '/agents/api-playground')
+  })
+
+  // Exception path: no org but API access paid for — the API rows stand alone
+  // rather than hiding behind a group header the user can't see the point of.
+  it('surfaces the API rows without a Developer header when there is no org', async () => {
+    global.fetch = jest
+      .fn()
+      .mockResolvedValue({ ok: false, status: 404, json: async () => ({}) }) as any
+    await renderSidebar(<AppSidebar activeView="auth" onViewChange={() => {}} />)
+
+    await waitFor(() =>
+      expect(
+        screen.queryByRole('button', { name: 'Developer' })
+      ).not.toBeInTheDocument()
+    )
+    expect(screen.getByRole('link', { name: 'API Keys' })).toBeInTheDocument()
+    expect(screen.getByRole('link', { name: 'API Playground' })).toBeInTheDocument()
+  })
 })

@@ -14,6 +14,9 @@
     "test": "jest",
     "test:watch": "jest --watch",
     "test:coverage": "jest --coverage",
+    "e2e": "playwright test",
+    "e2e:ui": "playwright test --ui",
+    "e2e:install": "playwright install chromium",
     "validate:guidelines": "node scripts/validateGuidelines.js",
     "prepare": "husky"
   },
@@ -125,6 +128,7 @@
   },
   "devDependencies": {
     "@next/bundle-analyzer": "16.0.7",
+    "@playwright/test": "1.59.1",
     "@testing-library/dom": "^10.4.1",
     "@testing-library/jest-dom": "^6.9.1",
     "@testing-library/react": "^16.3.2",
