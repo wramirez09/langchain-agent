@@ -20,7 +20,7 @@ const unique = () => `e2e-${Date.now()}-${Math.floor(Math.random() * 1e4)}`
 const row = (page: Page, name: string) =>
   page.getByTestId('api-key-row').filter({ hasText: name })
 
-/** Fill the inline create form and submit. Defaults to unmetered test mode. */
+/** Fill the inline create form and submit. Defaults to test mode. */
 async function createKey(page: Page, name: string, env: 'live' | 'test' = 'test') {
   await page.getByLabel('Name').fill(name)
   await page.getByRole('button', { name: env, exact: true }).click()

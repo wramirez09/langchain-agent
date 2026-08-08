@@ -152,16 +152,17 @@ describe('reportUsage', () => {
     err.mockRestore()
   })
 
-  // Test-environment keys are served exactly like live ones but must never
-  // reach the Stripe meter — otherwise a CI suite silently bills the customer.
+  // A test key runs the same models and hits the same database as a live one,
+  // so it bills the same. `environment` is attribution on the usage row only —
+  // it must never gate the meter.
   describe('test-environment keys', () => {
-    it('never meters, even with a fully billable subscription', async () => {
+    it('meters exactly like a live key', async () => {
       mockedSub.mockResolvedValue({
         stripe_customer_id: 'cus_1',
         stripe_subscription_id: 'sub_1',
         metered_item_id: 'mi_1',
       })
-      const create = jest.fn().mockResolvedValue({ identifier: 'evt_should_not_happen' })
+      const create = jest.fn().mockResolvedValue({ identifier: 'evt_1' })
       mockedGetStripe.mockReturnValue({ billing: { meterEvents: { create } } })
       mockedLog.mockResolvedValue(undefined)
 
@@ -172,21 +173,28 @@ describe('reportUsage', () => {
         environment: 'test',
       })
 
-      expect(create).not.toHaveBeenCalled()
-      expect(r).toBeNull()
+      expect(create).toHaveBeenCalled()
+      expect(r).toMatchObject({ identifier: 'evt_1' })
     })
 
-    it('skips the subscription lookup entirely', async () => {
+    it('resolves the subscription like any other call', async () => {
+      mockedSub.mockResolvedValue(null)
       mockedGetStripe.mockReturnValue({ billing: { meterEvents: { create: jest.fn() } } })
       mockedLog.mockResolvedValue(undefined)
 
       await reportUsage({ userId: 'u', usageType: 'chat', environment: 'test' })
 
-      expect(mockedSub).not.toHaveBeenCalled()
+      expect(mockedSub).toHaveBeenCalledWith('u')
     })
 
-    it('still records usage, flagged unbilled and tagged test', async () => {
-      mockedGetStripe.mockReturnValue({ billing: { meterEvents: { create: jest.fn() } } })
+    it('records usage tagged test, flagged billed', async () => {
+      mockedSub.mockResolvedValue({
+        stripe_customer_id: 'cus_1',
+        stripe_subscription_id: 'sub_1',
+        metered_item_id: 'mi_1',
+      })
+      const create = jest.fn().mockResolvedValue({ identifier: 'evt_2' })
+      mockedGetStripe.mockReturnValue({ billing: { meterEvents: { create } } })
       mockedLog.mockResolvedValue(undefined)
 
       await reportUsage({
@@ -202,15 +210,15 @@ describe('reportUsage', () => {
       expect(mockedLog.mock.calls[0][0]).toMatchObject({
         org_id: 'org-1',
         api_key_id: 'k1',
-        stripe_reported: false,
-        stripe_usage_id: null,
-        metered_item_id: null,
+        stripe_reported: true,
+        stripe_usage_id: 'evt_2',
+        metered_item_id: 'mi_1',
         metadata: { environment: 'test' },
       })
     })
 
-    // The default must be "live": a caller that forgets to thread the field
-    // through would otherwise stop billing silently.
+    // First-party web/mobile traffic passes no environment; it must land on
+    // the usage row as "live" rather than undefined.
     it('defaults to live when environment is omitted', async () => {
       mockedSub.mockResolvedValue({
         stripe_customer_id: 'cus_1',

@@ -112,8 +112,8 @@ describe('POST /api/v1/chat — gate rails', () => {
     })
   })
 
-  // reportUsage decides whether to meter from identity.environment, so the
-  // route dropping it would silently bill test-key traffic.
+  // identity.environment tags every usage_logs row, so the route dropping it
+  // would mislabel test traffic as live in the rollups.
   it.each(['live', 'test'] as const)('forwards the key environment (%s) to the handler', async (env) => {
     resolveMock.mockResolvedValue(authFor(['chat'], env))
     rateMock.mockResolvedValue(okLimit)

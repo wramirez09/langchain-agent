@@ -109,8 +109,8 @@ describe('POST /api/v1/agents — gate rails', () => {
     expect(identity).toMatchObject({ orgId: 'org1', apiKeyId: 'k1', source: 'api' })
   })
 
-  // The key's environment must reach the handler — reportUsage decides whether
-  // to meter from it, so dropping it here silently bills test-key traffic.
+  // The key's environment must reach the handler — it tags every usage_logs
+  // row, so dropping it here mislabels test traffic as live in the rollups.
   it.each(['live', 'test'] as const)('forwards the key environment (%s) to the handler', async (env) => {
     resolveMock.mockResolvedValue(authFor(['agents'], env))
     rateMock.mockResolvedValue(okLimit)

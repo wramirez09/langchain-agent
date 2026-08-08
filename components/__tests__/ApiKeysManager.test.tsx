@@ -206,16 +206,18 @@ describe('ApiKeysManager — create', () => {
     })
   })
 
-  // Test mode must not read as "fake data" — it's the same stack, unmetered.
-  it('explains what test mode changes when it is selected', async () => {
+  // The environment is only a label on usage rows — both kinds of key are
+  // metered. Copy promising otherwise would be a billing surprise.
+  it('makes no billing claim about either environment', async () => {
     mockFetch()
     const user = setupUser()
     render(<ApiKeysManager />)
     await screen.findByText('No API keys yet')
 
-    expect(screen.getByText(/metered and billed/i)).toBeInTheDocument()
-    await user.click(within(createPanel()).getByRole('button', { name: 'test' }))
-    expect(screen.getByText(/never billed/i)).toBeInTheDocument()
+    for (const env of ['live', 'test'] as const) {
+      await user.click(within(createPanel()).getByRole('button', { name: env }))
+      expect(createPanel()).not.toHaveTextContent(/billed|metered|sandbox/i)
+    }
   })
 
   it('surfaces a failed create inline and keeps the form open', async () => {

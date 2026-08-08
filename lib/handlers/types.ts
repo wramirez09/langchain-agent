@@ -8,9 +8,9 @@ export type CallerIdentity = {
   orgId?: string;
   apiKeyId?: string;
   source: "web" | "mobile" | "api";
-  /** The calling API key's environment. `test` keys are served identically but
-   *  never metered to Stripe (see `reportUsage`). Absent for first-party
-   *  web/mobile traffic, which is always treated as live. */
+  /** The calling API key's environment. Attribution only — `test` keys are
+   *  served and metered identically to live ones (see `reportUsage`). Absent
+   *  for first-party web/mobile traffic, which is always treated as live. */
   environment?: "live" | "test";
 };
 

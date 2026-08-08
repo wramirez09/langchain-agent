@@ -193,11 +193,6 @@ function CreatePanel({
               </button>
             ))}
           </div>
-          <p className="m-0 mt-2 text-xs text-muted-foreground">
-            {environment === "live"
-              ? "Requests are metered and billed to your subscription."
-              : "Requests are never billed. Same production data, models, and rate limits — only metering is skipped."}
-          </p>
         </div>
 
         <div className="md:col-span-2">
