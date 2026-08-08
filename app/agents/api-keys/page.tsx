@@ -9,15 +9,15 @@ export default function ApiKeysPage() {
   // UI's internal scroll), so this page must be its own scroll container.
   return (
     <main className="h-full overflow-y-auto">
-      <div className="mx-auto w-full max-w-[940px] px-4 py-8 sm:px-6 md:py-11">
+      <div className="mx-auto w-full max-w-[1200px] px-4 py-8 sm:px-6 md:py-10">
         <header>
-          <h1 className="text-3xl font-bold leading-tight tracking-[-0.024em]">API Keys</h1>
-          <p className="mt-1.5 max-w-[62ch] text-sm text-muted-foreground">
-            Manage keys for the NoteDoctor public API. See the{" "}
+          <h1 className="text-3xl font-extrabold leading-[1.15] tracking-[-0.026em]">API Keys</h1>
+          <p className="mt-2 max-w-[56ch] text-sm leading-relaxed text-muted-foreground">
+            Keys are server-side secrets scoped to your organization. The secret is shown once,
+            right after creation — store it in a secrets manager.{" "}
             <a href="/api/v1/docs" className="text-primary underline-offset-2 hover:underline">
-              API documentation
-            </a>{" "}
-            to get started.
+              API documentation ↗
+            </a>
           </p>
         </header>
         <ApiKeysManager />

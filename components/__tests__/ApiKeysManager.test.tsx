@@ -198,10 +198,34 @@ describe('ApiKeysManager — create', () => {
 
     await waitFor(() => {
       const post = fn.mock.calls.find(([, o]) => o?.method === 'POST')
+      // Expiry defaults to 90 days, sent as an ISO timestamp.
       expect(JSON.parse(post![1]!.body as string)).toEqual({
         name: 'Sandbox tests',
         environment: 'test',
         scopes: ['chat'],
+        expiresAt: expect.any(String),
+      })
+    })
+  })
+
+  // "No expiry" must omit the field entirely — the API treats absence as
+  // non-expiring, and an explicit null would be rejected by the schema.
+  it('omits expiresAt when "No expiry" is chosen', async () => {
+    const fn = mockFetch()
+    const user = setupUser()
+    render(<ApiKeysManager />)
+    await screen.findByText('No API keys yet')
+
+    await user.type(screen.getByLabelText('Name'), 'Evergreen')
+    await user.click(within(createPanel()).getByRole('button', { name: 'No expiry' }))
+    await user.click(screen.getByRole('button', { name: 'Create key' }))
+
+    await waitFor(() => {
+      const post = fn.mock.calls.find(([, o]) => o?.method === 'POST')
+      expect(JSON.parse(post![1]!.body as string)).toEqual({
+        name: 'Evergreen',
+        environment: 'live',
+        scopes: ['agents', 'chat'],
       })
     })
   })
