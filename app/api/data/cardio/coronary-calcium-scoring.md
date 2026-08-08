@@ -60,6 +60,18 @@ Patients can be considered for CAC testing when there is well-documented evidenc
 
 The result is expected to impact treatment (for example, defer statin if CAC = 0 in appropriate patients; initiate or intensify statin if CAC is elevated).
 
+CAC SCORE INTERPRETATION FOR MANAGEMENT PLANNING
+
+The Agatston result is read in bands, and the band determines whether statin therapy is deferred, favored, or indicated:
+
+-   CAC = 0: statin therapy may be deferred or delayed, unless the individual is a cigarette smoker, has diabetes mellitus, or has a strong family history of premature ASCVD.
+-   CAC 1 to 99 Agatston units: statin therapy is favored, especially in individuals age 55 or older.
+-   CAC 100 Agatston units or greater, or at or above the 75th percentile for age, sex, and ethnicity: statin therapy is indicated, unless otherwise deferred after a clinician-patient risk discussion.
+
+REPEAT TESTING
+
+Repeat CAC testing requires documentation that the prior CAC result, the interval change, and the updated risk assessment are expected to change management. Routine short-interval repeat testing without a management-changing rationale is not supported.
+
 REQUIRED DOCUMENTATION
 
 -   Clinical rationale describing how the CAC result will change management.

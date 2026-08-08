@@ -40,13 +40,25 @@ export async function embedQuery(text: string): Promise<Float32Array> {
 // Batch-embed an array of texts. Cached entries are returned without an
 // API call; only the misses are sent to OpenAI. Order of the returned
 // array matches the input order.
-export async function embedMany(texts: string[]): Promise<Float32Array[]> {
+//
+// `useCache: false` skips the cache on both read and write. Corpus ingestion
+// passes it, for two reasons: the vectors it computes live in Postgres and are
+// read back from there, so a cache hit saves nothing on a later run; and a
+// re-ingest is the operation you reach for when you suspect the index is wrong,
+// which it cannot settle if it may replay a cached vector rather than ask the
+// API. Keeping it out of the cache also stops 8KB document texts from
+// displacing the query embeddings the cache exists to serve.
+export async function embedMany(
+  texts: string[],
+  opts: { useCache?: boolean } = {},
+): Promise<Float32Array[]> {
+  const useCache = opts.useCache ?? true;
   const out: (Float32Array | null)[] = new Array(texts.length).fill(null);
   const missIdx: number[] = [];
   const missTexts: string[] = [];
 
   for (let i = 0; i < texts.length; i++) {
-    const hit = cache.get<number[]>(cacheKey(texts[i]));
+    const hit = useCache ? cache.get<number[]>(cacheKey(texts[i])) : null;
     if (hit) {
       out[i] = new Float32Array(hit);
     } else {
@@ -59,7 +71,7 @@ export async function embedMany(texts: string[]): Promise<Float32Array[]> {
     const vecs = await client().embedDocuments(missTexts);
     for (let j = 0; j < missTexts.length; j++) {
       const vec = vecs[j];
-      cache.set(cacheKey(missTexts[j]), vec, TTL.VERY_LONG);
+      if (useCache) cache.set(cacheKey(missTexts[j]), vec, TTL.VERY_LONG);
       out[missIdx[j]] = new Float32Array(vec);
     }
   }

@@ -33,8 +33,8 @@ const baseRow = (overrides: Record<string, any> = {}) => ({
   treatment: 'MRI Lumbar',
   cpt_codes: ['72148'],
   icd10_codes: ['M54.5'],
-  excerpt: 'Conservative therapy for at least 6 weeks is required.',
-  body: 'FULL BODY CONTENT THAT MUST NOT LEAK',
+  excerpt: 'Lumbar MRI overview.',
+  body: 'Lumbar MRI overview.\n\nConservative therapy for at least 6 weeks is required.',
   score: 0.9,
   signals: { lex: 0.4, sem: 0.5, cpt: 0 },
   ...overrides,
@@ -69,14 +69,49 @@ describe('CommercialGuidelineSearchTool', () => {
     expect(m.matchedOn).not.toContain('cpt:0.00')
   })
 
-  it('never leaks internal path or full body in the output', async () => {
-    mockedRpc.mockResolvedValue({ data: [baseRow()], error: null } as any)
+  it('never emits the internal path or a raw body field', async () => {
+    mockedRpc.mockResolvedValue({
+      data: [baseRow({ body: 'Body text.' })],
+      error: null,
+    } as any)
 
-    const raw = await tool.invoke({ query: 'lumbar mri' } as any)
+    const match = JSON.parse(await tool.invoke({ query: 'lumbar mri' } as any))
+      .topMatches[0]
 
-    expect(raw).not.toContain('FULL BODY CONTENT')
-    expect(JSON.parse(raw).topMatches[0]).not.toHaveProperty('path')
-    expect(JSON.parse(raw).topMatches[0]).not.toHaveProperty('body')
+    // Guideline text reaches the agent only through `excerpt`; `body` and the
+    // filesystem `path` are stripped at the serialization boundary.
+    expect(match).not.toHaveProperty('path')
+    expect(match).not.toHaveProperty('body')
+  })
+
+  // The excerpt is cut from the full body around the query's terms. Sending
+  // only the document's opening (the RPC's own `excerpt` column) was how
+  // criteria buried mid-document — the thresholds — stopped reaching the model.
+  it('excerpts the body around the query rather than its opening', async () => {
+    const filler = 'unrelated coding and billing narrative. '.repeat(400)
+    mockedRpc.mockResolvedValue({
+      data: [
+        baseRow({
+          excerpt: 'Lumbar MRI overview.',
+          body: [
+            'Lumbar MRI overview.',
+            filler,
+            'CRITERIA. Conservative therapy for at least 6 weeks within the last 6 months.',
+          ].join('\n\n'),
+        }),
+      ],
+      error: null,
+    } as any)
+
+    const match = JSON.parse(
+      await tool.invoke({
+        query: 'lumbar mri conservative therapy',
+        treatment: 'MRI lumbar spine',
+      } as any),
+    ).topMatches[0]
+
+    expect(match.excerpt).toContain('at least 6 weeks within the last 6 months')
+    expect(match.excerpt).toContain('Lumbar MRI overview.')
   })
 
   it('splits results into top and related matches by maxResults', async () => {

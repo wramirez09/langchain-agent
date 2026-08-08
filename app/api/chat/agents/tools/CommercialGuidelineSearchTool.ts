@@ -10,15 +10,21 @@ import {
   ScoredResult,
 } from "./utils/commercialGuidelineTypes";
 import { labelCode } from "./utils/codeLabels";
+import { selectRelevantExcerpt } from "./utils/excerpt";
 
 // Output budget. Beyond this we shrink excerpts and trim arrays rather than
 // invoking an LLM summarizer (which doubled latency and dropped the
 // structured topMatches/relatedMatches shape the agent relies on).
 const OUTPUT_BUDGET_CHARS = 55_000;
+// Per-match excerpt ceiling before the budget pass below. The RPC returns the
+// whole body; we hand the agent the passages that match the query up to this
+// much. Sized so the top match's criteria arrive intact — five of these exceed
+// the budget on purpose, and shrinkToFit trims the lower ranks first.
+const EXCERPT_CHARS = 12_000;
 // Floor for excerpt shrinking under budget pressure. Kept high enough to retain
 // the decisive criteria (conservative-therapy thresholds, etc.) that
-// extractRelevantSections surfaces — a 200-char floor used to truncate them back
-// off, defeating section-aware excerpting.
+// selectRelevantExcerpt surfaces — a 200-char floor used to truncate them back
+// off, defeating relevance-aware excerpting.
 const MIN_EXCERPT_CHARS = 1200;
 
 // Strip filesystem paths from tool output. The agent prompt forbids citing
@@ -115,20 +121,24 @@ function normCodes(v?: string | string[]): string[] {
   return arr.map((c) => c.trim()).filter(Boolean);
 }
 
-function rowToScoredResult(row: RpcRow): ScoredResult {
+function rowToScoredResult(row: RpcRow, queryText: string): ScoredResult {
   const matchedOn: string[] = [];
   for (const [k, v] of Object.entries(row.signals || {})) {
     if (typeof v === "number" && v > 0) {
       matchedOn.push(`${k}:${typeof v === "number" ? v.toFixed(2) : v}`);
     }
   }
+  // Excerpt from the full body, not the RPC's fixed-window `excerpt` column:
+  // that window is the document's opening, which for most guidelines is a
+  // definition or a documentation preamble rather than the criteria.
+  const source = row.body ?? row.excerpt ?? "";
   return {
     id: row.id,
     title: row.title,
     score: row.score,
     domain: row.domain ?? "",
     matchedOn,
-    excerpt: (row.excerpt ?? "").trim(),
+    excerpt: selectRelevantExcerpt(source, queryText, EXCERPT_CHARS),
     // Internal-only — stripped by redactResult before serialization. We
     // still need a string here to satisfy the type.
     path: "",
@@ -245,7 +255,7 @@ Never mention specific data sources, tool names, URLs, file names, folder names,
       }
 
       const rows = (data ?? []) as RpcRow[];
-      const scored = rows.map(rowToScoredResult);
+      const scored = rows.map((row) => rowToScoredResult(row, queryText));
       const topMatches = scored.slice(0, maxResults);
       const relatedMatches = scored.slice(maxResults, maxResults + 3);
 
