@@ -1,3 +1,4 @@
+import { useEffect } from 'react'
 import { render, screen, act } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import {
@@ -103,7 +104,11 @@ describe('ErrorNotificationManager', () => {
 describe('useErrorNotifications', () => {
   function Harness() {
     const ctx = useErrorNotifications()
-    ;(globalThis as any).__hookCtx = ctx
+    // Assigned in an effect (not during render) to satisfy react-hooks/immutability;
+    // no deps array so the global tracks every render's fresh context.
+    useEffect(() => {
+      ;(globalThis as any).__hookCtx = ctx
+    })
     return <div>{ctx.errors.length}</div>
   }
 
