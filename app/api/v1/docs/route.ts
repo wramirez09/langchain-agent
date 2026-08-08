@@ -243,14 +243,8 @@ const HTML = `<!doctype html>
     <div class="callout">Each key is scoped. Calling an endpoint a key isn't scoped for returns
     <code>403</code>. API access also depends on your plan — see <code>402</code> under Errors.</div>
     <p>Each key belongs to one environment, fixed at creation and visible in its prefix:
-    <code>sk_live_…</code> bills your subscription per request, while <code>sk_test_…</code>
-    is <strong>never metered</strong> — use test keys for integration tests and CI so a test
-    suite can't run up your invoice.</p>
-    <div class="scopes"><span class="tag">sk_live_ · metered</span><span class="tag">sk_test_ · not metered</span></div>
-    <div class="callout">A test key is <strong>not a sandbox</strong>: it reads and writes the
-    same production data, runs the same models, shares the same rate limits, and still requires
-    an active subscription. Only the billing meter is skipped — usage is still recorded and
-    still counts in <code>/v1/usage</code>.</div>
+    <code>sk_live_…</code> or <code>sk_test_…</code>. Both are handled identically — the
+    environment is a label you can use to separate traffic in <code>/v1/usage</code>.</p>
   </section>
 
   <section id="agents">
@@ -321,9 +315,15 @@ const HTML = `<!doctype html>
         <span class="path">/api/v1/chat</span>
         <span class="tag">JSON by default</span>
       </div>
-      <p>A plain-text completion from the pre-auth assistant. Returns a single JSON
-      reply by default; add <code>"stream": true</code> for a <code>text/plain</code> token stream.</p>
+      <p>A markdown answer from the pre-auth assistant. Same research as
+      <code>/agents</code> — Medicare NCD/LCD/LCA, commercial guidelines, web search — rendered
+      as readable prose instead of the structured artifact. Returns a single JSON reply by
+      default; add <code>"stream": true</code> for a <code>text/plain</code> token stream.</p>
     </div>
+    <div class="callout">Use <code>/agents</code> when you want to render the result yourself:
+    it returns the same findings as typed fields (codes, criteria, determination) rather than
+    markdown you would have to parse. Both run the same retrieval, so both take a similar
+    time — expect tens of seconds, not milliseconds.</div>
     <figure class="code">
       <figcaption><span class="lang">cURL</span> request<span class="dots"><i></i><i></i><i></i></span></figcaption>
       <pre><code>curl https://app.notedoctor.ai/api/v1/chat \\

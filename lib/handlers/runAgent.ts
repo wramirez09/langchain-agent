@@ -41,12 +41,30 @@ const extractText = (message: any): string => {
   return typeof content === "string" ? content : "";
 };
 
-const convertVercelMessageToLangChainMessage = (message: any) => {
+export const convertVercelMessageToLangChainMessage = (message: any) => {
   const text = extractText(message);
   if (message.role === "user") return new HumanMessage(text);
   if (message.role === "assistant") return new AIMessage(text);
   return new ChatMessage(text, message.role);
 };
+
+/**
+ * The retrieval toolset. Shared with runChat so both public surfaces search the
+ * same corpora — a chat answer researched from a smaller toolset would be
+ * quietly less grounded than the same question asked of /agents.
+ */
+export function createAgentTools() {
+  return [
+    new SerpAPI(),
+    createCommercialGuidelineSearchTool(),
+    medicareMultiSearchTool,
+    new NCDCoverageSearchTool(),
+    localLcdSearchTool,
+    localCoverageArticleSearchTool,
+    medicarePolicyDetailTool,
+    policyContentExtractorTool,
+  ];
+}
 
 export type RunAgentParams = {
   /** Validated Vercel-shape messages (role + content/parts). */
@@ -128,23 +146,10 @@ export async function runAgent(params: RunAgentParams): Promise<Response> {
     }
   }
 
-  /* ---------- TOOLS ---------- */
-  const commercialGuidelineTool = createCommercialGuidelineSearchTool();
-  const tools = [
-    new SerpAPI(),
-    commercialGuidelineTool,
-    medicareMultiSearchTool,
-    new NCDCoverageSearchTool(),
-    localLcdSearchTool,
-    localCoverageArticleSearchTool,
-    medicarePolicyDetailTool,
-    policyContentExtractorTool,
-  ];
-
   /* ---------- AGENT ---------- */
   const agent = createReactAgent({
     llm: llmAgent(),
-    tools,
+    tools: createAgentTools(),
     messageModifier: new SystemMessage(AGENT_SYSTEM_CONTENT),
   });
 

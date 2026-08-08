@@ -1,4 +1,4 @@
-import { AGENT_SYSTEM_CONTENT, agentPrompt } from '../agentPrompt'
+import { AGENT_SYSTEM_CONTENT, CHAT_SYSTEM_CONTENT, agentPrompt } from '../agentPrompt'
 
 describe('AGENT_SYSTEM_CONTENT', () => {
   it('enforces HIPAA / PHI removal', () => {
@@ -30,6 +30,42 @@ describe('AGENT_SYSTEM_CONTENT', () => {
   it('includes the legal disclaimer requirement', () => {
     expect(AGENT_SYSTEM_CONTENT).toMatch(/`disclaimer`/)
     expect(AGENT_SYSTEM_CONTENT).toMatch(/does not guarantee approval/)
+  })
+})
+
+// /chat and /agents do identical research and differ only in rendering. If the
+// research half ever diverges, /chat quietly becomes the less grounded surface
+// — which is exactly the failure these tests exist to prevent.
+describe('CHAT_SYSTEM_CONTENT', () => {
+  const researchRules = [
+    /HIPAA Compliance/i,
+    /remove all patient identifying information/,
+    /commercial_guidelines_search/,
+    /ncd_coverage_search/,
+    /medicare_multi_search/,
+    /Commercial Guidelines Confidentiality/,
+    /Reproduce the guideline's criteria in FULL/,
+    /Reconcile to the MOST SPECIFIC criteria/,
+    /Scope codes to the requested procedure/,
+    /Scoping NEVER empties the code lists/,
+  ]
+
+  it.each(researchRules)('carries the same research rule as /agents: %s', (rule) => {
+    expect(CHAT_SYSTEM_CONTENT).toMatch(rule)
+    expect(AGENT_SYSTEM_CONTENT).toMatch(rule)
+  })
+
+  it('asks for markdown, not the JSON artifact', () => {
+    expect(CHAT_SYSTEM_CONTENT).toMatch(/Present Comprehensive Findings/)
+    expect(CHAT_SYSTEM_CONTENT).toMatch(/Return markdown only/)
+    expect(CHAT_SYSTEM_CONTENT).not.toMatch(/PriorAuthArtifact schema/)
+    expect(CHAT_SYSTEM_CONTENT).not.toMatch(/prior-auth-summary/)
+  })
+
+  it('shares one research section with the agent prompt, byte for byte', () => {
+    const research = (prompt: string) => prompt.slice(0, prompt.indexOf('**4. '))
+    expect(research(CHAT_SYSTEM_CONTENT)).toBe(research(AGENT_SYSTEM_CONTENT))
+    expect(research(CHAT_SYSTEM_CONTENT).length).toBeGreaterThan(1000)
   })
 })
 

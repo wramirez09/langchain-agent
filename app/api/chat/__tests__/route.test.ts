@@ -10,26 +10,25 @@ jest.mock('@/utils/server', () => ({
   }),
 }))
 
-// The chain is constructed but never executed directly — withRetry is mocked to
-// control the outcome, so the prompt/model/parser only need to be chainable.
-jest.mock('@langchain/core/prompts', () => ({
-  PromptTemplate: {
-    fromTemplate: () => ({ pipe: () => ({ pipe: () => ({ stream: jest.fn() }) }) }),
-  },
-}))
-jest.mock('langchain/output_parsers', () => ({
-  HttpResponseOutputParser: class {},
-}))
-jest.mock('@/lib/llm', () => ({ llmAgent: () => ({}) }))
-
-const reportUsageMock = jest.fn().mockResolvedValue(undefined)
-jest.mock('@/lib/usage', () => ({ reportUsage: (...a: any[]) => reportUsageMock(...a) }))
-
-const withRetryMock = jest.fn()
-jest.mock('@/lib/retry', () => ({
-  withRetry: (...a: any[]) => withRetryMock(...a),
-  RETRY_CONFIGS: { LLM_API: {} },
-}))
+// The route's job is auth context + envelopes; runChat is exercised in its own
+// suite, so stub it to the two outcomes the route has to render.
+const runChatMock = jest.fn()
+jest.mock('@/lib/handlers/runChat', () => {
+  class ChatStreamError extends Error {
+    attempts: number
+    cause?: Error
+    constructor(message: string, attempts: number, cause?: Error) {
+      super(message)
+      this.name = 'ChatStreamError'
+      this.attempts = attempts
+      this.cause = cause
+    }
+  }
+  return {
+    ChatStreamError,
+    runChat: (...a: any[]) => runChatMock(...a),
+  }
+})
 
 jest.mock('@/lib/error-tracking', () => ({
   errorTracker: {
@@ -61,6 +60,7 @@ jest.mock('ai', () => ({
 }))
 
 import { POST } from '../route'
+import { ChatStreamError } from '@/lib/handlers/runChat'
 
 function makeReq(body: any) {
   return { json: async () => body } as any
@@ -93,26 +93,22 @@ beforeEach(() => {
 })
 
 describe('POST /api/chat', () => {
-  it('streams the chat completion and reports usage on completion', async () => {
-    withRetryMock.mockResolvedValue({ success: true, data: streamOf('hello') })
+  it('streams the answer and attributes the run to the signed-in user', async () => {
+    runChatMock.mockResolvedValue(streamOf('hello'))
 
     const res: any = await POST(makeReq({ messages: [{ role: 'user', content: 'hi' }] }))
 
-    expect(res.body).toBeDefined()
-    const text = await consumeStream(res.body)
-    expect(text).toBe('hello')
-    // usage is reported from the transform's flush after the stream drains
-    expect(reportUsageMock).toHaveBeenCalledWith(
-      expect.objectContaining({ userId: 'user-1', usageType: 'chat' }),
+    expect(await consumeStream(res.body)).toBe('hello')
+    expect(runChatMock).toHaveBeenCalledWith(
+      expect.objectContaining({
+        messages: [{ role: 'user', content: 'hi' }],
+        identity: expect.objectContaining({ userId: 'user-1', source: 'web' }),
+      }),
     )
   })
 
   it('returns a 500 error payload when the stream cannot be created', async () => {
-    withRetryMock.mockResolvedValue({
-      success: false,
-      error: new Error('LLM down'),
-      attempts: 2,
-    })
+    runChatMock.mockRejectedValue(new ChatStreamError('Failed to create chat stream', 2))
 
     const res: any = await POST(makeReq({ messages: [{ role: 'user', content: 'hi' }] }))
 

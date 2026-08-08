@@ -101,8 +101,11 @@ paths:
       operationId: runChat
       summary: Simple chat completion
       description: >
-        Returns a single JSON reply by default ({ message: { role, content } }).
-        Pass `"stream": true` for a `text/plain` token stream instead.
+        Runs the same guideline research as /api/v1/agents (Medicare NCD/LCD/LCA,
+        commercial guidelines, web search) and renders the findings as markdown
+        rather than the structured artifact. Returns a single JSON reply by
+        default ({ message: { role, content } }), where content is the markdown
+        answer. Pass `"stream": true` for a `text/plain` token stream instead.
       parameters:
         - $ref: "#/components/parameters/IdempotencyKey"
       requestBody:
