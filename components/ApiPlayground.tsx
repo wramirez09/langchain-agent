@@ -3,6 +3,15 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 
 import { cn } from "@/utils/cn";
+import {
+  clearPlaygroundHistory,
+  deletePlaygroundRequest,
+  historyScope,
+  listPlaygroundHistory,
+  newHistoryId,
+  savePlaygroundRequest,
+  type StoredPlaygroundRequest,
+} from "@/lib/playgroundHistory";
 
 type EndpointKey = "me" | "usage" | "chat" | "agents";
 
@@ -72,7 +81,9 @@ type PlaygroundResult = {
 };
 
 type HistoryEntry = {
-  id: number;
+  id: string;
+  at: number;
+  environment: string;
   key: EndpointKey;
   method: string;
   path: string;
@@ -83,6 +94,30 @@ type HistoryEntry = {
   idempotencyKey: string;
   result: PlaygroundResult;
 };
+
+function toStored(e: HistoryEntry, scope: string): StoredPlaygroundRequest {
+  const { key, ...rest } = e;
+  return { ...rest, scope, endpointKey: key };
+}
+
+/** Null when the stored row references an endpoint this build no longer has. */
+function fromStored(r: StoredPlaygroundRequest): HistoryEntry | null {
+  if (!ENDPOINTS.some((e) => e.key === r.endpointKey)) return null;
+  return {
+    id: r.id,
+    at: r.at,
+    environment: r.environment,
+    key: r.endpointKey as EndpointKey,
+    method: r.method,
+    path: r.path,
+    status: r.status,
+    durationMs: r.durationMs,
+    note: r.note,
+    body: r.body,
+    idempotencyKey: r.idempotencyKey,
+    result: r.result as PlaygroundResult,
+  };
+}
 
 type Lang = "curl" | "js" | "py";
 type ResponseView = "pretty" | "raw" | "headers";
@@ -258,20 +293,36 @@ export default function ApiPlayground() {
   const [copied, setCopied] = useState(false);
   const [view, setView] = useState<ResponseView>("pretty");
   const [history, setHistory] = useState<HistoryEntry[]>([]);
+  const [scope, setScope] = useState<string | null>(null);
   const [rate, setRate] = useState<{ limit: number; remaining: number } | null>(null);
   const [elapsedMs, setElapsedMs] = useState(0);
 
   const restoringRef = useRef(false);
-  const historyIdRef = useRef(0);
 
   const endpoint = useMemo(() => ENDPOINTS.find((e) => e.key === active)!, [active]);
 
   useEffect(() => {
     fetch("/api/org", { cache: "no-store" })
       .then((r) => (r.ok ? r.json() : null))
-      .then((o) => setApiAccess(o ? o.apiAccess !== false : false))
+      .then((o) => {
+        setApiAccess(o ? o.apiAccess !== false : false);
+        if (o?.userId && o?.org?.id) setScope(historyScope(o.userId, o.org.id));
+      })
       .catch(() => setApiAccess(false));
   }, []);
+
+  // Load this user+org's persisted history (IndexedDB, pruned to 24h).
+  useEffect(() => {
+    if (!scope) return;
+    let cancelled = false;
+    void listPlaygroundHistory(scope).then((rows) => {
+      if (cancelled) return;
+      setHistory(rows.map(fromStored).filter((e): e is HistoryEntry => e !== null));
+    });
+    return () => {
+      cancelled = true;
+    };
+  }, [scope]);
 
   // Reset the editor to the selected endpoint's example whenever it changes —
   // unless the change came from restoring a history entry, which supplies its
@@ -367,29 +418,29 @@ export default function ApiPlayground() {
         const retry = r.response.headers["retry-after"];
         note = retry ? `rate limited · retry-after ${retry}` : "rate limited";
       }
-      setHistory((prev) =>
-        [
-          {
-            id: ++historyIdRef.current,
-            key: endpoint.key,
-            method: endpoint.method,
-            path: endpoint.path.replace("/api/v1", ""),
-            status: r.response.status,
-            durationMs: r.response.durationMs,
-            note,
-            body,
-            idempotencyKey: idempotencyKey.trim(),
-            result: r,
-          },
-          ...prev,
-        ].slice(0, 20),
-      );
+      const entry: HistoryEntry = {
+        id: newHistoryId(),
+        at: Date.now(),
+        // The proxy always mints a test-environment key for playground runs.
+        environment: "test",
+        key: endpoint.key,
+        method: endpoint.method,
+        path: endpoint.path.replace("/api/v1", ""),
+        status: r.response.status,
+        durationMs: r.response.durationMs,
+        note,
+        body,
+        idempotencyKey: idempotencyKey.trim(),
+        result: r,
+      };
+      setHistory((prev) => [entry, ...prev].slice(0, 50));
+      if (scope) void savePlaygroundRequest(toStored(entry, scope));
     } catch (e) {
       setError((e as Error).message);
     } finally {
       setSending(false);
     }
-  }, [sending, endpoint, body, idempotencyKey]);
+  }, [sending, endpoint, body, idempotencyKey, scope]);
 
   // ⌘↵ / Ctrl+↵ sends from anywhere on the page.
   useEffect(() => {
@@ -412,6 +463,16 @@ export default function ApiPlayground() {
     setIdempotencyKey(h.idempotencyKey);
     setResult(h.result);
     setError(null);
+  };
+
+  const removeEntry = (id: string) => {
+    setHistory((prev) => prev.filter((h) => h.id !== id));
+    if (scope) void deletePlaygroundRequest(scope, id);
+  };
+
+  const clearAll = () => {
+    setHistory([]);
+    if (scope) void clearPlaygroundHistory(scope);
   };
 
   const copySnippet = useCallback(() => {
@@ -543,7 +604,18 @@ export default function ApiPlayground() {
 
           <div className="mt-5 flex items-center justify-between px-4 pb-2">
             <SectionLabel>History</SectionLabel>
-            <span className="text-[11px] text-muted-foreground/60">this session</span>
+            <span className="flex items-center gap-2.5">
+              {history.length > 0 && (
+                <button
+                  type="button"
+                  onClick={clearAll}
+                  className="text-[11px] text-muted-foreground/60 transition-colors hover:text-foreground"
+                >
+                  Clear
+                </button>
+              )}
+              <span className="text-[11px] text-muted-foreground/60">last 24h</span>
+            </span>
           </div>
           <div className="flex min-h-0 flex-col gap-0.5 px-2.5 pb-4 lg:flex-1 lg:overflow-y-auto">
             {history.length === 0 && (
@@ -552,27 +624,38 @@ export default function ApiPlayground() {
               </p>
             )}
             {history.map((h) => (
-              <button
-                key={h.id}
-                type="button"
-                onClick={() => restore(h)}
-                className="flex flex-col gap-1 rounded-lg border border-transparent px-2.5 py-2 text-left transition-colors hover:bg-muted"
-              >
-                <span className="flex items-center gap-1.5">
-                  <span className={cn("font-mono text-[11px] font-bold", statusTextTone(h.status))}>
-                    {h.status}
+              <div key={h.id} className="group relative">
+                <button
+                  type="button"
+                  onClick={() => restore(h)}
+                  className="flex w-full flex-col gap-1 rounded-lg border border-transparent px-2.5 py-2 text-left transition-colors hover:bg-muted"
+                >
+                  <span className="flex items-center gap-1.5">
+                    <span
+                      className={cn("font-mono text-[11px] font-bold", statusTextTone(h.status))}
+                    >
+                      {h.status}
+                    </span>
+                    <span className="font-mono text-xs text-foreground/80">
+                      {h.method} {h.path}
+                    </span>
+                    <span className="ml-auto font-mono text-[11px] text-muted-foreground transition-opacity group-hover:opacity-0">
+                      {fmtDuration(h.durationMs)}
+                    </span>
                   </span>
-                  <span className="font-mono text-xs text-foreground/80">
-                    {h.method} {h.path}
+                  <span className="max-w-[210px] truncate text-[11.5px] text-muted-foreground">
+                    {h.note}
                   </span>
-                  <span className="ml-auto font-mono text-[11px] text-muted-foreground">
-                    {fmtDuration(h.durationMs)}
-                  </span>
-                </span>
-                <span className="max-w-[210px] truncate text-[11.5px] text-muted-foreground">
-                  {h.note}
-                </span>
-              </button>
+                </button>
+                <button
+                  type="button"
+                  onClick={() => removeEntry(h.id)}
+                  aria-label={`Delete ${h.method} ${h.path} from history`}
+                  className="absolute right-1.5 top-1.5 hidden h-5 w-5 items-center justify-center rounded text-muted-foreground/70 transition-colors hover:bg-foreground/10 hover:text-foreground group-hover:flex"
+                >
+                  ×
+                </button>
+              </div>
             ))}
           </div>
         </aside>
