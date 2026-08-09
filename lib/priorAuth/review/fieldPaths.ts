@@ -151,6 +151,8 @@ export const MESSAGES = {
     'This code was found only in sources that are not about the requested procedure.',
   codeCitedAsNonCovered:
     'This code appears in the cited policy only in its non-covered list.',
+  codeRevisionNotRequested:
+    'This code bills a repeat or revision procedure. Nothing in the request describes one — remove it unless this is a reoperation.',
   codeOnlyInBroaderSource:
     'This code comes from a broad guideline covering many procedures. The guideline specific to this request does not list it — verify it applies before submitting.',
 

@@ -73,6 +73,7 @@ const ISSUE_CHIP_LABEL: Record<string, string> = {
   "code-source-out-of-scope": "Out of scope",
   "code-cited-as-non-covered": "Non-covered",
   "code-only-in-broader-source": "Broader source",
+  "code-revision-not-requested": "Revision code",
   "repair-code-backfill": "From guideline",
 };
 
@@ -150,6 +151,8 @@ const SKIP_REASONS: Record<string, string> = {
   "source-procedures-unavailable":
     "the sources could not say which procedures they cover",
   "request-has-no-content-tokens": "the request was too general to match against",
+  "request-not-described":
+    "the request did not describe the procedure being performed",
   "skip-condition-failed": "the check could not determine whether it applied",
 };
 

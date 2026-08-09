@@ -19,6 +19,7 @@ import {
 } from './backfillCodes'
 import type { PartialPriorAuthArtifact } from './artifactSchema'
 import { buildEvidenceIndex } from './review/evidence'
+import { codeApplicabilityCheck } from './review/checks/applicability'
 import { codeGroundingCheck } from './review/checks/grounding'
 import { structuralCompletenessCheck } from './review/checks/structural'
 import { MESSAGES, labelForPointer, sectionIdForPointer } from './review/fieldPaths'
@@ -36,6 +37,7 @@ export type { ToolMessageRecord }
 export const DEFAULT_CHECKS: readonly ArtifactCheck[] = [
   structuralCompletenessCheck,
   codeGroundingCheck,
+  codeApplicabilityCheck,
 ]
 
 /**

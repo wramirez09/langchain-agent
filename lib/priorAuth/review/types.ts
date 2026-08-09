@@ -53,6 +53,10 @@ export const reviewIssueCodeSchema = z.enum([
    */
   'code-only-in-broader-source',
 
+  // --- code applicability ------------------------------------------------
+  /** the descriptor bills a repeat procedure; nothing says this is one */
+  'code-revision-not-requested',
+
   // --- provenance --------------------------------------------------------
   /** a deterministic repair filled this field; not a defect */
   'repair-code-backfill',
