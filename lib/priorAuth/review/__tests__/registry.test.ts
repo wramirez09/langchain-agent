@@ -93,6 +93,44 @@ describe('runChecks — isolation', () => {
     expect(runs[0].status).toBe('skipped')
   })
 
+  it('records a check whose sub-test could not run as partial, keeping its findings', async () => {
+    const { issues, runs } = await runChecks(ctx, [
+      {
+        id: 'half',
+        title: 'half',
+        run: () => [issue()],
+        partialReason: () => 'source-procedures-unavailable',
+      },
+    ])
+    expect(runs[0].status).toBe('partial')
+    expect(runs[0].reason).toBe('source-procedures-unavailable')
+    expect(runs[0].issueCount).toBe(1)
+    expect(issues).toHaveLength(1)
+  })
+
+  it('stays ok when partialReason returns nothing', async () => {
+    const { runs } = await runChecks(ctx, [
+      { id: 'whole', title: 'whole', run: () => [], partialReason: () => undefined },
+    ])
+    expect(runs[0].status).toBe('ok')
+  })
+
+  it('keeps a completed check ok-or-partial when partialReason throws', async () => {
+    const { issues, runs } = await runChecks(ctx, [
+      {
+        id: 'badpartial',
+        title: 'badpartial',
+        run: () => [issue()],
+        partialReason: () => {
+          throw new Error('nope')
+        },
+      },
+    ])
+    expect(runs[0].status).toBe('partial')
+    expect(runs[0].reason).toBe('partial-condition-failed')
+    expect(issues).toHaveLength(1)
+  })
+
   it('supports async checks', async () => {
     const { issues } = await runChecks(ctx, [
       check('async', async () => [issue({ path: 'summary' })]),
@@ -142,18 +180,26 @@ describe('reviewArtifact', () => {
     expect(out.review.issues.filter((i) => i.severity !== 'info')).toEqual([])
   })
 
-  // The golden artifact leaves suggestedIcd10 empty, so the backfill fills it
-  // from the matching guideline. That is a repair, not a defect — but the
-  // reader is still told the list came from retrieval rather than the agent.
+  // An empty Relevant Codes list is filled from the matching guideline. That is
+  // a repair, not a defect — but the reader is still told the list came from
+  // retrieval rather than the agent.
   it('records a deterministic repair as info-level provenance', async () => {
-    const out = await reviewArtifact(makeArtifact(), evidence, { mode: 'on' })
+    const a = makeArtifact()
+    a.relevantCodes = { ...a.relevantCodes, icd10: [] }
+
+    const out = await reviewArtifact(a, evidence, { mode: 'on' })
     const repairs = out.review.issues.filter((i) => i.code === 'repair-code-backfill')
     expect(repairs.length).toBeGreaterThan(0)
     expect(repairs.every((r) => r.severity === 'info')).toBe(true)
-    expect(out.review.repairs.map((r) => r.path)).toContain(
-      'requestOverview.suggestedIcd10',
-    )
-    expect(out.filled).toContain('requestOverview.suggestedIcd10')
+    expect(out.review.repairs.map((r) => r.path)).toContain('relevantCodes.icd10')
+    expect(out.filled).toContain('relevantCodes.icd10')
+  })
+
+  // The "Likely options" lists are never filled, so an artifact that leaves
+  // them empty is repaired nowhere and reported as nothing.
+  it('leaves the Likely-options lists to the agent', async () => {
+    const out = await reviewArtifact(makeArtifact(), evidence, { mode: 'on' })
+    expect(out.filled.some((f) => f.startsWith('requestOverview.'))).toBe(false)
   })
 
   it('surfaces a dropped section', async () => {

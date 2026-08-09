@@ -121,19 +121,24 @@ describe("backfillArtifactCodes", () => {
     relevantCodes: { cpt: [], icd10: [] },
   });
 
-  it("fills every empty code list (the reported defect)", () => {
+  it("fills the empty Relevant Codes lists (the reported defect)", () => {
     const { artifact, filled } = backfillArtifactCodes(base(), codes);
 
-    expect(filled).toEqual([
-      "relevantCodes.cpt",
-      "relevantCodes.icd10",
-      "requestOverview.suggestedCpt",
-      "requestOverview.suggestedIcd10",
-    ]);
+    expect(filled).toEqual(["relevantCodes.cpt", "relevantCodes.icd10"]);
     expect(artifact.relevantCodes?.cpt).toEqual(codes.cpt);
     expect(artifact.relevantCodes?.icd10).toEqual(codes.icd10);
-    expect(artifact.requestOverview?.suggestedCpt).toEqual(codes.cpt);
-    expect(artifact.requestOverview?.suggestedIcd10).toEqual(codes.icd10);
+  });
+
+  it("never fills the Likely-options lists", () => {
+    // The retrieved array is everything the document mentions; the agent's own
+    // lists are scoped. Filling one from the other puts two contradictory code
+    // lists in the same report.
+    const { artifact, filled } = backfillArtifactCodes(base(), codes);
+
+    expect(artifact.requestOverview?.suggestedCpt).toBeUndefined();
+    expect(artifact.requestOverview?.suggestedIcd10).toBeUndefined();
+    expect(artifact.requestOverview?.suggestedCodesNote).toBeUndefined();
+    expect(filled.some((f) => f.startsWith("requestOverview."))).toBe(false);
   });
 
   it("never overwrites codes the model did supply", () => {
@@ -151,16 +156,14 @@ describe("backfillArtifactCodes", () => {
     expect(result.filled).toContain("relevantCodes.icd10");
   });
 
-  it("leaves the user's own codes alone and skips suggestions when they exist", () => {
+  it("leaves the user's own request codes untouched", () => {
     const artifact = base();
     artifact.requestOverview!.cpt = [{ code: "63045", label: "User supplied" }];
-    const { artifact: next, filled } = backfillArtifactCodes(artifact, codes);
+    const { artifact: next } = backfillArtifactCodes(artifact, codes);
 
     expect(next.requestOverview?.cpt).toEqual([
       { code: "63045", label: "User supplied" },
     ]);
-    expect(next.requestOverview?.suggestedCpt).toBeUndefined();
-    expect(filled).toContain("requestOverview.suggestedIcd10");
   });
 
   it("marks every filled list as retrieval-derived", () => {
@@ -168,7 +171,6 @@ describe("backfillArtifactCodes", () => {
 
     expect(artifact.relevantCodes?.cptNote).toBe(BACKFILL_NOTE);
     expect(artifact.relevantCodes?.icd10Note).toBe(BACKFILL_NOTE);
-    expect(artifact.requestOverview?.suggestedCodesNote).toBe(BACKFILL_NOTE);
   });
 
   it("replaces a contradicting note but keeps a legitimate one", () => {
@@ -218,13 +220,12 @@ describe("backfillArtifactCodes", () => {
     expect(result.skipped).toBe("source-does-not-match-request");
   });
 
-  it("builds the sections it fills when only one of them exists", () => {
+  it("builds the Relevant Codes section when the artifact lacks one", () => {
     const { artifact } = backfillArtifactCodes(
       { requestOverview: { treatment: "cervical laminectomy" } },
       codes,
     );
     expect(artifact.relevantCodes?.cpt).toEqual(codes.cpt);
-    expect(artifact.requestOverview?.suggestedCpt).toEqual(codes.cpt);
   });
 });
 

@@ -29,6 +29,12 @@ export interface ArtifactCheck {
   title: string
   /** return a reason to skip; undefined to run */
   skipReason?: (ctx: ReviewContext) => string | undefined
+  /**
+   * Return a reason when the check ran but one of its tests could not, so the
+   * run is recorded as `partial` rather than `ok`. A check that reports `ok`
+   * asserts it looked for everything it knows how to look for.
+   */
+  partialReason?: (ctx: ReviewContext) => string | undefined
   run: (ctx: ReviewContext) => ReviewIssue[] | Promise<ReviewIssue[]>
 }
 
@@ -89,7 +95,22 @@ export async function runChecks(
       const list = Array.isArray(found) ? found : []
       issues.push(...list)
       timings[check.id] = Date.now() - started
-      runs.push({ id: check.id, status: 'ok', issueCount: list.length })
+
+      // Evaluated after the run, and never allowed to turn a completed check
+      // into a failure: a throwing `partialReason` costs the reason, not the
+      // findings.
+      let partial: string | undefined
+      try {
+        partial = check.partialReason?.(ctx)
+      } catch {
+        partial = 'partial-condition-failed'
+      }
+
+      runs.push(
+        partial
+          ? { id: check.id, status: 'partial', reason: partial, issueCount: list.length }
+          : { id: check.id, status: 'ok', issueCount: list.length },
+      )
     } catch (e) {
       // A check that throws contributes nothing rather than partial findings —
       // half a check's opinion is not an opinion.

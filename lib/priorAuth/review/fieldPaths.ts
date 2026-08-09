@@ -151,6 +151,8 @@ export const MESSAGES = {
     'This code was found only in sources that are not about the requested procedure.',
   codeCitedAsNonCovered:
     'This code appears in the cited policy only in its non-covered list.',
+  codeOnlyInBroaderSource:
+    'This code comes from a broad guideline covering many procedures. The guideline specific to this request does not list it — verify it applies before submitting.',
 
   repairCodeBackfill: 'Filled in from the retrieved guideline because it was empty.',
 } as const

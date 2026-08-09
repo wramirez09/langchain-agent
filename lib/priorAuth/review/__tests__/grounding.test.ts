@@ -232,3 +232,123 @@ describe('code grounding — scoping', () => {
     expect(run(a, noProcedures).issues[0].code).toBe('code-not-in-evidence')
   })
 })
+
+/**
+ * Modelled on the measured defect: asked for a coronary calcium score, the
+ * agent returns 75571 (which the CAC policy lists) plus S8092, which only the
+ * broad "Cardiac Imaging" catalogue carries. The catalogue genuinely covers CAC
+ * among its fourteen procedures, so scoping passes it honestly — specificity is
+ * the only test that can catch this.
+ */
+describe('code grounding — specificity', () => {
+  const CATALOGUE_PROCEDURES = [
+    'coronary artery calcium scoring',
+    'cardiac CT angiography',
+    'cardiac MRI',
+    'PET myocardial imaging',
+    'myocardial perfusion imaging',
+    'echocardiography',
+    'FFR-CT',
+    'stress cardiac MRI',
+    'metabolic PET',
+    'cardiac blood pool imaging',
+    'MUGA scan',
+    'first-pass radionuclide ventriculography',
+    'infarct imaging',
+    'transthoracic echocardiography',
+  ]
+
+  const cacRequest = (cpt: string[]) => {
+    const a = makeArtifact()
+    a.requestOverview = {
+      ...a.requestOverview,
+      treatment: 'Coronary artery calcium scoring by non-contrast cardiac CT',
+      diagnosis: 'Hyperlipidemia',
+      cpt: [],
+      icd10: [],
+      suggestedCpt: [],
+      suggestedIcd10: [],
+    }
+    a.relevantCodes = { cpt: cpt.map((c) => ({ code: c, label: c })), icd10: [] }
+    return a
+  }
+
+  const focused = (cptCodes = ['75571']) =>
+    commercialMatch({
+      id: 'cac',
+      title: 'Coronary Artery Calcium Scoring',
+      score: 0.95,
+      procedures: ['coronary artery calcium scoring', 'CAC scoring', 'calcium score CT'],
+      cptCodes,
+      icd10Codes: [],
+    })
+
+  const catalogue = () =>
+    commercialMatch({
+      id: 'cardiac-imaging',
+      title: 'Cardiac Imaging',
+      score: 0.6,
+      procedures: CATALOGUE_PROCEDURES,
+      cptCodes: ['75571', 'S8092'],
+      icd10Codes: [],
+    })
+
+  it('flags a code carried only by the catalogue', () => {
+    const ev = buildEvidenceIndex([commercialOutput([focused(), catalogue()])])
+    const { issues } = run(cacRequest(['75571', 'S8092']), ev)
+
+    const flagged = issues.filter((i) => i.code === 'code-only-in-broader-source')
+    expect(flagged).toHaveLength(1)
+    expect(flagged[0].meta?.code).toBe('S8092')
+    expect(flagged[0].path).toBe('relevantCodes.cpt[1].code')
+  })
+
+  it('leaves the code the specific policy does list alone', () => {
+    const ev = buildEvidenceIndex([commercialOutput([focused(), catalogue()])])
+    const { issues } = run(cacRequest(['75571']), ev)
+    expect(issues).toEqual([])
+  })
+
+  it('says nothing when only catalogues were retrieved', () => {
+    // Nothing narrower was available, so the catalogue is the best source there
+    // is — borrowing from it is not a defect.
+    const ev = buildEvidenceIndex([commercialOutput([catalogue()])])
+    const { issues } = run(cacRequest(['75571', 'S8092']), ev)
+    expect(issues.filter((i) => i.code === 'code-only-in-broader-source')).toEqual([])
+  })
+
+  it('says nothing when the specific source carries no codes of that kind', () => {
+    // A CAC policy listing no CPT is no evidence that a catalogue CPT is wrong.
+    const ev = buildEvidenceIndex([commercialOutput([focused([]), catalogue()])])
+    const { issues } = run(cacRequest(['75571', 'S8092']), ev)
+    expect(issues.filter((i) => i.code === 'code-only-in-broader-source')).toEqual([])
+  })
+
+  it('says nothing when the specific source is about a different request', () => {
+    const ev = buildEvidenceIndex([
+      commercialOutput([
+        commercialMatch({
+          id: 'knee',
+          title: 'MRI of the Knee',
+          procedures: ['MRI knee'],
+          cptCodes: ['73721'],
+          icd10Codes: [],
+        }),
+        catalogue(),
+      ]),
+    ])
+    const { issues } = run(cacRequest(['75571', 'S8092']), ev)
+    expect(issues.filter((i) => i.code === 'code-only-in-broader-source')).toEqual([])
+  })
+
+  it('stays silent while procedure lists are unavailable', () => {
+    // Pre-migration: no source knows its procedures, so nothing is comparable.
+    const ev = buildEvidenceIndex([commercialOutput([focused(), catalogue()])])
+    for (const s of ev.sources.values()) {
+      s.proceduresKnown = false
+      s.procedures = []
+    }
+    const { issues } = run(cacRequest(['75571', 'S8092']), ev)
+    expect(issues.filter((i) => i.code === 'code-only-in-broader-source')).toEqual([])
+  })
+})

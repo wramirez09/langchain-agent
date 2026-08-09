@@ -72,6 +72,7 @@ const ISSUE_CHIP_LABEL: Record<string, string> = {
   "code-evidence-unavailable": "Unverified",
   "code-source-out-of-scope": "Out of scope",
   "code-cited-as-non-covered": "Non-covered",
+  "code-only-in-broader-source": "Broader source",
   "repair-code-backfill": "From guideline",
 };
 

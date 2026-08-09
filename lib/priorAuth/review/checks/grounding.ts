@@ -18,6 +18,7 @@ import {
   contentTokens,
   normalizeCode,
   sourceMatchesRequest,
+  MAX_SOURCE_PROCEDURES,
 } from '../../backfillCodes'
 import type { LabeledCode, PartialPriorAuthArtifact } from '../../artifactSchema'
 import { MESSAGES, labelForPointer, sectionIdForPointer } from '../fieldPaths'
@@ -110,6 +111,51 @@ function scopingSkipReason(
   return 'source-procedures-unavailable'
 }
 
+/**
+ * A source is "specific" when its procedure list reads as a synonym set for one
+ * procedure rather than a catalogue of many. Same threshold the backfill gate
+ * uses, and the same measured basis: on the live corpus a focused document
+ * lists 5-8 procedures while the catalogues list 14-30.
+ */
+function isSpecific(procedures: readonly string[]): boolean {
+  return procedures.length > 0 && procedures.length <= MAX_SOURCE_PROCEDURES
+}
+
+/**
+ * The procedure-specific sources that cover this request AND carry codes of the
+ * given kind, keyed by kind.
+ *
+ * Both conditions matter. A specific source that lists no CPT at all is no
+ * evidence that a CPT from a catalogue is wrong — there was no narrower list
+ * that could have carried it.
+ */
+function specificRivals(
+  artifact: PartialPriorAuthArtifact,
+  evidence: EvidenceIndex,
+): { cpt: Set<string>; icd10: Set<string> } {
+  const ov = artifact.requestOverview
+  const kindsBySource = new Map<string, Set<'cpt' | 'icd10'>>()
+  for (const hits of evidence.byCode.values()) {
+    for (const h of hits) {
+      let kinds = kindsBySource.get(h.sourceId)
+      if (!kinds) kindsBySource.set(h.sourceId, (kinds = new Set()))
+      kinds.add(h.kind)
+    }
+  }
+
+  const out = { cpt: new Set<string>(), icd10: new Set<string>() }
+  for (const s of evidence.sources.values()) {
+    if (!s.proceduresKnown || !isSpecific(s.procedures)) continue
+    if (!sourceMatchesRequest(s.title, s.procedures, ov?.treatment, ov?.diagnosis)) {
+      continue
+    }
+    const kinds = kindsBySource.get(s.id)
+    if (kinds?.has('cpt')) out.cpt.add(s.id)
+    if (kinds?.has('icd10')) out.icd10.add(s.id)
+  }
+  return out
+}
+
 export const codeGroundingCheck: ArtifactCheck = {
   id: CHECK_ID,
   title: 'Code grounding and scoping',
@@ -122,12 +168,25 @@ export const codeGroundingCheck: ArtifactCheck = {
     return undefined
   },
 
+  // Membership can still be tested when scoping cannot. Reporting `ok` in that
+  // state would claim the codes were checked against the request, which is the
+  // half that did not run — today it never runs, because the search RPC cannot
+  // return `procedures` until the migration lands.
+  partialReason(ctx: ReviewContext): string | undefined {
+    return scopingSkipReason(ctx.artifact, ctx.evidence)
+  },
+
   run(ctx: ReviewContext): ReviewIssue[] {
     const { artifact, evidence } = ctx
     const out: ReviewIssue[] = []
 
     const scopingSkip = scopingSkipReason(artifact, evidence)
     const ov = artifact.requestOverview
+    // Same precondition as scoping: without procedure lists there is no way to
+    // tell a catalogue from a focused policy.
+    const rivals = scopingSkip
+      ? { cpt: new Set<string>(), icd10: new Set<string>() }
+      : specificRivals(artifact, evidence)
 
     for (const list of checkedLists(artifact)) {
       const kindCount = list.kind === 'cpt' ? evidence.cptCount : evidence.icd10Count
@@ -200,6 +259,27 @@ export const codeGroundingCheck: ArtifactCheck = {
               'warning',
               path,
               MESSAGES.codeSourceOutOfScope,
+              { code },
+            ),
+          )
+          return
+        }
+
+        // In scope, but is it in the RIGHT source? A catalogue that covers the
+        // requested procedure among a dozen others passes the scope test
+        // honestly, so scoping alone cannot catch a code borrowed from it while
+        // the procedure's own policy — also retrieved — omits the code.
+        const rivalsForKind = list.kind === 'cpt' ? rivals.cpt : rivals.icd10
+        if (rivalsForKind.size === 0) return
+
+        const inSpecificSource = hits.some((h) => rivalsForKind.has(h.sourceId))
+        if (!inSpecificSource) {
+          out.push(
+            issue(
+              'code-only-in-broader-source',
+              'warning',
+              path,
+              MESSAGES.codeOnlyInBroaderSource,
               { code },
             ),
           )

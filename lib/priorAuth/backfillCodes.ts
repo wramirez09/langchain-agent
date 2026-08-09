@@ -345,35 +345,22 @@ export function backfillArtifactCodes(
     filled.push("relevantCodes.icd10");
   }
 
-  const nextOverview = { ...overview };
-  if (
-    codes.cpt.length > 0 &&
-    isEmptyList(overview.cpt) &&
-    isEmptyList(overview.suggestedCpt)
-  ) {
-    nextOverview.suggestedCpt = codes.cpt;
-    filled.push("requestOverview.suggestedCpt");
-  }
-  if (
-    codes.icd10.length > 0 &&
-    isEmptyList(overview.icd10) &&
-    isEmptyList(overview.suggestedIcd10)
-  ) {
-    nextOverview.suggestedIcd10 = codes.icd10;
-    filled.push("requestOverview.suggestedIcd10");
-  }
-  if (nextOverview.suggestedCpt || nextOverview.suggestedIcd10) {
-    if (filled.some((f) => f.startsWith("requestOverview."))) {
-      nextOverview.suggestedCodesNote = noteFor(overview.suggestedCodesNote);
-    }
-  }
+  // `requestOverview.suggestedCpt` / `.suggestedIcd10` are deliberately NOT
+  // filled. The retrieved array is every code the document mentions — 25 CPT
+  // for Cervical Laminectomy, fusion and arthroplasty included — whereas the
+  // agent, when it writes these lists itself, narrows them to the handful that
+  // apply. Filling one empty list from the raw array while the agent's own
+  // scoped codes sit in `relevantCodes` would put two contradictory code lists
+  // in front of the reviewer, manufactured by us. Measured: those two lists
+  // already disagree in roughly a third of runs without any help from here.
+  //
+  // `relevantCodes` is the narrower blast radius: it is the section that
+  // documents what the guideline covers, so the document's own list is the
+  // honest answer there, and it carries BACKFILL_NOTE saying so.
 
   if (filled.length === 0) return { artifact, filled, skipped: "nothing-empty" };
 
   const next: PartialPriorAuthArtifact = { ...artifact };
-  if (artifact.requestOverview || nextOverview.suggestedCpt || nextOverview.suggestedIcd10) {
-    next.requestOverview = nextOverview;
-  }
   if (artifact.relevantCodes || nextRelevant.cpt || nextRelevant.icd10) {
     next.relevantCodes = nextRelevant;
   }

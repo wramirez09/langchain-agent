@@ -46,6 +46,12 @@ export const reviewIssueCodeSchema = z.enum([
   'code-source-out-of-scope',
   /** grounded, but only to a policy's non-covered list */
   'code-cited-as-non-covered',
+  /**
+   * Grounded and in scope, but only to a broad catalog — while a
+   * procedure-specific source covering this same request was also retrieved
+   * and does not list it.
+   */
+  'code-only-in-broader-source',
 
   // --- provenance --------------------------------------------------------
   /** a deterministic repair filled this field; not a defect */
@@ -85,8 +91,13 @@ export const reviewCheckRunSchema = z.object({
    * answer must say so rather than guess. Persisted so the PDF can state, for
    * example, that scoping was not evaluated because the corpus could not supply
    * per-document procedure lists.
+   *
+   * `partial` is the same honesty applied one level down: the check ran, but
+   * one of its tests could not. Without it a half-inert check reports `ok` and
+   * its green tick claims coverage nothing performed — the same way a gate
+   * failing on every request looks exactly like a clean codebase.
    */
-  status: z.enum(['ok', 'skipped', 'error']),
+  status: z.enum(['ok', 'partial', 'skipped', 'error']),
   reason: z.string().optional(),
   issueCount: z.number(),
 })

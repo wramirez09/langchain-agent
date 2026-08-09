@@ -91,7 +91,14 @@ as $function$
 $function$;
 
 -- The dropped function carried an explicit ACL (anon / authenticated /
--- service_role); a freshly created one does not inherit it.
+-- service_role); a freshly created one does not inherit it. `create function`
+-- also grants EXECUTE to PUBLIC by default, which the original did NOT have —
+-- revoke it so a SECURITY DEFINER function stays reachable only by the roles
+-- that held it before.
+revoke execute on function public.search_commercial_guidelines(
+  text, extensions.vector, text[], text[], text, int
+) from public;
+
 grant execute on function public.search_commercial_guidelines(
   text, extensions.vector, text[], text[], text, int
 ) to anon, authenticated, service_role;

@@ -36,9 +36,11 @@ describe('parseArtifactText', () => {
       { code: '63045', label: 'Posterior decompression' },
     ])
     expect(parsed?.relevantCodes?.cptNote).toBe(BACKFILL_NOTE)
-    expect(parsed?.requestOverview?.suggestedIcd10).toEqual([
+    expect(parsed?.relevantCodes?.icd10).toEqual([
       { code: 'M54.2', label: 'Cervicalgia' },
     ])
+    // The patch never touches the agent's own "Likely options" lists.
+    expect(parsed?.requestOverview?.suggestedIcd10).toBeUndefined()
   })
 
   it('leaves an unpatched artifact untouched', () => {
