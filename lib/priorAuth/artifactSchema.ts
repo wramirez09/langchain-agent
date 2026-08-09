@@ -1,4 +1,13 @@
 import { z } from "zod";
+import { reviewSchema, type ArtifactReview } from "./review/types";
+
+export type {
+  ArtifactReview,
+  ReviewIssue,
+  ReviewIssueCode,
+  ReviewSeverity,
+  ReviewCheckRun,
+} from "./review/types";
 
 /**
  * Prior-Authorization readiness artifact.
@@ -77,6 +86,8 @@ export interface RequestOverview {
    */
   suggestedCpt?: LabeledCode[];
   suggestedIcd10?: LabeledCode[];
+  /** caveat under the "Likely options" columns, e.g. code provenance */
+  suggestedCodesNote?: string;
   medicalHistory: string;
   keyFindings: string[];
 }
@@ -147,6 +158,13 @@ export interface PriorAuthArtifact {
   limitations: string[];
   summary: DeterminationSummary;
   disclaimer: string;
+  /**
+   * Deterministic validation findings attached server-side before delivery.
+   * Optional and always absent on messages produced before the review gate
+   * shipped — saved queries are re-validated against this schema on load, so a
+   * required field here would invalidate every historical row.
+   */
+  review?: ArtifactReview;
 }
 
 /**
@@ -205,6 +223,7 @@ export const priorAuthArtifactSchema = z.object({
     icd10: z.array(labeledCodeSchema),
     suggestedCpt: z.array(labeledCodeSchema).optional(),
     suggestedIcd10: z.array(labeledCodeSchema).optional(),
+    suggestedCodesNote: z.string().optional(),
     medicalHistory: z.string(),
     keyFindings: z.array(z.string()),
   }),
@@ -243,7 +262,24 @@ export const priorAuthArtifactSchema = z.object({
     missingItems: z.array(z.string()),
   }),
   disclaimer: z.string(),
+  review: reviewSchema.optional(),
 });
+
+/**
+ * The interface above and the zod object above it are two hand-written
+ * descriptions of one shape, and nothing forced them to agree — adding
+ * `suggestedCodesNote` required editing both, and missing one would have been
+ * silent. This fails `tsc` the moment they diverge.
+ *
+ * Inverting to `z.infer` as the single source is the real fix, but it collides
+ * with `DeepPartial` and belongs in its own change.
+ */
+type Equals<A, B> =
+  (<T>() => T extends A ? 1 : 2) extends <T>() => T extends B ? 1 : 2 ? true : false;
+type Assert<T extends true> = T;
+export type _SchemaMatchesInterface = Assert<
+  Equals<z.infer<typeof priorAuthArtifactSchema>, PriorAuthArtifact>
+>;
 
 /** Lightweight discriminator check (cheaper than full Zod parse). */
 export function isPriorAuthArtifact(v: unknown): v is PriorAuthArtifact {

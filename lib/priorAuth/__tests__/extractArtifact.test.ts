@@ -3,14 +3,56 @@ import {
   extractArtifact,
   looksLikeArtifact,
   messageText,
+  parseArtifactText,
 } from '../extractArtifact'
 import { ARTIFACT_JSON_EXAMPLE } from '../artifactSchema'
+import { encodeCodePatch, BACKFILL_NOTE } from '../backfillCodes'
 
 const assistant = (content: string, extra?: Partial<Message>): Message =>
   ({ id: 'a1', role: 'assistant', content, ...extra }) as Message
 
 const user = (content: string): Message =>
   ({ id: 'u1', role: 'user', content }) as Message
+
+describe('parseArtifactText', () => {
+  const patch = encodeCodePatch({
+    cpt: [{ code: '63045', label: 'Posterior decompression' }],
+    icd10: [{ code: 'M54.2', label: 'Cervicalgia' }],
+    sourceTitle: 'Cervical Laminectomy',
+    sourceProcedures: ['cervical laminectomy', 'cervical decompression'],
+  })
+
+  const emptied = JSON.stringify({
+    kind: 'prior-auth-summary',
+    schemaVersion: 1,
+    requestOverview: { treatment: 'C2-C5 laminectomy', cpt: [], icd10: [] },
+    relevantCodes: { cpt: [], icd10: [], cptNote: 'No procedure codes were returned.' },
+  })
+
+  it('merges a trailing code patch into the artifact', () => {
+    const parsed = parseArtifactText(emptied + patch)
+
+    expect(parsed?.relevantCodes?.cpt).toEqual([
+      { code: '63045', label: 'Posterior decompression' },
+    ])
+    expect(parsed?.relevantCodes?.cptNote).toBe(BACKFILL_NOTE)
+    expect(parsed?.requestOverview?.suggestedIcd10).toEqual([
+      { code: 'M54.2', label: 'Cervicalgia' },
+    ])
+  })
+
+  it('leaves an unpatched artifact untouched', () => {
+    const parsed = parseArtifactText(ARTIFACT_JSON_EXAMPLE)
+    expect(parsed?.relevantCodes?.cpt?.length).toBe(3)
+  })
+
+  it('still renders a mid-stream artifact whose patch has not arrived', () => {
+    const truncated = emptied.slice(0, emptied.length - 20)
+    expect(parseArtifactText(truncated)?.kind).toBe('prior-auth-summary')
+    expect(parseArtifactText('')).toBeNull()
+    expect(parseArtifactText(null)).toBeNull()
+  })
+})
 
 describe('looksLikeArtifact', () => {
   it('is true for artifact JSON', () => {

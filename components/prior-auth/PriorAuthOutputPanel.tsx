@@ -8,6 +8,13 @@ import {
   looksLikeArtifact,
 } from "@/components/prior-auth/artifact/PriorAuthArtifact";
 import { cn } from "@/utils/cn";
+import { AgentProgressPanel } from "@/components/AgentProgressPanel";
+import {
+  latestPhase,
+  stripControlFrames,
+  toolLabel,
+  toolStages,
+} from "@/lib/priorAuth/streamFrames";
 
 interface PriorAuthOutputPanelProps {
   messages: Message[];
@@ -26,14 +33,47 @@ export function PriorAuthOutputPanel({
 }: PriorAuthOutputPanelProps) {
   const assistantMessages = messages.filter((m) => m.role === "assistant" && m.content);
 
-  if (assistantMessages.length === 0) {
+  // The server withholds the report until it has been checked, so for most of
+  // a run there is nothing to render but progress. Reading it out of the
+  // control frames is the only feedback this panel has — before buffering, the
+  // report painting itself was the progress indicator.
+  const latest = assistantMessages[assistantMessages.length - 1];
+  const { body: latestBody, frames } = stripControlFrames(latest?.content ?? "");
+  const stages = toolStages(frames).map((s) => ({
+    tool: s.name,
+    label: toolLabel(s.name),
+    status: s.status,
+  }));
+  const reviewing = latestPhase(frames) === "reviewing";
+
+  if (assistantMessages.length === 0 || (isProcessing && !latestBody)) {
     return (
       <div className="h-full overflow-y-auto px-4 py-4">
-        <div className="text-center py-12">
-          <p className="text-sm text-gray-500">
-            No output yet. Fill in the form and click &quot;Generate Authorization&quot; to get started.
-          </p>
-        </div>
+        {isProcessing ? (
+          <div className="pt-6">
+            <AgentProgressPanel
+              isLoading
+              stages={stages}
+              messages={
+                reviewing
+                  ? [
+                      {
+                        text: "Validating results…",
+                        type: "info" as const,
+                        tool: stages[stages.length - 1]?.tool,
+                      },
+                    ]
+                  : []
+              }
+            />
+          </div>
+        ) : (
+          <div className="text-center py-12">
+            <p className="text-sm text-gray-500">
+              No output yet. Fill in the form and click &quot;Generate Authorization&quot; to get started.
+            </p>
+          </div>
+        )}
       </div>
     );
   }
@@ -41,8 +81,8 @@ export function PriorAuthOutputPanel({
   // The Output tab shows the latest report as a full-width document with the
   // sticky left-side navigation. Earlier messages (and any non-artifact text)
   // fall back to the standard bubble renderer.
-  const last = assistantMessages[assistantMessages.length - 1];
-  const lastIsArtifact = looksLikeArtifact(last.content);
+  const last = latest;
+  const lastIsArtifact = looksLikeArtifact(latestBody);
 
   return (
     <div className="h-full overflow-y-auto bg-[#f4f6fb] px-4 py-6 sm:px-6">

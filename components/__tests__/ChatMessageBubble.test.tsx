@@ -93,3 +93,43 @@ describe('ChatMessageBubble', () => {
     )
   })
 })
+
+describe('ChatMessageBubble — control frames', () => {
+  const { encodeFrame } = require('@/lib/priorAuth/streamFrames')
+
+  // The text stream has no side channel, so progress frames travel inline with
+  // the answer. They must never reach the reader.
+  it('strips progress frames from a plain markdown answer', () => {
+    render(
+      <ChatMessageBubble
+        message={{
+          id: '1',
+          role: 'assistant',
+          content:
+            encodeFrame({ t: 'tool', name: 'search', status: 'done' }) +
+            'Here is the answer.',
+        } as any}
+        sources={[]}
+      />
+    )
+    expect(screen.getByText('Here is the answer.')).toBeInTheDocument()
+    expect(document.body.textContent).not.toContain('␞')
+    expect(document.body.textContent).not.toContain('"t":"tool"')
+  })
+
+  it('shows a review label while the answer is being checked', () => {
+    render(
+      <ChatMessageBubble
+        message={{
+          id: '1',
+          role: 'assistant',
+          content: encodeFrame({ t: 'phase', v: 'reviewing' }),
+        } as any}
+        sources={[]}
+        isLastMessage
+        isLoading
+      />
+    )
+    expect(screen.getByText('Validating results…')).toBeInTheDocument()
+  })
+})

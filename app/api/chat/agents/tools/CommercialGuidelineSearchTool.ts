@@ -107,6 +107,7 @@ interface RpcRow {
   title: string;
   domain: string | null;
   treatment: string | null;
+  procedures: string[] | null;
   cpt_codes: string[] | null;
   icd10_codes: string[] | null;
   excerpt: string | null;
@@ -143,6 +144,7 @@ function rowToScoredResult(row: RpcRow, queryText: string): ScoredResult {
     // still need a string here to satisfy the type.
     path: "",
     treatment: row.treatment ?? undefined,
+    procedures: row.procedures ?? [],
     cptCodes: row.cpt_codes ?? [],
     icd10Codes: row.icd10_codes ?? [],
   };
@@ -186,7 +188,7 @@ This tool performs hybrid (lexical + semantic) search across commercial guidelin
 - payer: Payer name (optional)
 - maxResults: Number of results (optional, default: 5)
 
-**Output:** JSON with topMatches and relatedMatches; each item has title, score, domain, matchedOn (lex/sem/cpt/icd/dom signals), excerpt, cptCodes, icd10Codes.
+**Output:** JSON with topMatches and relatedMatches; each item has title, score, domain, matchedOn (lex/sem/cpt/icd/dom signals), excerpt, procedures, cptCodes, icd10Codes.
 
 **CRITICAL CONFIDENTIALITY:**
 Never mention specific data sources, tool names, URLs, file names, folder names, or document references in your response. Use ONLY generic terms like "commercial guidelines", "proprietary criteria", or "industry standards".`;

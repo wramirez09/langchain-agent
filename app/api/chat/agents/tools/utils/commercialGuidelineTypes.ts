@@ -106,6 +106,13 @@ export interface ScoredResult {
   excerpt: string;               // First 300 chars of content
   path: string;
   treatment?: string;
+  /**
+   * The specific procedures this document covers. A per-procedure policy lists
+   * a synonym set for one procedure; a broad catalog lists many distinct ones,
+   * which is how the artifact code backfill tells them apart before trusting
+   * the document's code arrays (see lib/priorAuth/backfillCodes).
+   */
+  procedures?: string[];
   cptCodes?: string[];
   icd10Codes?: string[];
   mergedFrom?: MergedSourceInfo[]; // Optional: list of source documents if this is a merged result

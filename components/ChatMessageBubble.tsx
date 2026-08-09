@@ -9,6 +9,7 @@ import {
   looksLikeArtifact,
 } from "@/components/prior-auth/artifact/PriorAuthArtifact";
 import { UserRequestFields } from "@/components/prior-auth/UserRequestFields";
+import { latestPhase, stripControlFrames } from "@/lib/priorAuth/streamFrames";
 
 // Restrict link/image URLs to safe schemes. react-markdown's default
 // already strips javascript:/vbscript:/data:, but we narrow further to
@@ -258,7 +259,19 @@ export function ChatMessageBubble(props: {
   bare?: boolean;
 }) {
   const isUser = props.message.role === "user";
-  const displayContent = props.message.content;
+  // The server interleaves progress frames with the answer (the text stream
+  // has no side channel), so strip them before anything is displayed —
+  // otherwise a plain markdown reply renders the control characters.
+  const raw = props.message.content;
+  const { body: displayContent, frames } = React.useMemo(
+    () => (isUser ? { body: raw, frames: [] } : stripControlFrames(raw)),
+    [raw, isUser],
+  );
+  // A frame arriving one chunk at a time briefly leaves `␞{"t":"to` in the
+  // body. Treating that as content would swap the spinner for a markdown
+  // render of a control character and back again at every tool boundary.
+  const settled = displayContent.trim().replace(/␞.*$/s, "").trim();
+  const phase = latestPhase(frames);
   const [loadingMsgIndex, setLoadingMsgIndex] = useState(0);
 
   // Rotate loading messages every 3 seconds while waiting for initial response
@@ -310,21 +323,25 @@ export function ChatMessageBubble(props: {
             </div>
           )}
           <div className="test-sm max-w-none leading-snug">
-            {props.isLoading && props.isLastMessage && !displayContent ? (
+            {props.isLoading && props.isLastMessage && !settled ? (
               <div className="flex items-center space-x-2">
                 <Loader2 className="h-3.5 w-3.5 animate-spin text-blue-500" strokeWidth={1} />
-                <span className="text-sm">{LOADING_MESSAGES[loadingMsgIndex]}</span>
+                <span className="text-sm">
+                  {phase === "reviewing"
+                    ? "Validating results…"
+                    : LOADING_MESSAGES[loadingMsgIndex]}
+                </span>
               </div>
             ) : isUser ? (
               <UserRequestFields content={displayContent} />
-            ) : looksLikeArtifact(props.message.content) ? (
+            ) : looksLikeArtifact(displayContent) ? (
               <PriorAuthArtifact
-                raw={props.message.content}
+                raw={raw}
                 streaming={!!props.isLoading && !!props.isLastMessage}
                 messageId={props.message.id}
               />
             ) : (
-              <MarkdownRenderer content={props.message.content} />
+              <MarkdownRenderer content={displayContent} />
             )}
           </div>
 

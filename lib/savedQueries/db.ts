@@ -1,6 +1,5 @@
 import Dexie, { type Table } from 'dexie'
 import { type Message } from 'ai'
-import { parsePartialJson } from '@/lib/priorAuth/partialJson'
 import {
   isPriorAuthArtifact,
   priorAuthArtifactSchema,
@@ -8,7 +7,11 @@ import {
   type Determination,
   type GuidelineBasis,
 } from '@/lib/priorAuth/artifactSchema'
-import { messageText, extractArtifact } from '@/lib/priorAuth/extractArtifact'
+import {
+  messageText,
+  extractArtifact,
+  parseArtifactText,
+} from '@/lib/priorAuth/extractArtifact'
 
 /**
  * Client-side, PER-USER library of saved prior-auth queries (query + response),
@@ -129,7 +132,7 @@ export function restoredChatMessages(saved: SavedQuery): Message[] {
   for (let i = messages.length - 1; i >= 0; i--) {
     const m = messages[i]
     if (m.role !== 'assistant') continue
-    const parsed = parsePartialJson(m.content ?? '')
+    const parsed = parseArtifactText(m.content)
     if (!priorAuthArtifactSchema.safeParse(parsed).success) {
       messages[i] = { ...m, content: saved.artifactJson }
     }
@@ -194,7 +197,7 @@ export function deriveDisplayMeta(
     .find((m) => m.role === 'assistant' && m.content)
   const firstUser = chatMessages.find((m) => m.role === 'user')
   const artifact = lastAssistant
-    ? parsePartialJson<PriorAuthArtifact>(lastAssistant.content)
+    ? parseArtifactText(lastAssistant.content)
     : null
   const isArtifact = isPriorAuthArtifact(artifact)
 

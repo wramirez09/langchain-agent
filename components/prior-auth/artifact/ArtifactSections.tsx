@@ -16,13 +16,49 @@ import {
   DETERMINATION_TONE,
   GUIDELINE_LABEL,
   POLICY_GROUP_TITLE,
+  REVIEW_SEVERITY_TONE,
+  issueChipLabel,
+  issuesForPath,
   paRequiredPresentation,
   policySourceUrl,
+  reviewBannerSummary,
+  skipReasonLabel,
 } from "@/lib/priorAuth/artifactPresentation";
+import type { ArtifactReview, ReviewIssue } from "@/lib/priorAuth/review/types";
 import { docItemKey } from "@/lib/priorAuth/docChecks";
 import { useOptionalPriorAuthDocChecks } from "@/components/providers/PriorAuthProvider";
 
 type P<T> = DeepPartial<T>;
+
+// ---------------------------------------------------------------------------
+// Review findings
+// ---------------------------------------------------------------------------
+
+/**
+ * The cards take indexed-access props (`PartialPriorAuthArtifact["x"]`), so the
+ * review would otherwise have to be threaded through nine components to reach
+ * the one row it belongs on. Context keeps the prop signatures untouched.
+ *
+ * Defaults to undefined, so a card rendered outside a provider — or an artifact
+ * from before the gate shipped — simply shows nothing.
+ */
+const ReviewContext = React.createContext<ArtifactReview | undefined>(undefined);
+
+export function ArtifactReviewProvider({
+  review,
+  children,
+}: {
+  review?: ArtifactReview;
+  children: React.ReactNode;
+}) {
+  return <ReviewContext.Provider value={review}>{children}</ReviewContext.Provider>;
+}
+
+/** Findings on a path or anything under it. */
+function useIssues(path?: string): ReviewIssue[] {
+  const review = React.useContext(ReviewContext);
+  return path ? issuesForPath(review, path) : [];
+}
 
 // Design tokens (from the NoteDoctor design handoff) as exact Tailwind
 // arbitrary values so the React render matches the prototype.
@@ -96,6 +132,52 @@ function StatusPill({
       <span className={cn("h-[7px] w-[7px] rounded-full", DOT_TONES[tone])} />
       {children}
     </span>
+  );
+}
+
+/**
+ * Marks a specific value the review had something to say about. Generalized
+ * from CritTag below, which was built for criterion statuses and never wired
+ * up; both now share one implementation.
+ */
+function IssueChip({
+  tone,
+  label,
+  title,
+}: {
+  tone: Tone;
+  label: string;
+  title?: string;
+}) {
+  return (
+    <span
+      title={title}
+      className={cn(
+        "ml-1.5 inline-flex items-center gap-1 whitespace-nowrap rounded-full border px-2 py-px align-middle text-[11px] font-semibold",
+        PILL_TONES[tone],
+      )}
+    >
+      <span className={cn("h-[5px] w-[5px] rounded-full", DOT_TONES[tone])} />
+      {label}
+    </span>
+  );
+}
+
+/** All findings for a path, as chips. Renders nothing when there are none. */
+function IssueChips({ path }: { path?: string }) {
+  const issues = useIssues(path);
+  if (issues.length === 0) return null;
+  return (
+    <>
+      {issues.map((issue, i) => (
+        <IssueChip
+          key={`${issue.code}-${i}`}
+          tone={REVIEW_SEVERITY_TONE[issue.severity]}
+          label={issueChipLabel(issue)}
+          title={issue.message}
+        />
+      ))}
+    </>
   );
 }
 
@@ -233,7 +315,88 @@ export function Header({ data }: { data: PartialPriorAuthArtifact }) {
           {data.fallbackNotice}
         </p>
       ) : null}
+      <ReviewBanner review={data.review as ArtifactReview | undefined} />
     </header>
+  );
+}
+
+/**
+ * What the automated checks found, summarised at the top of the report.
+ *
+ * Deliberately built from the same amber box as `fallbackNotice` above — it is
+ * the only warning-shaped element the document has, and a second visual
+ * language for "pay attention to this" would dilute both. Collapsed by
+ * default; each finding links to the section that contains it.
+ */
+export function ReviewBanner({ review }: { review?: ArtifactReview }) {
+  const [open, setOpen] = React.useState(false);
+  const summary = reviewBannerSummary(review);
+  if (!summary || !review) return null;
+
+  if (summary.clean) {
+    return (
+      <p className="mt-2.5 inline-flex items-center gap-1.5 rounded-md border border-[#bbf0cb] bg-[#edfcf2] px-2.5 py-1.5 text-xs font-medium text-[#15803d]">
+        <span className="h-[6px] w-[6px] rounded-full bg-[#15803d]" />
+        {summary.headline}
+      </p>
+    );
+  }
+
+  const tone = PILL_TONES[summary.tone];
+  const unrun = review.checks.filter((c) => c.status !== "ok");
+
+  return (
+    <div className={cn("mt-2.5 rounded-md border px-2.5 py-1.5 text-xs", tone)}>
+      <button
+        type="button"
+        onClick={() => setOpen((v) => !v)}
+        className="flex w-full items-center gap-1.5 text-left font-semibold"
+        aria-expanded={open}
+      >
+        <span className={cn("h-[6px] w-[6px] rounded-full", DOT_TONES[summary.tone])} />
+        {summary.headline}
+        {summary.counts.info > 0 ? (
+          <span className="font-normal opacity-70">
+            · {summary.counts.info} note{summary.counts.info === 1 ? "" : "s"}
+          </span>
+        ) : null}
+        <span className="ml-auto font-normal opacity-70">
+          {open ? "Hide" : "Show"}
+        </span>
+      </button>
+
+      {open ? (
+        <ul className="mt-2 flex flex-col gap-1.5 border-t border-current/20 pt-2">
+          {review.issues.map((issue, i) => (
+            <li key={`${issue.path}-${i}`} className="leading-[1.5]">
+              <a
+                href={issue.sectionId ? `#${issue.sectionId}` : undefined}
+                className={cn(
+                  "font-semibold",
+                  issue.sectionId && "underline underline-offset-2",
+                )}
+              >
+                {issue.label}
+              </a>
+              <span className="opacity-80"> — {issue.message}</span>
+            </li>
+          ))}
+          {review.omittedCount ? (
+            <li className="opacity-70">
+              …and {review.omittedCount} more not shown.
+            </li>
+          ) : null}
+          {/* Why a check produced nothing matters as much as what it found. */}
+          {unrun.map((c) => (
+            <li key={c.id} className="leading-[1.5] opacity-80">
+              <span className="font-semibold">Not checked</span> —{" "}
+              {c.id === "code-grounding" ? "code sources" : "report structure"}:{" "}
+              {skipReasonLabel(c.reason)}.
+            </li>
+          ))}
+        </ul>
+      ) : null}
+    </div>
   );
 }
 
@@ -241,7 +404,15 @@ export function Header({ data }: { data: PartialPriorAuthArtifact }) {
 // 01 Request Overview
 // ---------------------------------------------------------------------------
 
-function OptCol({ heading, codes }: { heading: string; codes?: P<LabeledCode>[] }) {
+function OptCol({
+  heading,
+  codes,
+  basePath,
+}: {
+  heading: string;
+  codes?: P<LabeledCode>[];
+  basePath?: string;
+}) {
   const list = (codes ?? []).filter(Boolean);
   if (list.length === 0) return null;
   return (
@@ -254,7 +425,10 @@ function OptCol({ heading, codes }: { heading: string; codes?: P<LabeledCode>[] 
             className="grid grid-cols-[auto_1fr] gap-2.5 text-[14px] leading-[1.5]"
           >
             <CodeChip code={c?.code} />
-            <span className="text-[#283142]">{c?.label}</span>
+            <span className="text-[#283142]">
+              {c?.label}
+              {basePath ? <IssueChips path={`${basePath}[${i}]`} /> : null}
+            </span>
           </li>
         ))}
       </ul>
@@ -296,9 +470,22 @@ export function RequestOverviewCard({
         <>
           <hr className="my-6 h-px border-0 bg-[#edf0f6]" />
           <div className="grid grid-cols-1 gap-x-8 gap-y-6 sm:grid-cols-2">
-            <OptCol heading="Likely CPT / HCPCS options" codes={ov.suggestedCpt} />
-            <OptCol heading="Likely ICD-10 options" codes={ov.suggestedIcd10} />
+            <OptCol
+              heading="Likely CPT / HCPCS options"
+              codes={ov.suggestedCpt}
+              basePath="requestOverview.suggestedCpt"
+            />
+            <OptCol
+              heading="Likely ICD-10 options"
+              codes={ov.suggestedIcd10}
+              basePath="requestOverview.suggestedIcd10"
+            />
           </div>
+          {ov.suggestedCodesNote ? (
+            <p className="mt-4 text-[13px] italic leading-[1.55] text-[#64748b]">
+              {ov.suggestedCodesNote}
+            </p>
+          ) : null}
         </>
       ) : null}
     </SectionCard>
@@ -579,7 +766,14 @@ export function CriteriaCard({
 // 05 Relevant Codes
 // ---------------------------------------------------------------------------
 
-function CodeTable({ codes }: { codes?: P<LabeledCode>[] }) {
+function CodeTable({
+  codes,
+  basePath,
+}: {
+  codes?: P<LabeledCode>[];
+  /** artifact path of this list, so findings can be matched per row */
+  basePath?: string;
+}) {
   const list = (codes ?? []).filter(Boolean);
   if (list.length === 0)
     return <span className="text-[14px] text-[#94a3b8]">Not provided</span>;
@@ -604,6 +798,7 @@ function CodeTable({ codes }: { codes?: P<LabeledCode>[] }) {
             <td className="border-b border-[#edf0f6] py-[11px] pr-3.5 align-top leading-[1.5] text-[#283142]">
               {c?.label}
               {c?.note ? <span className="text-[#94a3b8]"> ({c.note})</span> : null}
+              {basePath ? <IssueChips path={`${basePath}[${i}]`} /> : null}
             </td>
           </tr>
         ))}
@@ -627,7 +822,7 @@ export function CodesCard({
       <div className="mb-2.5 text-[12px] font-semibold uppercase tracking-[0.04em] text-[#64748b]">
         ICD-10
       </div>
-      <CodeTable codes={codes.icd10} />
+      <CodeTable codes={codes.icd10} basePath="relevantCodes.icd10" />
       {codes.icd10Note ? (
         <p className="mt-3 text-[13px] italic leading-[1.55] text-[#64748b]">
           {codes.icd10Note}
@@ -636,7 +831,7 @@ export function CodesCard({
       <div className="mb-2.5 mt-[26px] text-[12px] font-semibold uppercase tracking-[0.04em] text-[#64748b]">
         CPT / HCPCS
       </div>
-      <CodeTable codes={codes.cpt} />
+      <CodeTable codes={codes.cpt} basePath="relevantCodes.cpt" />
       {codes.cptNote ? (
         <p className="mt-3 text-[13px] italic leading-[1.55] text-[#64748b]">
           {codes.cptNote}

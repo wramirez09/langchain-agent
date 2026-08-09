@@ -5,13 +5,26 @@ import {
   priorAuthArtifactSchema,
   type PartialPriorAuthArtifact,
 } from "@/lib/priorAuth/artifactSchema";
+import {
+  backfillArtifactCodes,
+  splitCodePatch,
+} from "@/lib/priorAuth/backfillCodes";
+import { stripControlFrames } from "@/lib/priorAuth/streamFrames";
 
 /**
  * Cheap heuristic to decide whether an assistant message is (or is becoming) a
  * PriorAuthArtifact JSON object vs. a plain text/markdown message.
+ *
+ * Strips control frames first. The server emits progress frames *ahead* of the
+ * answer, so a live message starts with `␞…` rather than `{`, and every caller
+ * that skipped this step would conclude a perfectly good report was plain
+ * markdown. Doing it here rather than at each call site is what keeps that from
+ * being a mistake anyone can make again.
  */
 export function looksLikeArtifact(content: string): boolean {
-  const t = content.trimStart();
+  if (typeof content !== "string") return false;
+  const t = stripControlFrames(content).body.trimStart();
+  if (!t) return false;
   if (!t.startsWith("{") && !t.startsWith("```")) return false;
   return (
     t.includes(ARTIFACT_KIND) ||
@@ -44,6 +57,37 @@ export function messageText(message: Message): string {
   return partsText.length > contentText.length ? partsText : contentText;
 }
 
+/**
+ * The single text → artifact parse. Every surface goes through it — streaming
+ * renderer, PDF export, saved queries, history replay — so they cannot disagree
+ * about what a stored message means. Use this instead of `parsePartialJson`
+ * wherever an assistant message is turned into an artifact.
+ *
+ * Four steps, in an order that matters:
+ *
+ *  1. strip control frames — must be first, because `parsePartialJson` slices
+ *     to the first `{` and would otherwise parse a progress frame *as* the
+ *     artifact, and because `splitCodePatch` looks for the last sentinel and
+ *     cannot cope with several.
+ *  2. split the legacy code-patch frame — no longer emitted, but present on
+ *     every message persisted before the server started buffering. Removing
+ *     this would silently corrupt history.
+ *  3. parse, tolerating a truncated tail mid-stream.
+ *  4. merge the legacy patch when there was one.
+ *
+ * Stays synchronous and pure: this runs inside a React render.
+ */
+export function parseArtifactText(
+  raw: string | undefined | null,
+): PartialPriorAuthArtifact | null {
+  if (!raw) return null;
+  const { body: framed } = stripControlFrames(raw);
+  const { body, codes } = splitCodePatch(framed);
+  const parsed = parsePartialJson<PartialPriorAuthArtifact>(body);
+  if (!parsed || typeof parsed !== "object") return null;
+  return codes ? backfillArtifactCodes(parsed, codes).artifact : parsed;
+}
+
 export interface ExtractedArtifact {
   artifact: PartialPriorAuthArtifact;
   /** id of the assistant message the artifact was parsed from */
@@ -68,8 +112,8 @@ export function extractArtifact(
     const text = messageText(m);
     if (!text || !looksLikeArtifact(text)) return null;
 
-    const parsed = parsePartialJson<PartialPriorAuthArtifact>(text);
-    if (!parsed || typeof parsed !== "object") return null;
+    const parsed = parseArtifactText(text);
+    if (!parsed) return null;
 
     // Accept once the discriminator (or a signature section) has streamed in.
     const isArtifact =

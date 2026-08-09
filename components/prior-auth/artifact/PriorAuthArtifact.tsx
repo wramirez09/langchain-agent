@@ -2,11 +2,13 @@
 
 import React, { useEffect, useRef, useState } from "react";
 import { cn } from "@/utils/cn";
-import { parsePartialJson } from "@/lib/priorAuth/partialJson";
-import type {
-  PartialPriorAuthArtifact,
-  Determination,
-} from "@/lib/priorAuth/artifactSchema";
+import { parseArtifactText } from "@/lib/priorAuth/extractArtifact";
+import type { Determination } from "@/lib/priorAuth/artifactSchema";
+import {
+  ARTIFACT_SECTIONS,
+  has,
+  type ArtifactSectionId,
+} from "@/lib/priorAuth/artifactSections";
 import { ArtifactSkeleton, SectionSkeleton } from "./ArtifactSkeleton";
 import {
   Header,
@@ -20,16 +22,13 @@ import {
   LimitationsCard,
   SummaryCard,
   DisclaimerBlock,
+  ArtifactReviewProvider,
 } from "./ArtifactSections";
+import type { ArtifactReview } from "@/lib/priorAuth/review/types";
 
 // Moved to lib so non-client modules (PDF export) can share it; re-exported
 // here so existing imports keep working.
 export { looksLikeArtifact } from "@/lib/priorAuth/extractArtifact";
-
-function has(v: unknown): boolean {
-  if (Array.isArray(v)) return v.length > 0;
-  return v != null && v !== "";
-}
 
 const DET_SHORT: Record<Determination, string> = {
   meets_criteria: "Meets criteria",
@@ -55,7 +54,7 @@ export function PriorAuthArtifact({
    */
   messageId?: string;
 }) {
-  const data = parsePartialJson<PartialPriorAuthArtifact>(raw);
+  const data = parseArtifactText(raw);
 
   if (!data || typeof data !== "object") {
     return streaming ? <ArtifactSkeleton /> : null;
@@ -63,53 +62,44 @@ export function PriorAuthArtifact({
 
   const summaryDone = has(data.summary) && has(data.summary?.rationale);
 
-  // Build the ordered list of present sections. Numbering is derived from
-  // what's present (stable because the JSON streams top-down in this order).
-  const builders: Array<{ id: string; nav: string; render: (i: number) => React.ReactNode }> = [];
-  const add = (cond: boolean, id: string, nav: string, render: (i: number) => React.ReactNode) => {
-    if (cond) builders.push({ id, nav, render });
+  // Order, ids, and presence conditions come from the shared manifest so the
+  // PDF numbers its sections identically. Numbering is derived from what's
+  // present (stable because the JSON streams top-down in this order).
+  const renderers: Record<ArtifactSectionId, (i: number) => React.ReactNode> = {
+    overview: (i) => <RequestOverviewCard id="overview" index={i} ov={data.requestOverview} />,
+    context: (i) => <ClinicalContextCard id="context" index={i} ov={data.requestOverview} />,
+    authorization: (i) => (
+      <PaRequiredCard
+        id="authorization"
+        index={i}
+        value={data.priorAuthRequired}
+        rationale={data.priorAuthRationale}
+      />
+    ),
+    medicare: (i) => (
+      <MedicarePoliciesCard id="medicare" index={i} policies={data.medicarePolicies} />
+    ),
+    criteria: (i) => (
+      <CriteriaCard id="criteria" index={i} criteria={data.medicalNecessityCriteria} />
+    ),
+    codes: (i) => <CodesCard id="codes" index={i} codes={data.relevantCodes} />,
+    documentation: (i) => (
+      <DocumentationCard
+        id="documentation"
+        index={i}
+        groups={data.requiredDocumentation}
+        messageId={messageId}
+      />
+    ),
+    limitations: (i) => <LimitationsCard id="limitations" index={i} items={data.limitations} />,
+    summary: (i) => <SummaryCard id="summary" index={i} summary={data.summary} />,
   };
 
-  add(has(data.requestOverview), "overview", "Request Overview", (i) => (
-    <RequestOverviewCard id="overview" index={i} ov={data.requestOverview} />
-  ));
-  add(
-    has(data.requestOverview?.medicalHistory) || has(data.requestOverview?.keyFindings),
-    "context",
-    "Clinical Context",
-    (i) => <ClinicalContextCard id="context" index={i} ov={data.requestOverview} />,
-  );
-  add(has(data.priorAuthRequired), "authorization", "Authorization", (i) => (
-    <PaRequiredCard
-      id="authorization"
-      index={i}
-      value={data.priorAuthRequired}
-      rationale={data.priorAuthRationale}
-    />
-  ));
-  add(has(data.medicarePolicies), "medicare", "Medicare Coverage", (i) => (
-    <MedicarePoliciesCard id="medicare" index={i} policies={data.medicarePolicies} />
-  ));
-  add(has(data.medicalNecessityCriteria), "criteria", "Necessity Criteria", (i) => (
-    <CriteriaCard id="criteria" index={i} criteria={data.medicalNecessityCriteria} />
-  ));
-  add(has(data.relevantCodes), "codes", "Relevant Codes", (i) => (
-    <CodesCard id="codes" index={i} codes={data.relevantCodes} />
-  ));
-  add(has(data.requiredDocumentation), "documentation", "Required Docs", (i) => (
-    <DocumentationCard
-      id="documentation"
-      index={i}
-      groups={data.requiredDocumentation}
-      messageId={messageId}
-    />
-  ));
-  add(has(data.limitations), "limitations", "Limitations", (i) => (
-    <LimitationsCard id="limitations" index={i} items={data.limitations} />
-  ));
-  add(has(data.summary), "summary", "Summary", (i) => (
-    <SummaryCard id="summary" index={i} summary={data.summary} />
-  ));
+  const builders = ARTIFACT_SECTIONS.filter((s) => s.present(data)).map((s) => ({
+    id: s.id,
+    nav: s.nav,
+    render: renderers[s.id],
+  }));
 
   const doc = (
     <div className="min-w-0">
@@ -124,13 +114,22 @@ export function PriorAuthArtifact({
     </div>
   );
 
-  if (!withNav) return doc;
-
   const det = data.summary?.determination as Determination | undefined;
-  return (
+  const body = withNav ? (
     <ArtifactWithNav navItems={builders.map((b) => ({ id: b.id, nav: b.nav }))} determination={det}>
       {doc}
     </ArtifactWithNav>
+  ) : (
+    doc
+  );
+
+  // Findings reach the individual cards through context rather than being
+  // threaded down as props — the cards take indexed-access artifact slices, so
+  // adding a review prop to each would touch every signature.
+  return (
+    <ArtifactReviewProvider review={data.review as ArtifactReview | undefined}>
+      {body}
+    </ArtifactReviewProvider>
   );
 }
 

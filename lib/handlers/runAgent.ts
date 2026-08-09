@@ -20,7 +20,21 @@ import { medicarePolicyDetailTool } from "@/app/api/chat/agents/tools/medicarePo
 import { createCommercialGuidelineSearchTool } from "@/app/api/chat/agents/tools/CommercialGuidelineSearchTool";
 import { startCmsWarmup } from "@/app/api/chat/agents/tools/warmup";
 
-import { isPriorAuthArtifact, type PriorAuthArtifact } from "@/lib/priorAuth/artifactSchema";
+import { type PriorAuthArtifact } from "@/lib/priorAuth/artifactSchema";
+import {
+  collectToolMessages,
+  EVIDENCE_TOOLS,
+  type ToolMessageRecord,
+} from "@/lib/priorAuth/backfillCodes";
+import { encodeFrame } from "@/lib/priorAuth/streamFrames";
+import { looksLikeArtifact } from "@/lib/priorAuth/extractArtifact";
+import { finalizeAssistantAnswer } from "./finalizeAnswer";
+
+/**
+ * How long to wait before giving up on reviewing and sending the raw answer.
+ * Chosen to land comfortably inside the routes' maxDuration = 300.
+ */
+const WATCHDOG_MS = 270_000;
 
 import type { AgentJsonResponse, AgentResponseMessage, CallerIdentity, ErrorResponder } from "./types";
 
@@ -212,7 +226,40 @@ export async function runAgent(params: RunAgentParams): Promise<Response> {
           ? JSON.stringify(lastAssistant.content)
           : "";
 
-    if (persistMessages && assistantContent) {
+    // Run the answer through the review gate before it leaves the server: the
+    // deterministic repairs the agent's output needs, plus the completeness and
+    // grounding checks. Non-artifact answers pass through untouched.
+    //
+    // Failing here must cost the caller nothing more than an un-reviewed
+    // answer, so the un-reviewed text is the fallback rather than an error.
+    let finalized;
+    try {
+      finalized = await finalizeAssistantAnswer({
+        text: assistantContent,
+        toolMessages: collectToolMessages(result.messages),
+        userId,
+      });
+    } catch (reviewErr) {
+      console.error("[Agents] Review failed (mobile):", reviewErr);
+      errorTracker.trackError(
+        reviewErr as Error,
+        "artifact review (mobile)",
+        undefined,
+        userId,
+        undefined,
+        "agents-review",
+      );
+      finalized = null;
+    }
+
+    const assistantPayload: string | PriorAuthArtifact =
+      finalized?.payload ?? assistantContent;
+
+    // Persist what we actually returned, so replaying the thread from history
+    // shows the reviewed artifact rather than the original.
+    const persistedContent = finalized?.persistText ?? assistantContent;
+
+    if (persistMessages && persistedContent) {
       const persistUserId = userId;
       waitUntil(
         (async () => {
@@ -221,7 +268,7 @@ export async function runAgent(params: RunAgentParams): Promise<Response> {
               user_id: persistUserId,
               thread_id: threadId,
               role: "assistant",
-              content: assistantContent,
+              content: persistedContent,
               status: "complete",
               is_thread_starter: false,
             });
@@ -239,20 +286,6 @@ export async function runAgent(params: RunAgentParams): Promise<Response> {
         })(),
       );
     }
-
-    // Parse the assistant's final answer into the structured PriorAuth
-    // artifact when it is one — the same typed shape the web client renders —
-    // and fall back to raw text otherwise. Mirrors isPriorAuthArtifact() on
-    // the client.
-    const assistantPayload: string | PriorAuthArtifact = (() => {
-      if (!assistantContent) return "";
-      try {
-        const parsed = JSON.parse(assistantContent);
-        return isPriorAuthArtifact(parsed) ? parsed : assistantContent;
-      } catch {
-        return assistantContent;
-      }
-    })();
 
     const responseMessages: AgentResponseMessage[] = [];
     if (lastUser) {
@@ -302,8 +335,75 @@ export async function runAgent(params: RunAgentParams): Promise<Response> {
       let chunkCount = 0;
       let accumulated = "";
 
+      // Raw output of every evidence-bearing tool call, tagged with the tool
+      // that produced it — the extractor dispatches on the name because the
+      // shapes differ (see lib/priorAuth/review/evidence).
+      const toolMessages: ToolMessageRecord[] = [];
+
+      /**
+       * Writing to a controller that has already been errored or closed
+       * throws. Since every write below happens in a `finally`, an unguarded
+       * throw would skip `controller.close()` and leave the response hanging
+       * open forever — a far worse outcome than a dropped progress frame.
+       */
+      const safeEnqueue = (text: string): boolean => {
+        try {
+          controller.enqueue(encoder.encode(text));
+          return true;
+        } catch {
+          return false;
+        }
+      };
+
+      /**
+       * The answer is withheld until it has been reviewed, so exactly one
+       * flush may ever happen. A second would duplicate the artifact in the
+       * client's message buffer; none at all would deliver an empty response.
+       */
+      let flushed = false;
+      /** exactly what the client received, which may not be what we persist */
+      let sentText = "";
+      const flush = (text: string) => {
+        if (flushed || clientCancelled || !text) return;
+        flushed = true;
+        if (safeEnqueue(text)) sentText = text;
+      };
+
+      // Both routes cap out at maxDuration = 300. Because nothing is sent
+      // until the end now, being killed at the cap would deliver *nothing*
+      // rather than a partial answer. Give up on reviewing before that
+      // happens and send what we have.
+      const watchdog: ReturnType<typeof setTimeout> = setTimeout(() => {
+        if (!flushed && accumulated) {
+          console.warn(`[Agents] Watchdog flush (un-reviewed) for user ${userId}`);
+          flush(accumulated);
+        }
+      }, WATCHDOG_MS);
+
+      // A pending 270s timer keeps the Node event loop alive on its own, which
+      // would hold the function open long after the response is done. It only
+      // ever needs to fire while the stream is still running, so it should not
+      // be a reason for the process to stay up.
+      watchdog.unref?.();
+
       try {
-        for await (const { event, data } of eventStream) {
+        for await (const { event, name, data } of eventStream) {
+          if (event === "on_tool_start" && typeof name === "string") {
+            safeEnqueue(encodeFrame({ t: "tool", name, status: "running" }));
+          }
+          if (event === "on_tool_end" && typeof name === "string") {
+            safeEnqueue(encodeFrame({ t: "tool", name, status: "done" }));
+            if (EVIDENCE_TOOLS.has(name)) {
+              const output = (data as { output?: unknown })?.output;
+              const text =
+                typeof output === "string"
+                  ? output
+                  : typeof (output as { content?: unknown })?.content === "string"
+                    ? ((output as { content: string }).content)
+                    : null;
+              if (text) toolMessages.push({ name, content: text });
+            }
+          }
           if (
             event === "on_chat_model_stream" &&
             typeof data?.chunk?.content === "string" &&
@@ -315,8 +415,10 @@ export async function runAgent(params: RunAgentParams): Promise<Response> {
               console.log(`[Agents] First chunk after ${ttf}s for user ${userId}`);
             }
             chunkCount++;
+            // Accumulate only. The artifact is not sent token-by-token any
+            // more: an answer cannot be checked for completeness until it is
+            // complete, and it cannot be corrected once it has been sent.
             accumulated += data.chunk.content;
-            controller.enqueue(encoder.encode(data.chunk.content));
           }
         }
         streamCompleted = true;
@@ -329,15 +431,68 @@ export async function runAgent(params: RunAgentParams): Promise<Response> {
         console.error(`❌ [Agents] Stream error after ${errorElapsed}s for user ${userId}:`, err);
         controller.error(err);
       } finally {
+        clearTimeout(watchdog);
         if (streamCompleted) meterUsage();
-        if (persistMessages && accumulated) {
+
+        // Un-reviewed text is the fallback for every failure below. A review
+        // that throws must cost the caller a worse answer, never no answer.
+        let outText = accumulated;
+
+        if (streamCompleted && !clientCancelled && accumulated && !flushed) {
+          try {
+            // Only announce a review phase for something reviewable. A plain
+            // markdown answer has nothing to check, and it should reach the
+            // client byte-identical to what the model wrote.
+            if (looksLikeArtifact(accumulated)) {
+              safeEnqueue(encodeFrame({ t: "phase", v: "reviewing" }));
+            }
+            const finalized = await finalizeAssistantAnswer({
+              text: accumulated,
+              toolMessages,
+              userId,
+            });
+            outText = finalized.persistText;
+          } catch (reviewErr) {
+            console.error("[Agents] Review failed (web):", reviewErr);
+            errorTracker.trackError(
+              reviewErr as Error,
+              "artifact review (web)",
+              undefined,
+              userId,
+              undefined,
+              "agents-review",
+            );
+          }
+        }
+
+        flush(outText);
+
+        // If the watchdog already sent a truncated answer, the client is
+        // holding less than `outText`. Persisting the fuller version would make
+        // the on-screen report, the PDF export, and the saved history disagree
+        // with no way to tell which is real — so record what was actually
+        // delivered, and mark it partial.
+        const truncatedDelivery = sentText !== "" && sentText !== outText;
+        if (truncatedDelivery) {
+          console.warn(
+            `[Agents] Delivered a truncated answer to user ${userId}; persisting what was sent`,
+          );
+        }
+        const persistText = truncatedDelivery ? sentText : outText;
+
+        // Persist the reviewed body only — progress frames are transient and
+        // must not end up in history or in a saved query.
+        if (persistMessages && persistText) {
           try {
             await supabaseAdmin.from("chat_messages").insert({
               user_id: userId,
               thread_id: threadId,
               role: "assistant",
-              content: accumulated,
-              status: streamCompleted && !clientCancelled ? "complete" : "partial",
+              content: persistText,
+              status:
+                streamCompleted && !clientCancelled && !truncatedDelivery
+                  ? "complete"
+                  : "partial",
               is_thread_starter: false,
             });
           } catch (persistErr) {
@@ -352,7 +507,14 @@ export async function runAgent(params: RunAgentParams): Promise<Response> {
             );
           }
         }
-        controller.close();
+
+        // Closing an already-errored controller throws; the stream is
+        // finished either way and the caller must not be left hanging.
+        try {
+          controller.close();
+        } catch {
+          /* already closed or errored */
+        }
       }
     },
     cancel(reason) {

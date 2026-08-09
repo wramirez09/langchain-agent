@@ -24,9 +24,21 @@ import {
   DETERMINATION_TONE,
   GUIDELINE_LABEL,
   POLICY_GROUP_TITLE,
+  REVIEW_SEVERITY_TONE,
+  issueChipLabel,
+  issuesForPath,
   paRequiredPresentation,
   policySourceUrl,
+  reviewBannerSummary,
+  skipReasonLabel,
+  unrunChecks,
 } from "@/lib/priorAuth/artifactPresentation";
+import type { ArtifactReview, ReviewIssue } from "@/lib/priorAuth/review/types";
+import {
+  ARTIFACT_SECTIONS,
+  has,
+  type ArtifactSectionId,
+} from "@/lib/priorAuth/artifactSections";
 import { logoBase64 } from "./logo";
 import {
   pdfSectionTitleColor,
@@ -121,6 +133,18 @@ const styles = StyleSheet.create({
     fontSize: 8,
     color: TONE.amber.text,
   },
+  // Same box as fallbackNotice; the tone colours are applied per-render.
+  reviewBanner: {
+    marginTop: 6,
+    borderWidth: 1,
+    borderRadius: 4,
+    paddingVertical: 4,
+    paddingHorizontal: 6,
+  },
+  reviewBannerTitle: { fontSize: 8, fontWeight: 700 },
+  reviewBannerItem: { fontSize: 7.5, marginTop: 2 },
+  issueChip: { fontSize: 7.5, fontWeight: 700 },
+  auditRow: { fontSize: 8, marginTop: 3, color: MUTED },
   card: {
     borderWidth: 1,
     borderColor: CARD_BORDER,
@@ -471,11 +495,6 @@ const styles = StyleSheet.create({
 // Shared primitives
 // ---------------------------------------------------------------------------
 
-function has(v: unknown): boolean {
-  if (Array.isArray(v)) return v.length > 0;
-  return v != null && v !== "";
-}
-
 function Pill({ tone, label }: { tone: Tone; label: string }) {
   const t = TONE[tone];
   return (
@@ -486,6 +505,92 @@ function Pill({ tone, label }: { tone: Tone; label: string }) {
       <View style={[styles.pillDot, { backgroundColor: t.dot }]} />
       <Text style={[styles.pillText, { color: t.text }]}>{label}</Text>
     </View>
+  );
+}
+
+/**
+ * The review summary, mirroring the web banner. Always expanded: paper has no
+ * disclosure control, and a printed report that hides its own caveats is
+ * exactly the failure this whole gate exists to prevent.
+ */
+function ReviewBannerPdf({ review }: { review?: ArtifactReview }) {
+  const summary = reviewBannerSummary(review);
+  if (!summary || !review) return null;
+  const t = TONE[summary.tone];
+
+  return (
+    <View
+      style={[
+        styles.reviewBanner,
+        { backgroundColor: t.bg, borderColor: t.border },
+      ]}
+    >
+      <Text style={[styles.reviewBannerTitle, { color: t.text }]}>
+        {summary.headline}
+      </Text>
+      {review.issues.map((issue, i) => (
+        <Text
+          key={`${issue.path}-${i}`}
+          style={[styles.reviewBannerItem, { color: t.text }]}
+        >
+          • {issue.label} — {issue.message}
+        </Text>
+      ))}
+      {review.omittedCount ? (
+        <Text style={[styles.reviewBannerItem, { color: t.text }]}>
+          • …and {review.omittedCount} more not shown.
+        </Text>
+      ) : null}
+      {unrunChecks(review).map((c) => (
+        <Text key={c.id} style={[styles.reviewBannerItem, { color: t.text }]}>
+          • Not checked — {c.id === "code-grounding" ? "code sources" : "report structure"}
+          : {skipReasonLabel(c.reason)}.
+        </Text>
+      ))}
+    </View>
+  );
+}
+
+/**
+ * What the checks could not evaluate.
+ *
+ * PDF-only, and the reason it exists: this file is the compliance record. "The
+ * scoping check did not run because the sources could not supply procedure
+ * lists" is a materially different statement from "scoping found nothing", and
+ * a reader holding a printout has no server log to consult.
+ */
+function AuditAppendix({ review }: { review?: ArtifactReview }) {
+  const unrun = unrunChecks(review);
+  if (!review || unrun.length === 0) return null;
+
+  return (
+    <SectionCard title="Automated Checks">
+      {review.checks.map((c) => (
+        <Text key={c.id} style={styles.auditRow}>
+          {c.id}: {c.status}
+          {c.reason ? ` (${c.reason})` : ""}
+          {c.status === "ok" ? ` — ${c.issueCount} finding(s)` : ""}
+        </Text>
+      ))}
+    </SectionCard>
+  );
+}
+
+/** Inline marker on a value the automated checks flagged. */
+function IssueChipPdf({ issues }: { issues: ReviewIssue[] }) {
+  if (issues.length === 0) return null;
+  return (
+    <>
+      {issues.map((issue, i) => {
+        const t = TONE[REVIEW_SEVERITY_TONE[issue.severity]];
+        return (
+          <Text key={`${issue.code}-${i}`} style={[styles.issueChip, { color: t.text }]}>
+            {" "}
+            [{issueChipLabel(issue)}]
+          </Text>
+        );
+      })}
+    </>
   );
 }
 
@@ -668,6 +773,7 @@ function PdfTitleBlock({
       {data.fallbackNotice ? (
         <Text style={styles.fallbackNotice}>{data.fallbackNotice}</Text>
       ) : null}
+      <ReviewBannerPdf review={data.review as ArtifactReview | undefined} />
     </View>
   );
 }
@@ -679,9 +785,13 @@ function PdfTitleBlock({
 function OptCol({
   heading,
   codes,
+  review,
+  basePath,
 }: {
   heading: string;
   codes?: P<LabeledCode>[];
+  review?: ArtifactReview;
+  basePath?: string;
 }) {
   const list = (codes ?? []).filter(Boolean);
   if (list.length === 0) return null;
@@ -695,7 +805,12 @@ function OptCol({
           style={{ flexDirection: "row", marginBottom: 5 }}
         >
           <CodeChip code={c?.code} />
-          <Text style={[styles.bulletText, { marginLeft: 6 }]}>{c?.label}</Text>
+          <Text style={[styles.bulletText, { marginLeft: 6 }]}>
+            {c?.label}
+            {basePath ? (
+              <IssueChipPdf issues={issuesForPath(review, `${basePath}[${i}]`)} />
+            ) : null}
+          </Text>
         </View>
       ))}
     </View>
@@ -705,9 +820,11 @@ function OptCol({
 function RequestOverviewSection({
   index,
   ov,
+  review,
 }: {
   index: number;
   ov: PartialPriorAuthArtifact["requestOverview"];
+  review?: ArtifactReview;
 }) {
   if (!ov) return null;
   const codeText = (codes?: P<LabeledCode>[]) =>
@@ -737,9 +854,22 @@ function RequestOverviewSection({
         <>
           <View style={styles.divider} />
           <View style={{ flexDirection: "row" }}>
-            <OptCol heading="Likely CPT / HCPCS options" codes={ov.suggestedCpt} />
-            <OptCol heading="Likely ICD-10 options" codes={ov.suggestedIcd10} />
+            <OptCol
+              heading="Likely CPT / HCPCS options"
+              codes={ov.suggestedCpt}
+              review={review}
+              basePath="requestOverview.suggestedCpt"
+            />
+            <OptCol
+              heading="Likely ICD-10 options"
+              codes={ov.suggestedIcd10}
+              review={review}
+              basePath="requestOverview.suggestedIcd10"
+            />
           </View>
+          {ov.suggestedCodesNote ? (
+            <Text style={styles.tableNote}>{ov.suggestedCodesNote}</Text>
+          ) : null}
         </>
       ) : null}
     </SectionCard>
@@ -948,7 +1078,16 @@ function CriteriaSection({
 // 05 Relevant Codes
 // ---------------------------------------------------------------------------
 
-function CodeTable({ codes }: { codes?: P<LabeledCode>[] }) {
+function CodeTable({
+  codes,
+  review,
+  basePath,
+}: {
+  codes?: P<LabeledCode>[];
+  review?: ArtifactReview;
+  /** artifact path of this list, so findings can be matched per row */
+  basePath?: string;
+}) {
   const list = (codes ?? []).filter(Boolean);
   if (list.length === 0) {
     return <Text style={styles.notProvided}>Not provided</Text>;
@@ -967,6 +1106,9 @@ function CodeTable({ codes }: { codes?: P<LabeledCode>[] }) {
             {c?.note ? (
               <Text style={styles.tableCellNote}> ({c.note})</Text>
             ) : null}
+            {basePath ? (
+              <IssueChipPdf issues={issuesForPath(review, `${basePath}[${i}]`)} />
+            ) : null}
           </Text>
         </View>
       ))}
@@ -977,20 +1119,26 @@ function CodeTable({ codes }: { codes?: P<LabeledCode>[] }) {
 function CodesSection({
   index,
   codes,
+  review,
 }: {
   index: number;
   codes?: PartialPriorAuthArtifact["relevantCodes"];
+  review?: ArtifactReview;
 }) {
   if (!codes) return null;
   return (
     <SectionCard index={index} title="Relevant Codes">
       <Text style={styles.groupHeading}>ICD-10</Text>
-      <CodeTable codes={codes.icd10} />
+      <CodeTable
+        codes={codes.icd10}
+        review={review}
+        basePath="relevantCodes.icd10"
+      />
       {codes.icd10Note ? (
         <Text style={styles.tableNote}>{codes.icd10Note}</Text>
       ) : null}
       <Text style={[styles.groupHeading, { marginTop: 12 }]}>CPT / HCPCS</Text>
-      <CodeTable codes={codes.cpt} />
+      <CodeTable codes={codes.cpt} review={review} basePath="relevantCodes.cpt" />
       {codes.cptNote ? (
         <Text style={styles.tableNote}>{codes.cptNote}</Text>
       ) : null}
@@ -1117,63 +1265,69 @@ const ArtifactPdfDocument: React.FC<ArtifactPdfDocumentProps> = ({
   artifact: data,
   generatedAt,
 }) => {
-  // Mirror the web builder: number only the sections that are present, in the
-  // same order, so PDF numbering matches the on-screen document.
-  const sections: Array<(i: number) => React.ReactNode> = [];
-  const add = (cond: boolean, render: (i: number) => React.ReactNode) => {
-    if (cond) sections.push(render);
-  };
-
-  add(has(data.requestOverview), (i) => (
-    <RequestOverviewSection key="overview" index={i} ov={data.requestOverview} />
-  ));
-  add(
-    has(data.requestOverview?.medicalHistory) ||
-    has(data.requestOverview?.keyFindings),
-    (i) => (
+  // Order, ids, and presence conditions come from the shared manifest, so PDF
+  // numbering matches the on-screen document by construction rather than by
+  // keeping two hand-written lists in agreement.
+  const renderers: Record<ArtifactSectionId, (i: number) => React.ReactNode> = {
+    overview: (i) => (
+      <RequestOverviewSection
+        key="overview"
+        index={i}
+        ov={data.requestOverview}
+        review={data.review as ArtifactReview | undefined}
+      />
+    ),
+    context: (i) => (
       <ClinicalContextSection key="context" index={i} ov={data.requestOverview} />
     ),
+    authorization: (i) => (
+      <PaRequiredSection
+        key="authorization"
+        index={i}
+        value={data.priorAuthRequired}
+        rationale={data.priorAuthRationale}
+      />
+    ),
+    medicare: (i) => (
+      <MedicarePoliciesSection
+        key="medicare"
+        index={i}
+        policies={data.medicarePolicies}
+      />
+    ),
+    criteria: (i) => (
+      <CriteriaSection
+        key="criteria"
+        index={i}
+        criteria={data.medicalNecessityCriteria}
+      />
+    ),
+    codes: (i) => (
+      <CodesSection
+        key="codes"
+        index={i}
+        codes={data.relevantCodes}
+        review={data.review as ArtifactReview | undefined}
+      />
+    ),
+    documentation: (i) => (
+      <DocumentationSection
+        key="documentation"
+        index={i}
+        groups={data.requiredDocumentation}
+      />
+    ),
+    limitations: (i) => (
+      <SectionCard key="limitations" index={i} title="Limitations & Exclusions" danger>
+        <RingBulletList items={data.limitations} tone="danger" />
+      </SectionCard>
+    ),
+    summary: (i) => <SummarySection key="summary" index={i} summary={data.summary} />,
+  };
+
+  const sections = ARTIFACT_SECTIONS.filter((s) => s.present(data)).map(
+    (s) => renderers[s.id],
   );
-  add(has(data.priorAuthRequired), (i) => (
-    <PaRequiredSection
-      key="authorization"
-      index={i}
-      value={data.priorAuthRequired}
-      rationale={data.priorAuthRationale}
-    />
-  ));
-  add(has(data.medicarePolicies), (i) => (
-    <MedicarePoliciesSection
-      key="medicare"
-      index={i}
-      policies={data.medicarePolicies}
-    />
-  ));
-  add(has(data.medicalNecessityCriteria), (i) => (
-    <CriteriaSection
-      key="criteria"
-      index={i}
-      criteria={data.medicalNecessityCriteria}
-    />
-  ));
-  add(has(data.relevantCodes), (i) => (
-    <CodesSection key="codes" index={i} codes={data.relevantCodes} />
-  ));
-  add(has(data.requiredDocumentation), (i) => (
-    <DocumentationSection
-      key="documentation"
-      index={i}
-      groups={data.requiredDocumentation}
-    />
-  ));
-  add(has(data.limitations), (i) => (
-    <SectionCard key="limitations" index={i} title="Limitations & Exclusions" danger>
-      <RingBulletList items={data.limitations} tone="danger" />
-    </SectionCard>
-  ));
-  add(has(data.summary), (i) => (
-    <SummarySection key="summary" index={i} summary={data.summary} />
-  ));
 
   return (
     <Document title={data.title ?? "Prior Authorization Summary"}>
@@ -1187,6 +1341,8 @@ const ArtifactPdfDocument: React.FC<ArtifactPdfDocumentProps> = ({
         <PdfTitleBlock data={data} />
 
         {sections.map((render, i) => render(i + 1))}
+
+        <AuditAppendix review={data.review as ArtifactReview | undefined} />
 
         {has(data.disclaimer) ? (
           <DisclaimerBlock disclaimer={data.disclaimer} />
