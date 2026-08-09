@@ -18,7 +18,11 @@ import {
   type ToolMessageRecord,
 } from './backfillCodes'
 import type { PartialPriorAuthArtifact } from './artifactSchema'
-import { buildEvidenceIndex } from './review/evidence'
+import {
+  buildEvidenceIndex,
+  hydrateSourceBodies,
+  type BodyFetcher,
+} from './review/evidence'
 import { codeApplicabilityCheck } from './review/checks/applicability'
 import { codeGroundingCheck } from './review/checks/grounding'
 import { structuralCompletenessCheck } from './review/checks/structural'
@@ -59,6 +63,11 @@ export interface ReviewOptions {
   checks?: readonly ArtifactCheck[]
   timeoutMs?: number
   mode?: ReviewMode
+  /** injected in tests so the review never reaches the database */
+  fetchBodies?: BodyFetcher
+  /** how many top-ranked sources to read in full (default 2) */
+  bodyLimit?: number
+  bodyTimeoutMs?: number
 }
 
 export interface ReviewResult {
@@ -116,6 +125,37 @@ export async function reviewArtifact(
 
   try {
     const evidence = buildEvidenceIndex(toolMessages)
+
+    // Read the top-ranked sources in full before any check runs. The excerpt
+    // the agent was handed is a window, and a check that treated it as the
+    // whole document would call correctly quoted text invented.
+    // Imported lazily on purpose. `sourceBodies` reaches `supabaseAdmin`,
+    // which throws at import time when the service-role key is absent — so a
+    // static import would make this whole module, and every unit test that
+    // touches the gate, require a database to load.
+    let fetchBodies: BodyFetcher | undefined = opts?.fetchBodies
+    if (!fetchBodies) {
+      try {
+        fetchBodies = (await import('./review/sourceBodies')).fetchCommercialBodies
+      } catch {
+        // No corpus access in this environment. Reading nothing is a fine
+        // outcome; failing the review over it is not.
+        fetchBodies = undefined
+      }
+    }
+
+    const hydration = fetchBodies
+      ? await hydrateSourceBodies(evidence, fetchBodies, {
+          limit: opts?.bodyLimit ?? 2,
+          timeoutMs: opts?.bodyTimeoutMs,
+        })
+      : { hydrated: 0 }
+
+    if (hydration.failed) {
+      // Not fatal, but worth knowing: every check that reads source text is
+      // back to judging against a truncated excerpt.
+      console.warn('[Review] source bodies unavailable; falling back to tool excerpts')
+    }
 
     // --- deterministic repair --------------------------------------------
     const codes = extractRetrievedCodes(toolMessages.map((m) => m.content))

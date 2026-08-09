@@ -39,6 +39,18 @@ export interface EvidenceSource {
    */
   proceduresKnown: boolean
   isMedicare: boolean
+  /**
+   * Full source text, re-fetched from the corpus rather than taken from the
+   * tool output.
+   *
+   * The agent is handed a relevance-selected *excerpt* — capped at 12k
+   * characters against bodies that run past 17k, and trimmed further when the
+   * tool output exceeds its budget. Checking quoted text against that excerpt
+   * would report "not in the source" for material that is in the source and
+   * merely outside the window, which is the false accusation this whole module
+   * is built to avoid. Absent when the fetch did not run or did not find it.
+   */
+  body?: string
 }
 
 export interface EvidenceCodeHit {
@@ -396,4 +408,91 @@ export const EMPTY_EVIDENCE: EvidenceIndex = {
   truncated: false,
   hasMedicareSource: false,
   parseFailures: [],
+}
+
+// ---------------------------------------------------------------------------
+// Full-text hydration
+// ---------------------------------------------------------------------------
+
+/** `cgs:muscle/cervical-laminectomy.md` → the corpus id, or null. */
+export function corpusIdOf(sourceId: string): string | null {
+  return sourceId.startsWith('cgs:') ? sourceId.slice(4) || null : null
+}
+
+/**
+ * The sources worth paying a round trip for, best first.
+ *
+ * `top` outranks `related`, then score descending, then id for a stable order
+ * on ties — a review that reads different sources run to run over identical
+ * input would make its own findings irreproducible.
+ */
+export function rankedCommercialSources(
+  index: EvidenceIndex,
+  limit: number,
+): EvidenceSource[] {
+  const rankWeight = (r: EvidenceSource['rank']) => (r === 'top' ? 0 : r === 'detail' ? 1 : 2)
+  return [...index.sources.values()]
+    .filter((s) => corpusIdOf(s.id) !== null)
+    .sort(
+      (a, b) =>
+        rankWeight(a.rank) - rankWeight(b.rank) ||
+        (b.score ?? -Infinity) - (a.score ?? -Infinity) ||
+        a.id.localeCompare(b.id),
+    )
+    .slice(0, Math.max(0, limit))
+}
+
+/** Injected so this module keeps no database dependency and stays unit-testable. */
+export type BodyFetcher = (corpusIds: string[]) => Promise<Map<string, string>>
+
+export interface HydrateResult {
+  /** how many sources came back with text */
+  hydrated: number
+  /** the fetch failed or timed out; sources keep no body and checks must not assume absence */
+  failed?: boolean
+}
+
+/**
+ * Attach full source text to the top-ranked commercial sources, in place.
+ *
+ * Bounded on purpose: two documents, because that covers the document a request
+ * is about plus its nearest rival, and every additional one is latency paid on
+ * every reviewed answer for a source no finding is likely to cite.
+ *
+ * Never throws. A review that cannot read the corpus is worth less than one
+ * that ships; it is never worth more.
+ */
+export async function hydrateSourceBodies(
+  index: EvidenceIndex,
+  fetchBodies: BodyFetcher,
+  opts?: { limit?: number; timeoutMs?: number },
+): Promise<HydrateResult> {
+  const limit = opts?.limit ?? 2
+  const targets = rankedCommercialSources(index, limit)
+  if (targets.length === 0) return { hydrated: 0 }
+
+  const ids = targets.map((s) => corpusIdOf(s.id)!)
+
+  let bodies: Map<string, string>
+  try {
+    const timeoutMs = opts?.timeoutMs ?? 2_000
+    bodies = await Promise.race([
+      fetchBodies(ids),
+      new Promise<never>((_, reject) =>
+        setTimeout(() => reject(new Error('body fetch timed out')), timeoutMs).unref?.(),
+      ),
+    ])
+  } catch {
+    return { hydrated: 0, failed: true }
+  }
+
+  let hydrated = 0
+  for (const s of targets) {
+    const body = bodies?.get(corpusIdOf(s.id)!)
+    if (typeof body === 'string' && body.trim()) {
+      s.body = body
+      hydrated++
+    }
+  }
+  return { hydrated }
 }
