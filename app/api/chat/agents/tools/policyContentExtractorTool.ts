@@ -4,7 +4,10 @@ import * as cheerio from "cheerio";
 import { llmSummarizer } from "@/lib/llm";
 import { StructuredOutputParser } from "langchain/output_parsers";
 import { cache, TTL } from "@/lib/cache";
-import { ExtractedPolicyDetails } from "./utils/policyDetailTypes";
+import {
+  ExtractedPolicyDetails,
+  PolicyContentExtractorInputSchema as toolInputSchema,
+} from "./utils/policyDetailTypes";
 
 export type { ExtractedPolicyDetails } from "./utils/policyDetailTypes";
 
@@ -65,11 +68,6 @@ const policyExtractionSchema = z.object({
 
 const parser = StructuredOutputParser.fromZodSchema(policyExtractionSchema as any);
 
-const toolInputSchema = z.object({
-  policyUrls: z.array(z.url()).min(1).max(3).describe(
-    "One to three policy URLs to fetch in parallel. Always pass all relevant URLs in a single call."
-  ),
-});
 
 // ----------------------
 // Extraction Logic

@@ -51,7 +51,7 @@ export async function getSubscriptionByUserId(
 export async function getUsageSummaryByOrgId(
   orgId: string,
   sinceISO: string,
-): Promise<{ total: number; agents: number; chat: number }> {
+): Promise<{ total: number; agents: number; chat: number; mcp: number }> {
   const base = () =>
     supabaseAdmin
       .from("usage_logs")
@@ -59,16 +59,23 @@ export async function getUsageSummaryByOrgId(
       .eq("org_id", orgId)
       .gte("created_at", sinceISO)
 
-  const [total, agents, chat] = await Promise.all([
+  // `total` is an unfiltered count, so every metered usage_type needs a bucket
+  // here or the breakdown stops summing to it. The MCP surface meters
+  // `mcp_tool` / `mcp_extract` / `mcp_resource`; a full MCP screening meters
+  // `orchestrator` from inside runAgent and so lands in `agents`, which is
+  // right — it is the same run as a POST to /v1/agents.
+  const [total, agents, chat, mcp] = await Promise.all([
     base(),
     base().eq("usage_type", "orchestrator"),
     base().eq("usage_type", "chat"),
+    base().in("usage_type", ["mcp_tool", "mcp_extract", "mcp_resource"]),
   ])
 
   return {
     total: total.count ?? 0,
     agents: agents.count ?? 0,
     chat: chat.count ?? 0,
+    mcp: mcp.count ?? 0,
   }
 }
 

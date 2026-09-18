@@ -24,6 +24,11 @@ NoteDoctorAihelps healthcare providers quickly assess prior authorization readin
 - Document upload for payer-specific policy comparison
 - Session-based workflow with no persistent patient data
 
+## Integrations
+
+- **Public REST API**: API-key-authenticated endpoints at `/api/v1/*` (agent runs, chat, key introspection, usage). Documented at https://app.notedoctor.ai/api/v1/docs
+- **MCP (Model Context Protocol)**: `POST /api/mcp` publishes the same Medicare and commercial-payer research as MCP tools, so assistants such as Claude Code, Claude Desktop and Cursor can call them directly without a custom integration.
+
 ## Important Limitations
 
 - NoteDoctorAiprovides informational guidance only — not a guarantee of authorization approval.

@@ -52,9 +52,19 @@ export async function GET() {
     openaiApiKey,
   };
 
+  // Reported as a sibling, deliberately NOT inside `checks`: `publicApiReady`
+  // is `every(Boolean)` over that object, so a flag whose healthy value is
+  // `false` would make a correctly-configured deployment report unready.
+  const flags = {
+    // Off by default. On, MCP clients can read full commercial-payer guideline
+    // bodies as resources.
+    mcpGuidelineResources: process.env.MCP_EXPOSE_GUIDELINE_RESOURCES === "true",
+  };
+
   return NextResponse.json({
     vercelEnv: process.env.VERCEL_ENV ?? null,
     publicApiReady: Object.values(checks).every(Boolean),
     checks,
+    flags,
   });
 }

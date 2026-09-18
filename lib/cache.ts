@@ -14,6 +14,11 @@ class MemoryCache {
     this.cleanupInterval = setInterval(() => {
       this.cleanup();
     }, 5 * 60 * 1000);
+    // A janitor timer has no business keeping a process alive. Without this,
+    // importing this module from a Node-environment Jest suite leaves the
+    // worker running until it is force-killed. `unref` is Node-only, hence the
+    // optional call.
+    this.cleanupInterval.unref?.();
   }
 
   set<T>(key: string, data: T, ttlMs: number = 5 * 60 * 1000): void {

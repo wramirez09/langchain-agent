@@ -6,6 +6,7 @@ import {
   MedicareScoredResult,
   normalizeInput,
 } from "./utils/medicareSearchTypes";
+import { logSafeInput, logSafeText } from "./utils/logSafe";
 import {
   getOrBuildHybridIndex,
   scoreHybrid,
@@ -69,11 +70,11 @@ class LocalCoverageArticleSearchTool extends StructuredTool<typeof MedicareSearc
     const cacheKey = `lca-search:v2:${JSON.stringify(normalized)}`;
     const cachedResult: string | null = cache.get(cacheKey);
     if (cachedResult) {
-      console.log(`[LocalCoverageArticleSearchTool] Cache hit for query: "${normalized.query}"`);
+      console.log(`[LocalCoverageArticleSearchTool] Cache hit for query: ${logSafeText(normalized.query)}`);
       return cachedResult;
     }
 
-    console.log(`[LocalCoverageArticleSearchTool] Searching LCAs:`, JSON.stringify(normalized));
+    console.log(`[LocalCoverageArticleSearchTool] Searching LCAs:`, JSON.stringify(logSafeInput(normalized)));
 
     // LCAs are state-scoped (MAC-region-scoped) like LCDs. Without a state,
     // the tool fetches the full nationwide dataset (~2150 records, ~1MB,

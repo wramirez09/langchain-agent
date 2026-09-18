@@ -2,12 +2,7 @@ import { z } from "zod";
 import { StructuredTool } from "@langchain/core/tools";
 import { cache, TTL } from "@/lib/cache";
 import { cmsCoverageApiClient } from "./utils/cmsCoverageApiClient";
-
-const inputSchema = z.object({
-  documentType: z.enum(["ncd", "lcd", "article"]),
-  documentId: z.string().min(1),
-  documentVersion: z.number().int().nonnegative(),
-});
+import { MedicarePolicyDetailInputSchema as inputSchema } from "./utils/policyDetailTypes";
 
 // Negative-result TTL: when a fetch fails (404, malformed input, etc.) the
 // agent must not retry the same (type,id,version) inside the same run. The

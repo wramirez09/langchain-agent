@@ -10,6 +10,7 @@ import {
   ScoredResult,
 } from "./utils/commercialGuidelineTypes";
 import { labelCode } from "./utils/codeLabels";
+import { logSafeInput } from "./utils/logSafe";
 import { selectRelevantExcerpt } from "./utils/excerpt";
 
 // Output budget. Beyond this we shrink excerpts and trim arrays rather than
@@ -197,7 +198,7 @@ Never mention specific data sources, tool names, URLs, file names, folder names,
 
   async _call(input: CommercialGuidelineSearchInput): Promise<string> {
     const toolStart = Date.now();
-    console.log("[CommercialGuidelineSearchTool] Received input:", input);
+    console.log("[CommercialGuidelineSearchTool] Received input:", logSafeInput(input));
 
     const cptArr = normCodes(input.cpt);
     const icdArr = normCodes(input.icd10).map((c) => c.toUpperCase());

@@ -224,6 +224,7 @@ const HTML = `<!doctype html>
     <a href="#agents">Run the agent</a>
     <a href="#chat">Simple chat</a>
     <a href="#account">Account &amp; usage</a>
+    <a href="#mcp">MCP</a>
     <a href="#limits">Rate limits</a>
     <a href="#idempotency">Idempotency</a>
     <a href="#errors">Errors</a>
@@ -365,8 +366,55 @@ const HTML = `<!doctype html>
       <figcaption><span class="lang">JSON</span> GET /api/v1/usage<span class="dots"><i></i><i></i><i></i></span></figcaption>
       <pre><code>curl https://app.notedoctor.ai/api/v1/usage -H "Authorization: Bearer sk_live_xxx"
 
-{ "period_start": "2026-07-01T00:00:00.000Z", "total": 128, "agents": 90, "chat": 38 }</code></pre>
+{ "period_start": "2026-07-01T00:00:00.000Z", "total": 145, "agents": 90, "chat": 38, "mcp": 17 }</code></pre>
     </figure>
+  </section>
+
+  <section id="mcp">
+    <h2><span class="dot"></span>MCP (Model Context Protocol)</h2>
+    <p class="lead">Everything above is for code you write. <strong>MCP</strong> is for the editor
+    you already work in: point Claude Code, Claude Desktop or Cursor at one URL and the coverage
+    research becomes tools your assistant can call directly — no integration to build.</p>
+    <div class="card">
+      <div class="route">
+        <span class="method post">POST</span>
+        <span class="path">/api/mcp</span>
+        <span class="tag">JSON-RPC 2.0</span>
+      </div>
+      <p>Same key, same scopes, same rate limits and the same error envelope as
+      <code>/api/v1/*</code>. A key needs <code>agents</code> or <code>chat</code>; the full
+      screening tool additionally needs <code>agents</code>.</p>
+    </div>
+    <figure class="code">
+      <figcaption><span class="lang">Shell</span> connect Claude Code<span class="dots"><i></i><i></i><i></i></span></figcaption>
+      <pre><code>claude mcp add --transport http notedoctor https://app.notedoctor.ai/api/mcp \
+  --header "Authorization: Bearer sk_live_xxx"
+
+# A full screening takes 45-65s. Raise the tool timeout before running one:
+export MCP_TOOL_TIMEOUT=300000</code></pre>
+    </figure>
+    <div class="callout"><strong>Tool timeouts are the one thing to configure.</strong> Most clients
+    give up on a tool call at 60 seconds, which is inside the normal range for
+    <code>run_prior_auth_screening</code>. The server emits progress notifications to hold the
+    connection open, but the client still needs its own timeout raised.</div>
+    <table>
+      <tr><th>Tool</th><th>Scope</th><th>What it does</th></tr>
+      <tr><td><code>medicare_multi_search</code></td><td>agents / chat</td><td>Search NCD + LCD + LCA together. The usual starting point.</td></tr>
+      <tr><td><code>ncd_coverage_search</code></td><td>agents / chat</td><td>National Coverage Determinations only.</td></tr>
+      <tr><td><code>local_lcd_search</code></td><td>agents / chat</td><td>Local Coverage Determinations for one state.</td></tr>
+      <tr><td><code>local_coverage_article_search</code></td><td>agents / chat</td><td>Local Coverage Articles for one state.</td></tr>
+      <tr><td><code>medicare_policy_detail</code></td><td>agents / chat</td><td>One CMS document in full, by id and version.</td></tr>
+      <tr><td><code>commercial_guidelines_search</code></td><td>agents / chat</td><td>The commercial-payer guideline corpus.</td></tr>
+      <tr><td><code>policy_content_extractor</code></td><td>agents / chat</td><td>Up to three payer policy pages, extracted to JSON.</td></tr>
+      <tr><td><code>run_prior_auth_screening</code></td><td>agents</td><td>The full screening, returning the same artifact as <code>/v1/agents</code>.</td></tr>
+      <tr><td><code>whoami</code> · <code>usage</code></td><td>any key</td><td>Key introspection and month-to-date usage. Unmetered.</td></tr>
+    </table>
+    <p>A tool your key is not scoped for is simply absent from <code>tools/list</code> — you will
+    never see a tool that would then refuse the call. Tool and resource calls appear in
+    <code>/api/v1/usage</code> under <code>mcp</code>; a screening run over MCP is billed like any
+    other agent run and appears under <code>agents</code>.</p>
+    <p>Do not send patient identifiers. Requests on this surface are never persisted, and every
+    tool needs only the procedure, the diagnosis and the payer.</p>
   </section>
 
   <section id="limits">

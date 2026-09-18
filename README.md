@@ -14,6 +14,7 @@ NoteDoctorAi is a web application designed to streamline the prior authorization
 * **Streamlined Workflow:** Designed to integrate seamlessly into a provider's existing workflow, offering quick lookups and actionable insights.
 * **Reduced Administrative Burden:** Automate the time-consuming research phase of prior authorizations, allowing healthcare staff to focus on patient care.
 * **HIPAA Compliant:** Built with healthcare compliance in mind, with clear warnings to avoid including patient-specific PHI.
+* **Public API + MCP:** An API-key-authenticated REST surface (`/api/v1/*`) for integrators, and an MCP (Model Context Protocol) endpoint (`/api/mcp`) that publishes the same research as tools inside Claude Code, Claude Desktop and Cursor — no integration to build. See `/api/v1/docs`.
 
 ### Technology Stack:
 
@@ -107,6 +108,25 @@ To set up NoteDoctorAi locally, follow these steps:
     npm run dev
     ```
     The application will be accessible at `http://localhost:3000`.
+
+### MCP (Model Context Protocol):
+
+`POST /api/mcp` publishes the coverage research as MCP tools, so an MCP client can
+call them directly:
+
+```bash
+claude mcp add --transport http notedoctor https://app.notedoctor.ai/api/mcp \
+  --header "Authorization: Bearer sk_live_xxx"
+
+# A full screening runs 45-65s; most clients time out at 60.
+export MCP_TOOL_TIMEOUT=300000
+```
+
+It reuses the public API's key, scopes, plan gating, rate limits and error
+envelope exactly — a key needs `agents` or `chat`, and `run_prior_auth_screening`
+needs `agents`. Implementation lives in `lib/mcp/**`, with `app/api/mcp/route.ts`
+as transport edge only. Guideline resources are gated behind
+`MCP_EXPOSE_GUIDELINE_RESOURCES` and off by default.
 
 ### Available Scripts:
 

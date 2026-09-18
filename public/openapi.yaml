@@ -166,7 +166,51 @@ paths:
                   total: { type: integer }
                   agents: { type: integer }
                   chat: { type: integer }
+                  mcp: { type: integer }
         "401": { $ref: "#/components/responses/Error" }
+        "429": { $ref: "#/components/responses/RateLimited" }
+  /api/mcp:
+    post:
+      operationId: mcp
+      summary: MCP (Model Context Protocol) endpoint
+      description: >
+        JSON-RPC 2.0 endpoint implementing the Model Context Protocol, for MCP
+        clients such as Claude Code, Claude Desktop and Cursor rather than for
+        hand-written HTTP calls. It publishes the same coverage research as the
+        REST endpoints as MCP tools: seven retrieval tools, the full prior
+        authorization screening, and key/usage introspection.
+
+
+        Authentication, scopes, plan gating and rate limiting are identical to
+        `/api/v1/*` — same `Authorization: Bearer sk_…` key, same error
+        envelope, same `X-RateLimit-*` headers. A key needs `agents` or `chat`;
+        the screening tool needs `agents`.
+
+
+        The request and response bodies are defined by the MCP specification
+        (https://modelcontextprotocol.io), not here: modelling `tools/call` in
+        OpenAPI would duplicate a spec that versions on its own schedule.
+        Responses are `application/json`, or `text/event-stream` when a tool
+        reports progress mid-call. Point an MCP client at this URL instead:
+        `claude mcp add --transport http notedoctor https://app.notedoctor.ai/api/mcp --header "Authorization: Bearer sk_live_…"`
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              description: A JSON-RPC 2.0 request object, per the MCP specification.
+      responses:
+        "200":
+          description: A JSON-RPC 2.0 response, as JSON or as an SSE stream.
+          content:
+            application/json:
+              schema: { type: object }
+            text/event-stream:
+              schema: { type: string }
+        "401": { $ref: "#/components/responses/Error" }
+        "402": { $ref: "#/components/responses/Error" }
+        "403": { $ref: "#/components/responses/Error" }
         "429": { $ref: "#/components/responses/RateLimited" }
 components:
   securitySchemes:

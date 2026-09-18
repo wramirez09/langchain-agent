@@ -6,6 +6,7 @@ import {
   MedicareScoredResult,
   normalizeInput,
 } from "./utils/medicareSearchTypes";
+import { logSafeInput, logSafeText } from "./utils/logSafe";
 import {
   getOrBuildHybridIndex,
   scoreHybrid,
@@ -67,11 +68,11 @@ class LocalLcdSearchTool extends StructuredTool<typeof MedicareSearchInputSchema
     const cacheKey = `lcd-search:v2:${JSON.stringify(normalized)}`;
     const cachedResult: string | null = cache.get(cacheKey);
     if (cachedResult) {
-      console.log(`[LocalLcdSearchTool] Cache hit for query: "${normalized.query}"`);
+      console.log(`[LocalLcdSearchTool] Cache hit for query: ${logSafeText(normalized.query)}`);
       return cachedResult;
     }
 
-    console.log(`[LocalLcdSearchTool] Searching LCDs:`, JSON.stringify(normalized));
+    console.log(`[LocalLcdSearchTool] Searching LCDs:`, JSON.stringify(logSafeInput(normalized)));
 
     // LCDs are state-scoped by definition (each MAC region covers specific
     // states). Without a state, the tool would fetch ~840 records and

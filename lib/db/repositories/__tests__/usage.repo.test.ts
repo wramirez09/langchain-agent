@@ -90,10 +90,19 @@ describe('usage.repo', () => {
   describe('getUsageSummaryByOrgId', () => {
     // Thenable builder: awaiting yields { count }; `.eq('usage_type', v)` narrows
     // the count to that endpoint. Mirrors the head/count query the repo builds.
-    const COUNTS: Record<string, number> = { total: 5, orchestrator: 3, chat: 2 }
+    const COUNTS: Record<string, number> = {
+      total: 11,
+      orchestrator: 3,
+      chat: 2,
+      // The `mcp` bucket is an `.in(...)` over three usage types, keyed here by
+      // the joined list so the fake builder can distinguish it from an `.eq`.
+      'mcp_tool,mcp_extract,mcp_resource': 6,
+    }
     const builder = (type: string | null): any => ({
       eq: (col: string, val: string) =>
         col === 'usage_type' ? builder(val) : builder(type),
+      in: (col: string, vals: string[]) =>
+        col === 'usage_type' ? builder(vals.join(',')) : builder(type),
       gte: () => builder(type),
       then: (resolve: (v: any) => void) =>
         resolve({ count: type ? COUNTS[type] : COUNTS.total, error: null }),
@@ -105,7 +114,7 @@ describe('usage.repo', () => {
         return { select: () => builder(null) }
       })
       const summary = await getUsageSummaryByOrgId('org-1', '2026-06-01T00:00:00Z')
-      expect(summary).toEqual({ total: 5, agents: 3, chat: 2 })
+      expect(summary).toEqual({ total: 11, agents: 3, chat: 2, mcp: 6 })
     })
   })
 })

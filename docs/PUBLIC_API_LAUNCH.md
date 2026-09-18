@@ -124,6 +124,15 @@ entitlement one.
    # negative paths
    curl -i $BASE/api/v1/agents                         # 401 (no key)
    curl -i $BASE/api/v1/agents -H "Authorization: Bearer sk_test_bad"  # 401
+
+   # MCP — the JSON-RPC surface. Note the Accept header: both media types are
+   # required, because a tool that reports progress answers over SSE.
+   curl -sS $BASE/api/mcp -H "Authorization: Bearer $KEY" \
+     -H 'content-type: application/json' \
+     -H 'accept: application/json, text/event-stream' \
+     -d '{"jsonrpc":"2.0","id":1,"method":"tools/list"}'
+   # → the tool list, with X-RateLimit-* on the response
+   curl -i $BASE/api/mcp -d '{}'   # 401 + WWW-Authenticate: Bearer realm="notedoctor-mcp"
    ```
 4. Confirm in the DB / Stripe:
    - revoking a key at `/agents/api-keys` makes it 401 **typically on the next
@@ -135,6 +144,46 @@ entitlement one.
      the org owner. Billing follows the same subject as entitlement;
    - **no `chat_messages` row** for the API call (stateless), while a web/mobile call still writes one.
 5. Merge to `dev` → promote to production once the verification matrix passes.
+
+### MCP (`POST /api/mcp`)
+
+Same auth, scopes, plan gate, rate limiter and error envelope as `/api/v1/*` —
+the SDK handler sits behind all of it, so those contracts are unchanged. What is
+worth knowing before flipping it on:
+
+- **Scopes reuse `agents` / `chat`; there is no `mcp` scope.** Every key ever
+  issued defaults to `{agents,chat}` and `POST /api/keys` accepts only those two,
+  so requiring an `mcp` scope would 403 every existing key for no security gain
+  — the tools expose exactly what those scopes already grant over REST. The
+  endpoint needs either; `run_prior_auth_screening` needs `agents`. A tool the
+  key cannot use is not registered on that request, so it never appears in
+  `tools/list`.
+- **Usage types.** Retrieval tools meter `mcp_tool`, `policy_content_extractor`
+  meters `mcp_extract` (a real LLM call per URL, ~10x a search, so it can be
+  priced separately later without a data migration), and resource reads meter
+  `mcp_resource`. `run_prior_auth_screening` adds **nothing** — `runAgent`
+  already meters `orchestrator` for that run. `/api/v1/usage` rolls the three
+  `mcp_*` types into an `mcp` bucket; without it `total` would stop summing to
+  the breakdown.
+- **Idempotency.** MCP has no `Idempotency-Key` header, so the screening tool
+  derives one from `sha256(orgId:tool:args)` and reuses `lib/api/idempotency`
+  unchanged. This is what stops a client that times out at 60s from paying for
+  a second full run.
+- **Client timeouts are the predicted #1 support issue.** A screening takes
+  45-65s against clients that often give up at 60. The tool emits
+  `notifications/progress` (which also upgrades the response to SSE and resets
+  most idle timers), but the client still needs `MCP_TOOL_TIMEOUT=300000`.
+- **Rate-limit granularity.** One HTTP request costs one token. The 2025
+  protocol permits JSON-RPC batch arrays, so a batching client could smuggle N
+  calls for one token; no shipping client batches, and the org limiter plus
+  `maxDuration` bound it. Documented rather than over-engineered.
+- **Guideline resources are off by default.** `MCP_EXPOSE_GUIDELINE_RESOURCES`
+  publishes full commercial-payer criteria bodies as readable resources — the
+  field search results deliberately strip. Verify it reads `false` via
+  `GET /api/debug` → `flags.mcpGuidelineResources` before launch.
+- **Verify a cold `tools/list` returns in under a second.** Every tool
+  implementation is lazily imported; if a static import creeps back in, the
+  first request of every client pays for CMS fetches and an embedding preload.
 
 ## 7. Post-launch monitoring (the ongoing API operations)
 
