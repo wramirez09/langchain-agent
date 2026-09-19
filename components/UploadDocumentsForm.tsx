@@ -81,7 +81,7 @@ const UploadDocumentsForm: React.FC<{
     <form className="relative flex flex-col gap-6 w-full" id="upload-file-form">
       <div className="space-y-6">
         <div>
-          <label className="block text-sm font-medium text-gray-900 mb-2">
+          <label className="block text-sm font-medium text-foreground mb-2">
             Guidelines
           </label>
           <AutoCompleteSelect
@@ -101,7 +101,7 @@ const UploadDocumentsForm: React.FC<{
       </div>
 
       <div className="w-full">
-        <div className="flex flex-col sm:flex-row sm:justify-end gap-3 pt-4 border-t border-gray-100">
+        <div className="flex flex-col sm:flex-row sm:justify-end gap-3 pt-4 border-t border-border">
           <Button
             type="button"
             variant="outline"
@@ -137,9 +137,9 @@ const UploadDocumentsForm: React.FC<{
       {uploading && (
         <div className="absolute inset-0 bg-white/90 backdrop-blur-sm flex items-center justify-center rounded-lg z-10">
           <div className="flex flex-col items-center gap-3">
-            <LoaderCircle className="animate-spin h-10 w-10 text-[#238dd2]" />
-            <p className="font-medium text-gray-800">Processing your document</p>
-            <p className="text-sm text-gray-500">This may take a moment...</p>
+            <LoaderCircle className="animate-spin h-10 w-10 text-primary" />
+            <p className="font-medium text-foreground">Processing your document</p>
+            <p className="text-sm text-muted-foreground">This may take a moment...</p>
           </div>
         </div>
       )}

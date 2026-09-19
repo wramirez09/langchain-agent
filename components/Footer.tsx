@@ -18,11 +18,11 @@ export function Footer() {
   if (!mounted || pathname.startsWith('/agents') || pathname.startsWith('/protected')) return null
 
   // Footer text + link styling ported from the imported legal-page design.
-  const linkClass = 'text-[13px] text-[#238dd2] hover:underline'
+  const linkClass = 'text-[13px] text-primary hover:underline'
 
   return (
-    <footer className="flex flex-wrap items-center justify-between gap-4 bg-white border-t border-[#eef0f3] px-10 py-4 max-[860px]:justify-center max-[860px]:px-4">
-      <div className="text-[13px] text-[#7c8492]">
+    <footer className="flex flex-wrap items-center justify-between gap-4 bg-card border-t border-border px-10 py-4 max-[860px]:justify-center max-[860px]:px-4">
+      <div className="text-[13px] text-muted-foreground">
         © {currentYear} NoteDoctorAi. All rights reserved.
       </div>
       <nav className="flex gap-7">

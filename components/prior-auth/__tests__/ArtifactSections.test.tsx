@@ -69,7 +69,7 @@ describe('ClinicalContextCard', () => {
       screen.getByText('Knee pain duration greater than 4 weeks'),
     ).toBeInTheDocument()
     const ring = container.querySelector('li span.absolute')
-    expect(ring).toHaveClass('border-[#238dd2]', 'bg-[#dbe6fe]')
+    expect(ring).toHaveClass('border-primary', 'bg-primary/20')
   })
 
   it('renders nothing without history or findings', () => {
@@ -180,11 +180,11 @@ describe('SectionCard theming', () => {
       />,
     )
     expect(screen.getByText('Limitations & Exclusions')).toHaveClass(
-      'text-[#dc2626]',
+      'text-destructive',
     )
-    expect(screen.getByText('07')).toHaveClass('text-[#0f172a]')
+    expect(screen.getByText('07')).toHaveClass('text-foreground')
     const ring = container.querySelector('li span.absolute')
-    expect(ring).toHaveClass('border-[#dc2626]', 'bg-[#fee2e2]')
+    expect(ring).toHaveClass('border-destructive', 'bg-destructive/20')
   })
 
   it('renders the Required Documentation card with a green (success) header and black index', () => {
@@ -195,16 +195,16 @@ describe('SectionCard theming', () => {
       />,
     )
     expect(screen.getByText('Required Documentation')).toHaveClass(
-      'text-[#15803d]',
+      'text-success',
     )
-    expect(screen.getByText('06')).toHaveClass('text-[#0f172a]')
+    expect(screen.getByText('06')).toHaveClass('text-foreground')
     expect(screen.getByText('Imaging')).toBeInTheDocument()
     expect(screen.getByText('MRI report')).toBeInTheDocument()
   })
 
   it('renders a neutral card with a muted header and blue index', () => {
     render(<RequestOverviewCard index={1} ov={artifact.requestOverview} />)
-    expect(screen.getByText('Request Overview')).toHaveClass('text-[#64748b]')
-    expect(screen.getByText('01')).toHaveClass('text-[#238dd2]')
+    expect(screen.getByText('Request Overview')).toHaveClass('text-muted-foreground')
+    expect(screen.getByText('01')).toHaveClass('text-primary')
   })
 })

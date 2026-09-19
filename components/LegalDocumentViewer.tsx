@@ -29,37 +29,37 @@ export function LegalDocumentViewer({ content, className }: LegalDocumentViewerP
         urlTransform={safeUrlTransform}
         components={{
           h1: ({ ...props }) => (
-            <h1 className="text-3xl font-bold text-gray-900 mb-4" {...props} />
+            <h1 className="text-3xl font-bold text-foreground mb-4" {...props} />
           ),
           h2: ({ ...props }) => (
-            <h2 className="text-2xl font-semibold text-gray-900 mt-8 mb-3" {...props} />
+            <h2 className="text-2xl font-semibold text-foreground mt-8 mb-3" {...props} />
           ),
           h3: ({ ...props }) => (
-            <h3 className="text-xl font-semibold text-gray-800 mt-6 mb-2" {...props} />
+            <h3 className="text-xl font-semibold text-foreground mt-6 mb-2" {...props} />
           ),
           p: ({ ...props }) => (
-            <p className="text-gray-700 mb-4 leading-relaxed" {...props} />
+            <p className="text-foreground-soft mb-4 leading-relaxed" {...props} />
           ),
           ul: ({ ...props }) => (
-            <ul className="list-disc list-inside mb-4 space-y-2 text-gray-700" {...props} />
+            <ul className="list-disc list-inside mb-4 space-y-2 text-foreground-soft" {...props} />
           ),
           ol: ({ ...props }) => (
-            <ol className="list-decimal list-inside mb-4 space-y-2 text-gray-700" {...props} />
+            <ol className="list-decimal list-inside mb-4 space-y-2 text-foreground-soft" {...props} />
           ),
           li: ({ ...props }) => (
             <li className="ml-4" {...props} />
           ),
           strong: ({ ...props }) => (
-            <strong className="font-semibold text-gray-900" {...props} />
+            <strong className="font-semibold text-foreground" {...props} />
           ),
           em: ({ ...props }) => (
-            <em className="italic text-gray-800" {...props} />
+            <em className="italic text-foreground" {...props} />
           ),
           hr: ({ ...props }) => (
-            <hr className="my-8 border-gray-300" {...props} />
+            <hr className="my-8 border-border" {...props} />
           ),
           blockquote: ({ ...props }) => (
-            <blockquote className="border-l-4 border-blue-500 pl-4 italic text-gray-700 my-4" {...props} />
+            <blockquote className="border-l-4 border-blue-500 pl-4 italic text-foreground-soft my-4" {...props} />
           ),
           a: ({ href, ...props }) => {
             const isEmail = href?.startsWith('mailto:') || (href && /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(href));

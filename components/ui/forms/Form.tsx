@@ -98,7 +98,7 @@ const FormInputs: React.FC<Props> = (props: Props) => {
       {/* Row 1 */}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-x-6 gap-y-4">
         <div>
-          <label className="flex items-center gap-2 text-md font-medium text-gray-900 mb-1">
+          <label className="flex items-center gap-2 text-md font-medium text-foreground mb-1">
             <FileText size={16} color="#2563EB" />
             Guidelines
           </label>
@@ -108,7 +108,7 @@ const FormInputs: React.FC<Props> = (props: Props) => {
           />
         </div>
         <div>
-          <label className="flex items-center gap-2 text-md font-medium text-gray-900 mb-1">
+          <label className="flex items-center gap-2 text-md font-medium text-foreground mb-1">
             <MapPin size={16} color="#059669" />
             State
           </label>
@@ -118,7 +118,7 @@ const FormInputs: React.FC<Props> = (props: Props) => {
             disabled={selectedGuideline === "Commercial"}
           />
           {selectedGuideline === "Commercial" && (
-            <p className="text-xs text-gray-500 mt-1">
+            <p className="text-xs text-muted-foreground mt-1">
               State selection not required for Commercial guidelines
             </p>
           )}
@@ -128,23 +128,23 @@ const FormInputs: React.FC<Props> = (props: Props) => {
       {/* Row 2 */}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-x-6 gap-y-4">
         <div>
-          <label className="flex items-center gap-2 text-md font-medium text-gray-900 mb-1">
+          <label className="flex items-center gap-2 text-md font-medium text-foreground mb-1">
             <Stethoscope size={16} color="#7C3AED" />
             Pre-Auth Request
           </label>
          
           <CreatableSelect isClearable options={ncdOptions} onChange={(value)=>HandleTreatmentSelectChange(value)} className=""/>
-          <p className="text-xs text-gray-500 mt-1">
+          <p className="text-xs text-muted-foreground mt-1">
             *Can&apos;t find what you&apos;re looking for? Type to create a new option
           </p>
         </div>
         <div>
-          <label className="flex items-center gap-2 text-md font-medium text-gray-900 mb-1">
+          <label className="flex items-center gap-2 text-md font-medium text-foreground mb-1">
             <FileBarChart size={16} color="#4F46E5" />
             CPT/HCPCS 
           </label>
           <Input
-            className="w-full h-9 bg-white border-blue-200 text-gray-900 focus-visible:ring-blue-300 focus-visible:border-blue-400"
+            className="w-full h-9 bg-card border-primary/20 text-foreground focus-visible:ring-primary/30 focus-visible:border-primary/40"
             placeholder="CPT Codes"
             onChange={handleCptChange}
           />
@@ -153,12 +153,12 @@ const FormInputs: React.FC<Props> = (props: Props) => {
 
       {/* Diagnosis */}
       <div>
-        <label className="flex items-center gap-2 text-md font-semi-bold text-black mb-1">
+        <label className="flex items-center gap-2 text-md font-semi-bold text-foreground mb-1">
           <Activity size={16} color="#F97316" />
           Diagnosis
         </label>
         <Textarea
-          className="w-full bg-white border-blue-200 text-gray-900 focus-visible:ring-blue-300 focus-visible:border-blue-400 min-h-[100px] max-h-[200px] overflow-y-auto resize-y"
+          className="w-full bg-card border-primary/20 text-foreground focus-visible:ring-primary/30 focus-visible:border-primary/40 min-h-[100px] max-h-[200px] overflow-y-auto resize-y"
           placeholder="knee pain"
           onChange={handleDiagnosisChange}
         />
@@ -166,12 +166,12 @@ const FormInputs: React.FC<Props> = (props: Props) => {
 
       {/* History */}
       <div>
-        <label className="flex items-center gap-2 text-md font-semi-bold text-black mb-1">
+        <label className="flex items-center gap-2 text-md font-semi-bold text-foreground mb-1">
           <ClipboardList size={16} color="#F43F5E" />
           Patient(s) Medical History
         </label>
         <Textarea
-          className="w-full bg-white border-blue-200 text-gray-900 focus-visible:ring-blue-300 focus-visible:border-blue-400 min-h-[100px] max-h-[200px] overflow-y-auto resize-y"
+          className="w-full bg-card border-primary/20 text-foreground focus-visible:ring-primary/30 focus-visible:border-primary/40 min-h-[100px] max-h-[200px] overflow-y-auto resize-y"
           placeholder="knee swelling for over 3 weeks."
           onChange={handleHistoryChange}
         />
@@ -179,11 +179,11 @@ const FormInputs: React.FC<Props> = (props: Props) => {
 
       {/* Chat Context */}
       <div>
-        <label className="block text-md font-semi-bold text-black mb-1">
+        <label className="block text-md font-semi-bold text-foreground mb-1">
           Relevant Medical History 
         </label>
         <Textarea
-          className="w-full bg-white border-blue-200 text-gray-900 focus-visible:ring-blue-300 focus-visible:border-blue-400 min-h-[100px] max-h-[200px] overflow-y-auto resize-y"
+          className="w-full bg-card border-primary/20 text-foreground focus-visible:ring-primary/30 focus-visible:border-primary/40 min-h-[100px] max-h-[200px] overflow-y-auto resize-y"
           placeholder="previous knee pain, swelling, etc."
           onChange={props.chatOnChange}
         />

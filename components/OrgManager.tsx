@@ -26,7 +26,7 @@ const roleBadge = (r: Role) =>
     r === "owner"
       ? "bg-primary/10 text-primary ring-primary/20"
       : r === "admin"
-        ? "bg-blue-50 text-blue-700 ring-blue-600/20 dark:bg-blue-500/10 dark:text-blue-400"
+        ? "bg-primary/5 text-blue-700 ring-primary/20 dark:bg-primary/10 dark:text-primary"
         : "bg-muted text-muted-foreground ring-border",
   );
 
@@ -277,7 +277,7 @@ export default function OrgManager() {
         )}
 
         {notice && (
-          <div className="mb-3 rounded-lg border border-emerald-300/60 bg-emerald-50 px-3 py-2 text-sm text-emerald-800 dark:bg-emerald-500/10 dark:text-emerald-300">
+          <div className="mb-3 rounded-lg border border-success/60 bg-success/5 px-3 py-2 text-sm text-success dark:bg-success/10 dark:text-success">
             {notice}
           </div>
         )}
@@ -295,7 +295,7 @@ export default function OrgManager() {
                     <span className="truncate text-sm">{m.email ?? m.user_id}</span>
                     {isMe && <span className="text-[11px] text-muted-foreground">you</span>}
                     {m.pending && (
-                      <span className="inline-flex items-center rounded-full bg-amber-50 px-1.5 py-0.5 text-[11px] font-medium text-amber-700 ring-1 ring-inset ring-amber-600/20 dark:bg-amber-500/10 dark:text-amber-400">
+                      <span className="inline-flex items-center rounded-full bg-warning/5 px-1.5 py-0.5 text-[11px] font-medium text-warning ring-1 ring-inset ring-warning/20 dark:bg-warning/10 dark:text-warning">
                         pending
                       </span>
                     )}

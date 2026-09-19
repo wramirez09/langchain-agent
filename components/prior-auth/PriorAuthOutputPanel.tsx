@@ -69,7 +69,7 @@ export function PriorAuthOutputPanel({
           </div>
         ) : (
           <div className="text-center py-12">
-            <p className="text-sm text-gray-500">
+            <p className="text-sm text-muted-foreground">
               No output yet. Fill in the form and click &quot;Generate Authorization&quot; to get started.
             </p>
           </div>
@@ -85,17 +85,17 @@ export function PriorAuthOutputPanel({
   const lastIsArtifact = looksLikeArtifact(latestBody);
 
   return (
-    <div className="h-full overflow-y-auto bg-[#f4f6fb] px-4 py-6 sm:px-6">
+    <div className="h-full overflow-y-auto bg-muted px-4 py-6 sm:px-6">
       <div className="mx-auto max-w-[1240px]">
         <div className="mb-4 flex justify-end">
           <button
             onClick={onSaveQuery}
             disabled={!canSave}
             className={cn(
-              "flex items-center gap-1.5 rounded-lg border bg-white px-3 py-1.5 text-xs font-medium shadow-sm transition-colors disabled:cursor-not-allowed disabled:border-gray-200 disabled:text-gray-300 disabled:shadow-none disabled:hover:bg-white disabled:hover:text-gray-300",
+              "flex items-center gap-1.5 rounded-lg border bg-card px-3 py-1.5 text-xs font-medium shadow-sm transition-colors disabled:cursor-not-allowed disabled:border-border disabled:text-faint disabled:shadow-none disabled:hover:bg-card disabled:hover:text-faint",
               saved
-                ? "border-green-200 text-green-600 hover:bg-green-50 hover:text-green-700"
-                : "border-red-200 text-red-600 hover:bg-red-50 hover:text-red-700",
+                ? "border-success/20 text-success hover:bg-success/5 hover:text-success"
+                : "border-destructive/20 text-destructive hover:bg-destructive/5 hover:text-destructive",
             )}
             title={saved ? "Saved" : "Save this query and response"}
           >

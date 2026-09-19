@@ -141,21 +141,21 @@ const STATUS_TEXT: Record<number, string> = {
 
 function statusTone(status: number): string {
   if (status >= 200 && status < 300)
-    return "bg-emerald-500/15 text-emerald-700 dark:text-emerald-300";
-  if (status >= 400 && status < 500) return "bg-amber-500/15 text-amber-700 dark:text-amber-300";
-  return "bg-red-500/15 text-red-700 dark:text-red-300";
+    return "bg-success/15 text-success dark:text-success";
+  if (status >= 400 && status < 500) return "bg-warning/15 text-warning dark:text-warning";
+  return "bg-destructive/15 text-destructive dark:text-destructive";
 }
 
 function statusTextTone(status: number): string {
-  if (status >= 200 && status < 300) return "text-emerald-700 dark:text-emerald-400";
-  if (status >= 400 && status < 500) return "text-amber-700 dark:text-amber-400";
-  return "text-red-700 dark:text-red-400";
+  if (status >= 200 && status < 300) return "text-success dark:text-success";
+  if (status >= 400 && status < 500) return "text-warning dark:text-warning";
+  return "text-destructive dark:text-destructive";
 }
 
 function methodTone(method: string): string {
   return method === "GET"
     ? "bg-sky-500/15 text-sky-700 dark:text-sky-300"
-    : "bg-emerald-500/15 text-emerald-700 dark:text-emerald-300";
+    : "bg-success/15 text-success dark:text-success";
 }
 
 function fmtDuration(ms: number): string {
@@ -197,7 +197,7 @@ function JsonPretty({ value, indent = 0 }: { value: unknown; indent?: number }) 
   if (typeof value === "boolean" || typeof value === "number")
     return <span className="text-violet-600 dark:text-violet-400">{String(value)}</span>;
   if (typeof value === "string")
-    return <span className="text-amber-700 dark:text-amber-400">{JSON.stringify(value)}</span>;
+    return <span className="text-warning dark:text-warning">{JSON.stringify(value)}</span>;
 
   if (Array.isArray(value)) {
     if (value.length === 0) return <span>[]</span>;
@@ -268,8 +268,8 @@ function TabButton({
       className={cn(
         "h-[26px] rounded-md border px-2.5 text-xs transition-colors",
         active
-          ? "border-blue-500/35 bg-blue-500/10 font-semibold text-blue-700 dark:text-blue-300"
-          : "border-transparent text-muted-foreground hover:bg-muted",
+          ? "border-primary/35 bg-primary/10 font-semibold text-blue-700 dark:text-primary"
+          : "border-transparent text-muted-foreground hover:bg-accent",
       )}
     >
       {children}
@@ -497,11 +497,11 @@ export default function ApiPlayground() {
   if (apiAccess === false) {
     return (
       <div className="mx-auto mt-8 w-full max-w-3xl px-4">
-        <div className="rounded-lg border border-amber-300/60 bg-amber-50 px-4 py-4 text-sm dark:bg-amber-500/10">
-          <p className="font-medium text-amber-900 dark:text-amber-200">
+        <div className="rounded-lg border border-warning/60 bg-warning/5 px-4 py-4 text-sm dark:bg-warning/10">
+          <p className="font-medium text-warning dark:text-warning">
             The API playground requires an active subscription.
           </p>
-          <p className="mt-1 text-amber-800 dark:text-amber-300">
+          <p className="mt-1 text-warning dark:text-warning">
             Every plan includes the API.{" "}
             <a href="/agents/org" className="font-medium underline">
               Subscribe
@@ -523,7 +523,7 @@ export default function ApiPlayground() {
           <span className="text-[11px] font-semibold uppercase tracking-[.06em] text-muted-foreground/80">
             Key
           </span>
-          <span className="inline-flex h-6 items-center gap-1.5 rounded-md bg-blue-500/10 px-2 font-mono text-xs font-medium text-blue-700 dark:text-blue-300">
+          <span className="inline-flex h-6 items-center gap-1.5 rounded-md bg-primary/10 px-2 font-mono text-xs font-medium text-blue-700 dark:text-primary">
             <span className="h-1.5 w-1.5 rounded-full bg-blue-500" />
             test · ephemeral (5 min)
           </span>
@@ -550,7 +550,7 @@ export default function ApiPlayground() {
           </div>
           <a
             href="/api/v1/docs"
-            className="text-[13px] font-medium text-blue-600 hover:underline dark:text-blue-400"
+            className="text-[13px] font-medium text-blue-600 hover:underline dark:text-primary"
           >
             API docs ↗
           </a>
@@ -573,8 +573,8 @@ export default function ApiPlayground() {
                 className={cn(
                   "flex flex-col gap-1 rounded-[9px] border px-2.5 py-2 text-left transition-colors",
                   active === e.key
-                    ? "border-blue-500/35 bg-blue-500/5 shadow-[inset_2px_0_0_theme(colors.blue.500)]"
-                    : "border-transparent hover:bg-muted",
+                    ? "border-primary/35 bg-primary/5 shadow-[inset_2px_0_0_theme(colors.blue.500)]"
+                    : "border-transparent hover:bg-accent",
                 )}
               >
                 <span className="flex items-center gap-2">
@@ -590,7 +590,7 @@ export default function ApiPlayground() {
                     {e.path.replace("/api/v1", "")}
                   </span>
                   {e.billable && (
-                    <span className="ml-auto rounded bg-amber-500/10 px-1.5 py-0.5 text-[10px] font-semibold text-amber-700 dark:text-amber-400">
+                    <span className="ml-auto rounded bg-warning/10 px-1.5 py-0.5 text-[10px] font-semibold text-warning dark:text-warning">
                       billed
                     </span>
                   )}
@@ -628,7 +628,7 @@ export default function ApiPlayground() {
                 <button
                   type="button"
                   onClick={() => restore(h)}
-                  className="flex w-full flex-col gap-1 rounded-lg border border-transparent px-2.5 py-2 text-left transition-colors hover:bg-muted"
+                  className="flex w-full flex-col gap-1 rounded-lg border border-transparent px-2.5 py-2 text-left transition-colors hover:bg-accent"
                 >
                   <span className="flex items-center gap-1.5">
                     <span
@@ -695,14 +695,14 @@ export default function ApiPlayground() {
                         /* leave as-is; footer already flags invalid JSON */
                       }
                     }}
-                    className="h-[26px] rounded-md border bg-card px-2.5 text-xs text-muted-foreground transition-colors hover:bg-muted"
+                    className="h-[26px] rounded-md border bg-card px-2.5 text-xs text-muted-foreground transition-colors hover:bg-accent"
                   >
                     Format
                   </button>
                   <button
                     type="button"
                     onClick={() => setBody(endpoint.defaultBody ?? "")}
-                    className="h-[26px] rounded-md border bg-card px-2.5 text-xs text-muted-foreground transition-colors hover:bg-muted"
+                    className="h-[26px] rounded-md border bg-card px-2.5 text-xs text-muted-foreground transition-colors hover:bg-accent"
                   >
                     Reset example
                   </button>
@@ -734,7 +734,7 @@ export default function ApiPlayground() {
                   <span
                     className={cn(
                       "h-1.5 w-1.5 rounded-full",
-                      bodyCheck?.ok ? "bg-emerald-500" : "bg-amber-500",
+                      bodyCheck?.ok ? "bg-success" : "bg-warning",
                     )}
                   />
                   <span className="text-[11.5px] text-muted-foreground">{bodyCheck?.note}</span>
@@ -774,7 +774,7 @@ export default function ApiPlayground() {
               ⌘↵
             </span>
             {endpoint.billable && (
-              <span className="text-xs text-amber-700 dark:text-amber-400">
+              <span className="text-xs text-warning dark:text-warning">
                 Runs a real request and meters usage.
               </span>
             )}
@@ -804,12 +804,12 @@ export default function ApiPlayground() {
               <button
                 type="button"
                 onClick={copySnippet}
-                className="h-[26px] rounded-md border bg-card px-2.5 text-xs text-muted-foreground transition-colors hover:bg-muted"
+                className="h-[26px] rounded-md border bg-card px-2.5 text-xs text-muted-foreground transition-colors hover:bg-accent"
               >
                 {copied ? "Copied" : "Copy"}
               </button>
             </div>
-            <pre className="max-h-[180px] overflow-auto rounded-[10px] bg-slate-900 p-3.5 font-mono text-xs leading-[1.7] text-slate-300">
+            <pre className="max-h-[180px] overflow-auto rounded-[10px] bg-slate-900 dark:bg-black/40 p-3.5 font-mono text-xs leading-[1.7] text-slate-300 dark:text-foreground-soft">
               {snippet}
             </pre>
           </div>
@@ -868,7 +868,7 @@ export default function ApiPlayground() {
                   {[0, 1, 2, 3].map((i) => (
                     <div
                       key={i}
-                      className="h-1 flex-1 animate-pulse rounded-full bg-blue-500/70"
+                      className="h-1 flex-1 animate-pulse rounded-full bg-primary/70"
                       style={{ animationDelay: `${i * 200}ms` }}
                     />
                   ))}

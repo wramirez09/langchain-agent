@@ -10,7 +10,12 @@
   :root {
     --background: 220 14% 97%;
     /* #F8F9FB light gray */
-    --foreground: 222.2 84% 4.9%;
+    /* Tells the browser which way the page leans, so UA-painted chrome —
+       default focus rings, scrollbars, native form controls, autofill —
+       matches the theme instead of staying light on navy. */
+    color-scheme: light;
+
+    --foreground: 222.2 47.4% 11.2%; /* #0f172a, the app's strongest ink */
 
     --card: 0 0% 100%;
     --card-foreground: 222.2 84% 4.9%;
@@ -31,46 +36,89 @@
     --accent: 210 40% 96.1%;
     --accent-foreground: 222.2 47.4% 11.2%;
 
-    --destructive: 0 84.2% 60.2%;
+    --destructive: 0 73.7% 41.8%; /* #b91c1c, the error ink the app paints.
+       The old #ef4444 put white text at 3.76:1 on destructive buttons; this
+       is 6.5:1. */
     --destructive-foreground: 210 40% 98%;
 
     --border: 214.3 31.8% 91.4%;
     --input: 214.3 31.8% 91.4%;
     --ring: 204 71% 48%;
 
+    /* The app paints text in four tiers but shadcn only names two, so
+       `foreground-soft` and `faint` fill the gap. Both hold the exact inks
+       Theme A already uses, so tokenising a component does not move it.
+       The brand book names the same ramp (text / muted / faint) plus a
+       `nav-link` rest state, which is what Theme B maps them onto. */
+    --foreground-soft: 222 14.3% 29.2%; /* was text-[#3f4654] */
+    --faint: 215 20.2% 65.1%; /* was text-[#94a3b8] / text-[#aab0bd] */
+
+    /* Brand blue as a variable so the `blue-500/600/700` overrides in
+       tailwind.config.js follow the theme. Theme A keeps the logo ink. */
+    --brand-blue: 204 71% 48%;
+    --brand-blue-strong: 203.5 71.1% 38%;
+
+    /* Status inks, lifted from the values already hardcoded across the app
+       (text-[#15803d], text-[#b45309]) so Theme A is unchanged on screen. */
+    --success: 142.4 71.8% 29.2%;
+    --warning: 26 90.5% 37.1%;
+
     --radius: 0.5rem;
   }
 
-  @media (prefers-color-scheme: dark) {
-    :root {
-      --background: 224 71% 4%;
-      --foreground: 213 31% 91%;
+  /* ── Theme B — NoteDoctor.AI marketing brand ─────────────────────────
+     Source: the NoteDoctor.AI design system, synced from
+     wramirez09/note-doctor-marketing@f96b3ac. Tokens carrying alpha in the
+     source are composited over the ground the brand book documents for them,
+     so each renders the exact colour the marketing site paints.
 
-      --card: 224 71% 4%;
-      --card-foreground: 213 31% 91%;
+     Contrast is honoured as published, including the two pairs the brand book
+     knowingly ships under 4.5:1 — white on `blue` at 3.7:1 (keep button
+     labels 15px+/600) and `faint` at 2.1:1 (12-13px de-emphasis only).
+     Every other pair is checked and noted below. */
+  .dark {
+    color-scheme: dark;
 
-      --popover: 224 71% 4%;
-      --popover-foreground: 213 31% 91%;
+    --background: 227.1 36.8% 7.5%; /* bg #0c0f1a */
+    --foreground: 224 100% 97.1%; /* text #f0f4ff — 17.4:1 */
 
-      --primary: 210 40% 98%;
-      --primary-foreground: 222.2 47.4% 11.2%;
+    --card: 223.6 36.7% 11.8%; /* bg-card #131929 */
+    --card-foreground: 224 100% 97.1%; /* 15.9:1 */
 
-      --secondary: 217.2 32.6% 17.5%;
-      --secondary-foreground: 210 40% 98%;
+    --popover: 225.7 48.8% 8.4%; /* bg-menu #0b1020 */
+    --popover-foreground: 224 100% 97.1%; /* 17.2:1 */
 
-      --muted: 217.2 32.6% 17.5%;
-      --muted-foreground: 215 20.2% 65.1%;
+    --primary: 217.2 91.2% 59.8%; /* blue #3b82f6 */
+    --primary-foreground: 0 0% 100%; /* white on blue — 3.7:1, per the source */
 
-      --accent: 217.2 32.6% 17.5%;
-      --accent-foreground: 210 40% 98%;
+    --secondary: 221.1 38.8% 9.6%; /* bg-2 #0f1522 */
+    --secondary-foreground: 224 100% 97.1%; /* 16.6:1 */
 
-      --destructive: 0 62.8% 30.6%;
-      --destructive-foreground: 210 40% 98%;
+    --muted: 221.1 38.8% 9.6%; /* bg-2 */
+    --muted-foreground: 222.9 5.7% 52.2%; /* muted 50% over bg — 5.0:1 */
 
-      --border: 217.2 32.6% 17.5%;
-      --input: 217.2 32.6% 17.5%;
-      --ring: 212.7 26.8% 83.9%;
-    }
+    --accent: 220 46.7% 17.6%; /* blue-dim over bg-card */
+    --accent-foreground: 213.1 93.9% 67.8%; /* blue-mid #60a5fa — 6.9:1 */
+
+    --border: 225 21.7% 18%; /* border 7% white over bg-card */
+    --input: 225 21.7% 18%;
+    --ring: 217.2 91.2% 59.8%; /* blue focus border */
+
+    --foreground-soft: 225.1 4.4% 82.4%; /* nav-link 80% over bg-card — 11.4:1 */
+    --faint: 227 9% 30%; /* faint 25% over bg — 2.1:1, per the source */
+
+    --brand-blue: 217.2 91.2% 59.8%; /* blue */
+    --brand-blue-strong: 221.2 83.2% 53.3%; /* blue-deep #2563eb */
+
+    /* App-only status inks. The brand book defines no error colour and rules
+       red out as a status ink, so these are ours rather than the source's —
+       held to 4.5:1 on bg-card, since there is no published pair to honour.
+       `success` and `warning` are the brand's own values, which already pass. */
+    --destructive: 358.1 85.8% 64.1%; /* 5.2:1 */
+    --destructive-foreground: 227.1 36.8% 7.5%; /* dark ink on the fill — 5.7:1
+       (white would be 3.4:1, under the bar these app-only tokens are held to) */
+    --success: 141.9 69.2% 58%; /* brand success #4ade80 — 10.1:1 */
+    --warning: 43.3 96.4% 56.3%; /* brand warning #fbbf24 — 10.5:1 */
   }
 }
 
@@ -129,6 +177,40 @@ body {
   height: 100dvh;
   /* dynamic vh will make the trick on iOS */
   pointer-events: auto !important;
+}
+
+/* Panels carry the marketing site's own panel gradient
+   (ApiCallout.tsx, developers/page.tsx: 160deg #131d35 -> #0f1522). Its two
+   stops bracket --card (#131929), so a card reads as lit from the top-left
+   rather than flat, which is what gives the site its depth.
+
+   This is layered as a background-IMAGE on the utility, so anything already
+   using `bg-card` picks it up without being touched. The ground glow below
+   only reaches the ~17% of the viewport the panels leave exposed, so on a
+   panel-dense screen this is the part that actually reads. */
+.dark .bg-card {
+  background-image: linear-gradient(160deg, #131d35 0%, #0f1522 100%);
+}
+
+/* ── Theme B atmosphere ───────────────────────────────────────────────
+   The marketing site's page ground is solid #0c0f1a; its depth comes from a
+   blue ellipse painted behind the hero, not from tinting the ground. This is
+   that same overlay (developers page / Hero.tsx use 0.16-0.22 alpha at
+   50% 30%), laid over the whole app shell.
+
+   It is a background-IMAGE over the `bg-background` colour rather than a
+   positioned pseudo-element, so it layers without creating a stacking context
+   the app would have to fight. The shell is h-full and does not scroll — the
+   inner panels do — so this reads as fixed without background-attachment,
+   which is unreliable on iOS.
+
+   Theme A has no counterpart on the marketing site and gets none. */
+.dark .app-ground {
+  background-image: radial-gradient(
+    ellipse at 50% 30%,
+    rgba(59, 130, 246, 0.18) 0%,
+    transparent 70%
+  );
 }
 
 .bottom-fixed-element {

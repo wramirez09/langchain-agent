@@ -9,17 +9,17 @@ export default async function AdminLayout({ children }: { children: React.ReactN
   const isLoggedIn = session?.value === '1'
 
   return (
-    <div className="flex flex-col min-h-screen bg-gray-50">
+    <div className="flex flex-col min-h-screen bg-muted">
       {isLoggedIn && (
-        <header className="sticky top-0 z-10 bg-white border-b border-gray-200 px-6 py-3 flex items-center justify-between">
+        <header className="sticky top-0 z-10 bg-card border-b border-border px-6 py-3 flex items-center justify-between">
           <div className="flex items-center gap-3">
-            <div className="w-2 h-2 rounded-full bg-green-500" />
-            <span className="text-sm font-semibold text-gray-800">NoteDoctor Admin</span>
+            <div className="w-2 h-2 rounded-full bg-success" />
+            <span className="text-sm font-semibold text-foreground">NoteDoctor Admin</span>
           </div>
           <form action="/api/admin/logout" method="POST">
             <button
               type="submit"
-              className="text-sm text-gray-500 hover:text-gray-800 transition-colors"
+              className="text-sm text-muted-foreground hover:text-foreground transition-colors"
             >
               Sign out
             </button>

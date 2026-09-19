@@ -43,7 +43,7 @@ export function ForgotPasswordForm({ className, ...props }: React.ComponentProps
     <div className={cn('relative space-y-6', className)} {...props}>
       {success ? (
         <div className="space-y-2 text-center">
-          <p className="text-lg font-semibold text-gray-900">Check Your Email</p>
+          <p className="text-lg font-semibold text-foreground">Check Your Email</p>
           <p className="text-sm text-dark">
             If you registered using your email and password, you will receive a
             password reset email.
@@ -68,7 +68,7 @@ export function ForgotPasswordForm({ className, ...props }: React.ComponentProps
                 />
               </div>
               {error && (
-                <div className="rounded-md bg-red-50 p-4 text-sm text-red-600">
+                <div className="rounded-md bg-destructive/5 p-4 text-sm text-destructive">
                   {error}
                 </div>
               )}

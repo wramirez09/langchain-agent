@@ -28,7 +28,7 @@ export default function AgentsPage() {
         
         {/* Keep all views mounted, toggle visibility with CSS */}
         <main className={cn(
-          "flex-1 overflow-hidden bg-[#F8F9FB]",
+          "app-ground flex-1 overflow-hidden bg-background",
           activeView !== "auth" && "hidden"
         )}>
           <PriorAuthView
@@ -38,14 +38,14 @@ export default function AgentsPage() {
         </main>
 
         <main className={cn(
-          "flex-1 overflow-hidden bg-[#F8F9FB]",
+          "app-ground flex-1 overflow-hidden bg-background",
           activeView !== "upload" && "hidden"
         )}>
           <UploadView onUploadComplete={handleUploadComplete} />
         </main>
 
         <main className={cn(
-          "flex-1 overflow-hidden bg-[#F8F9FB]",
+          "app-ground flex-1 overflow-hidden bg-background",
           activeView !== "export" && "hidden"
         )}>
           <FileExportView />

@@ -83,7 +83,7 @@ const MarkdownRenderer: React.FC<MarkdownRendererProps> = ({ content }) => {
               {...props}
               target="_blank"
               rel="noopener noreferrer"
-              className="text-blue-600 hover:text-blue-800 underline break-all"
+              className="text-blue-600 hover:text-primary underline break-all"
             />
           ),
           strong: ({ children, ...props }) => {
@@ -92,13 +92,13 @@ const MarkdownRenderer: React.FC<MarkdownRendererProps> = ({ content }) => {
             // Update section tracking and style Medical Necessity Criteria header in green
             if (text.includes('medical necessity criteria')) {
               sectionTracker.current = 'medical-necessity-zone';
-              return <strong {...props} className="text-green-700 font-semibold">{children}</strong>;
+              return <strong {...props} className="text-success font-semibold">{children}</strong>;
             }
 
             // Update section tracking and style Required Documentation header in green
             if (text.includes('required documentation')) {
               sectionTracker.current = 'medical-necessity-zone';
-              return <strong {...props} className="text-green-700 font-semibold">{children}</strong>;
+              return <strong {...props} className="text-success font-semibold">{children}</strong>;
             }
 
             // Update section tracking for Relevant Codes
@@ -109,7 +109,7 @@ const MarkdownRenderer: React.FC<MarkdownRendererProps> = ({ content }) => {
             // Update section tracking and style Limitations and Exclusions header in red
             if (text.includes('limitations and exclusions') || text.includes('limitations') && text.includes('exclusions')) {
               sectionTracker.current = 'exclusions';
-              return <strong {...props} className="text-red-700 font-semibold">{children}</strong>;
+              return <strong {...props} className="text-destructive font-semibold">{children}</strong>;
             }
 
             // Update section tracking for Summary
@@ -206,10 +206,10 @@ const MarkdownRenderer: React.FC<MarkdownRendererProps> = ({ content }) => {
                 <li {...props} className="flex items-start gap-2">
                   <input
                     type="checkbox"
-                    className="mt-1 h-4 w-4 flex-shrink-0 rounded border-green-400 text-green-600 focus:ring-green-500"
+                    className="mt-1 h-4 w-4 flex-shrink-0 rounded border-success/40 text-success focus:ring-success"
                     disabled
                   />
-                  <span className="text-green-700">{children}</span>
+                  <span className="text-success">{children}</span>
                 </li>
               );
             }
@@ -217,8 +217,8 @@ const MarkdownRenderer: React.FC<MarkdownRendererProps> = ({ content }) => {
             // Limitations/Exclusions section - red text with red X (until Summary Report)
             if (context === 'exclusions') {
               return (
-                <li {...props} className="flex items-start gap-2 text-red-700">
-                  <span className="mt-0.5 font-bold text-red-700 flex-shrink-0">✗</span>
+                <li {...props} className="flex items-start gap-2 text-destructive">
+                  <span className="mt-0.5 font-bold text-destructive flex-shrink-0">✗</span>
                   <span>{children}</span>
                 </li>
               );
@@ -239,7 +239,7 @@ const MarkdownRenderer: React.FC<MarkdownRendererProps> = ({ content }) => {
 // in ArtifactSections) so a user message reads as a peer of the agent's cards:
 // white surface, hairline border, soft layered shadow, 14px radius.
 const USER_CARD =
-  "rounded-[14px] border border-[#e6eaf2] bg-white px-5 py-4 text-[#283142] shadow-[0_1px_2px_rgba(16,24,40,0.04),0_8px_28px_-18px_rgba(16,24,40,0.18)]";
+  "rounded-[14px] border border-border bg-card px-5 py-4 text-foreground-soft shadow-[0_1px_2px_rgba(16,24,40,0.04),0_8px_28px_-18px_rgba(16,24,40,0.18)]";
 
 const LOADING_MESSAGES = [
   "Analyzing authorization criteria...",
@@ -301,7 +301,7 @@ export function ChatMessageBubble(props: {
     >
       {/* {!isUser && (
         <div className="hidden md:flex mr-3 mt-1 flex-shrink-0">
-          <div className="h-8 w-8 rounded-full bg-[#358cee] flex items-center justify-center text-white font-medium">
+          <div className="h-8 w-8 rounded-full bg-primary flex items-center justify-center text-white font-medium">
             <span className="text-sm">ND</span>
           </div>
         </div>
@@ -314,11 +314,11 @@ export function ChatMessageBubble(props: {
             !props.bare &&
               (isUser
                 ? USER_CARD
-                : "rounded-2xl border border-blue-100 bg-white px-4 py-2.5 text-gray-900 shadow-sm hover:bg-blue-50"),
+                : "rounded-2xl border border-primary/10 bg-card px-4 py-2.5 text-foreground shadow-sm hover:bg-primary/5"),
           )}
         >
           {isUser && !props.bare && (
-            <div className="mb-2.5 flex items-center gap-2.5 text-[11.5px] font-bold uppercase tracking-[0.09em] text-[#64748b]">
+            <div className="mb-2.5 flex items-center gap-2.5 text-[11.5px] font-bold uppercase tracking-[0.09em] text-muted-foreground">
               Your Request
             </div>
           )}
@@ -346,7 +346,7 @@ export function ChatMessageBubble(props: {
           </div>
 
           {/* {!isUser && props.isLastMessage && displayContent && !props.isLoading && (
-            <div className="mt-3 p-2 bg-blue-50 border border-blue-100 rounded-md">
+            <div className="mt-3 p-2 bg-primary/5 border border-primary/10 rounded-md">
               <div className="text-xs text-blue-700 italic">
                 Always verify with payer portal guidelines prior to submission. This analysis is based on publicly available information.
               </div>
@@ -354,7 +354,7 @@ export function ChatMessageBubble(props: {
           )} */}
 
           {!isUser && props.sources && props.sources.length > 0 && (
-            <div className="mt-1.5 text-xs text-gray-500">
+            <div className="mt-1.5 text-xs text-muted-foreground">
               <div className="font-medium mb-0.5">Sources:</div>
               <div className="space-y-0.5">
                 {props.sources.map((source, index) => (

@@ -10,26 +10,25 @@ const Toaster = ({ ...props }: ToasterProps) => {
 
   return (
     <Sonner
-      theme="light"
+      theme={theme as ToasterProps["theme"]}
       position="top-right"
       className="toaster"
       expand={true}
       toastOptions={{
         classNames: {
-          toast: cn(
-            "toast w-full max-w-sm toast-base text-white p-3 border-0"
-          ),
+          toast: cn("toast w-full max-w-sm toast-base text-white p-3 border-0"),
           title: "font-semibold text-white",
-          description: "text-gray-100 -mt-0.5 text-md",
+          description: "text-white/80 -mt-0.5 text-md",
           actionButton: cn(
-            "bg-blue-600 text-white hover:bg-blue-700",
-            "px-3 py-1.5 text-md font-medium rounded-md"
+            "bg-primary text-primary-foreground hover:bg-primary/90",
+            "px-3 py-1.5 text-md font-medium rounded-md",
           ),
           cancelButton: cn(
-            "bg-gray-600 text-white hover:bg-gray-700",
-            "px-3 py-1.5 text-md font-medium rounded-md"
+            "bg-muted text-muted-foreground hover:bg-accent/80",
+            "px-3 py-1.5 text-md font-medium rounded-md",
           ),
-          loading: "[--normal-bg:white] [--normal-border:transparent] [--normal-text:white] [--spinner-color:#fff] text-white bg-white"
+          loading:
+            "[--normal-bg:white] [--normal-border:transparent] [--normal-text:white] [--spinner-color:#fff] text-white bg-card",
         },
         unstyled: false,
       }}

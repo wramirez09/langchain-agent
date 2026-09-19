@@ -63,7 +63,7 @@ function useIssues(path?: string): ReviewIssue[] {
 // Design tokens (from the NoteDoctor design handoff) as exact Tailwind
 // arbitrary values so the React render matches the prototype.
 const CARD =
-  "rounded-[14px] border border-[#e6eaf2] bg-white p-5 sm:p-7 shadow-[0_1px_2px_rgba(16,24,40,0.04),0_8px_28px_-18px_rgba(16,24,40,0.18)]";
+  "rounded-[14px] border border-border bg-card p-5 sm:p-7 shadow-[0_1px_2px_rgba(16,24,40,0.04),0_8px_28px_-18px_rgba(16,24,40,0.18)]";
 
 // ---------------------------------------------------------------------------
 // Shared primitives
@@ -85,10 +85,10 @@ function SectionCard({
   theme?: string;
 }) {
   return (
-    <section id={id} className={cn(CARD, blue && "border-[#dbe6fe]", "scroll-mt-4")}>
-      <h3 className={`mb-[18px] flex items-center gap-2.5 text-[11.5px] font-bold uppercase tracking-[0.09em] ${theme === "danger" ? "text-[#dc2626]" : theme === "success" ? "text-[#15803d]" : "text-[#64748b]"}`}>
+    <section id={id} className={cn(CARD, blue && "border-primary/20", "scroll-mt-4")}>
+      <h3 className={`mb-[18px] flex items-center gap-2.5 text-[11.5px] font-bold uppercase tracking-[0.09em] ${theme === "danger" ? "text-destructive" : theme === "success" ? "text-success" : "text-muted-foreground"}`}>
         {index != null && (
-          <span className={cn("tabular-nums", theme === "danger" || theme === "success" ? "text-[#0f172a]" : "text-[#238dd2]")}>
+          <span className={cn("tabular-nums", theme === "danger" || theme === "success" ? "text-foreground" : "text-primary")}>
             {String(index).padStart(2, "0")}
           </span>
         )}
@@ -100,19 +100,19 @@ function SectionCard({
 }
 
 const PILL_TONES = {
-  amber: "bg-[#fff8ec] border-[#f7e0b0] text-[#b45309]",
-  green: "bg-[#edfcf2] border-[#bbf0cb] text-[#15803d]",
-  red: "bg-[#fef2f2] border-[#fecaca] text-[#b91c1c]",
-  blue: "bg-[#eff4ff] border-[#dbe6fe] text-[#238dd2]",
-  neutral: "bg-white border-[#e6eaf2] text-[#475569]",
+  amber: "bg-warning/10 border-warning/30 text-warning",
+  green: "bg-success/10 border-success/30 text-success",
+  red: "bg-destructive/10 border-destructive/30 text-destructive",
+  blue: "bg-primary/10 border-primary/20 text-primary",
+  neutral: "bg-card border-border text-muted-foreground",
 } as const;
 
 const DOT_TONES = {
-  amber: "bg-[#d97706]",
-  green: "bg-[#15803d]",
-  red: "bg-[#b91c1c]",
-  blue: "bg-[#238dd2]",
-  neutral: "bg-[#94a3b8]",
+  amber: "bg-warning",
+  green: "bg-success",
+  red: "bg-destructive",
+  blue: "bg-primary",
+  neutral: "bg-faint",
 } as const;
 
 function StatusPill({
@@ -183,7 +183,7 @@ function IssueChips({ path }: { path?: string }) {
 
 function CodeChip({ code }: { code?: string }) {
   return (
-    <span className="h-fit whitespace-nowrap rounded-md border border-[#dbe6fe] bg-[#eff4ff] px-[7px] py-px text-[12.5px] font-semibold tabular-nums text-[#238dd2]">
+    <span className="h-fit whitespace-nowrap rounded-md border border-primary/20 bg-primary/10 px-[7px] py-px text-[12.5px] font-semibold tabular-nums text-primary">
       {code}
     </span>
   );
@@ -213,14 +213,14 @@ function FindingsList({
   const list = (items ?? []).filter(Boolean);
   const ring =
     tone === "danger"
-      ? "border-[#dc2626] bg-[#fee2e2]"
-      : "border-[#238dd2] bg-[#dbe6fe]";
+      ? "border-destructive bg-destructive/20"
+      : "border-primary bg-primary/20";
   return (
     <ul className="mt-1.5 flex flex-col gap-[11px] pl-0 list-none">
       {list.map((t, i) => (
         <li
           key={i}
-          className="relative pl-[22px] text-[14.5px] leading-[1.55] text-[#283142]"
+          className="relative pl-[22px] text-[14.5px] leading-[1.55] text-foreground-soft"
         >
           <span
             className={`absolute left-[2px] top-[8px] h-[7px] w-[7px] rounded-full border-[1.5px] ${ring}`}
@@ -245,8 +245,8 @@ function Field({
 }) {
   return (
     <div className={cn("min-w-0", full && "sm:col-span-2")}>
-      <div className="mb-1 text-[12.5px] font-semibold text-[#475569]">{k}</div>
-      <div className={cn("text-[15px]", na ? "text-[#94a3b8]" : "text-[#0f172a]")}>
+      <div className="mb-1 text-[12.5px] font-semibold text-muted-foreground">{k}</div>
+      <div className={cn("text-[15px]", na ? "text-faint" : "text-foreground")}>
         {v}
       </div>
     </div>
@@ -276,14 +276,14 @@ export function Header({ data }: { data: PartialPriorAuthArtifact }) {
 
   return (
     <header className="mb-[22px]">
-      <div className="mb-[9px] flex items-center gap-2 text-[12px] font-semibold uppercase tracking-[0.06em] text-[#94a3b8]">
+      <div className="mb-[9px] flex items-center gap-2 text-[12px] font-semibold uppercase tracking-[0.06em] text-faint">
 
 
       </div>
       {data.title ? (
         <div className="flex items-center justify-center">
 
-          <h1 className="mr-1 text-[20px] font-bold leading-[1.18] tracking-[-0.02em] text-[#0f172a] [text-wrap:balance] sm:text-[27px] mb-5">
+          <h1 className="mr-1 text-[20px] font-bold leading-[1.18] tracking-[-0.02em] text-foreground [text-wrap:balance] sm:text-[27px] mb-5">
             {data.title}
           </h1></div>
       ) : null}
@@ -294,24 +294,24 @@ export function Header({ data }: { data: PartialPriorAuthArtifact }) {
           </StatusPill>
         ) : null}
         {data.guidelineBasis ? (
-          <span className="inline-flex items-center rounded-full border border-[#e6eaf2] bg-white px-3 py-[5px] text-[12.5px] font-medium text-[#64748b]">
+          <span className="inline-flex items-center rounded-full border border-border bg-card px-3 py-[5px] text-[12.5px] font-medium text-muted-foreground">
             Guidelines&nbsp;
-            <b className="font-semibold text-[#0f172a]">
+            <b className="font-semibold text-foreground">
               {GUIDELINE_LABEL[data.guidelineBasis] ?? data.guidelineBasis}
             </b>
           </span>
         ) : null}
         {primaryCpt ? (
-          <span className="inline-flex items-center rounded-full border border-[#e6eaf2] bg-white px-3 py-[5px] text-[12.5px] font-medium text-[#64748b]">
-            CPT&nbsp;<b className="font-semibold text-[#0f172a]">{primaryCpt}</b>
+          <span className="inline-flex items-center rounded-full border border-border bg-card px-3 py-[5px] text-[12.5px] font-medium text-muted-foreground">
+            CPT&nbsp;<b className="font-semibold text-foreground">{primaryCpt}</b>
           </span>
         ) : null}
       </div>
       {data.phiNotice ? (
-        <p className="mt-2.5 text-[12.5px] text-[#94a3b8]">{data.phiNotice}</p>
+        <p className="mt-2.5 text-[12.5px] text-faint">{data.phiNotice}</p>
       ) : null}
       {data.fallbackNotice ? (
-        <p className="mt-2.5 rounded-md border border-[#f7e0b0] bg-[#fff8ec] px-2.5 py-1.5 text-xs text-[#b45309]">
+        <p className="mt-2.5 rounded-md border border-warning/30 bg-warning/10 px-2.5 py-1.5 text-xs text-warning">
           {data.fallbackNotice}
         </p>
       ) : null}
@@ -335,8 +335,8 @@ export function ReviewBanner({ review }: { review?: ArtifactReview }) {
 
   if (summary.clean) {
     return (
-      <p className="mt-2.5 inline-flex items-center gap-1.5 rounded-md border border-[#bbf0cb] bg-[#edfcf2] px-2.5 py-1.5 text-xs font-medium text-[#15803d]">
-        <span className="h-[6px] w-[6px] rounded-full bg-[#15803d]" />
+      <p className="mt-2.5 inline-flex items-center gap-1.5 rounded-md border border-success/30 bg-success/10 px-2.5 py-1.5 text-xs font-medium text-success">
+        <span className="h-[6px] w-[6px] rounded-full bg-success" />
         {summary.headline}
       </p>
     );
@@ -417,7 +417,7 @@ function OptCol({
   if (list.length === 0) return null;
   return (
     <div>
-      <h4 className="mb-3 text-[12px] font-semibold text-[#64748b]">{heading}</h4>
+      <h4 className="mb-3 text-[12px] font-semibold text-muted-foreground">{heading}</h4>
       <ul className="flex flex-col gap-[13px]">
         {list.map((c, i) => (
           <li
@@ -425,7 +425,7 @@ function OptCol({
             className="grid grid-cols-[auto_1fr] gap-2.5 text-[14px] leading-[1.5]"
           >
             <CodeChip code={c?.code} />
-            <span className="text-[#283142]">
+            <span className="text-foreground-soft">
               {c?.label}
               {basePath ? <IssueChips path={`${basePath}[${i}]`} /> : null}
             </span>
@@ -468,7 +468,7 @@ export function RequestOverviewCard({
       </div>
       {hasSuggested ? (
         <>
-          <hr className="my-6 h-px border-0 bg-[#edf0f6]" />
+          <hr className="my-6 h-px border-0 bg-muted" />
           <div className="grid grid-cols-1 gap-x-8 gap-y-6 sm:grid-cols-2">
             <OptCol
               heading="Likely CPT / HCPCS options"
@@ -482,7 +482,7 @@ export function RequestOverviewCard({
             />
           </div>
           {ov.suggestedCodesNote ? (
-            <p className="mt-4 text-[13px] italic leading-[1.55] text-[#64748b]">
+            <p className="mt-4 text-[13px] italic leading-[1.55] text-muted-foreground">
               {ov.suggestedCodesNote}
             </p>
           ) : null}
@@ -510,17 +510,17 @@ export function ClinicalContextCard({
     <SectionCard id={id} index={index} title="Clinical Context">
       {ov?.medicalHistory ? (
         <>
-          <h4 className="mb-3 text-[12.5px] font-semibold text-[#0f172a]">
+          <h4 className="mb-3 text-[12.5px] font-semibold text-foreground">
             Medical History
           </h4>
-          <p className="text-[14.5px] leading-[1.62] text-[#283142]">
+          <p className="text-[14.5px] leading-[1.62] text-foreground-soft">
             {ov.medicalHistory}
           </p>
         </>
       ) : null}
       {ov?.keyFindings && ov.keyFindings.length > 0 ? (
         <>
-          <h4 className="mb-1 mt-[22px] text-[12.5px] font-semibold text-[#0f172a]">
+          <h4 className="mb-1 mt-[22px] text-[12.5px] font-semibold text-foreground">
             Key Clinical Findings
           </h4>
           <FindingsList items={ov.keyFindings} />
@@ -552,7 +552,7 @@ export function PaRequiredCard({
         <StatusPill tone={tone}>{label}</StatusPill>
       </div>
       {rationale ? (
-        <p className="text-[14.5px] leading-[1.62] text-[#283142]">{rationale}</p>
+        <p className="text-[14.5px] leading-[1.62] text-foreground-soft">{rationale}</p>
       ) : null}
     </SectionCard>
   );
@@ -588,14 +588,14 @@ function CitationChip({
 }) {
   const label = type ? `${type} ${id}` : id;
   const base =
-    "inline-flex items-center gap-1 rounded-md border border-[#dbe6fe] bg-[#eff4ff] px-2 py-0.5 text-[11.5px] font-semibold tabular-nums text-[#238dd2]";
+    "inline-flex items-center gap-1 rounded-md border border-primary/20 bg-primary/10 px-2 py-0.5 text-[11.5px] font-semibold tabular-nums text-primary";
   if (!href) return <span className={base}>{label}</span>;
   return (
     <a
       href={href}
       target="_blank"
       rel="noopener noreferrer"
-      className={cn(base, "transition-colors hover:bg-[#dbe6fe]")}
+      className={cn(base, "transition-colors hover:bg-primary/20")}
       title="View source on the CMS Medicare Coverage Database"
     >
       {label}
@@ -624,7 +624,7 @@ export function MedicarePoliciesCard({
           if (group.length === 0) return null;
           return (
             <div key={type}>
-              <div className="mb-2.5 text-[12px] font-semibold uppercase tracking-[0.04em] text-[#64748b]">
+              <div className="mb-2.5 text-[12px] font-semibold uppercase tracking-[0.04em] text-muted-foreground">
                 {POLICY_GROUP_TITLE[type]}
               </div>
               <div className="flex flex-col gap-2.5">
@@ -633,25 +633,25 @@ export function MedicarePoliciesCard({
                   return (
                     <div
                       key={i}
-                      className="rounded-[11px] border border-[#eef1f7] bg-[#f8fafc] p-3.5"
+                      className="rounded-[11px] border border-border bg-muted p-3.5"
                     >
                       <div className="mb-1 flex flex-wrap items-center gap-2">
                         {p?.policyId ? (
                           <CitationChip type={p?.type} id={p.policyId} href={src} />
                         ) : null}
-                        <span className="font-semibold text-[#0f172a]">
+                        <span className="font-semibold text-foreground">
                           {p?.title}
                         </span>
                       </div>
                       {p?.contractor || p?.jurisdiction ? (
-                        <div className="text-xs text-[#64748b]">
+                        <div className="text-xs text-muted-foreground">
                           {[p?.contractor, p?.jurisdiction]
                             .filter(Boolean)
                             .join(" · ")}
                         </div>
                       ) : null}
                       {p?.summary ? (
-                        <p className="mt-1.5 text-[14px] leading-[1.55] text-[#283142]">
+                        <p className="mt-1.5 text-[14px] leading-[1.55] text-foreground-soft">
                           {p.summary}
                         </p>
                       ) : null}
@@ -667,7 +667,7 @@ export function MedicarePoliciesCard({
                           href={src}
                           target="_blank"
                           rel="noopener noreferrer"
-                          className="mt-2.5 inline-flex items-center gap-1 text-xs font-medium text-[#238dd2] hover:underline"
+                          className="mt-2.5 inline-flex items-center gap-1 text-xs font-medium text-primary hover:underline"
                         >
                           View on CMS Medicare Coverage Database
                           {ExternalLinkIcon}
@@ -712,7 +712,7 @@ function CriterionRow({ c, child }: { c?: P<Criterion>; child?: boolean }) {
       <div className="flex items-baseline justify-between gap-3.5">
         <span
           className={cn(
-            "font-semibold text-[#0f172a]",
+            "font-semibold text-foreground",
             child ? "text-[13.5px]" : "text-[14.5px]",
           )}
         >
@@ -721,12 +721,12 @@ function CriterionRow({ c, child }: { c?: P<Criterion>; child?: boolean }) {
         {/* <CritTag status={c.status} /> */}
       </div>
       {c.detail ? (
-        <div className="mt-1 text-[14px] leading-[1.55] text-[#64748b]">
+        <div className="mt-1 text-[14px] leading-[1.55] text-muted-foreground">
           {c.detail}
         </div>
       ) : null}
       {c.subCriteria && c.subCriteria.length > 0 ? (
-        <div className="ml-1 mt-3 flex flex-col gap-4 border-l-2 border-[#eef1f7] pl-[18px]">
+        <div className="ml-1 mt-3 flex flex-col gap-4 border-l-2 border-border pl-[18px]">
           {c.subCriteria.map((sc, i) => (
             <CriterionRow key={i} c={sc} child />
           ))}
@@ -752,7 +752,7 @@ export function CriteriaCard({
         {list.map((c, i) => (
           <div
             key={i}
-            className={cn("py-3.5", i === 0 ? "pt-0.5" : "border-t border-[#edf0f6]")}
+            className={cn("py-3.5", i === 0 ? "pt-0.5" : "border-t border-border")}
           >
             <CriterionRow c={c} />
           </div>
@@ -776,28 +776,28 @@ function CodeTable({
 }) {
   const list = (codes ?? []).filter(Boolean);
   if (list.length === 0)
-    return <span className="text-[14px] text-[#94a3b8]">Not provided</span>;
+    return <span className="text-[14px] text-faint">Not provided</span>;
   return (
     <table className="w-full border-collapse text-[14px]">
       <thead>
         <tr>
-          <th className="w-[84px] border-b border-[#e6eaf2] pb-[9px] pr-3.5 text-left text-[11px] font-semibold uppercase tracking-[0.07em] text-[#94a3b8]">
+          <th className="w-[84px] border-b border-border pb-[9px] pr-3.5 text-left text-[11px] font-semibold uppercase tracking-[0.07em] text-faint">
             Code
           </th>
-          <th className="border-b border-[#e6eaf2] pb-[9px] pr-3.5 text-left text-[11px] font-semibold uppercase tracking-[0.07em] text-[#94a3b8]">
+          <th className="border-b border-border pb-[9px] pr-3.5 text-left text-[11px] font-semibold uppercase tracking-[0.07em] text-faint">
             Description
           </th>
         </tr>
       </thead>
       <tbody>
         {list.map((c, i) => (
-          <tr key={i} className="transition-colors hover:bg-[#f8fafc]">
-            <td className="w-[84px] whitespace-nowrap border-b border-[#edf0f6] py-[11px] pr-3.5 align-top font-semibold tabular-nums text-[#0f172a]">
+          <tr key={i} className="transition-colors hover:bg-accent">
+            <td className="w-[84px] whitespace-nowrap border-b border-border py-[11px] pr-3.5 align-top font-semibold tabular-nums text-foreground">
               {c?.code}
             </td>
-            <td className="border-b border-[#edf0f6] py-[11px] pr-3.5 align-top leading-[1.5] text-[#283142]">
+            <td className="border-b border-border py-[11px] pr-3.5 align-top leading-[1.5] text-foreground-soft">
               {c?.label}
-              {c?.note ? <span className="text-[#94a3b8]"> ({c.note})</span> : null}
+              {c?.note ? <span className="text-faint"> ({c.note})</span> : null}
               {basePath ? <IssueChips path={`${basePath}[${i}]`} /> : null}
             </td>
           </tr>
@@ -819,21 +819,21 @@ export function CodesCard({
   if (!codes) return null;
   return (
     <SectionCard id={id} index={index} title="Relevant Codes">
-      <div className="mb-2.5 text-[12px] font-semibold uppercase tracking-[0.04em] text-[#64748b]">
+      <div className="mb-2.5 text-[12px] font-semibold uppercase tracking-[0.04em] text-muted-foreground">
         ICD-10
       </div>
       <CodeTable codes={codes.icd10} basePath="relevantCodes.icd10" />
       {codes.icd10Note ? (
-        <p className="mt-3 text-[13px] italic leading-[1.55] text-[#64748b]">
+        <p className="mt-3 text-[13px] italic leading-[1.55] text-muted-foreground">
           {codes.icd10Note}
         </p>
       ) : null}
-      <div className="mb-2.5 mt-[26px] text-[12px] font-semibold uppercase tracking-[0.04em] text-[#64748b]">
+      <div className="mb-2.5 mt-[26px] text-[12px] font-semibold uppercase tracking-[0.04em] text-muted-foreground">
         CPT / HCPCS
       </div>
       <CodeTable codes={codes.cpt} basePath="relevantCodes.cpt" />
       {codes.cptNote ? (
-        <p className="mt-3 text-[13px] italic leading-[1.55] text-[#64748b]">
+        <p className="mt-3 text-[13px] italic leading-[1.55] text-muted-foreground">
           {codes.cptNote}
         </p>
       ) : null}
@@ -874,7 +874,7 @@ export function DocumentationCard({
           return (
             <div key={gi}>
               {g?.title ? (
-                <h4 className="mb-2 text-[12.5px] font-semibold text-[#0f172a]">
+                <h4 className="mb-2 text-[12.5px] font-semibold text-foreground">
                   {g.title}
                 </h4>
               ) : null}
@@ -903,11 +903,11 @@ export function DocumentationCard({
                           }
                           : { defaultChecked: provided })}
                         aria-label={provided ? "Provided" : "Not in record"}
-                        className="mt-0.5 h-4 w-4 flex-none cursor-pointer rounded border-[#cbd5e1] accent-[#15803d]"
+                        className="mt-0.5 h-4 w-4 flex-none cursor-pointer rounded border-border accent-[#15803d]"
                       />
-                      <span className="min-w-0 text-[#283142]">{d?.item}</span>
+                      <span className="min-w-0 text-foreground-soft">{d?.item}</span>
                       {/* {d?.provided === false ? (
-                        <span className="flex-none whitespace-nowrap rounded-full border border-[#f7e0b0] bg-[#fff8ec] px-2 py-0.5 text-[11px] font-semibold text-[#b45309]">
+                        <span className="flex-none whitespace-nowrap rounded-full border border-warning/30 bg-warning/10 px-2 py-0.5 text-[11px] font-semibold text-warning">
                           Not in record
                         </span>
                       ) : (
@@ -963,25 +963,25 @@ export function SummaryCard({
   return (
     <SectionCard id={id} index={index} title="Summary" blue>
       {summary.determinationLabel ? (
-        <div className="mb-3 text-[17px] font-bold text-[#0f172a]">
+        <div className="mb-3 text-[17px] font-bold text-foreground">
           {summary.determinationLabel}
         </div>
       ) : null}
       {summary.rationale ? (
-        <p className="text-[14.5px] leading-[1.62] text-[#283142]">
+        <p className="text-[14.5px] leading-[1.62] text-foreground-soft">
           {summary.rationale}
         </p>
       ) : null}
       {strengthen.length > 0 ? (
         <>
-          <h4 className="mb-2 mt-[22px] text-[12.5px] font-semibold text-[#0f172a]">
+          <h4 className="mb-2 mt-[22px] text-[12.5px] font-semibold text-foreground">
             To strengthen the request
           </h4>
           <ul className="flex flex-col gap-2.5">
             {strengthen.map((t, i) => (
               <li
                 key={i}
-                className="grid grid-cols-[20px_1fr] items-start gap-[11px] text-[14.5px] leading-[1.5] text-[#283142]"
+                className="grid grid-cols-[20px_1fr] items-start gap-[11px] text-[14.5px] leading-[1.5] text-foreground-soft"
               >
                 <span className="mt-px">{BlueCheckIcon}</span>
                 <span>{t}</span>
@@ -998,11 +998,11 @@ export function DisclaimerBlock({ disclaimer }: { disclaimer?: string }) {
   return (
     <>
       {disclaimer ? (
-        <p className="my-1.5 px-1 text-[12.5px] italic leading-[1.6] text-[#94a3b8]">
+        <p className="my-1.5 px-1 text-[12.5px] italic leading-[1.6] text-faint">
           {disclaimer}
         </p>
       ) : null}
-      <div className="flex items-start gap-2.5 rounded-[11px] border border-[#dbe6fe] bg-[#eff4ff] px-4 py-3.5 text-[13.5px] italic leading-[1.55] text-[#238dd2]">
+      <div className="flex items-start gap-2.5 rounded-[11px] border border-primary/20 bg-primary/10 px-4 py-3.5 text-[13.5px] italic leading-[1.55] text-primary">
         <svg
           viewBox="0 0 24 24"
           fill="none"

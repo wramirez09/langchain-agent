@@ -113,16 +113,16 @@ export function LogoutButton() {
   return (
     <div className='flex items-center space-between gap-5'>
       <div className='flex-col'>
-        <p className='text-black font-bold sentence-case text-sm'>
+        <p className='text-foreground font-bold sentence-case text-sm'>
           {profile?.full_name || profile?.email || ''}
         </p>
       </div>
 
       {subscription?.status === 'active' && (
         <>
-          <div className='text-gray-300'>|</div>
+          <div className='text-faint'>|</div>
           <ManageBillingButton />
-          <div className='text-gray-300'>|</div>
+          <div className='text-faint'>|</div>
         </>
       )}
       <Button

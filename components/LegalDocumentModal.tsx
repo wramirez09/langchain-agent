@@ -79,8 +79,8 @@ export function LegalDocumentModal({
   return (
     <Dialog open={isOpen} onOpenChange={(open) => !open && onClose()}>
       <DialogContent className="max-w-4xl max-h-[90vh] overflow-hidden flex flex-col p-0">
-        <DialogHeader className="px-6 py-4 border-b border-gray-200 flex-shrink-0">
-          <DialogTitle className="text-2xl font-semibold text-gray-900">
+        <DialogHeader className="px-6 py-4 border-b border-border flex-shrink-0">
+          <DialogTitle className="text-2xl font-semibold text-foreground">
             {title}
           </DialogTitle>
         </DialogHeader>
@@ -91,7 +91,7 @@ export function LegalDocumentModal({
         >
           <LegalDocumentViewer content={content} />
         </div>
-        <div className="px-6 py-4 border-t border-gray-200 flex flex-col gap-4 flex-shrink-0">
+        <div className="px-6 py-4 border-t border-border flex flex-col gap-4 flex-shrink-0">
           <div className="flex items-start gap-3">
             <Checkbox
               id={checkboxId}
@@ -105,13 +105,13 @@ export function LegalDocumentModal({
               className={cn(
                 'text-sm flex-1',
                 canAccept
-                  ? 'text-gray-700 cursor-pointer'
-                  : 'text-gray-400 cursor-not-allowed'
+                  ? 'text-foreground-soft cursor-pointer'
+                  : 'text-faint cursor-not-allowed'
               )}
             >
               {checkboxLabel}
               {!canAccept && (
-                <span className="block text-xs text-gray-400 mt-0.5">
+                <span className="block text-xs text-faint mt-0.5">
                   Please scroll to the bottom to continue.
                 </span>
               )}

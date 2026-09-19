@@ -86,8 +86,8 @@ function Field({
 }) {
   return (
     <div className={cn("min-w-0", full && "sm:col-span-2")}>
-      <div className="mb-1 text-[12.5px] font-semibold text-[#475569]">{k}</div>
-      <div className="text-[15px] leading-[1.5] text-[#0f172a] [overflow-wrap:anywhere]">
+      <div className="mb-1 text-[12.5px] font-semibold text-muted-foreground">{k}</div>
+      <div className="text-[15px] leading-[1.5] text-foreground [overflow-wrap:anywhere]">
         {v}
       </div>
     </div>
@@ -101,7 +101,7 @@ export function UserRequestFields({ content }: { content: string }) {
   // question) renders as plain text rather than an empty grid.
   if (fields.length === 0) {
     return (
-      <p className="whitespace-pre-wrap text-[15px] leading-[1.55] text-[#283142] [overflow-wrap:anywhere]">
+      <p className="whitespace-pre-wrap text-[15px] leading-[1.55] text-foreground-soft [overflow-wrap:anywhere]">
         {notes ?? content}
       </p>
     );

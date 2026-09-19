@@ -5,42 +5,42 @@ interface Props {
 }
 
 const eventTypeColor: Record<string, string> = {
-  'customer.subscription': 'bg-blue-100 text-blue-700',
-  'invoice.payment': 'bg-green-100 text-green-700',
-  'charge.dispute': 'bg-red-100 text-red-700',
-  'charge.refund': 'bg-amber-100 text-amber-700',
-  'checkout.session': 'bg-purple-100 text-purple-700',
-  'billing_portal': 'bg-indigo-100 text-indigo-700',
+  'customer.subscription': 'bg-primary/10 text-blue-700',
+  'invoice.payment': 'bg-success/10 text-success',
+  'charge.dispute': 'bg-destructive/10 text-destructive',
+  'charge.refund': 'bg-warning/10 text-warning',
+  'checkout.session': 'bg-purple-100 text-purple-700 dark:bg-purple-500/15 dark:text-purple-300',
+  'billing_portal': 'bg-indigo-100 text-indigo-700 dark:bg-indigo-500/15 dark:text-indigo-300',
 }
 
 function eventColor(type: string) {
   for (const prefix of Object.keys(eventTypeColor)) {
     if (type.startsWith(prefix)) return eventTypeColor[prefix]
   }
-  return 'bg-gray-100 text-gray-600'
+  return 'bg-muted text-foreground-soft'
 }
 
 export function EventsLog({ events }: Props) {
   if (!events.length) {
-    return <p className="text-sm text-gray-400 py-6 text-center">No events found.</p>
+    return <p className="text-sm text-faint py-6 text-center">No events found.</p>
   }
 
   return (
     <div className="overflow-x-auto">
       <table className="w-full text-sm">
         <thead>
-          <tr className="border-b border-gray-100">
-            <th className="text-left py-3 px-4 font-medium text-gray-500">Time</th>
-            <th className="text-left py-3 px-4 font-medium text-gray-500">Event Type</th>
-            <th className="text-left py-3 px-4 font-medium text-gray-500">API Version</th>
-            <th className="text-left py-3 px-4 font-medium text-gray-500">Pending Webhooks</th>
-            <th className="text-left py-3 px-4 font-medium text-gray-500">Event ID</th>
+          <tr className="border-b border-border">
+            <th className="text-left py-3 px-4 font-medium text-muted-foreground">Time</th>
+            <th className="text-left py-3 px-4 font-medium text-muted-foreground">Event Type</th>
+            <th className="text-left py-3 px-4 font-medium text-muted-foreground">API Version</th>
+            <th className="text-left py-3 px-4 font-medium text-muted-foreground">Pending Webhooks</th>
+            <th className="text-left py-3 px-4 font-medium text-muted-foreground">Event ID</th>
           </tr>
         </thead>
         <tbody>
           {events.map(event => (
-            <tr key={event.id} className="border-b border-gray-50 hover:bg-gray-50 transition-colors">
-              <td className="py-3 px-4 text-gray-500 whitespace-nowrap">
+            <tr key={event.id} className="border-b border-border hover:bg-accent transition-colors">
+              <td className="py-3 px-4 text-muted-foreground whitespace-nowrap">
                 {new Date(event.created * 1000).toLocaleString()}
               </td>
               <td className="py-3 px-4">
@@ -48,9 +48,9 @@ export function EventsLog({ events }: Props) {
                   {event.type}
                 </span>
               </td>
-              <td className="py-3 px-4 text-gray-400 font-mono text-xs">{event.api_version ?? '—'}</td>
-              <td className="py-3 px-4 text-gray-600 text-center">{event.pending_webhooks}</td>
-              <td className="py-3 px-4 text-gray-400 font-mono text-xs">{event.id}</td>
+              <td className="py-3 px-4 text-faint font-mono text-xs">{event.api_version ?? '—'}</td>
+              <td className="py-3 px-4 text-foreground-soft text-center">{event.pending_webhooks}</td>
+              <td className="py-3 px-4 text-faint font-mono text-xs">{event.id}</td>
             </tr>
           ))}
         </tbody>

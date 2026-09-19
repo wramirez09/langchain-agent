@@ -6,6 +6,7 @@ import * as React from 'react';
 import { Menu } from 'lucide-react';
 import { createClient } from '@/utils/client';
 import { useMobileSidebar } from '@/components/providers/MobileSidebarProvider';
+import { ThemeToggle } from '@/components/ThemeToggle';
 
 const TopBar: React.FC = () => {
   const { toggleIsOpen } = useMobileSidebar();
@@ -67,13 +68,13 @@ const TopBar: React.FC = () => {
   }, []);
 
   return (
-    <div className="h-16 bg-white border-b border-gray-200 flex items-center px-4 md:px-6 z-50 flex-shrink-0">
+    <div className="h-16 bg-card border-b border-border flex items-center px-4 md:px-6 z-50 flex-shrink-0">
       {/* Left — hamburger on mobile, spacer on desktop */}
       <div className="flex-1 flex items-center">
         {isLoggedIn && (
           <button
             onClick={toggleIsOpen}
-            className="md:hidden text-gray-600 hover:text-gray-900 p-1"
+            className="md:hidden text-muted-foreground hover:text-foreground p-1"
             aria-label="Toggle menu"
           >
             <Menu className="size-6" />
@@ -89,11 +90,14 @@ const TopBar: React.FC = () => {
         className="flex items-center justify-center gap-2"
       >
         <Image src={logo} alt="NoteDoctorAiLogo" className="h-8 w-auto" />
-        <span className="text-md font-bold text-gray-800">NoteDoctorAi</span>
+        {/* The wordmark yields to the logo on phones so the theme control and
+          avatar have room; the mark alone still identifies the app. */}
+        <span className="hidden sm:inline text-md font-bold text-foreground">NoteDoctorAi</span>
       </Link>
 
       {/* Right — user info */}
-      <div className="flex-1 flex items-center justify-end">
+      <div className="flex-1 flex items-center justify-end gap-3">
+        <ThemeToggle className="w-auto" />
         {isLoggedIn && (
           <div className="flex items-center gap-3">
             <div className="w-9 h-9 bg-blue-600 rounded-full flex items-center justify-center flex-shrink-0">

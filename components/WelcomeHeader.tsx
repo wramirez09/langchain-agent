@@ -29,28 +29,28 @@ export function WelcomeHeader({ isVisible, onFadeOut }: WelcomeHeaderProps) {
       )}
     >
       <div className="max-w-3xl mx-auto space-y-6">
-        <h1 className="text-3xl md:text-4xl font-bold text-gray-900 leading-tight" id="welcome-header-title">
+        <h1 className="text-3xl md:text-4xl font-bold text-foreground leading-tight" id="welcome-header-title">
           Welcome to <span className="text-blue-500">NoteDoctorAI</span>
         </h1>
-        <p className="text-lg md:text-xl text-gray-600 leading-relaxed max-w-xl mx-auto">
+        <p className="text-lg md:text-xl text-foreground-soft leading-relaxed max-w-xl mx-auto">
           Structured prior authorization analysis and medical policy lookup that saves time, reduces errors, and ensures compliance.
         </p>
         <div className="flex flex-col sm:flex-row gap-4 justify-center items-center pt-4">
-          <div className="flex items-center gap-2 text-sm text-gray-500">
-            <div className="w-2 h-2 bg-green-500 rounded-full"></div>
+          <div className="flex items-center gap-2 text-sm text-muted-foreground">
+            <div className="w-2 h-2 bg-success rounded-full"></div>
             <span>HIPAA Compliant</span>
           </div>
-          <div className="flex items-center gap-2 text-sm text-gray-500">
+          <div className="flex items-center gap-2 text-sm text-muted-foreground">
             <div className="w-2 h-2 bg-blue-500 rounded-full"></div>
             <span>Secure</span>
           </div>
-          <div className="flex items-center gap-2 text-sm text-gray-500">
+          <div className="flex items-center gap-2 text-sm text-muted-foreground">
             <div className="w-2 h-2 bg-purple-500 rounded-full"></div>
             <span>Trusted by Healthcare Professionals</span>
           </div>
         </div>
-        <div className="pt-6 border-t border-gray-400">
-          <p className="text-sm text-gray-500 italic">
+        <div className="pt-6 border-t border-border">
+          <p className="text-sm text-muted-foreground italic">
             Start by asking a question, uploading a document or fill out a form to begin your analysis.<br /><strong>Always verify with payer portal guidelines prior to submission. This analysis is based on publicly available information.</strong>
           </p>
         </div>

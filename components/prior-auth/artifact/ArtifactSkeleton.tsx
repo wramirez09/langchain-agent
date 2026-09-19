@@ -13,7 +13,7 @@ function Bar({ w = "100%", h = 12 }: { w?: string; h?: number }) {
 /** A card-shaped placeholder for a section that hasn't streamed in yet. */
 export function SectionSkeleton({ lines = 3 }: { lines?: number }) {
   return (
-    <div className="rounded-xl border border-gray-100 bg-white p-4 shadow-sm">
+    <div className="rounded-xl border border-border bg-card p-4 shadow-sm">
       <Bar w="34%" h={10} />
       <div className="mt-3 space-y-2">
         {Array.from({ length: lines }).map((_, i) => (

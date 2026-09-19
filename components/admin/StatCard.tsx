@@ -6,19 +6,19 @@ interface StatCardProps {
 }
 
 const colorMap = {
-  default: 'bg-white',
-  green: 'bg-green-50 border-green-100',
-  blue: 'bg-blue-50 border-blue-100',
-  amber: 'bg-amber-50 border-amber-100',
-  red: 'bg-red-50 border-red-100',
+  default: 'bg-card',
+  green: 'bg-success/5 border-success/10',
+  blue: 'bg-primary/5 border-primary/10',
+  amber: 'bg-warning/5 border-warning/10',
+  red: 'bg-destructive/5 border-destructive/10',
 }
 
 export function StatCard({ label, value, sub, color = 'default' }: StatCardProps) {
   return (
     <div className={`rounded-xl border p-5 ${colorMap[color]}`}>
-      <p className="text-xs font-medium text-gray-500 uppercase tracking-wide">{label}</p>
-      <p className="mt-1 text-2xl font-bold text-gray-900">{value}</p>
-      {sub && <p className="mt-0.5 text-xs text-gray-400">{sub}</p>}
+      <p className="text-xs font-medium text-muted-foreground uppercase tracking-wide">{label}</p>
+      <p className="mt-1 text-2xl font-bold text-foreground">{value}</p>
+      {sub && <p className="mt-0.5 text-xs text-faint">{sub}</p>}
     </div>
   )
 }

@@ -56,9 +56,9 @@ export function TermsAcceptanceForm({ email, name, onAccepted }: TermsAcceptance
 
   return (
     <div className="space-y-6 pb-8">
-      <div className="bg-amber-50 border border-amber-200 rounded-lg p-4 flex gap-3">
-        <AlertTriangle className="h-5 w-5 text-amber-600 flex-shrink-0 mt-0.5" />
-        <div className="text-sm text-amber-800">
+      <div className="bg-warning/5 border border-warning/20 rounded-lg p-4 flex gap-3">
+        <AlertTriangle className="h-5 w-5 text-warning flex-shrink-0 mt-0.5" />
+        <div className="text-sm text-warning">
           <p className="font-semibold mb-1">Important: Review Before Accepting</p>
           <p>
             Please carefully review our Terms of Service and Privacy Policy before proceeding.
@@ -67,10 +67,10 @@ export function TermsAcceptanceForm({ email, name, onAccepted }: TermsAcceptance
         </div>
       </div>
 
-      <div className="bg-white border border-gray-200 rounded-lg p-6 space-y-4">
-        <h3 className="text-lg font-semibold text-gray-900">Legal Documents</h3>
+      <div className="bg-card border border-border rounded-lg p-6 space-y-4">
+        <h3 className="text-lg font-semibold text-foreground">Legal Documents</h3>
 
-        <p className="text-sm text-gray-600">
+        <p className="text-sm text-foreground-soft">
           Open each document and check the box at the bottom to agree.
         </p>
 
@@ -127,7 +127,7 @@ export function TermsAcceptanceForm({ email, name, onAccepted }: TermsAcceptance
         </Button>
       </div>
 
-      <p className="text-xs text-gray-500 text-center">
+      <p className="text-xs text-muted-foreground text-center">
         By continuing, you authorize NoteDoctorAito charge your payment method for the subscription fees.
       </p>
 
@@ -185,22 +185,22 @@ function DocumentRow({ title, description, accepted, onClick }: DocumentRowProps
       className={cn(
         'w-full flex items-center justify-between p-4 border rounded-lg transition-colors group text-left',
         accepted
-          ? 'border-green-300 bg-green-50 hover:bg-green-100'
-          : 'border-gray-200 hover:bg-gray-50'
+          ? 'border-success/30 bg-success/5 hover:bg-success/10'
+          : 'border-border hover:bg-accent'
       )}
     >
       <div>
-        <p className="font-medium text-gray-900 group-hover:text-blue-600">
+        <p className="font-medium text-foreground group-hover:text-blue-600">
           {title}
         </p>
-        <p className="text-sm text-gray-600">
+        <p className="text-sm text-foreground-soft">
           {accepted ? 'Agreed' : description}
         </p>
       </div>
       {accepted ? (
-        <CheckCircle2 className="h-5 w-5 text-green-600 flex-shrink-0" />
+        <CheckCircle2 className="h-5 w-5 text-success flex-shrink-0" />
       ) : (
-        <FileText className="h-5 w-5 text-gray-400 group-hover:text-blue-600 flex-shrink-0" />
+        <FileText className="h-5 w-5 text-faint group-hover:text-blue-600 flex-shrink-0" />
       )}
     </button>
   );

@@ -21,7 +21,7 @@ import { applyDocChecks } from "@/lib/priorAuth/docChecks";
 
 const pdfLoading = () => (
   <div className="flex items-center justify-center h-full">
-    <LoaderCircle className="animate-spin size-6 text-gray-400" />
+    <LoaderCircle className="animate-spin size-6 text-faint" />
   </div>
 );
 
@@ -198,17 +198,17 @@ export function FileExportView() {
   return (
     <div className="flex flex-col h-full overflow-hidden">
       {/* Header */}
-      <div className="bg-white border-b border-gray-200 px-8 py-6 flex-shrink-0 flex items-center justify-between">
+      <div className="bg-card border-b border-border px-8 py-6 flex-shrink-0 flex items-center justify-between">
         <div>
-          <h1 className="text-2xl font-semibold text-gray-900">File Export</h1>
-          <p className="text-sm text-gray-500 mt-1">
+          <h1 className="text-2xl font-semibold text-foreground">File Export</h1>
+          <p className="text-sm text-muted-foreground mt-1">
             Export and download patient records and reports
           </p>
         </div>
       </div>
 
       {/* PDF Preview area */}
-      <div className="flex-1 overflow-hidden m-6 rounded-lg border border-gray-200 shadow-sm bg-white">
+      <div className="flex-1 overflow-hidden m-6 rounded-lg border border-border shadow-sm bg-card">
         {artifactForPdf ? (
           <ArtifactPdfPreview
             artifact={artifactForPdf}
@@ -216,11 +216,11 @@ export function FileExportView() {
           />
         ) : filteredMessages.length === 0 ? (
           <div className="flex flex-col items-center justify-center h-full text-center px-8 py-16">
-            <div className="size-16 bg-gray-100 rounded-full flex items-center justify-center mb-4">
-              <Download className="size-8 text-gray-400" />
+            <div className="size-16 bg-muted rounded-full flex items-center justify-center mb-4">
+              <Download className="size-8 text-faint" />
             </div>
-            <p className="text-gray-700 font-medium mb-2">No report generated yet</p>
-            <p className="text-gray-400 text-sm">
+            <p className="text-foreground-soft font-medium mb-2">No report generated yet</p>
+            <p className="text-faint text-sm">
               Go to Prior Authorization, complete a request, then return here to export the report.
             </p>
           </div>

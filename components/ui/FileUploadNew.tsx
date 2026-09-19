@@ -77,13 +77,13 @@ export function FileUpload({
         className={cn(
           "group relative border-2 border-dashed rounded-xl p-8 text-center transition-all duration-200 cursor-pointer",
           isDragActive 
-            ? "border-blue-500 bg-blue-50/50" 
-            : "border-blue-200 hover:border-blue-400 hover:bg-blue-50/30"
+            ? "border-blue-500 bg-primary/5" 
+            : "border-primary/20 hover:border-primary/40 hover:bg-primary/5"
         )}
       >
         <input {...(getInputProps() as DropzoneInputProps)} />
         <div className="pointer-events-none">
-          <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-full bg-blue-50 group-hover:bg-blue-100 transition-colors">
+          <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-full bg-primary/5 group-hover:bg-primary/10 transition-colors">
             <svg 
               className="h-8 w-8 text-blue-600" 
               fill="none" 
@@ -98,31 +98,31 @@ export function FileUpload({
               />
             </svg>
           </div>
-          <p className="mt-4 text-sm font-medium text-gray-900">
+          <p className="mt-4 text-sm font-medium text-foreground">
             {isDragActive ? "Drop your PDF here" : "Drag and drop your PDF"}
           </p>
-          <p className="mt-1 text-sm text-gray-500">
+          <p className="mt-1 text-sm text-muted-foreground">
             or <span className="font-medium text-blue-600 hover:text-blue-500">browse files</span>
           </p>
-          <p className="mt-2 text-xs text-gray-400">
+          <p className="mt-2 text-xs text-faint">
             PDF (max. 10MB)
           </p>
         </div>
       </div>
 
       {files.length > 0 && !isUploading && (
-        <div className="rounded-lg border border-green-100 bg-green-50 p-4">
+        <div className="rounded-lg border border-success/10 bg-success/5 p-4">
           <div className="flex items-start">
             <div className="flex-shrink-0">
-              <svg className="h-5 w-5 text-green-400" fill="currentColor" viewBox="0 0 20 20">
+              <svg className="h-5 w-5 text-success" fill="currentColor" viewBox="0 0 20 20">
                 <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
               </svg>
             </div>
             <div className="ml-3 flex-1">
-              <p className="text-sm font-medium text-green-800">
+              <p className="text-sm font-medium text-success">
                 {files[0].name}
               </p>
-              <p className="mt-1 text-sm text-green-700">
+              <p className="mt-1 text-sm text-success">
                 Ready to upload
               </p>
             </div>
@@ -131,20 +131,20 @@ export function FileUpload({
       )}
 
       {isUploading && (
-        <div className="space-y-3 rounded-lg border border-blue-100 bg-white p-4 shadow-sm">
+        <div className="space-y-3 rounded-lg border border-primary/10 bg-card p-4 shadow-sm">
           <div className="flex items-center justify-between">
-            <p className="text-sm font-medium text-gray-900">
+            <p className="text-sm font-medium text-foreground">
               {files[0]?.name || 'Document'}
             </p>
             <span className="text-xs font-medium text-blue-600">{progress}%</span>
           </div>
-          <div className="h-2 overflow-hidden rounded-full bg-blue-50">
+          <div className="h-2 overflow-hidden rounded-full bg-primary/5">
             <div 
               className="h-full bg-blue-600 transition-all duration-300 ease-out"
               style={{ width: `${progress}%` }}
             />
           </div>
-          <p className="text-xs text-gray-500 mt-2">Processing your document...</p>
+          <p className="text-xs text-muted-foreground mt-2">Processing your document...</p>
         </div>
       )}
     </div>

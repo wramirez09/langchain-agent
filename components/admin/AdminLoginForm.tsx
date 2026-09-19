@@ -60,13 +60,13 @@ export function AdminLoginForm() {
         />
       </div>
       {error && (
-        <div className="rounded-md bg-red-50 border border-red-200 p-3 text-sm text-red-700">
+        <div className="rounded-md bg-destructive/5 border border-destructive/20 p-3 text-sm text-destructive">
           {error}
         </div>
       )}
       <Button
         type="submit"
-        className="w-full bg-gray-900 hover:bg-gray-800 text-white"
+        className="w-full bg-foreground hover:bg-foreground/90 text-background"
         disabled={loading}
       >
         {loading ? (

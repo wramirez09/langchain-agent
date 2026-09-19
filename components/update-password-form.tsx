@@ -97,7 +97,7 @@ function UpdatePasswordFormCore() {
   const isRecovery = mode === "recovery";
 
   return (
-    <div className="flex  items-center justify-center bg-gray-50 p-4">
+    <div className="flex  items-center justify-center bg-muted p-4">
       <Card className="w-full max-w-md">
         <CardHeader>
           <CardTitle className="text-xl font-semibold text-center">
@@ -112,7 +112,7 @@ function UpdatePasswordFormCore() {
         <CardContent>
           <form onSubmit={handleSubmit} className="space-y-4">
             {error && (
-              <p className="text-sm text-center text-red-600">{error}</p>
+              <p className="text-sm text-center text-destructive">{error}</p>
             )}
 
             {!isRecovery && (

@@ -52,7 +52,7 @@ const nestedRowClass =
 
 function SectionHead({ children }: { children: React.ReactNode }) {
   return (
-    <div className="fb-label fb-head px-3.5 text-[11px] font-bold uppercase tracking-[0.1em] text-[#aab0bd]">
+    <div className="fb-label fb-head px-3.5 text-[11px] font-bold uppercase tracking-[0.1em] text-faint">
       {children}
     </div>
   );
@@ -233,7 +233,7 @@ export function AppSidebar({ activeView, onViewChange }: AppSidebarProps) {
             pinned && 'is-pinned',
           )}
         >
-          <aside className="flyout-rail h-full flex flex-col bg-white border-r border-[#ebedf1] pt-4 px-3 pb-3.5">
+          <aside className="flyout-rail h-full flex flex-col bg-card border-r border-border pt-4 px-3 pb-3.5">
 
             <nav aria-label="Primary" className="flex-1 flex flex-col gap-[3px] overflow-hidden pt-1.5">
               <SectionHead>Workspace</SectionHead>
@@ -251,10 +251,10 @@ export function AppSidebar({ activeView, onViewChange }: AppSidebarProps) {
                     className={cn(
                       rowClass,
                       isDisabled
-                        ? 'text-gray-300 cursor-not-allowed'
+                        ? 'text-faint cursor-not-allowed'
                         : isActive
                           ? 'bg-primary/10 text-primary'
-                          : 'text-[#737b89] hover:bg-[#f4f5f8]',
+                          : 'text-muted-foreground hover:bg-accent',
                     )}
                   >
                     {isActive && <ActiveBar />}
@@ -263,7 +263,7 @@ export function AppSidebar({ activeView, onViewChange }: AppSidebarProps) {
                       className={cn(
                         'fb-label text-sm',
                         isActive ? 'font-bold text-primary' : 'font-semibold',
-                        !isActive && !isDisabled && 'text-[#3f4654]',
+                        !isActive && !isDisabled && 'text-foreground-soft',
                       )}
                     >
                       {item.label}
@@ -279,10 +279,10 @@ export function AppSidebar({ activeView, onViewChange }: AppSidebarProps) {
                     onClick={() => setDevOpen((o) => !o)}
                     aria-expanded={devOpen}
                     aria-label="Developer"
-                    className={cn(rowClass, 'text-[#737b89] hover:bg-[#f4f5f8]')}
+                    className={cn(rowClass, 'text-muted-foreground hover:bg-accent')}
                   >
                     <Code2 size={21} strokeWidth={1.7} className="shrink-0" />
-                    <span className="fb-label text-sm font-semibold text-[#3f4654]">
+                    <span className="fb-label text-sm font-semibold text-foreground-soft">
                       Developer
                     </span>
                     <ChevronRight
@@ -290,7 +290,7 @@ export function AppSidebar({ activeView, onViewChange }: AppSidebarProps) {
                       strokeWidth={2}
                       aria-hidden
                       className={cn(
-                        'fb-label ml-auto shrink-0 text-[#aab0bd] transition-transform',
+                        'fb-label ml-auto shrink-0 text-faint transition-transform',
                         devOpen && 'rotate-90',
                       )}
                     />
@@ -305,11 +305,11 @@ export function AppSidebar({ activeView, onViewChange }: AppSidebarProps) {
                         aria-label="API Keys"
                         className={cn(
                           railOpen ? nestedRowClass : rowClass,
-                          'transition-[padding] text-[#737b89] hover:bg-[#f4f5f8]',
+                          'transition-[padding] text-muted-foreground hover:bg-accent',
                         )}
                       >
                         <KeyRound size={18} strokeWidth={1.7} className="shrink-0" />
-                        <span className="fb-label text-sm font-medium text-[#5b6270]">
+                        <span className="fb-label text-sm font-medium text-muted-foreground">
                           API Keys
                         </span>
                       </Link>
@@ -320,11 +320,11 @@ export function AppSidebar({ activeView, onViewChange }: AppSidebarProps) {
                         aria-label="API Playground"
                         className={cn(
                           railOpen ? nestedRowClass : rowClass,
-                          'transition-[padding] text-[#737b89] hover:bg-[#f4f5f8]',
+                          'transition-[padding] text-muted-foreground hover:bg-accent',
                         )}
                       >
                         <FlaskConical size={18} strokeWidth={1.7} className="shrink-0" />
-                        <span className="fb-label text-sm font-medium text-[#5b6270]">
+                        <span className="fb-label text-sm font-medium text-muted-foreground">
                           API Playground
                         </span>
                       </Link>
@@ -337,10 +337,10 @@ export function AppSidebar({ activeView, onViewChange }: AppSidebarProps) {
                   href="/agents/api-keys"
                   onClick={collapseFlyout}
                   aria-label="API Keys"
-                  className={cn(rowClass, 'text-[#737b89] hover:bg-[#f4f5f8]')}
+                  className={cn(rowClass, 'text-muted-foreground hover:bg-accent')}
                 >
                   <KeyRound size={21} strokeWidth={1.7} className="shrink-0" />
-                  <span className="fb-label text-sm font-semibold text-[#3f4654]">
+                  <span className="fb-label text-sm font-semibold text-foreground-soft">
                     API Keys
                   </span>
                 </Link>
@@ -353,10 +353,10 @@ export function AppSidebar({ activeView, onViewChange }: AppSidebarProps) {
                   href="/agents/api-playground"
                   onClick={collapseFlyout}
                   aria-label="API Playground"
-                  className={cn(rowClass, 'text-[#737b89] hover:bg-[#f4f5f8]')}
+                  className={cn(rowClass, 'text-muted-foreground hover:bg-accent')}
                 >
                   <FlaskConical size={21} strokeWidth={1.7} className="shrink-0" />
-                  <span className="fb-label text-sm font-semibold text-[#3f4654]">
+                  <span className="fb-label text-sm font-semibold text-foreground-soft">
                     API Playground
                   </span>
                 </Link>
@@ -366,11 +366,11 @@ export function AppSidebar({ activeView, onViewChange }: AppSidebarProps) {
 
               <SectionHead>Support</SectionHead>
               {supportLinks.map(({ href, icon: Icon, label, isLink }) => {
-                const linkClass = cn(rowClass, 'text-[#737b89] hover:bg-[#f4f5f8]');
+                const linkClass = cn(rowClass, 'text-muted-foreground hover:bg-accent');
                 const inner = (
                   <>
                     <Icon size={21} strokeWidth={1.7} className="shrink-0" />
-                    <span className="fb-label text-sm font-semibold text-[#3f4654]">
+                    <span className="fb-label text-sm font-semibold text-foreground-soft">
                       {label}
                     </span>
                   </>
@@ -391,13 +391,13 @@ export function AppSidebar({ activeView, onViewChange }: AppSidebarProps) {
             <button
               onClick={handleLogout}
               aria-label="Logout"
-              className={cn(rowClass, 'text-[#ef5b5b] hover:bg-[#f4f5f8]')}
+              className={cn(rowClass, 'text-destructive hover:bg-accent')}
             >
               <LogOut size={21} strokeWidth={1.7} className="shrink-0" />
               <span className="fb-label text-sm font-semibold">Logout</span>
             </button>
 
-            <div className="h-px bg-[#eef0f3] mx-2 my-3" />
+            <div className="h-px bg-border mx-2 my-3" />
 
             {/* Account card — avatar stays in the slim rail; text + chevron
                 reveal on expand. Opens the Stripe billing portal, so the row
@@ -405,23 +405,23 @@ export function AppSidebar({ activeView, onViewChange }: AppSidebarProps) {
             <button
               onClick={handleBilling}
               aria-label="Billing"
-              className="flex items-center gap-[11px] h-[52px] px-1.5 rounded-xl text-left hover:bg-[#f4f5f8] transition-colors"
+              className="flex items-center gap-[11px] h-[52px] px-1.5 rounded-xl text-left hover:bg-accent transition-colors"
             >
               <span className="shrink-0 grid place-items-center w-9 h-9 rounded-full bg-primary/10 text-primary text-sm font-bold">
                 {accountInitial}
               </span>
               <span className="fb-label min-w-0 flex-1">
-                <span className="block truncate text-sm font-semibold text-[#3f4654]">
+                <span className="block truncate text-sm font-semibold text-foreground-soft">
                   {accountHandle}
                 </span>
-                <span className="block text-[11.5px] text-[#aab0bd]">
+                <span className="block text-[11.5px] text-faint">
                   Billing
                 </span>
               </span>
               <ChevronRight
                 size={16}
                 strokeWidth={1.7}
-                className="fb-label shrink-0 text-[#aab0bd]"
+                className="fb-label shrink-0 text-faint"
               />
             </button>
           </aside>
@@ -435,9 +435,9 @@ export function AppSidebar({ activeView, onViewChange }: AppSidebarProps) {
               aria-pressed={pinned}
               className={cn(
                 'hidden md:grid place-items-center absolute top-[22px] -right-[13px] z-30',
-                'w-[26px] h-[26px] rounded-full border border-[#e7e9ee] bg-white hover:bg-[#f7f8fa]',
+                'w-[26px] h-[26px] rounded-full border border-border bg-card hover:bg-accent',
                 'shadow-[0_3px_10px_rgba(20,30,60,0.12)]',
-                pinned ? 'text-primary' : 'text-[#aab0bd]',
+                pinned ? 'text-primary' : 'text-faint',
               )}
             >
               <Pin size={14} strokeWidth={1.7} />

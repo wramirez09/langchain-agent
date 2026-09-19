@@ -13,7 +13,7 @@ export default async function ProtectedPage() {
 
   return (
     <div className="flex flex-col h-svh w-full items-center justify-center gap-2">
-      <p className='text-black'>
+      <p className='text-foreground'>
         Hello! <span className='font-bold'>{data.claims.email}</span>
       </p>
       <LogoutButton />

@@ -14,7 +14,7 @@ export function PriorAuthTabs({ isLayoutSwapped, setIsLayoutSwapped }: PriorAuth
 
   return (
     <div className="px-4 md:px-6 pt- pb-0 flex-shrink-0">
-      <div className="flex items-center justify-between border-b border-gray-200">
+      <div className="flex items-center justify-between border-b border-border">
         <div className="flex">
           {(["pre-auth", "chat", "output"] as const).map((tab) => (
             <button
@@ -24,7 +24,7 @@ export function PriorAuthTabs({ isLayoutSwapped, setIsLayoutSwapped }: PriorAuth
                 "md:hidden px-3 py-3 text-sm font-medium border-b-2 -mb-px transition-colors",
                 activeFormTab === tab
                   ? "border-blue-600 text-blue-600"
-                  : "border-transparent text-gray-500 hover:text-gray-700",
+                  : "border-transparent text-muted-foreground hover:text-foreground-soft",
               )}
             >
               {tab === "pre-auth" ? "Pre-Auth" : tab.charAt(0).toUpperCase() + tab.slice(1)}
@@ -36,7 +36,7 @@ export function PriorAuthTabs({ isLayoutSwapped, setIsLayoutSwapped }: PriorAuth
               "hidden md:block px-4 py-3 text-sm font-medium border-b-2 -mb-px transition-colors",
               activeFormTab !== "output"
                 ? "border-blue-600 text-blue-600"
-                : "border-transparent text-gray-500 hover:text-gray-700",
+                : "border-transparent text-muted-foreground hover:text-foreground-soft",
             )}
           >
             Input
@@ -47,7 +47,7 @@ export function PriorAuthTabs({ isLayoutSwapped, setIsLayoutSwapped }: PriorAuth
               "hidden md:block px-4 py-3 text-sm font-medium border-b-2 -mb-px transition-colors",
               activeFormTab === "output"
                 ? "border-blue-600 text-blue-600"
-                : "border-transparent text-gray-500 hover:text-gray-700",
+                : "border-transparent text-muted-foreground hover:text-foreground-soft",
             )}
           >
             Output
@@ -57,30 +57,30 @@ export function PriorAuthTabs({ isLayoutSwapped, setIsLayoutSwapped }: PriorAuth
         <div className="flex items-center gap-2 pb-3">
           <button
             onClick={() => setSavedSheetOpen(true)}
-            className="flex items-center gap-2 px-3 py-1.5 mt-2 bg-white border border-gray-200 rounded-lg shadow-sm hover:bg-gray-50 transition-all duration-200"
+            className="flex items-center gap-2 px-3 py-1.5 mt-2 bg-card border border-border rounded-lg shadow-sm hover:bg-accent transition-all duration-200"
             title="Saved"
             aria-label="Saved"
           >
-            <Bookmark size={16} strokeWidth={1.7} className="shrink-0 text-gray-700" />
-            <span className="text-xs font-medium text-gray-700">Saved</span>
+            <Bookmark size={16} strokeWidth={1.7} className="shrink-0 text-foreground-soft" />
+            <span className="text-xs font-medium text-foreground-soft">Saved</span>
           </button>
           <button
             onClick={() => setIsLayoutSwapped(!isLayoutSwapped)}
-            className="hidden md:flex items-center gap-2.5 px-3 py-1.5 mt-2 bg-white border border-gray-200 rounded-lg shadow-sm hover:bg-gray-50 transition-all duration-200 group"
+            className="hidden md:flex items-center gap-2.5 px-3 py-1.5 mt-2 bg-card border border-border rounded-lg shadow-sm hover:bg-accent transition-all duration-200 group"
             title="Swap layout positions"
           >
             <span className={cn(
               "text-xs font-medium transition-colors duration-200",
-              isLayoutSwapped ? "text-blue-600" : "text-gray-700"
+              isLayoutSwapped ? "text-blue-600" : "text-foreground-soft"
             )}>
               Swap Layout
             </span>
             <div className={cn(
               "relative w-9 h-5 rounded-full transition-all duration-300",
-              isLayoutSwapped ? "bg-blue-600" : "bg-gray-300"
+              isLayoutSwapped ? "bg-blue-600" : "bg-border"
             )}>
               <div className={cn(
-                "absolute top-0.5 left-0.5 w-4 h-4 bg-white rounded-full shadow-sm transition-transform duration-300",
+                "absolute top-0.5 left-0.5 w-4 h-4 bg-card rounded-full shadow-sm transition-transform duration-300",
                 isLayoutSwapped && "translate-x-4"
               )} />
             </div>

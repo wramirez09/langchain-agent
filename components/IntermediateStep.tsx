@@ -66,7 +66,7 @@ export function IntermediateStep({ message }: { message: Message }) {
     if (typeof content === 'string') return content;
     if (typeof content === 'object') {
       try {
-        return <pre className="text-xs overflow-x-auto p-2 bg-gray-50 rounded">
+        return <pre className="text-xs overflow-x-auto p-2 bg-muted rounded">
           {JSON.stringify(content, null, 2)}
         </pre>;
       } catch {
@@ -77,7 +77,7 @@ export function IntermediateStep({ message }: { message: Message }) {
   };
 
   return (
-    <div className="mr-auto bg-gray-50 p-3 w-full mb-4 rounded-lg border border-gray-200">
+    <div className="mr-auto bg-muted p-3 w-full mb-4 rounded-lg border border-border">
       <button
         type="button"
         className="w-full text-left flex items-center justify-between"
@@ -87,17 +87,17 @@ export function IntermediateStep({ message }: { message: Message }) {
           {action?.name || 'Processing step...'}
         </span>
         {expanded ? (
-          <ChevronUp className="w-4 h-4 text-gray-500" />
+          <ChevronUp className="w-4 h-4 text-muted-foreground" />
         ) : (
-          <ChevronDown className="w-4 h-4 text-gray-500" />
+          <ChevronDown className="w-4 h-4 text-muted-foreground" />
         )}
       </button>
 
       {expanded && (
         <div className="mt-3 space-y-3 text-sm">
           {Object.keys(action).length > 1 && (
-            <div className="bg-white p-3 rounded border">
-              <h4 className="font-medium text-gray-700 text-xs uppercase tracking-wider mb-2">
+            <div className="bg-card p-3 rounded border">
+              <h4 className="font-medium text-foreground-soft text-xs uppercase tracking-wider mb-2">
                 Action Details
               </h4>
               <div className="space-y-2">
@@ -105,7 +105,7 @@ export function IntermediateStep({ message }: { message: Message }) {
                   if (key === 'name' || !value) return null;
                   return (
                     <div key={key} className="grid grid-cols-1 sm:grid-cols-3 gap-1 sm:gap-2">
-                      <span className="text-gray-500 text-xs font-medium">{key}:</span>
+                      <span className="text-muted-foreground text-xs font-medium">{key}:</span>
                       <div className="sm:col-span-2 break-words">
                         {renderContent(value)}
                       </div>
@@ -117,7 +117,7 @@ export function IntermediateStep({ message }: { message: Message }) {
           )}
 
           {observation && (
-            <div className="bg-blue-50 p-3 rounded border border-blue-100">
+            <div className="bg-primary/5 p-3 rounded border border-primary/10">
               <h4 className="font-medium text-blue-700 text-xs uppercase tracking-wider mb-2">
                 Result
               </h4>

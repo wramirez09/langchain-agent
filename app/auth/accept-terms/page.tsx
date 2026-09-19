@@ -72,7 +72,7 @@ function AcceptTermsContent() {
   }
 
   return (
-    <div className="h-screen bg-gray-50 overflow-y-auto">
+    <div className="h-screen bg-muted overflow-y-auto">
       <div className="w-full max-w-3xl mx-auto px-4 py-8 pb-24">
         <Card>
           <CardHeader>

@@ -127,11 +127,11 @@ const SuspendedPDFInner = () => {
     
     if (pdfGenerated && !isDownloading && pdfUrl) {
       return (
-        <div className="min-h-screen flex items-center justify-center bg-gray-50">
+        <div className="min-h-screen flex items-center justify-center bg-muted">
           <div className="text-center">
-            <div className="text-green-600 text-6xl mb-4">✓</div>
-            <h2 className="text-xl font-semibold text-gray-900 mb-2">PDF Ready</h2>
-            <p className="text-gray-600 mb-6">Your PDF has been generated and is ready to download.</p>
+            <div className="text-success text-6xl mb-4">✓</div>
+            <h2 className="text-xl font-semibold text-foreground mb-2">PDF Ready</h2>
+            <p className="text-foreground-soft mb-6">Your PDF has been generated and is ready to download.</p>
             <div className="space-y-3">
               <a 
                 href={pdfUrl}
@@ -142,7 +142,7 @@ const SuspendedPDFInner = () => {
               </a>
               <button 
                 onClick={() => window.close()}
-                className="block mx-auto text-gray-600 hover:text-gray-800 text-sm"
+                className="block mx-auto text-foreground-soft hover:text-foreground text-sm"
               >
                 Close Window
               </button>
@@ -153,11 +153,11 @@ const SuspendedPDFInner = () => {
     }
     
     return (
-      <div className="min-h-screen flex items-center justify-center bg-gray-50">
+      <div className="min-h-screen flex items-center justify-center bg-muted">
         <div className="text-center">
           <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto mb-4"></div>
-          <h2 className="text-xl font-semibold text-gray-900 mb-2">Generating PDF...</h2>
-          <p className="text-gray-600">Your PDF is being prepared.</p>
+          <h2 className="text-xl font-semibold text-foreground mb-2">Generating PDF...</h2>
+          <p className="text-foreground-soft">Your PDF is being prepared.</p>
         </div>
       </div>
     );
@@ -171,10 +171,10 @@ const SuspendedPDFInner = () => {
 
   // Fallback for any other cases
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gray-50">
+    <div className="min-h-screen flex items-center justify-center bg-muted">
       <div className="text-center">
-        <h2 className="text-xl font-semibold text-gray-900 mb-2">PDF Export</h2>
-        <p className="text-gray-600">Please use a desktop browser to view the PDF.</p>
+        <h2 className="text-xl font-semibold text-foreground mb-2">PDF Export</h2>
+        <p className="text-foreground-soft">Please use a desktop browser to view the PDF.</p>
       </div>
     </div>
   );

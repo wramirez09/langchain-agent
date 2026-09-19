@@ -18,20 +18,49 @@ import { usePriorAuthForm, usePriorAuthUi } from "@/components/providers/PriorAu
 
 const stateOptions = stateData.map((s) => ({ value: s.description, label: s.description }));
 
+// react-select paints through emotion, so the Tailwind tokens never reach it.
+// CSS custom properties do resolve inside these style objects, so the control
+// follows the theme with no JS theme detection and no re-render on switch.
+// The surface keys matter: without an explicit backgroundColor, react-select
+// falls back to its own white and the control stays light on Theme B.
 const selectStyles = {
-  control: (base: any) => ({
+  control: (base: any, state: any) => ({
     ...base,
     minHeight: "36px",
     fontSize: "14px",
-    borderColor: "#e2e8f0",
+    backgroundColor: "hsl(var(--card))",
+    borderColor: state.isFocused ? "hsl(var(--ring))" : "hsl(var(--border))",
     borderRadius: "8px",
-    "&:hover": { borderColor: "#bfdbfe" },
+    color: "hsl(var(--foreground))",
+    boxShadow: state.isFocused ? "0 0 0 1px hsl(var(--ring))" : "none",
+    "&:hover": { borderColor: "hsl(var(--primary) / 0.5)" },
   }),
-  menu: (base: any) => ({ ...base, borderRadius: "8px", overflow: "hidden" }),
+  placeholder: (base: any) => ({ ...base, color: "hsl(var(--muted-foreground))" }),
+  input: (base: any) => ({ ...base, color: "hsl(var(--foreground))" }),
+  singleValue: (base: any) => ({ ...base, color: "hsl(var(--foreground))" }),
+  multiValue: (base: any) => ({ ...base, backgroundColor: "hsl(var(--muted))" }),
+  multiValueLabel: (base: any) => ({ ...base, color: "hsl(var(--foreground))" }),
+  menu: (base: any) => ({
+    ...base,
+    borderRadius: "8px",
+    overflow: "hidden",
+    backgroundColor: "hsl(var(--popover))",
+    border: "1px solid hsl(var(--border))",
+  }),
   option: (base: any, state: any) => ({
     ...base,
-    color: state.isSelected ? "#fff" : "#111827",
+    backgroundColor: state.isSelected
+      ? "hsl(var(--primary))"
+      : state.isFocused
+        ? "hsl(var(--accent))"
+        : "transparent",
+    color: state.isSelected
+      ? "hsl(var(--primary-foreground))"
+      : "hsl(var(--popover-foreground))",
   }),
+  dropdownIndicator: (base: any) => ({ ...base, color: "hsl(var(--muted-foreground))" }),
+  clearIndicator: (base: any) => ({ ...base, color: "hsl(var(--muted-foreground))" }),
+  indicatorSeparator: (base: any) => ({ ...base, backgroundColor: "hsl(var(--border))" }),
 };
 
 interface PriorAuthFormPanelProps {
@@ -65,19 +94,22 @@ export function PriorAuthFormPanel({
       layout
       transition={{ duration: 0.3, ease: [0.4, 0, 0.2, 1] }}
       className={cn(
-        "flex flex-col flex-1 min-h-0 bg-white rounded-lg border border-gray-200 shadow-sm overflow-hidden",
+        "flex flex-col flex-1 min-h-0 bg-card rounded-lg border border-border shadow-sm overflow-hidden",
         activeFormTab !== "pre-auth" && "hidden md:flex",
         isLayoutSwapped && "md:order-2"
       )}
     >
-      <div className="px-6 pt-6 pb-2 flex-shrink-0 bottom-1 border-b border-gray-200 mb-2">
-        <h3 className="text-sm font-semibold text-gray-900">Request Details</h3>
+      <div className="px-6 pt-6 pb-2 flex-shrink-0 bottom-1 border-b border-border mb-2">
+        <h3 className="text-sm font-semibold text-foreground">Request Details</h3>
       </div>
 
       <div className="flex-1 min-h-0 overflow-y-auto px-6 pb-4 pt-2 space-y-5">
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+        {/* Two columns only from lg. This grid lives inside a ~30%-width panel,
+            so the md breakpoint (768px viewport) splits it while the panel is
+            still ~230px wide and the selects truncate to "Select." */}
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-3">
           <div>
-            <label className="flex items-center gap-1.5 text-xs text-gray-600 mb-1.5">
+            <label className="flex items-center gap-1.5 text-xs text-foreground-soft mb-1.5">
               <FileText size={13} color="#2563EB" strokeWidth={1} />
               Guidelines
               <TooltipProvider delayDuration={150}>
@@ -86,7 +118,7 @@ export function PriorAuthFormPanel({
                     <button
                       type="button"
                       aria-label="About guidelines selection"
-                      className="ml-auto inline-flex items-center text-gray-400 hover:text-blue-600 transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 rounded-full"
+                      className="ml-auto inline-flex items-center text-faint hover:text-blue-600 transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 rounded-full"
                     >
                       <Info size={13} strokeWidth={1.75} />
                     </button>
@@ -121,7 +153,7 @@ export function PriorAuthFormPanel({
             />
           </div>
           <div>
-            <label className="flex items-center gap-1.5 text-xs text-gray-600 mb-1.5">
+            <label className="flex items-center gap-1.5 text-xs text-foreground-soft mb-1.5">
               <MapPin size={13} color="#059669" strokeWidth={1} />
               State
             </label>
@@ -135,24 +167,27 @@ export function PriorAuthFormPanel({
               classNamePrefix="react-select"
               styles={{
                 ...selectStyles,
-                control: (base: any) => ({
-                  ...selectStyles.control(base),
+                control: (base: any, state: any) => ({
+                  ...selectStyles.control(base, state),
                   opacity: formFields.guidelines === "Commercial" ? 0.5 : 1,
                   cursor: formFields.guidelines === "Commercial" ? "not-allowed" : "default",
                 }),
               }}
             />
             {formFields.guidelines === "Commercial" && (
-              <p className="text-xs text-gray-500 mt-1">
+              <p className="text-xs text-muted-foreground mt-1">
                 State selection not required for Commercial guidelines
               </p>
             )}
           </div>
         </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+        {/* Two columns only from lg. This grid lives inside a ~30%-width panel,
+            so the md breakpoint (768px viewport) splits it while the panel is
+            still ~230px wide and the selects truncate to "Select." */}
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-3">
           <div>
-            <label className="flex items-center gap-1.5 text-xs text-gray-600 mb-1.5">
+            <label className="flex items-center gap-1.5 text-xs text-foreground-soft mb-1.5">
               <Stethoscope size={13} color="#7C3AED" strokeWidth={1} />
               Pre-Auth Request
             </label>
@@ -165,34 +200,34 @@ export function PriorAuthFormPanel({
               classNamePrefix="react-select"
               styles={selectStyles}
             />
-            <p className="relative text-xs text-gray-400 mt-1">
+            <p className="relative text-xs text-faint mt-1">
               <span aria-hidden="true" className="absolute -left-2.5 top-0">*</span>
               Can&apos;t find what you&apos;re looking for? Type to create a new option
             </p>
           </div>
           <div>
-            <label className="flex items-center gap-1.5 text-xs text-gray-600 mb-1.5">
+            <label className="flex items-center gap-1.5 text-xs text-foreground-soft mb-1.5">
               <FileBarChart size={13} color="#4F46E5" strokeWidth={1} />
               CPT/HCPCS
             </label>
             <Input
               placeholder="CPT Codes"
               value={formFields.cptCodes}
-              className="h-9 bg-white border-blue-200 text-gray-900 focus-visible:ring-blue-300 focus-visible:border-blue-400"
+              className="h-9 bg-card border-primary/20 text-foreground focus-visible:ring-primary/30 focus-visible:border-primary/40"
               onChange={(e) => updateFormField("cptCodes", e.target.value)}
             />
           </div>
         </div>
 
         <div>
-          <label className="flex items-center gap-1.5 text-xs text-gray-600 mb-1.5">
+          <label className="flex items-center gap-1.5 text-xs text-foreground-soft mb-1.5">
             <Activity size={13} color="#F97316" strokeWidth={1} />
             Diagnosis
           </label>
           <Textarea
             placeholder="knee pain"
             value={formFields.diagnosis}
-            className="min-h-[100px] max-h-[200px] resize-y bg-white border-blue-200 text-gray-900 focus-visible:ring-blue-300"
+            className="min-h-[100px] max-h-[200px] resize-y bg-card border-primary/20 text-foreground focus-visible:ring-primary/30"
             onChange={(e) => updateFormField("diagnosis", e.target.value)}
           />
         </div>
@@ -213,8 +248,8 @@ export function PriorAuthFormPanel({
             }, 150);
           }}
         >
-          <AccordionItem value="patient-history" className="border border-gray-200 rounded-lg px-3 py-0" ref={patientHistoryRef}>
-            <AccordionTrigger className="hover:no-underline py-3 text-xs font-semibold text-gray-900">
+          <AccordionItem value="patient-history" className="border border-border rounded-lg px-3 py-0" ref={patientHistoryRef}>
+            <AccordionTrigger className="hover:no-underline py-3 text-xs font-semibold text-foreground">
               <span className="flex items-center gap-1.5">
                 <ClipboardList size={13} color="#F43F5E" strokeWidth={1} />
                 Patient(s) Medical History
@@ -224,14 +259,14 @@ export function PriorAuthFormPanel({
               <Textarea
                 placeholder="knee swelling for over 3 weeks."
                 value={formFields.patientHistory}
-                className="min-h-[100px] max-h-[200px] resize-y bg-white border-blue-200 text-gray-900 focus-visible:ring-blue-300"
+                className="min-h-[100px] max-h-[200px] resize-y bg-card border-primary/20 text-foreground focus-visible:ring-primary/30"
                 onChange={(e) => updateFormField("patientHistory", e.target.value)}
               />
             </AccordionContent>
           </AccordionItem>
 
-          <AccordionItem value="relevant-history" className="border border-gray-200 rounded-lg px-3 py-0" ref={relevantHistoryRef}>
-            <AccordionTrigger className="hover:no-underline py-3 text-xs font-semibold text-gray-900">
+          <AccordionItem value="relevant-history" className="border border-border rounded-lg px-3 py-0" ref={relevantHistoryRef}>
+            <AccordionTrigger className="hover:no-underline py-3 text-xs font-semibold text-foreground">
               <span className="flex items-center gap-1.5">
                 <BookOpen size={13} color="#0EA5E9" strokeWidth={1} />
                 Relevant Medical History
@@ -241,7 +276,7 @@ export function PriorAuthFormPanel({
               <Textarea
                 placeholder="previous knee pain, swelling, etc."
                 value={formFields.relevantHistory}
-                className="min-h-[100px] max-h-[200px] resize-y bg-white border-blue-200 text-gray-900 focus-visible:ring-blue-300"
+                className="min-h-[100px] max-h-[200px] resize-y bg-card border-primary/20 text-foreground focus-visible:ring-primary/30"
                 onChange={(e) => updateFormField("relevantHistory", e.target.value)}
               />
             </AccordionContent>
@@ -249,7 +284,7 @@ export function PriorAuthFormPanel({
         </Accordion>
       </div>
 
-      <div className="px-6 pb-1 pt-4 flex-shrink-0 top-1 bg-white border-t border-gray-200">
+      <div className="px-6 pb-1 pt-4 flex-shrink-0 top-1 bg-card border-t border-border">
         <div className="flex items-center gap-3">
           <Button
             size="sm"
@@ -273,12 +308,12 @@ export function PriorAuthFormPanel({
             type="button"
             variant="ghost"
             onClick={onCancel}
-            className="h-11 px-4 text-red-500 hover:text-red-600 hover:bg-red-50 font-medium text-sm rounded-lg border border-red-200"
+            className="h-11 px-4 text-destructive hover:text-destructive hover:bg-destructive/5 font-medium text-sm rounded-lg border border-destructive/20"
           >
             Cancel
           </Button>
         </div>
-        <p className="text-center text-xs text-gray-300 mt-3">
+        <p className="text-center text-xs text-faint mt-3">
           © {new Date().getFullYear()} NoteDoctorAI. All rights reserved.
         </p>
       </div>

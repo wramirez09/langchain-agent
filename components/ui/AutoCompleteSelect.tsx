@@ -53,19 +53,19 @@ export function AutoCompleteSelect({
             variant="outline"
             disabled={disabled}
             className={cn(
-              "w-full justify-between text-gray-900 bg-white text-md border-blue-200 rounded-lg",
-              "hover:bg-blue-50 hover:border-blue-300 h-10 px-3",
-              "focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 focus:outline-none hover:text-gray-900",
+              "w-full justify-between text-foreground bg-card text-md border-primary/20 rounded-lg",
+              "hover:bg-primary/5 hover:border-primary/30 h-10 px-3",
+              "focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 focus:outline-none hover:text-foreground",
               !isDesktop && "mobile-select-touch",
-              disabled && "opacity-50 cursor-not-allowed hover:bg-white"
+              disabled && "opacity-50 cursor-not-allowed hover:bg-card"
             )}
           >
-            <span className={cn("truncate", !selectedStatus && "text-gray-500")}>
+            <span className={cn("truncate", !selectedStatus && "text-muted-foreground")}>
               {selectedStatus?.label || "Select an option"}
             </span>
             <svg
               className={cn(
-                "ml-2 h-4 w-4 shrink-0 text-gray-500 transition-transform duration-200",
+                "ml-2 h-4 w-4 shrink-0 text-muted-foreground transition-transform duration-200",
                 open && "rotate-180"
               )}
               fill="none"
@@ -77,7 +77,7 @@ export function AutoCompleteSelect({
           </Button>
         </PopoverTrigger>
         <PopoverContent
-          className="w-[var(--radix-popover-trigger-width)] min-w-[240px] p-0 border border-gray-200 bg-white shadow-lg rounded-lg overflow-hidden"
+          className="w-[var(--radix-popover-trigger-width)] min-w-[240px] p-0 border border-border bg-card shadow-lg rounded-lg overflow-hidden"
           align="start"
           sideOffset={8}
           side="bottom"
@@ -100,20 +100,20 @@ export function AutoCompleteSelect({
           variant="outline"
           disabled={disabled}
           className={cn(
-            "w-full md:w-[150px] justify-start text-gray-900 bg-blue-50 border-blue-200 hover:bg-blue-100",
+            "w-full md:w-[150px] justify-start text-foreground bg-primary/5 border-primary/20 hover:bg-primary/10",
             !isDesktop && "mobile-select-touch",
-            disabled && "opacity-50 cursor-not-allowed hover:bg-blue-50"
+            disabled && "opacity-50 cursor-not-allowed hover:bg-primary/5"
           )}
           onTouchStart={handleMobileTouch}
         >
           {selectedStatus ? <>{selectedStatus.label}</> : <>+ Set status</>}
         </Button>
       </DrawerTrigger>
-      <DrawerContent className="h-[90vh] flex flex-col bg-blue-50 border-blue-200">
+      <DrawerContent className="h-[90vh] flex flex-col bg-primary/5 border-primary/20">
         <div className="flex-1 overflow-y-auto">
-          <div className="sticky top-0 z-10 bg-blue-50/95 backdrop-blur-sm px-4 pt-4 pb-2 border-b border-blue-100">
-            <h3 className="text-lg font-medium text-gray-900">Select an option</h3>
-            <p className="text-md text-gray-500 mt-0.5">Choose from the available options</p>
+          <div className="sticky top-0 z-10 bg-primary/5 backdrop-blur-sm px-4 pt-4 pb-2 border-b border-primary/10">
+            <h3 className="text-lg font-medium text-foreground">Select an option</h3>
+            <p className="text-md text-muted-foreground mt-0.5">Choose from the available options</p>
           </div>
           <div className="p-4">
             <StatusList
@@ -144,7 +144,7 @@ export function StatusList({
 }) {
   return (
     <Command
-      className="bg-white rounded-lg border-0 shadow-sm flex flex-col h-full"
+      className="bg-card rounded-lg border-0 shadow-sm flex flex-col h-full"
       shouldFilter={true}
       loop={true}
 
@@ -172,16 +172,16 @@ export function StatusList({
       }}
     >
       {showSearch && (
-        <div className="px-3 pt-2 pb-1.5 border-b border-gray-100 bg-white">
+        <div className="px-3 pt-2 pb-1.5 border-b border-border bg-card">
           <CommandInput
             placeholder="Search options..."
-            className="w-full bg-white text-gray-900 focus-visible:ring-0 focus-visible:ring-offset-0 border-0 focus-visible:outline-none"
+            className="w-full bg-card text-foreground focus-visible:ring-0 focus-visible:ring-offset-0 border-0 focus-visible:outline-none"
           />
         </div>
       )}
 
-      <CommandList className="bg-white rounded-b-md">
-        <CommandEmpty className="text-gray-700 p-2">No results found.</CommandEmpty>
+      <CommandList className="bg-card rounded-b-md">
+        <CommandEmpty className="text-foreground-soft p-2">No results found.</CommandEmpty>
         <CommandGroup>
           {options.map((option) => (
             <CommandItem
@@ -194,9 +194,9 @@ export function StatusList({
                 setOpen(false);
               }}
               className={cn(
-                "flex items-center gap-3 px-4 py-4 text-base text-gray-900 rounded-lg",
-                "hover:bg-gray-50 cursor-pointer transition-colors duration-150",
-                "active:bg-gray-100 focus:bg-gray-50 focus:outline-none focus-visible:ring-2 focus-visible:ring-gray-200"
+                "flex items-center gap-3 px-4 py-4 text-base text-foreground rounded-lg",
+                "hover:bg-accent cursor-pointer transition-colors duration-150",
+                "active:bg-muted focus:bg-accent focus:outline-none focus-visible:ring-2 focus-visible:ring-gray-200"
               )}
             >
               <div className="flex items-center w-full">

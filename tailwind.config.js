@@ -19,16 +19,20 @@ module.exports = {
   			]
   		},
   		colors: {
-  			// Brand blues from the logo (logo-main.svg fill #238DD2,
-  			// hsl 204 71% 48%). 500/600 are the logo color itself, so every
+  			// Brand blues. 500/600 are the brand ink itself, so every
   			// bg-blue-600 button and text-blue-600 accent app-wide carries
   			// the brand color; 700 is a darker value of the same hue so
   			// hover:bg-blue-700 states still read. Lighter pastels (50–400)
   			// keep the Tailwind defaults.
+  			//
+  			// These point at a variable rather than a literal so the whole
+  			// app's existing blue-* usage follows the active theme: Theme A
+  			// resolves to the logo ink #238DD2, Theme B to the marketing
+  			// site's #3B82F6. See --brand-blue in app/globals.css.
   			blue: {
-  				500: '#238dd2',
-  				600: '#238dd2',
-  				700: '#1c70a6'
+  				500: 'hsl(var(--brand-blue))',
+  				600: 'hsl(var(--brand-blue))',
+  				700: 'hsl(var(--brand-blue-strong))'
   			},
   			border: 'hsl(var(--border))',
   			input: 'hsl(var(--input))',
@@ -62,7 +66,11 @@ module.exports = {
   			card: {
   				DEFAULT: 'hsl(var(--card))',
   				foreground: 'hsl(var(--card-foreground))'
-  			}
+  			},
+  			success: 'hsl(var(--success))',
+  			warning: 'hsl(var(--warning))',
+  			'foreground-soft': 'hsl(var(--foreground-soft))',
+  			faint: 'hsl(var(--faint))'
   		},
   		borderRadius: {
   			lg: 'var(--radius)',

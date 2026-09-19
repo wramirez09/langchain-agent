@@ -99,17 +99,17 @@ export function FileUpload({
           "group relative border-2 border-dashed rounded-xl p-8 text-center transition-all duration-200 cursor-pointer",
           "focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2",
           isDragActive
-            ? "border-blue-500 bg-blue-50/70 scale-[1.01] shadow-sm"
-            : "border-blue-200 hover:border-blue-400 hover:bg-blue-50/30"
+            ? "border-blue-500 bg-primary/5 scale-[1.01] shadow-sm"
+            : "border-primary/20 hover:border-primary/40 hover:bg-primary/5"
         )}
         aria-label="File upload area"
       >
         <input {...(getInputProps() as DropzoneInputProps)} className="sr-only" />
         <div className="pointer-events-none">
           <div className={cn(
-            "mx-auto flex h-20 w-20 items-center justify-center rounded-2xl bg-blue-50 mb-4",
-            "transition-all duration-200 group-hover:bg-blue-100 group-hover:scale-105",
-            isDragActive && "scale-110 bg-blue-100"
+            "mx-auto flex h-20 w-20 items-center justify-center rounded-2xl bg-primary/5 mb-4",
+            "transition-all duration-200 group-hover:bg-primary/10 group-hover:scale-105",
+            isDragActive && "scale-110 bg-primary/10"
           )}>
             <svg
               className={cn(
@@ -129,34 +129,34 @@ export function FileUpload({
               />
             </svg>
           </div>
-          <p className="text-base font-semibold text-gray-900 mb-1">
+          <p className="text-base font-semibold text-foreground mb-1">
             {isDragActive ? "Drop to upload" : "Add Your Document"}
           </p>
-          <p className="text-md text-gray-600">
+          <p className="text-md text-foreground-soft">
             <span className="font-medium text-blue-600 group-hover:text-blue-500 transition-colors">
               Choose a file
             </span>{' '}
             or drag and drop
           </p>
-          <p className="mt-2 text-xs text-gray-500">
+          <p className="mt-2 text-xs text-muted-foreground">
             PDF format (max 10MB)
           </p>
         </div>
       </div>
 
       {files.length > 0 && !isUploading && (
-        <div className="rounded-lg border border-green-100 bg-green-50 p-4">
+        <div className="rounded-lg border border-success/10 bg-success/5 p-4">
           <div className="flex items-start">
             <div className="flex-shrink-0">
-              <svg className="h-5 w-5 text-green-400" fill="currentColor" viewBox="0 0 20 20">
+              <svg className="h-5 w-5 text-success" fill="currentColor" viewBox="0 0 20 20">
                 <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
               </svg>
             </div>
             <div className="ml-3 flex-1">
-              <p className="text-md font-medium text-green-800">
+              <p className="text-md font-medium text-success">
                 {files[0].name}
               </p>
-              <p className="mt-1 text-md text-green-700">
+              <p className="mt-1 text-md text-success">
                 Ready to upload
               </p>
             </div>
@@ -164,20 +164,20 @@ export function FileUpload({
         </div>
       )}
       {isUploading && (
-        <div className="space-y-3 rounded-lg border border-blue-100 bg-white p-4 shadow-sm">
+        <div className="space-y-3 rounded-lg border border-primary/10 bg-card p-4 shadow-sm">
           <div className="flex items-center justify-between">
-            <p className="text-md font-medium text-gray-900">
+            <p className="text-md font-medium text-foreground">
               {files[0]?.name || 'Document'}
             </p>
             <span className="text-xs font-medium text-blue-600">{progress}%</span>
           </div>
-          <div className="h-2 overflow-hidden rounded-full bg-blue-50">
+          <div className="h-2 overflow-hidden rounded-full bg-primary/5">
             <div
               className="h-full bg-blue-600 transition-all duration-300 ease-out"
               style={{ width: `${progress}%` }}
             />
           </div>
-          <p className="text-xs text-gray-500 mt-2">Processing your document...</p>
+          <p className="text-xs text-muted-foreground mt-2">Processing your document...</p>
         </div>
       )}
     </div>

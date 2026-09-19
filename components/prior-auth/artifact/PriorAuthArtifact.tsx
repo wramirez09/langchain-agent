@@ -169,7 +169,7 @@ function ArtifactWithNav({
       className="grid grid-cols-1 items-start gap-7 lg:grid-cols-[236px_minmax(0,1fr)]"
     >
       <aside className="sticky top-4 hidden lg:block">
-        <div className="px-3 pb-2.5 text-[11px] font-semibold uppercase tracking-[0.1em] text-[#94a3b8]">
+        <div className="px-3 pb-2.5 text-[11px] font-semibold uppercase tracking-[0.1em] text-faint">
           On this page
         </div>
         <nav className="flex flex-col gap-px">
@@ -197,14 +197,14 @@ function ArtifactWithNav({
                 className={cn(
                   "flex items-center gap-2.5 rounded-lg px-3 py-2 text-[13.5px] font-medium transition-colors",
                   active
-                    ? "bg-white text-[#238dd2] shadow-[0_1px_2px_rgba(16,24,40,0.04),0_8px_28px_-18px_rgba(16,24,40,0.18)]"
-                    : "text-[#64748b] hover:bg-white hover:text-[#0f172a]",
+                    ? "bg-card text-primary shadow-[0_1px_2px_rgba(16,24,40,0.04),0_8px_28px_-18px_rgba(16,24,40,0.18)]"
+                    : "text-muted-foreground hover:bg-card hover:text-foreground",
                 )}
               >
                 <span
                   className={cn(
                     "w-[18px] flex-none text-center text-[11px] font-semibold tabular-nums",
-                    active ? "text-[#238dd2]" : "text-[#94a3b8]",
+                    active ? "text-primary" : "text-faint",
                   )}
                 >
                   {String(i + 1).padStart(2, "0")}
@@ -215,9 +215,9 @@ function ArtifactWithNav({
           })}
         </nav>
         {determination ? (
-          <div className="mt-4 rounded-[11px] border border-[#dbe6fe] bg-[#eff4ff] px-3.5 py-3">
-            <div className="mb-1 text-xs text-[#64748b]">Determination</div>
-            <div className="text-sm font-bold text-[#238dd2]">
+          <div className="mt-4 rounded-[11px] border border-primary/20 bg-primary/10 px-3.5 py-3">
+            <div className="mb-1 text-xs text-muted-foreground">Determination</div>
+            <div className="text-sm font-bold text-primary">
               {DET_SHORT[determination] ?? determination}
             </div>
           </div>

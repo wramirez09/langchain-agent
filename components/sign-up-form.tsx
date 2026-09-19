@@ -84,7 +84,7 @@ export function SignUpForm({ className, ...props }: React.ComponentPropsWithoutR
             />
           </div>
           {error && (
-            <div className="rounded-md bg-red-50 p-4 text-sm text-red-600">
+            <div className="rounded-md bg-destructive/5 p-4 text-sm text-destructive">
               {error}
             </div>
           )}

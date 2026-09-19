@@ -50,20 +50,20 @@ const FlyoutForm: React.FC<{
       <Sheet open={openSheet} onOpenChange={(open) => {
         return setOpenSheet(open)
       }} >
-        <SheetContent className="w-full max-w-2xl bg-white border-blue-200 shadow-lg p-0" >
+        <SheetContent className="w-full max-w-2xl bg-card border-primary/20 shadow-lg p-0" >
           <div className="flex flex-col h-full" id="inner-form-flyout">
-            <SheetHeader className="px-6 pt-6 pb-4 border-b border-blue-100 bg-blue-50">
-              <SheetTitle className="text-lg text-gray-900">
+            <SheetHeader className="px-6 pt-6 pb-4 border-b border-primary/10 bg-primary/5">
+              <SheetTitle className="text-lg text-foreground">
                 Prior Authorization Request
               </SheetTitle>
-              <SheetDescription className="text-sm text-gray-700">
+              <SheetDescription className="text-sm text-foreground-soft">
                 Please provide the necessary patient and clinical information to
                 begin the prior authorization process.
               </SheetDescription>
-              <div className="mt-3 p-3 bg-amber-50 border border-amber-200 rounded-md">
+              <div className="mt-3 p-3 bg-warning/5 border border-warning/20 rounded-md">
                 <div className="flex items-start gap-2">
-                  <AlertTriangle className="w-4 h-4 text-amber-600 mt-0.5 flex-shrink-0" />
-                  <div className="text-xs text-amber-800">
+                  <AlertTriangle className="w-4 h-4 text-warning mt-0.5 flex-shrink-0" />
+                  <div className="text-xs text-warning">
                     <strong>HIPAA Compliance:</strong> Do not include patient-specific PHI such as names, dates of birth, medical record numbers, or other identifying information. Use generic descriptions only.
                   </div>
                 </div>
@@ -79,7 +79,7 @@ const FlyoutForm: React.FC<{
               />
             </ScrollArea>
 
-            <div className="border-t border-blue-100 bg-white px-6 py-4">
+            <div className="border-t border-primary/10 bg-card px-6 py-4">
               <div className="flex items-center gap-3">
                 <Button
                   type="submit"
@@ -92,7 +92,7 @@ const FlyoutForm: React.FC<{
                 <SheetClose asChild>
                   <Button
                     onClick={() => setOpenSheet(false)}
-                    className="flex-1 button-ghost text-red-500"
+                    className="flex-1 button-ghost text-destructive"
                   >
                     Cancel
                   </Button>

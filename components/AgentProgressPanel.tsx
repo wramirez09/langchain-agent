@@ -59,12 +59,12 @@ export function AgentProgressPanel({
         fading ? "opacity-0" : "opacity-100",
       )}
     >
-      <div className="bg-blue-50 border border-blue-100 rounded-xl p-4">
+      <div className="bg-primary/5 border border-primary/10 rounded-xl p-4">
         <div className="flex items-center gap-2 mb-3">
           {isLoading && hasRunning ? (
             <Loader2 className="w-4 h-4 text-blue-500 animate-spin flex-shrink-0" />
           ) : (
-            <CheckCircle2 className="w-4 h-4 text-green-500 flex-shrink-0" />
+            <CheckCircle2 className="w-4 h-4 text-success flex-shrink-0" />
           )}
           <span className="text-sm font-medium text-blue-700">
             {isLoading && !hasAnyStages
@@ -78,9 +78,9 @@ export function AgentProgressPanel({
         {!hasAnyStages && isLoading && (
           <div className="flex items-center gap-2.5 pl-1">
             <div className="w-4 h-4 flex-shrink-0 flex items-center justify-center">
-              <div className="w-2 h-2 bg-blue-400 rounded-full animate-pulse" />
+              <div className="w-2 h-2 bg-primary/40 rounded-full animate-pulse" />
             </div>
-            <span className="text-sm text-gray-500 italic">
+            <span className="text-sm text-muted-foreground italic">
               Preparing tools...
             </span>
           </div>
@@ -97,17 +97,17 @@ export function AgentProgressPanel({
                   <div className="flex items-center gap-2.5">
                     {stage.status === "running" ? (
                       <div className="w-4 h-4 flex-shrink-0 flex items-center justify-center">
-                        <div className="w-2 h-2 bg-blue-400 rounded-full animate-pulse" />
+                        <div className="w-2 h-2 bg-primary/40 rounded-full animate-pulse" />
                       </div>
                     ) : (
-                      <CheckCircle2 className="w-4 h-4 text-green-500 flex-shrink-0" />
+                      <CheckCircle2 className="w-4 h-4 text-success flex-shrink-0" />
                     )}
                     <span
                       className={cn(
                         "text-sm",
                         stage.status === "done"
-                          ? "text-gray-400"
-                          : "text-gray-700",
+                          ? "text-faint"
+                          : "text-foreground-soft",
                       )}
                     >
                       {stage.label}
@@ -123,8 +123,8 @@ export function AgentProgressPanel({
                         className={cn(
                           "text-xs",
                           msg.type === "warning"
-                            ? "text-amber-600"
-                            : "text-gray-400",
+                            ? "text-warning"
+                            : "text-faint",
                         )}
                       >
                         {msg.text}

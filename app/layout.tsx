@@ -8,6 +8,7 @@ import * as React from "react";
 import TopBar from "@/components/TopBar";
 import { Footer } from "@/components/Footer";
 import { MobileSidebarProvider } from "@/components/providers/MobileSidebarProvider";
+import { ThemeProvider } from "@/components/providers/ThemeProvider";
 
 const BASE_URL = "https://app.NoteDoctorAI";
 const SITE_NAME = "NoteDoctorAI";
@@ -137,23 +138,25 @@ export default async function RootLayout({
   children: React.ReactNode;
 }) {
   return (
-    <html lang="en" className={`${inter.variable} ${publicSans.variable} ${outfit.variable} font-sans`}>
+    <html suppressHydrationWarning lang="en" className={`${inter.variable} ${publicSans.variable} ${outfit.variable} font-sans`}>
       <body style={{ height: "100dvh", overflowX: "hidden" }}>
         <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(webAppSchema) }} />
         <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(howToSchema) }} />
         <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(faqSchema) }} />
-        <NuqsAdapter>
-          <MobileSidebarProvider>
-            <div className="flex flex-col h-full bg-[#F8F9FB]">
-              <TopBar />
-              <div className="flex-1 overflow-hidden">
-                {children}
+        <ThemeProvider>
+          <NuqsAdapter>
+            <MobileSidebarProvider>
+              <div className="app-ground flex flex-col h-full bg-background">
+                <TopBar />
+                <div className="flex-1 overflow-hidden">
+                  {children}
+                </div>
+                <Footer />
               </div>
-              <Footer />
-            </div>
-          </MobileSidebarProvider>
-          <Toaster />
-        </NuqsAdapter>
+            </MobileSidebarProvider>
+            <Toaster />
+          </NuqsAdapter>
+        </ThemeProvider>
       </body>
     </html>
   );

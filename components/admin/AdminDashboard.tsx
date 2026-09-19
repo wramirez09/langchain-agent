@@ -102,20 +102,20 @@ export function AdminDashboard({
   return (
     <div className="max-w-7xl mx-auto px-4 sm:px-6 py-8">
       <div className="mb-8">
-        <h1 className="text-2xl font-bold text-gray-900">Stripe Admin Dashboard</h1>
-        <p className="text-sm text-gray-500 mt-1">Live data from your Stripe account</p>
+        <h1 className="text-2xl font-bold text-foreground">Stripe Admin Dashboard</h1>
+        <p className="text-sm text-muted-foreground mt-1">Live data from your Stripe account</p>
       </div>
 
       {/* Tab nav */}
-      <div className="flex gap-1 border-b border-gray-200 mb-6 overflow-x-auto">
+      <div className="flex gap-1 border-b border-border mb-6 overflow-x-auto">
         {tabs.map(tab => (
           <button
             key={tab}
             onClick={() => setActiveTab(tab)}
             className={`px-4 py-2.5 text-sm font-medium whitespace-nowrap transition-colors border-b-2 -mb-px ${
               activeTab === tab
-                ? 'border-gray-900 text-gray-900'
-                : 'border-transparent text-gray-500 hover:text-gray-700'
+                ? 'border-foreground text-foreground'
+                : 'border-transparent text-muted-foreground hover:text-foreground-soft'
             }`}
           >
             {tab}
@@ -149,9 +149,9 @@ export function AdminDashboard({
 
       {/* Customers */}
       {activeTab === 'Customers' && (
-        <div className="bg-white rounded-xl border border-gray-200">
-          <div className="px-6 py-4 border-b border-gray-100">
-            <h2 className="font-semibold text-gray-900">{customers.length} Customers</h2>
+        <div className="bg-card rounded-xl border border-border">
+          <div className="px-6 py-4 border-b border-border">
+            <h2 className="font-semibold text-foreground">{customers.length} Customers</h2>
           </div>
           <CustomerTable customers={customers} subscriptions={subscriptions} />
         </div>
@@ -159,9 +159,9 @@ export function AdminDashboard({
 
       {/* Subscriptions */}
       {activeTab === 'Subscriptions' && (
-        <div className="bg-white rounded-xl border border-gray-200">
-          <div className="px-6 py-4 border-b border-gray-100">
-            <h2 className="font-semibold text-gray-900">{subscriptions.length} Subscriptions</h2>
+        <div className="bg-card rounded-xl border border-border">
+          <div className="px-6 py-4 border-b border-border">
+            <h2 className="font-semibold text-foreground">{subscriptions.length} Subscriptions</h2>
           </div>
           <SubscriptionsTable subscriptions={subscriptions} customers={customers} />
         </div>
@@ -169,9 +169,9 @@ export function AdminDashboard({
 
       {/* Payments */}
       {activeTab === 'Payments' && (
-        <div className="bg-white rounded-xl border border-gray-200">
-          <div className="px-6 py-4 border-b border-gray-100">
-            <h2 className="font-semibold text-gray-900">
+        <div className="bg-card rounded-xl border border-border">
+          <div className="px-6 py-4 border-b border-border">
+            <h2 className="font-semibold text-foreground">
               {charges.length} Charges · {invoices.length} Invoices
             </h2>
           </div>
@@ -181,10 +181,10 @@ export function AdminDashboard({
 
       {/* Usage */}
       {activeTab === 'Usage' && (
-        <div className="bg-white rounded-xl border border-gray-200">
-          <div className="px-6 py-4 border-b border-gray-100">
-            <h2 className="font-semibold text-gray-900">Metered Usage</h2>
-            <p className="text-xs text-gray-400 mt-0.5">
+        <div className="bg-card rounded-xl border border-border">
+          <div className="px-6 py-4 border-b border-border">
+            <h2 className="font-semibold text-foreground">Metered Usage</h2>
+            <p className="text-xs text-faint mt-0.5">
               {meters.length} meter(s): {meters.map(m => m.display_name).join(', ')}
             </p>
           </div>
@@ -194,9 +194,9 @@ export function AdminDashboard({
 
       {/* Disputes & Refunds */}
       {activeTab === 'Disputes & Refunds' && (
-        <div className="bg-white rounded-xl border border-gray-200">
-          <div className="px-6 py-4 border-b border-gray-100">
-            <h2 className="font-semibold text-gray-900">
+        <div className="bg-card rounded-xl border border-border">
+          <div className="px-6 py-4 border-b border-border">
+            <h2 className="font-semibold text-foreground">
               {disputes.length} Disputes · {refunds.length} Refunds
             </h2>
           </div>
@@ -206,9 +206,9 @@ export function AdminDashboard({
 
       {/* Events */}
       {activeTab === 'Events' && (
-        <div className="bg-white rounded-xl border border-gray-200">
-          <div className="px-6 py-4 border-b border-gray-100">
-            <h2 className="font-semibold text-gray-900">Recent Events</h2>
+        <div className="bg-card rounded-xl border border-border">
+          <div className="px-6 py-4 border-b border-border">
+            <h2 className="font-semibold text-foreground">Recent Events</h2>
           </div>
           <EventsLog events={events} />
         </div>

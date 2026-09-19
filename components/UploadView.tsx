@@ -112,16 +112,16 @@ export function UploadView({ onUploadComplete }: UploadViewProps) {
   return (
     <div className="flex flex-col h-full overflow-hidden">
       {/* Header */}
-      <div className="bg-white border-b border-gray-200 px-8 py-6 flex-shrink-0">
-        <h1 className="text-2xl font-semibold text-gray-900">Document Upload</h1>
-        <p className="text-sm text-gray-500 mt-1">Upload and manage patient documents</p>
+      <div className="bg-card border-b border-border px-8 py-6 flex-shrink-0">
+        <h1 className="text-2xl font-semibold text-foreground">Document Upload</h1>
+        <p className="text-sm text-muted-foreground mt-1">Upload and manage patient documents</p>
       </div>
 
       {/* Content */}
       <div className="flex-1 overflow-y-auto p-8">
         <div className="max-w-3xl mx-auto space-y-6">
           {/* Drop zone card */}
-          <div className="bg-white rounded-lg border border-gray-200 shadow-sm p-8">
+          <div className="bg-card rounded-lg border border-border shadow-sm p-8">
             <div
               onDragOver={handleDragOver}
               onDragLeave={handleDragLeave}
@@ -130,15 +130,15 @@ export function UploadView({ onUploadComplete }: UploadViewProps) {
               className={cn(
                 "border-2 border-dashed rounded-lg p-12 text-center cursor-pointer transition-colors",
                 isDragging
-                  ? "border-blue-400 bg-blue-50"
-                  : "border-gray-300 hover:border-blue-400",
+                  ? "border-primary/40 bg-primary/5"
+                  : "border-border hover:border-primary/40",
               )}
             >
-              <div className="size-16 bg-blue-50 rounded-full flex items-center justify-center mx-auto mb-4">
+              <div className="size-16 bg-primary/5 rounded-full flex items-center justify-center mx-auto mb-4">
                 <Upload className="size-8 text-blue-600" />
               </div>
-              <h3 className="text-lg font-semibold text-gray-900 mb-2">Upload Files</h3>
-              <p className="text-sm text-gray-500 mb-4">
+              <h3 className="text-lg font-semibold text-foreground mb-2">Upload Files</h3>
+              <p className="text-sm text-muted-foreground mb-4">
                 Drag and drop your files here, or click to browse
               </p>
               <Button
@@ -156,7 +156,7 @@ export function UploadView({ onUploadComplete }: UploadViewProps) {
                   "Choose Files"
                 )}
               </Button>
-              <p className="text-xs text-gray-400 mt-4">
+              <p className="text-xs text-faint mt-4">
                 Supported formats: PDF, DOC, DOCX, JPG, PNG &bull; Max size: 10MB
               </p>
             </div>
@@ -171,32 +171,32 @@ export function UploadView({ onUploadComplete }: UploadViewProps) {
 
           {/* Uploaded files list */}
           {files.length > 0 && (
-            <div className="bg-white rounded-lg border border-gray-200 shadow-sm p-6">
-              <h3 className="text-sm font-semibold text-gray-900 mb-4">
+            <div className="bg-card rounded-lg border border-border shadow-sm p-6">
+              <h3 className="text-sm font-semibold text-foreground mb-4">
                 Uploaded Files ({files.length})
               </h3>
               <div className="space-y-3">
                 {files.map((file) => (
                   <div
                     key={file.id}
-                    className="flex items-center gap-4 p-4 border border-gray-200 rounded-lg hover:bg-gray-50 transition-colors"
+                    className="flex items-center gap-4 p-4 border border-border rounded-lg hover:bg-accent transition-colors"
                   >
-                    <div className="size-10 bg-blue-50 rounded flex items-center justify-center flex-shrink-0">
+                    <div className="size-10 bg-primary/5 rounded flex items-center justify-center flex-shrink-0">
                       <File className="size-5 text-blue-600" />
                     </div>
                     <div className="flex-1 min-w-0">
-                      <p className="text-sm font-medium text-gray-900 truncate">{file.name}</p>
-                      <p className="text-xs text-gray-500">{file.size}</p>
+                      <p className="text-sm font-medium text-foreground truncate">{file.name}</p>
+                      <p className="text-xs text-muted-foreground">{file.size}</p>
                       {file.status === "uploading" && (
-                        <div className="mt-2 h-1 bg-gray-200 rounded-full overflow-hidden">
+                        <div className="mt-2 h-1 bg-border rounded-full overflow-hidden">
                           <div className="h-full bg-blue-500 rounded-full animate-pulse w-1/2" />
                         </div>
                       )}
                     </div>
 
                     {file.status === "complete" && (
-                      <div className="size-8 bg-green-50 rounded-full flex items-center justify-center flex-shrink-0">
-                        <Check className="size-4 text-green-600" />
+                      <div className="size-8 bg-success/5 rounded-full flex items-center justify-center flex-shrink-0">
+                        <Check className="size-4 text-success" />
                       </div>
                     )}
                     {file.status === "uploading" && (
@@ -205,7 +205,7 @@ export function UploadView({ onUploadComplete }: UploadViewProps) {
 
                     <button
                       onClick={() => removeFile(file.id)}
-                      className="size-8 flex items-center justify-center rounded-lg hover:bg-gray-100 transition-colors text-gray-400 hover:text-gray-600"
+                      className="size-8 flex items-center justify-center rounded-lg hover:bg-accent transition-colors text-faint hover:text-foreground-soft"
                     >
                       <X className="size-4" />
                     </button>

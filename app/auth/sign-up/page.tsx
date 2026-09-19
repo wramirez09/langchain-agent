@@ -13,10 +13,10 @@ export default function Page() {
     <div className="h-full flex items-center justify-center bg-gradient-light p-6">
       <div className="w-full max-w-md">
         <div className="text-center mb-8">
-          <h1 className="text-4xl font-bold text-gray-900 mb-2">Create your account</h1>
+          <h1 className="text-4xl font-bold text-foreground mb-2">Create your account</h1>
           <p className="text-dark">Sign up to get started with NoteDoctorAi</p>
         </div>
-        <div className="bg-white rounded-xl shadow-md p-8">
+        <div className="bg-card rounded-xl shadow-md p-8">
           <SignUpForm />
         </div>
       </div>

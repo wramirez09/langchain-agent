@@ -110,9 +110,9 @@ const maskedId = (k: ApiKey) => `${k.key_prefix}${"•".repeat(8)}`;
 function Tag({ kind }: { kind: "live" | "test" | "revoked" }) {
   const tone =
     kind === "live"
-      ? "bg-emerald-50 text-emerald-700 dark:bg-emerald-500/10 dark:text-emerald-400"
+      ? "bg-success/5 text-success dark:bg-success/10 dark:text-success"
       : kind === "test"
-        ? "bg-amber-50 text-amber-700 dark:bg-amber-500/10 dark:text-amber-400"
+        ? "bg-warning/5 text-warning dark:bg-warning/10 dark:text-warning"
         : "bg-muted text-muted-foreground";
   return (
     <span
@@ -245,7 +245,7 @@ function CreatePanel({
                   key={s}
                   type="button"
                   onClick={() => setName(s)}
-                  className="h-[26px] rounded-full border bg-card px-2.5 text-[11.5px] text-muted-foreground transition-colors hover:bg-muted"
+                  className="h-[26px] rounded-full border bg-card px-2.5 text-[11.5px] text-muted-foreground transition-colors hover:bg-accent"
                 >
                   {s}
                 </button>
@@ -269,7 +269,7 @@ function CreatePanel({
                   i > 0 && "border-l",
                   environment === env
                     ? "bg-primary text-primary-foreground hover:bg-primary/90"
-                    : "text-muted-foreground hover:bg-muted hover:text-foreground",
+                    : "text-muted-foreground hover:bg-accent hover:text-foreground",
                 )}
               >
                 {env}
@@ -308,7 +308,7 @@ function CreatePanel({
                   onClick={() => toggle(s.id)}
                   className={cn(
                     "flex items-start gap-3 rounded-xl border-[1.5px] px-[15px] py-[13px] text-left transition-colors",
-                    on ? "border-primary bg-primary/5" : "border-input bg-card hover:bg-muted/40",
+                    on ? "border-primary bg-primary/5" : "border-input bg-card hover:bg-accent/40",
                   )}
                 >
                   <span
@@ -370,7 +370,7 @@ function CreatePanel({
                     "h-[34px] rounded-full border px-3.5 text-[13px] transition-colors",
                     on
                       ? "border-[1.5px] border-primary bg-primary/10 font-semibold text-primary"
-                      : "font-medium text-muted-foreground hover:bg-muted",
+                      : "font-medium text-muted-foreground hover:bg-accent",
                   )}
                 >
                   {c.label}
@@ -507,7 +507,7 @@ function SecretPanel({
   return (
     <div className="max-w-[760px] overflow-hidden rounded-[14px] border border-primary/25 bg-card shadow-sm">
       <div className="flex items-center gap-3 border-b bg-gradient-to-b from-primary/[0.04] to-transparent px-6 py-5">
-        <span className="grid size-[34px] shrink-0 place-items-center rounded-[10px] bg-emerald-500/15 text-emerald-700 dark:text-emerald-400">
+        <span className="grid size-[34px] shrink-0 place-items-center rounded-[10px] bg-success/15 text-success dark:text-success">
           <IconCheck className="size-[18px]" />
         </span>
         <div>
@@ -522,7 +522,7 @@ function SecretPanel({
       </div>
 
       <div className="px-6 py-[22px]">
-        <div className="mb-[18px] flex items-start gap-2.5 rounded-[10px] border border-amber-300/60 bg-amber-50 px-3.5 py-3 text-xs leading-relaxed text-amber-800 dark:bg-amber-500/10 dark:text-amber-300">
+        <div className="mb-[18px] flex items-start gap-2.5 rounded-[10px] border border-warning/60 bg-warning/5 px-3.5 py-3 text-xs leading-relaxed text-warning dark:bg-warning/10 dark:text-warning">
           <IconAlertTriangle className="mt-px size-4 shrink-0" />
           <span>
             NoteDoctorAi doesn&apos;t store the secret. If you lose it, revoke this key and create a
@@ -533,8 +533,8 @@ function SecretPanel({
         <div className="mb-[7px] text-[10px] font-bold uppercase tracking-[0.1em] text-muted-foreground">
           Secret key
         </div>
-        <div className="flex flex-wrap items-center gap-3 rounded-xl bg-[#16212e] px-3.5 py-3.5 ring-1 ring-inset ring-white/10">
-          <code className="flex-1 break-all font-mono text-[13.5px] tracking-[-0.02em] text-[#cfe4f5]">
+        <div className="flex flex-wrap items-center gap-3 rounded-xl bg-foreground dark:bg-black/40 px-3.5 py-3.5 ring-1 ring-inset ring-white/10">
+          <code className="flex-1 break-all font-mono text-[13.5px] tracking-[-0.02em] text-background dark:text-accent-foreground">
             {secret}
           </code>
           <Button
@@ -550,14 +550,14 @@ function SecretPanel({
           <button
             type="button"
             onClick={() => copy(`ND_API_KEY=${secret}`, "env", ".env line copied")}
-            className="h-[30px] rounded-[7px] border bg-card px-3 text-xs text-muted-foreground transition-colors hover:bg-muted"
+            className="h-[30px] rounded-[7px] border bg-card px-3 text-xs text-muted-foreground transition-colors hover:bg-accent"
           >
             {copied === "env" ? "Copied .env line" : "Copy as .env line"}
           </button>
           <button
             type="button"
             onClick={() => copy(curl, "curl", "cURL example copied")}
-            className="h-[30px] rounded-[7px] border bg-card px-3 text-xs text-muted-foreground transition-colors hover:bg-muted"
+            className="h-[30px] rounded-[7px] border bg-card px-3 text-xs text-muted-foreground transition-colors hover:bg-accent"
           >
             {copied === "curl" ? "Copied cURL" : "Copy cURL"}
           </button>
@@ -612,7 +612,7 @@ function RowMenu({
         <button
           type="button"
           aria-label={`Actions for ${k.name || "Untitled key"}`}
-          className="grid size-[30px] place-items-center rounded-md text-muted-foreground transition-colors hover:bg-muted hover:text-foreground"
+          className="grid size-[30px] place-items-center rounded-md text-muted-foreground transition-colors hover:bg-accent hover:text-foreground"
         >
           <IconDotsVertical className="size-[17px]" />
         </button>
@@ -620,7 +620,7 @@ function RowMenu({
       <PopoverContent align="end" className="w-[190px] p-1.5">
         <button
           type="button"
-          className={cn(item, "text-foreground hover:bg-muted")}
+          className={cn(item, "text-foreground hover:bg-accent")}
           onClick={() => {
             setOpen(false);
             onCopyId();
@@ -810,14 +810,14 @@ export default function ApiKeysManager() {
   return (
     <div>
       {!apiAccess && !loading && (
-        <div className="mb-4 flex items-center justify-between gap-3 rounded-lg border border-amber-300/60 bg-amber-50 px-3 py-2.5 text-sm dark:bg-amber-500/10">
-          <span className="flex items-center gap-2 text-amber-800 dark:text-amber-300">
+        <div className="mb-4 flex items-center justify-between gap-3 rounded-lg border border-warning/60 bg-warning/5 px-3 py-2.5 text-sm dark:bg-warning/10">
+          <span className="flex items-center gap-2 text-warning dark:text-warning">
             <IconShieldLock className="size-4 shrink-0" />
             An active subscription is required to create API keys — every plan includes the API.
           </span>
           <a
             href="/agents/org"
-            className="shrink-0 font-medium text-amber-900 underline dark:text-amber-200"
+            className="shrink-0 font-medium text-warning underline dark:text-warning"
           >
             Subscribe
           </a>
@@ -922,7 +922,7 @@ export default function ApiKeysManager() {
                       ? "bg-muted/40"
                       : isNew
                         ? "bg-primary/5 shadow-[inset_3px_0_0_hsl(var(--primary))]"
-                        : "hover:bg-muted/25",
+                        : "hover:bg-accent/25",
                   )}
                 >
                   <div className="pr-10 md:pr-0">
@@ -983,7 +983,7 @@ export default function ApiKeysManager() {
                     className={cn(
                       "text-[12.5px] font-semibold",
                       stale && !revoked
-                        ? "text-amber-700 dark:text-amber-400"
+                        ? "text-warning dark:text-warning"
                         : "text-muted-foreground md:text-foreground",
                     )}
                   >

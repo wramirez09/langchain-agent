@@ -32,26 +32,26 @@ export function ErrorNotification({ error, onRetry, onDismiss }: ErrorNotificati
   const getSeverityColor = (severity: ClientErrorNotification['severity']) => {
     switch (severity) {
       case 'warning':
-        return "border-yellow-200 bg-yellow-50 text-yellow-800";
+        return "border-warning/20 bg-warning/5 text-warning";
       case 'error':
-        return "border-red-200 bg-red-50 text-red-800";
+        return "border-destructive/20 bg-destructive/5 text-destructive";
       case 'critical':
-        return "border-red-300 bg-red-100 text-red-900";
+        return "border-destructive/30 bg-destructive/10 text-destructive";
       default:
-        return "border-gray-200 bg-gray-50 text-gray-800";
+        return "border-border bg-muted text-foreground";
     }
   };
 
   const getIconColor = (severity: ClientErrorNotification['severity']) => {
     switch (severity) {
       case 'warning':
-        return "text-yellow-600";
+        return "text-warning";
       case 'error':
-        return "text-red-600";
+        return "text-destructive";
       case 'critical':
-        return "text-red-700";
+        return "text-destructive";
       default:
-        return "text-gray-600";
+        return "text-foreground-soft";
     }
   };
 
