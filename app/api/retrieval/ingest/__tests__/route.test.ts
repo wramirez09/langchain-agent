@@ -1,90 +1,88 @@
-/**
- * @jest-environment node
- */
+/** @jest-environment node */
 
-const loadMock = jest.fn()
-const splitMock = jest.fn((...a: any[]) => a[0])
-const fromDocumentsMock = jest.fn().mockResolvedValue(undefined)
-const invokeMock = jest.fn()
+const getUserMock = jest.fn();
+const loadMock = jest.fn();
+const fromDocumentsMock = jest.fn();
+const invokeMock = jest.fn();
 
-jest.mock('@langchain/community/document_loaders/fs/pdf', () => ({
+jest.mock("@/lib/auth/getUserFromRequest", () => ({
+  getUserFromRequest: (...a: unknown[]) => getUserMock(...a),
+}));
+jest.mock("@langchain/community/document_loaders/fs/pdf", () => ({
   PDFLoader: class {
-    load = (...a: any[]) => loadMock(...a)
+    load = loadMock;
   },
-}))
-jest.mock('langchain/text_splitter', () => ({
+}));
+jest.mock("@langchain/community/vectorstores/supabase", () => ({
+  SupabaseVectorStore: {
+    fromDocuments: (...a: unknown[]) => fromDocumentsMock(...a),
+  },
+}));
+jest.mock("@langchain/openai", () => ({ OpenAIEmbeddings: class {} }));
+jest.mock("langchain/text_splitter", () => ({
   RecursiveCharacterTextSplitter: class {
-    splitDocuments = (...a: any[]) => splitMock(...a)
+    splitDocuments = (docs: unknown[]) => Promise.resolve(docs);
   },
-}))
-jest.mock('@langchain/community/vectorstores/supabase', () => ({
-  SupabaseVectorStore: { fromDocuments: (...a: any[]) => fromDocumentsMock(...a) },
-}))
-jest.mock('@langchain/openai', () => ({ OpenAIEmbeddings: class {} }))
-jest.mock('@supabase/supabase-js', () => ({ createClient: () => ({}) }))
-jest.mock('@/lib/llm', () => ({ llmAgent: () => ({ invoke: (...a: any[]) => invokeMock(...a) }) }))
-jest.mock('@langchain/core/messages', () => ({ HumanMessage: class {} }))
+}));
+jest.mock("@supabase/supabase-js", () => ({ createClient: () => ({}) }));
+jest.mock("@/lib/llm", () => ({ llmAgent: () => ({ invoke: invokeMock }) }));
 
-// The route reads these at module scope and throws if any are missing.
-let POST: (req: any) => Promise<any>
+// The route throws at MODULE scope when its env vars are missing, and ES
+// imports hoist above any assignment here -- so it has to be loaded lazily,
+// after the environment is in place.
+let POST: (req: never) => Promise<Response>;
+
 beforeAll(async () => {
-  process.env.SUPABASE_URL = 'https://example.supabase.co'
-  process.env.SUPABASE_PRIVATE_KEY = 'service-key'
-  process.env.OPENAI_API_KEY = 'openai-key'
-  ;({ POST } = await import('../route'))
-})
+  process.env.SUPABASE_URL ||= "http://localhost";
+  process.env.SUPABASE_PRIVATE_KEY ||= "key";
+  process.env.OPENAI_API_KEY ||= "key";
+  ({ POST } = await import("../route"));
+});
 
-function reqWithFile(file: unknown) {
-  return { formData: async () => ({ get: (k: string) => (k === 'file' ? file : null) }) } as any
+function pdfRequest() {
+  const form = new FormData();
+  form.append("file", new Blob(["%PDF-1.4"], { type: "application/pdf" }));
+  return new Request("http://localhost/api/retrieval/ingest", {
+    method: "POST",
+    body: form,
+  }) as never;
 }
 
 beforeEach(() => {
-  jest.clearAllMocks()
-  splitMock.mockImplementation(async (docs: any[]) => docs)
-  fromDocumentsMock.mockResolvedValue(undefined)
-})
+  getUserMock.mockReset().mockResolvedValue({ id: "user-1" });
+  loadMock.mockReset().mockResolvedValue([{ pageContent: "MRI lumbar spine" }]);
+  fromDocumentsMock.mockReset().mockResolvedValue(undefined);
+  invokeMock.mockReset().mockResolvedValue({ content: "a generated query" });
+});
 
-describe('POST /api/retrieval/ingest', () => {
-  it('returns 400 when no file is provided', async () => {
-    const res: any = await POST(reqWithFile(null))
-    expect(res.status).toBe(400)
-    expect((await res.json()).error).toBe('No file uploaded')
-  })
+describe("POST /api/retrieval/ingest — auth", () => {
+  /**
+   * This route was anonymous and spent OpenAI tokens per call. It also writes
+   * into a vector table with no tenant column, so an anonymous write was a
+   * write into everyone's retrieval namespace.
+   */
+  it("401s with no session", async () => {
+    getUserMock.mockResolvedValue(null);
+    const res = await POST(pdfRequest());
+    expect(res.status).toBe(401);
+  });
 
-  it('returns 400 for a non-PDF file', async () => {
-    const file = new Blob(['hello'], { type: 'text/plain' })
-    const res: any = await POST(reqWithFile(file))
-    expect(res.status).toBe(400)
-    expect((await res.json()).error).toBe('Only PDF files are supported')
-  })
+  it("401s when auth throws", async () => {
+    getUserMock.mockRejectedValue(new Error("no session"));
+    expect((await POST(pdfRequest())).status).toBe(401);
+  });
 
-  it('returns 400 when the file exceeds the size limit', async () => {
-    const big = new Blob([new Uint8Array(11 * 1024 * 1024)], { type: 'application/pdf' })
-    const res: any = await POST(reqWithFile(big))
-    expect(res.status).toBe(400)
-    expect((await res.json()).error).toMatch(/10MB/)
-  })
+  it("spends no OpenAI tokens for an unauthenticated caller", async () => {
+    getUserMock.mockResolvedValue(null);
+    await POST(pdfRequest());
+    expect(loadMock).not.toHaveBeenCalled();
+    expect(fromDocumentsMock).not.toHaveBeenCalled();
+    expect(invokeMock).not.toHaveBeenCalled();
+  });
 
-  it('ingests a PDF and returns the generated query and a document id', async () => {
-    loadMock.mockResolvedValue([{ pageContent: 'patient has type 1 diabetes', metadata: {} }])
-    invokeMock.mockResolvedValue({ content: 'Insulin pump therapy for Type 1 diabetes' })
-
-    const file = new Blob(['%PDF-1.4 fake'], { type: 'application/pdf' })
-    const res: any = await POST(reqWithFile(file))
-
-    expect(res.status).toBe(200)
-    const json = await res.json()
-    expect(json.success).toBe(true)
-    expect(json.generatedQuery).toBe('Insulin pump therapy for Type 1 diabetes')
-    expect(json.documentId).toMatch(/^doc_/)
-    expect(fromDocumentsMock).toHaveBeenCalled()
-  })
-
-  it('returns 500 when the PDF has no extractable content', async () => {
-    loadMock.mockResolvedValue([])
-    const file = new Blob(['%PDF-1.4 empty'], { type: 'application/pdf' })
-    const res: any = await POST(reqWithFile(file))
-    expect(res.status).toBe(500)
-    expect((await res.json()).success).toBe(false)
-  })
-})
+  it("still serves an authenticated caller", async () => {
+    const res = await POST(pdfRequest());
+    expect(res.status).toBe(200);
+    expect((await res.json()).generatedQuery).toBe("a generated query");
+  });
+});

@@ -28,6 +28,11 @@ const FIELD_DEFS: FieldDef[] = [
     full: true,
   },
   { key: "history", label: "History", re: /(?<!Relevant Medical )History\s*:/, full: true },
+  // Emitted by the de-identified-note intake (lib/phi + /api/notes/extract),
+  // never by the form. Rendering it here is what makes the attestation
+  // durable: it rides along into the saved query and the PDF export rather
+  // than living only on the upload screen the clinician already left.
+  { key: "deidentification", label: "De-identification", re: /De-identification\s*:/, full: true },
 ];
 
 type ParsedField = { label: string; value: string; full?: boolean };
