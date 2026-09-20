@@ -211,7 +211,7 @@ export function PriorAuthFormPanel({
               CPT/HCPCS
             </label>
             <Input
-              placeholder="CPT Codes"
+              placeholder="29881, 29880, 27447"
               value={formFields.cptCodes}
               className="h-9 bg-card border-primary/20 text-foreground focus-visible:ring-primary/30 focus-visible:border-primary/40"
               onChange={(e) => updateFormField("cptCodes", e.target.value)}
