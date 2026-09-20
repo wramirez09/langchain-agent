@@ -1,6 +1,6 @@
 "use client";
 
-import React, { FormEvent, useRef } from "react";
+import React, { FormEvent, useRef, useState } from "react";
 import { motion } from "framer-motion";
 import { type Message } from "ai";
 import {
@@ -9,6 +9,7 @@ import {
   AlertTriangle,
   Bookmark,
   Sparkles,
+  Paperclip,
 } from "lucide-react";
 import { IconSend2 } from "@tabler/icons-react";
 import { ChatMessageBubble } from "@/components/ChatMessageBubble";
@@ -16,6 +17,7 @@ import { IntermediateStep } from "@/components/IntermediateStep";
 import { ArtifactSkeleton } from "@/components/prior-auth/artifact/ArtifactSkeleton";
 import { ArtifactPendingNotice } from "@/components/prior-auth/artifact/ArtifactPendingNotice";
 import { HipaaCheckToast } from "@/components/prior-auth/artifact/HipaaCheckToast";
+import { NoteIngestDialog } from "@/components/note-ingest/NoteIngestDialog";
 import { cn } from "@/utils/cn";
 import {
   usePriorAuthChat,
@@ -36,6 +38,8 @@ interface PriorAuthChatPanelProps {
   canSave?: boolean;
   saved?: boolean;
   onSaveQuery?: () => void;
+  /** Fires a screening from a de-identified note the user attached. */
+  onNoteQuery?: (query: string) => void;
 }
 
 export function PriorAuthChatPanel({
@@ -50,6 +54,7 @@ export function PriorAuthChatPanel({
   canSave,
   saved,
   onSaveQuery,
+  onNoteQuery,
 }: PriorAuthChatPanelProps) {
   const { chatInput, setChatInput } = usePriorAuthChat();
   const { activeFormTab } = usePriorAuthUi();
@@ -78,11 +83,21 @@ export function PriorAuthChatPanel({
   }
   const checkingRequest = isProcessing && !isRestoring && lastUserIndex >= 0;
 
+  // Attached note awaiting review. Held here rather than inside the dialog so
+  // picking the same file twice in a row still re-opens it.
+  const [noteFile, setNoteFile] = useState<File | null>(null);
+  const noteInputRef = useRef<HTMLInputElement>(null);
+
   return (
     <>
       <HipaaCheckToast
         active={checkingRequest}
         runKey={messages[lastUserIndex]?.id}
+      />
+      <NoteIngestDialog
+        file={noteFile}
+        onClose={() => setNoteFile(null)}
+        onReady={(q) => onNoteQuery?.(q)}
       />
       <motion.div
         layout
@@ -221,6 +236,28 @@ export function PriorAuthChatPanel({
             onSubmit={onSubmit}
             className="flex items-center gap-2 border border-border rounded-lg px-3 py-2 bg-card w-full"
           >
+            <input
+              ref={noteInputRef}
+              type="file"
+              accept=".txt,.md,.markdown,.pdf,text/plain,text/markdown,application/pdf"
+              className="hidden"
+              onChange={(e) => {
+                const f = e.target.files?.[0] ?? null;
+                setNoteFile(f);
+                // Reset so re-picking the same file fires onChange again.
+                e.target.value = "";
+              }}
+            />
+            <button
+              type="button"
+              onClick={() => noteInputRef.current?.click()}
+              disabled={isProcessing}
+              title="Attach a clinical note"
+              aria-label="Attach a clinical note"
+              className="w-7 h-7 rounded-full flex items-center justify-center flex-shrink-0 text-muted-foreground transition-colors hover:bg-accent hover:text-foreground disabled:opacity-40 disabled:hover:bg-transparent"
+            >
+              <Paperclip className="size-4" strokeWidth={1.75} />
+            </button>
             <input
               value={chatInput}
               onChange={(e) => setChatInput(e.target.value)}
