@@ -25,6 +25,7 @@ import {
   ArtifactReviewProvider,
 } from "./ArtifactSections";
 import type { ArtifactReview } from "@/lib/priorAuth/review/types";
+import { PhiNoticeToast } from "./PhiNoticeToast";
 
 // Moved to lib so non-client modules (PDF export) can share it; re-exported
 // here so existing imports keep working.
@@ -103,6 +104,9 @@ export function PriorAuthArtifact({
 
   const doc = (
     <div className="min-w-0">
+      {/* Renders nothing; announces `phiNotice` once per run. Mounted inside
+          the document so it is torn down with the artifact it belongs to. */}
+      <PhiNoticeToast notice={data.phiNotice} messageId={messageId} />
       <Header data={data} />
       <div className="flex flex-col gap-[18px]">
         {builders.map((b, i) => (
