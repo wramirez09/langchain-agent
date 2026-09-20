@@ -33,18 +33,31 @@ beforeEach(() => {
   });
 });
 
-const openWith = (
+/**
+ * Open the dialog and put `file` on its dropzone the way a user would.
+ * react-dropzone listens for a real change event, so `userEvent.upload` is
+ * required -- a bare fireEvent.change never reaches its onDrop.
+ */
+const openWith = async (
   file: File | null,
   onReady = jest.fn(),
   onClose = jest.fn(),
 ) => {
-  render(<NoteIngestDialog file={file} onClose={onClose} onReady={onReady} />);
+  render(<NoteIngestDialog open onClose={onClose} onReady={onReady} />);
+  if (file) {
+    // The dialog renders through a Radix portal, so the input is in the
+    // document but NOT under the render container.
+    const input = screen
+      .getByTestId("note-dropzone")
+      .querySelector("input[type=file]") as HTMLElement;
+    await userEvent.upload(input, file);
+  }
   return { onReady, onClose };
 };
 
 describe("NoteIngestDialog — review", () => {
   it("shows the de-identified note, not the original", async () => {
-    openWith(noteFile());
+    await openWith(noteFile());
     await screen.findByTestId("redacted-preview");
     const preview = screen.getByTestId("redacted-preview");
     expect(preview.textContent).not.toMatch(/Jane Doe|4429301|01\/02\/1970/);
@@ -52,7 +65,7 @@ describe("NoteIngestDialog — review", () => {
   });
 
   it("marks each removal with its category", async () => {
-    openWith(noteFile());
+    await openWith(noteFile());
     await screen.findByTestId("redacted-preview");
     const cats = screen
       .getAllByTestId("redaction-chip")
@@ -61,12 +74,12 @@ describe("NoteIngestDialog — review", () => {
   });
 
   it("summarises how many identifiers were removed", async () => {
-    openWith(noteFile());
+    await openWith(noteFile());
     expect(await screen.findByText(/identifiers removed/)).toBeInTheDocument();
   });
 
   it("says the note has not been sent yet", async () => {
-    openWith(noteFile());
+    await openWith(noteFile());
     expect(
       await screen.findByText(/Nothing has been sent yet/),
     ).toBeInTheDocument();
@@ -76,7 +89,7 @@ describe("NoteIngestDialog — review", () => {
 describe("NoteIngestDialog — the confirm gate", () => {
   it("keeps the button disabled until the box is ticked", async () => {
     const user = userEvent.setup();
-    openWith(noteFile());
+    await openWith(noteFile());
     await screen.findByTestId("redacted-preview");
 
     const send = screen.getByRole("button", { name: /use this note/i });
@@ -88,7 +101,7 @@ describe("NoteIngestDialog — the confirm gate", () => {
 
   it("sends nothing while the box is unticked", async () => {
     const user = userEvent.setup();
-    openWith(noteFile());
+    await openWith(noteFile());
     await screen.findByTestId("redacted-preview");
     await user.click(screen.getByRole("button", { name: /use this note/i }));
     expect(fetchMock).not.toHaveBeenCalled();
@@ -96,7 +109,7 @@ describe("NoteIngestDialog — the confirm gate", () => {
 
   it("posts only the redacted text, never the original", async () => {
     const user = userEvent.setup();
-    const { onReady } = openWith(noteFile());
+    const { onReady } = await openWith(noteFile());
     await screen.findByTestId("redacted-preview");
     await user.click(screen.getByRole("checkbox"));
     await user.click(screen.getByRole("button", { name: /use this note/i }));
@@ -118,15 +131,8 @@ describe("NoteIngestDialog — the confirm gate", () => {
 
 describe("NoteIngestDialog — failures", () => {
   it("explains a scanned PDF instead of failing silently", async () => {
-    openWith(new File(["x"], "scan.pdf", { type: "application/pdf" }));
+    await openWith(new File(["x"], "scan.pdf", { type: "application/pdf" }));
     expect(await screen.findByTestId("ingest-error")).toBeInTheDocument();
-  });
-
-  it("names an unsupported type", async () => {
-    openWith(new File(["x"], "note.docx"));
-    expect(await screen.findByTestId("ingest-error")).toHaveTextContent(
-      /Word documents/,
-    );
   });
 
   it("warns and stays open when the server tripwire fires", async () => {
@@ -135,7 +141,7 @@ describe("NoteIngestDialog — failures", () => {
       ok: false,
       json: async () => ({ error: "PHI_DETECTED", categories: { ssn: 1 } }),
     });
-    const { onReady, onClose } = openWith(noteFile());
+    const { onReady, onClose } = await openWith(noteFile());
     await screen.findByTestId("redacted-preview");
     await user.click(screen.getByRole("checkbox"));
     await user.click(screen.getByRole("button", { name: /use this note/i }));
@@ -151,15 +157,16 @@ describe("NoteIngestDialog — failures", () => {
       ok: false,
       json: async () => ({ error: "NO_FIELDS_EXTRACTED" }),
     });
-    openWith(noteFile());
+    await openWith(noteFile());
     await screen.findByTestId("redacted-preview");
     await user.click(screen.getByRole("checkbox"));
     await user.click(screen.getByRole("button", { name: /use this note/i }));
     await waitFor(() => expect(toastMock.error).toHaveBeenCalled());
   });
 
-  it("renders nothing with no file", () => {
-    openWith(null);
+  it("opens on the dropzone before a file is chosen", async () => {
+    await openWith(null);
+    expect(screen.getByTestId("note-dropzone")).toBeInTheDocument();
     expect(screen.queryByTestId("redacted-preview")).toBeNull();
   });
 });

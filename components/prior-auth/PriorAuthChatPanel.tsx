@@ -83,10 +83,9 @@ export function PriorAuthChatPanel({
   }
   const checkingRequest = isProcessing && !isRestoring && lastUserIndex >= 0;
 
-  // Attached note awaiting review. Held here rather than inside the dialog so
-  // picking the same file twice in a row still re-opens it.
-  const [noteFile, setNoteFile] = useState<File | null>(null);
-  const noteInputRef = useRef<HTMLInputElement>(null);
+  // The dialog owns the file picker so it can offer drag-and-drop; this only
+  // tracks whether it is open.
+  const [noteOpen, setNoteOpen] = useState(false);
 
   return (
     <>
@@ -95,8 +94,8 @@ export function PriorAuthChatPanel({
         runKey={messages[lastUserIndex]?.id}
       />
       <NoteIngestDialog
-        file={noteFile}
-        onClose={() => setNoteFile(null)}
+        open={noteOpen}
+        onClose={() => setNoteOpen(false)}
         onReady={(q) => onNoteQuery?.(q)}
       />
       <motion.div
@@ -236,21 +235,9 @@ export function PriorAuthChatPanel({
             onSubmit={onSubmit}
             className="flex items-center gap-2 border border-border rounded-lg px-3 py-2 bg-card w-full"
           >
-            <input
-              ref={noteInputRef}
-              type="file"
-              accept=".txt,.md,.markdown,.pdf,text/plain,text/markdown,application/pdf"
-              className="hidden"
-              onChange={(e) => {
-                const f = e.target.files?.[0] ?? null;
-                setNoteFile(f);
-                // Reset so re-picking the same file fires onChange again.
-                e.target.value = "";
-              }}
-            />
             <button
               type="button"
-              onClick={() => noteInputRef.current?.click()}
+              onClick={() => setNoteOpen(true)}
               disabled={isProcessing}
               title="Attach a clinical note"
               aria-label="Attach a clinical note"
@@ -261,7 +248,7 @@ export function PriorAuthChatPanel({
             <input
               value={chatInput}
               onChange={(e) => setChatInput(e.target.value)}
-              placeholder="Type your message..."
+              placeholder="Type your message or copy and paste in doctors notes"
               className="flex-1 min-w-0 bg-transparent text-sm text-foreground placeholder-gray-400 outline-none"
               disabled={isProcessing}
               autoComplete="off"

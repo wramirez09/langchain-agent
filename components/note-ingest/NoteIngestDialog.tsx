@@ -21,6 +21,7 @@ import {
 } from "@/lib/noteIngest/extractText";
 import type { RedactionResult } from "@/lib/phi/types";
 import { RedactedPreview, RedactionSummary } from "./RedactedPreview";
+import { FileUpload } from "@/components/ui/FileUpload";
 
 /**
  * The confirm gate.
@@ -53,17 +54,20 @@ interface Session {
 }
 
 export interface NoteIngestDialogProps {
-  file: File | null;
+  open: boolean;
   onClose: () => void;
   /** Receives the serialized query; the caller fires the screening. */
   onReady: (query: string) => void;
 }
 
 export function NoteIngestDialog({
-  file,
+  open,
   onClose,
   onReady,
 }: NoteIngestDialogProps) {
+  // The dialog owns the picked file so it can open on the dropzone and support
+  // drag-and-drop, rather than the chat input having to drive a hidden input.
+  const [file, setFile] = useState<File | null>(null);
   const [session, setSession] = useState<Session | null>(null);
   const [confirmedFile, setConfirmedFile] = useState<File | null>(null);
   const [sending, setSending] = useState(false);
@@ -113,6 +117,13 @@ export function NoteIngestDialog({
   const residue = result ? blockingFindings(detectPhi(result.redacted)) : [];
   const canSend = !!result && confirmed && residue.length === 0 && !sending;
 
+  const close = useCallback(() => {
+    setFile(null);
+    setSession(null);
+    setConfirmedFile(null);
+    onClose();
+  }, [onClose]);
+
   const send = useCallback(async () => {
     if (!loaded?.result || !loaded.extracted) return;
     setSending(true);
@@ -145,16 +156,16 @@ export function NoteIngestDialog({
       }
 
       onReady(data.query as string);
-      onClose();
+      close();
     } catch {
       toast.error("That note could not be processed.");
     } finally {
       setSending(false);
     }
-  }, [loaded, onReady, onClose]);
+  }, [loaded, onReady, close]);
 
   return (
-    <Dialog open={!!file} onOpenChange={(o) => !o && onClose()}>
+    <Dialog open={open} onOpenChange={(o) => !o && close()}>
       <DialogContent className="max-w-[560px]">
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2">
@@ -164,11 +175,13 @@ export function NoteIngestDialog({
           <DialogDescription>
             {file?.name
               ? `${file.name} was read on this device. Nothing has been sent yet.`
-              : "This note was read on this device. Nothing has been sent yet."}
+              : "Notes are de-identified on this device before anything is sent."}
           </DialogDescription>
         </DialogHeader>
 
-        {!loaded ? (
+        {!file ? (
+          <FileUpload onFile={setFile} />
+        ) : !loaded ? (
           <div className="flex items-center gap-2 py-6 text-sm text-muted-foreground">
             <LoaderCircle className="size-4 animate-spin" />
             Reading and de-identifying…
@@ -221,7 +234,7 @@ export function NoteIngestDialog({
         ) : null}
 
         <DialogFooter>
-          <Button variant="outline" onClick={onClose}>
+          <Button variant="outline" onClick={close}>
             Cancel
           </Button>
           <Button
