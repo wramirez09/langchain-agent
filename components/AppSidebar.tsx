@@ -1,4 +1,4 @@
-'use client';
+"use client";
 import {
   FileText,
   FileDown,
@@ -11,17 +11,17 @@ import {
   KeyRound,
   FlaskConical,
   Code2,
-} from 'lucide-react';
-import { cn } from '@/utils/cn';
-import { createClient } from '@/utils/client';
-import { useRouter } from 'next/navigation';
-import { useMobileSidebar } from '@/components/providers/MobileSidebarProvider';
-import { usePriorAuthChat } from '@/components/providers/PriorAuthProvider';
-import { useEffect, useState } from 'react';
-import Link from 'next/link';
-import { toast } from 'sonner';
+} from "lucide-react";
+import { cn } from "@/utils/cn";
+import { createClient } from "@/utils/client";
+import { useRouter } from "next/navigation";
+import { useMobileSidebar } from "@/components/providers/MobileSidebarProvider";
+import { usePriorAuthChat } from "@/components/providers/PriorAuthProvider";
+import { useEffect, useState } from "react";
+import Link from "next/link";
+import { toast } from "sonner";
 
-export type AppView = 'auth' | 'upload' | 'export';
+export type AppView = "auth" | "export";
 
 interface AppSidebarProps {
   activeView: AppView;
@@ -29,26 +29,40 @@ interface AppSidebarProps {
 }
 
 const navItems: { id: AppView; icon: React.ElementType; label: string }[] = [
-  { id: 'auth', icon: FileText, label: 'Requests' },
-  // { id: 'upload', icon: Upload,   label: 'Upload File' },
-  { id: 'export', icon: FileDown, label: 'Export' },
+  { id: "auth", icon: FileText, label: "Requests" },
+  { id: "export", icon: FileDown, label: "Export" },
 ];
 
 const supportLinks = [
-  { href: '/legal/terms-of-service', icon: Scale, label: 'Terms', isLink: true },
-  { href: '/legal/privacy-policy', icon: Shield, label: 'Privacy', isLink: true },
-  { href: 'mailto:sales@notedoctor.ai', icon: Mail, label: 'Contact', isLink: false },
+  {
+    href: "/legal/terms-of-service",
+    icon: Scale,
+    label: "Terms",
+    isLink: true,
+  },
+  {
+    href: "/legal/privacy-policy",
+    icon: Shield,
+    label: "Privacy",
+    isLink: true,
+  },
+  {
+    href: "mailto:sales@notedoctor.ai",
+    icon: Mail,
+    label: "Contact",
+    isLink: false,
+  },
 ] as const;
 
 // Fly-out rail row: the icon stays put in the slim rail while the label
 // (`fb-label`, styled in globals.css) fades/slides in as the rail expands.
 const rowClass =
-  'relative w-full flex items-center gap-[15px] h-[46px] px-3.5 rounded-xl text-left transition-colors';
+  "relative w-full flex items-center gap-[15px] h-[46px] px-3.5 rounded-xl text-left transition-colors";
 
 // API rows nested under the Developer group — same row, deeper left padding
 // so they read as children of the Developer header.
 const nestedRowClass =
-  'relative w-full flex items-center gap-[15px] h-[46px] pl-9 pr-3.5 rounded-xl text-left transition-colors';
+  "relative w-full flex items-center gap-[15px] h-[46px] pl-9 pr-3.5 rounded-xl text-left transition-colors";
 
 function SectionHead({ children }: { children: React.ReactNode }) {
   return (
@@ -89,22 +103,30 @@ export function AppSidebar({ activeView, onViewChange }: AppSidebarProps) {
   const railOpen = expanded || isOpen;
 
   // Account card identity — email only, never the user id.
-  const [accountEmail, setAccountEmail] = useState('');
+  const [accountEmail, setAccountEmail] = useState("");
   useEffect(() => {
     const supabase = createClient();
     let cancelled = false;
     supabase.auth
       .getSession()
-      .then(({ data }: { data: { session: { user?: { email?: string } } | null } }) => {
-        if (!cancelled) setAccountEmail(data.session?.user?.email ?? '');
-      })
-      .catch(() => { /* ignore — card just stays generic */ });
+      .then(
+        ({
+          data,
+        }: {
+          data: { session: { user?: { email?: string } } | null };
+        }) => {
+          if (!cancelled) setAccountEmail(data.session?.user?.email ?? "");
+        },
+      )
+      .catch(() => {
+        /* ignore — card just stays generic */
+      });
     return () => {
       cancelled = true;
     };
   }, []);
-  const accountHandle = accountEmail.split('@')[0] || 'Account';
-  const accountInitial = (accountHandle[0] || 'U').toUpperCase();
+  const accountHandle = accountEmail.split("@")[0] || "Account";
+  const accountInitial = (accountHandle[0] || "U").toUpperCase();
 
   // Org membership gates how the API rows appear in the rail. Normal case
   // (has org): they nest under the Developer group. Exception (no org but paid
@@ -118,7 +140,7 @@ export function AppSidebar({ activeView, onViewChange }: AppSidebarProps) {
   const [devOpen, setDevOpen] = useState(true);
   useEffect(() => {
     let cancelled = false;
-    fetch('/api/org')
+    fetch("/api/org")
       .then((res) => {
         if (!cancelled) setHasOrg(res.ok);
       })
@@ -156,9 +178,9 @@ export function AppSidebar({ activeView, onViewChange }: AppSidebarProps) {
         // collapsing them all into "complete your subscription" told subscribed
         // users to subscribe again and hid the real reason.
         if (res.status === 401) {
-          toast.error('Please log in to access billing.');
+          toast.error("Please log in to access billing.");
         } else {
-          toast.error(data.error || 'Unable to open billing portal.');
+          toast.error(data.error || "Unable to open billing portal.");
         }
         return;
       }
@@ -170,16 +192,16 @@ export function AppSidebar({ activeView, onViewChange }: AppSidebarProps) {
       }
     } catch (err) {
       billingTab?.close();
-      console.error('Portal error:', err);
-      toast.error('Unable to open billing portal. Please try again later.');
+      console.error("Portal error:", err);
+      toast.error("Unable to open billing portal. Please try again later.");
     }
   };
 
   const handleLogout = async () => {
     const supabase = createClient();
     await supabase.auth.signOut();
-    localStorage.removeItem('medauth-welcome-seen');
-    router.push('/auth/login');
+    localStorage.removeItem("medauth-welcome-seen");
+    router.push("/auth/login");
   };
 
   return (
@@ -199,9 +221,9 @@ export function AppSidebar({ activeView, onViewChange }: AppSidebarProps) {
         aria-hidden
         data-testid="flyout-scrim"
         className={cn(
-          'hidden md:block fixed inset-0 z-20 bg-[rgba(20,28,48,0.13)]',
-          'pointer-events-none transition-opacity duration-200 motion-reduce:transition-none',
-          floating ? 'opacity-100' : 'opacity-0',
+          "hidden md:block fixed inset-0 z-20 bg-[rgba(20,28,48,0.13)]",
+          "pointer-events-none transition-opacity duration-200 motion-reduce:transition-none",
+          floating ? "opacity-100" : "opacity-0",
         )}
       />
 
@@ -211,8 +233,8 @@ export function AppSidebar({ activeView, onViewChange }: AppSidebarProps) {
       <div
         data-testid="flyout-zone"
         className={cn(
-          'flyout-zone relative w-0 shrink-0 z-50 md:z-30',
-          pinned ? 'md:w-[256px]' : 'md:w-[76px]',
+          "flyout-zone relative w-0 shrink-0 z-50 md:z-30",
+          pinned ? "md:w-[256px]" : "md:w-[76px]",
         )}
         onMouseEnter={() => setHovering(true)}
         onMouseLeave={() => setHovering(false)}
@@ -226,44 +248,46 @@ export function AppSidebar({ activeView, onViewChange }: AppSidebarProps) {
       >
         <div
           className={cn(
-            'flyout-wrap fixed left-0 top-16 bottom-0 z-50',
-            'md:absolute md:inset-y-0 md:z-auto',
-            isOpen ? 'translate-x-0' : '-translate-x-full md:translate-x-0',
-            (expanded || isOpen) && 'is-open',
-            pinned && 'is-pinned',
+            "flyout-wrap fixed left-0 top-16 bottom-0 z-50",
+            "md:absolute md:inset-y-0 md:z-auto",
+            isOpen ? "translate-x-0" : "-translate-x-full md:translate-x-0",
+            (expanded || isOpen) && "is-open",
+            pinned && "is-pinned",
           )}
         >
           <aside className="flyout-rail h-full flex flex-col bg-card border-r border-border pt-4 px-3 pb-3.5">
-
-            <nav aria-label="Primary" className="flex-1 flex flex-col gap-[3px] overflow-hidden pt-1.5">
+            <nav
+              aria-label="Primary"
+              className="flex-1 flex flex-col gap-[3px] overflow-hidden pt-1.5"
+            >
               <SectionHead>Workspace</SectionHead>
               {navItems.map((item) => {
                 const Icon = item.icon;
                 const isActive = activeView === item.id;
-                const isDisabled = item.id === 'export' && !hasResponse;
+                const isDisabled = item.id === "export" && !hasResponse;
                 return (
                   <button
                     key={item.id}
                     onClick={() => !isDisabled && handleNavClick(item.id)}
                     disabled={isDisabled}
                     aria-label={item.label}
-                    aria-current={isActive ? 'page' : undefined}
+                    aria-current={isActive ? "page" : undefined}
                     className={cn(
                       rowClass,
                       isDisabled
-                        ? 'text-faint cursor-not-allowed'
+                        ? "text-faint cursor-not-allowed"
                         : isActive
-                          ? 'bg-primary/10 text-primary'
-                          : 'text-muted-foreground hover:bg-accent',
+                          ? "bg-primary/10 text-primary"
+                          : "text-muted-foreground hover:bg-accent",
                     )}
                   >
                     {isActive && <ActiveBar />}
                     <Icon size={21} strokeWidth={1.7} className="shrink-0" />
                     <span
                       className={cn(
-                        'fb-label text-sm',
-                        isActive ? 'font-bold text-primary' : 'font-semibold',
-                        !isActive && !isDisabled && 'text-foreground-soft',
+                        "fb-label text-sm",
+                        isActive ? "font-bold text-primary" : "font-semibold",
+                        !isActive && !isDisabled && "text-foreground-soft",
                       )}
                     >
                       {item.label}
@@ -279,7 +303,10 @@ export function AppSidebar({ activeView, onViewChange }: AppSidebarProps) {
                     onClick={() => setDevOpen((o) => !o)}
                     aria-expanded={devOpen}
                     aria-label="Developer"
-                    className={cn(rowClass, 'text-muted-foreground hover:bg-accent')}
+                    className={cn(
+                      rowClass,
+                      "text-muted-foreground hover:bg-accent",
+                    )}
                   >
                     <Code2 size={21} strokeWidth={1.7} className="shrink-0" />
                     <span className="fb-label text-sm font-semibold text-foreground-soft">
@@ -290,8 +317,8 @@ export function AppSidebar({ activeView, onViewChange }: AppSidebarProps) {
                       strokeWidth={2}
                       aria-hidden
                       className={cn(
-                        'fb-label ml-auto shrink-0 text-faint transition-transform',
-                        devOpen && 'rotate-90',
+                        "fb-label ml-auto shrink-0 text-faint transition-transform",
+                        devOpen && "rotate-90",
                       )}
                     />
                   </button>
@@ -305,10 +332,14 @@ export function AppSidebar({ activeView, onViewChange }: AppSidebarProps) {
                         aria-label="API Keys"
                         className={cn(
                           railOpen ? nestedRowClass : rowClass,
-                          'transition-[padding] text-muted-foreground hover:bg-accent',
+                          "transition-[padding] text-muted-foreground hover:bg-accent",
                         )}
                       >
-                        <KeyRound size={18} strokeWidth={1.7} className="shrink-0" />
+                        <KeyRound
+                          size={18}
+                          strokeWidth={1.7}
+                          className="shrink-0"
+                        />
                         <span className="fb-label text-sm font-medium text-muted-foreground">
                           API Keys
                         </span>
@@ -320,10 +351,14 @@ export function AppSidebar({ activeView, onViewChange }: AppSidebarProps) {
                         aria-label="API Playground"
                         className={cn(
                           railOpen ? nestedRowClass : rowClass,
-                          'transition-[padding] text-muted-foreground hover:bg-accent',
+                          "transition-[padding] text-muted-foreground hover:bg-accent",
                         )}
                       >
-                        <FlaskConical size={18} strokeWidth={1.7} className="shrink-0" />
+                        <FlaskConical
+                          size={18}
+                          strokeWidth={1.7}
+                          className="shrink-0"
+                        />
                         <span className="fb-label text-sm font-medium text-muted-foreground">
                           API Playground
                         </span>
@@ -337,7 +372,10 @@ export function AppSidebar({ activeView, onViewChange }: AppSidebarProps) {
                   href="/agents/api-keys"
                   onClick={collapseFlyout}
                   aria-label="API Keys"
-                  className={cn(rowClass, 'text-muted-foreground hover:bg-accent')}
+                  className={cn(
+                    rowClass,
+                    "text-muted-foreground hover:bg-accent",
+                  )}
                 >
                   <KeyRound size={21} strokeWidth={1.7} className="shrink-0" />
                   <span className="fb-label text-sm font-semibold text-foreground-soft">
@@ -353,9 +391,16 @@ export function AppSidebar({ activeView, onViewChange }: AppSidebarProps) {
                   href="/agents/api-playground"
                   onClick={collapseFlyout}
                   aria-label="API Playground"
-                  className={cn(rowClass, 'text-muted-foreground hover:bg-accent')}
+                  className={cn(
+                    rowClass,
+                    "text-muted-foreground hover:bg-accent",
+                  )}
                 >
-                  <FlaskConical size={21} strokeWidth={1.7} className="shrink-0" />
+                  <FlaskConical
+                    size={21}
+                    strokeWidth={1.7}
+                    className="shrink-0"
+                  />
                   <span className="fb-label text-sm font-semibold text-foreground-soft">
                     API Playground
                   </span>
@@ -366,7 +411,10 @@ export function AppSidebar({ activeView, onViewChange }: AppSidebarProps) {
 
               <SectionHead>Support</SectionHead>
               {supportLinks.map(({ href, icon: Icon, label, isLink }) => {
-                const linkClass = cn(rowClass, 'text-muted-foreground hover:bg-accent');
+                const linkClass = cn(
+                  rowClass,
+                  "text-muted-foreground hover:bg-accent",
+                );
                 const inner = (
                   <>
                     <Icon size={21} strokeWidth={1.7} className="shrink-0" />
@@ -376,11 +424,21 @@ export function AppSidebar({ activeView, onViewChange }: AppSidebarProps) {
                   </>
                 );
                 return isLink ? (
-                  <Link key={label} href={href} onClick={collapseFlyout} className={linkClass}>
+                  <Link
+                    key={label}
+                    href={href}
+                    onClick={collapseFlyout}
+                    className={linkClass}
+                  >
                     {inner}
                   </Link>
                 ) : (
-                  <a key={label} href={href} onClick={collapseFlyout} className={linkClass}>
+                  <a
+                    key={label}
+                    href={href}
+                    onClick={collapseFlyout}
+                    className={linkClass}
+                  >
                     {inner}
                   </a>
                 );
@@ -391,7 +449,7 @@ export function AppSidebar({ activeView, onViewChange }: AppSidebarProps) {
             <button
               onClick={handleLogout}
               aria-label="Logout"
-              className={cn(rowClass, 'text-destructive hover:bg-accent')}
+              className={cn(rowClass, "text-destructive hover:bg-accent")}
             >
               <LogOut size={21} strokeWidth={1.7} className="shrink-0" />
               <span className="fb-label text-sm font-semibold">Logout</span>
@@ -414,9 +472,7 @@ export function AppSidebar({ activeView, onViewChange }: AppSidebarProps) {
                 <span className="block truncate text-sm font-semibold text-foreground-soft">
                   {accountHandle}
                 </span>
-                <span className="block text-[11.5px] text-faint">
-                  Billing
-                </span>
+                <span className="block text-[11.5px] text-faint">Billing</span>
               </span>
               <ChevronRight
                 size={16}
@@ -430,14 +486,14 @@ export function AppSidebar({ activeView, onViewChange }: AppSidebarProps) {
           {expanded && (
             <button
               onClick={() => setPinned((p) => !p)}
-              title={pinned ? 'Unpin sidebar' : 'Pin sidebar open'}
-              aria-label={pinned ? 'Unpin sidebar' : 'Pin sidebar open'}
+              title={pinned ? "Unpin sidebar" : "Pin sidebar open"}
+              aria-label={pinned ? "Unpin sidebar" : "Pin sidebar open"}
               aria-pressed={pinned}
               className={cn(
-                'hidden md:grid place-items-center absolute top-[22px] -right-[13px] z-30',
-                'w-[26px] h-[26px] rounded-full border border-border bg-card hover:bg-accent',
-                'shadow-[0_3px_10px_rgba(20,30,60,0.12)]',
-                pinned ? 'text-primary' : 'text-faint',
+                "hidden md:grid place-items-center absolute top-[22px] -right-[13px] z-30",
+                "w-[26px] h-[26px] rounded-full border border-border bg-card hover:bg-accent",
+                "shadow-[0_3px_10px_rgba(20,30,60,0.12)]",
+                pinned ? "text-primary" : "text-faint",
               )}
             >
               <Pin size={14} strokeWidth={1.7} />

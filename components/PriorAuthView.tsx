@@ -271,6 +271,35 @@ export function PriorAuthView({
     }
   }, [formFields, chatInput, chat, clearTimeouts, setIsLoading, setIntermediateStepsLoading, setChatInput, setActiveFormTab]);
 
+  /**
+   * A de-identified note came back from /api/notes/extract as a serialized
+   * query. Fire it exactly like a form submission -- same append, same origin
+   * stamp -- so the transcript, the saved-query restore and the artifact all
+   * behave identically whether the request was typed or attached.
+   */
+  const handleNoteQuery = useCallback(
+    async (query: string) => {
+      if (!query.trim()) return;
+      setIsLoading(true);
+      setIntermediateStepsLoading(true);
+      setResponseReady(false);
+      setLastQueryOrigin("form");
+      setActiveFormTab("chat");
+      toast.info("Sending request to our AI agent");
+      try {
+        await chat.append({ role: "user", content: query });
+      } catch (error) {
+        if ((error as any)?.name !== "AbortError") {
+          toast.error("Failed to send the note");
+        }
+      } finally {
+        setIntermediateStepsLoading(false);
+        setIsLoading(false);
+      }
+    },
+    [chat, setIsLoading, setIntermediateStepsLoading, setActiveFormTab],
+  );
+
   const handleChatInputSubmit = useCallback(async (e?: FormEvent) => {
     e?.preventDefault();
     if (!chatInput.trim() || chat.isLoading || intermediateStepsLoading) return;
@@ -509,6 +538,7 @@ export function PriorAuthView({
                 canSave={canSave}
                 saved={alreadySaved}
                 onSaveQuery={handleSaveQuery}
+                onNoteQuery={handleNoteQuery}
               />
             </div>
           </LayoutGroup>
