@@ -86,3 +86,31 @@ describe("POST /api/retrieval/ingest — auth", () => {
     expect((await res.json()).generatedQuery).toBe("a generated query");
   });
 });
+
+describe("POST /api/retrieval/ingest — tenancy", () => {
+  /**
+   * `documents.user_id` is NOT NULL and lifted from metadata by a trigger, so
+   * an unstamped chunk fails the insert outright. Stamping here is what keeps
+   * the upload working AND keeps the row out of everyone else's namespace.
+   */
+  it("stamps the owner onto every chunk it embeds", async () => {
+    loadMock.mockResolvedValue([
+      { pageContent: "chunk one", metadata: { source: "a.pdf" } },
+      { pageContent: "chunk two", metadata: { source: "a.pdf" } },
+    ]);
+    await POST(pdfRequest());
+
+    const [docs] = fromDocumentsMock.mock.calls[0];
+    expect(docs).toHaveLength(2);
+    for (const d of docs) {
+      expect(d.metadata.user_id).toBe("user-1");
+      expect(d.metadata.source).toBe("a.pdf");
+    }
+  });
+
+  it("writes to the documents table", async () => {
+    await POST(pdfRequest());
+    const [, , opts] = fromDocumentsMock.mock.calls[0];
+    expect(opts.tableName).toBe("documents");
+  });
+});
