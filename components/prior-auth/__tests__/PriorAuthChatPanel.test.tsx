@@ -14,7 +14,7 @@ jest.mock('framer-motion', () => ({
   },
 }))
 
-import { render, screen } from '@testing-library/react'
+import { render, screen, fireEvent } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { PriorAuthChatPanel } from '../PriorAuthChatPanel'
 import { PriorAuthProvider } from '../../providers/PriorAuthProvider'
@@ -207,6 +207,67 @@ describe('PriorAuthChatPanel', () => {
     )
     expect(screen.queryByTestId('pending-skeleton')).toBeNull()
     expect(screen.getByTestId('restore-skeleton')).toBeInTheDocument()
+  })
+
+  describe('jump to latest', () => {
+    // jsdom reports every scroll metric as 0, which reads as "at the bottom".
+    // Force the container to look scrolled up.
+    const scrollUp = () => {
+      const el = document.querySelector('[style*="overflow"]') as HTMLElement
+      Object.defineProperty(el, 'scrollHeight', { value: 2000, configurable: true })
+      Object.defineProperty(el, 'clientHeight', { value: 500, configurable: true })
+      el.scrollTop = 0
+      fireEvent.scroll(el)
+      return el
+    }
+
+    const followUp = [
+      { id: 'u1', role: 'user', content: 'knee MRI' },
+      { id: 'a1', role: 'assistant', content: '{"title":"first report"}' },
+      { id: 'u2', role: 'user', content: 'and for a hip?' },
+    ] as any[]
+
+    it('offers the button once a follow-up is pending and the view is scrolled up', () => {
+      render(wrap(<PriorAuthChatPanel {...baseProps} isProcessing messages={followUp} />))
+      expect(screen.queryByTestId('jump-to-latest')).toBeNull()
+      scrollUp()
+      expect(screen.getByTestId('pending-skeleton')).toBeInTheDocument()
+      expect(screen.getByTestId('jump-to-latest')).toBeInTheDocument()
+    })
+
+    it('stays hidden on a first query — there is nothing above to scroll from', () => {
+      render(
+        wrap(
+          <PriorAuthChatPanel
+            {...baseProps}
+            isProcessing
+            messages={[{ id: 'u1', role: 'user', content: 'knee MRI' } as any]}
+          />
+        )
+      )
+      scrollUp()
+      expect(screen.getByTestId('pending-skeleton')).toBeInTheDocument()
+      expect(screen.queryByTestId('jump-to-latest')).toBeNull()
+    })
+
+    it('stays hidden when no skeleton is showing', () => {
+      render(wrap(<PriorAuthChatPanel {...baseProps} messages={followUp} />))
+      scrollUp()
+      expect(screen.queryByTestId('jump-to-latest')).toBeNull()
+    })
+
+    it('scrolls to the end and dismisses itself when clicked', async () => {
+      const user = userEvent.setup()
+      Element.prototype.scrollIntoView = jest.fn()
+      render(wrap(<PriorAuthChatPanel {...baseProps} isProcessing messages={followUp} />))
+      scrollUp()
+      await user.click(screen.getByTestId('jump-to-latest'))
+      expect(Element.prototype.scrollIntoView).toHaveBeenCalledWith({
+        behavior: 'smooth',
+        block: 'end',
+      })
+      expect(screen.queryByTestId('jump-to-latest')).toBeNull()
+    })
   })
 
   it('submit button calls onSubmit when not processing', async () => {

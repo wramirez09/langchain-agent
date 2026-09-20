@@ -3,7 +3,7 @@
 import React, { FormEvent, useRef } from "react";
 import { motion } from "framer-motion";
 import { type Message } from "ai";
-import { LoaderCircle, Trash2, AlertTriangle, Bookmark, Sparkles } from "lucide-react";
+import { LoaderCircle, Trash2, AlertTriangle, Bookmark, Sparkles, ArrowDown } from "lucide-react";
 import { IconSend2 } from "@tabler/icons-react";
 import { ChatMessageBubble } from "@/components/ChatMessageBubble";
 import { IntermediateStep } from "@/components/IntermediateStep";
@@ -71,6 +71,31 @@ export function PriorAuthChatPanel({
     messages.length > 0 &&
     (lastMessage?.role !== "assistant" || !lastSettled);
 
+  // A follow-up query pushes its skeleton below a report that can be several
+  // screens tall, so the wait happens off-screen with nothing to show that
+  // anything is happening. The jump button is offered only when all three
+  // hold: a skeleton is showing, an earlier answer is already rendered above
+  // it (on a first query there is nothing to be scrolled away from), and the
+  // view is not already at the bottom.
+  const [atBottom, setAtBottom] = React.useState(true);
+  const handleScroll = React.useCallback(() => {
+    const el = messagesContainerRef.current;
+    if (!el) return;
+    // A tolerance wider than a stray pixel: the container grows as the
+    // skeleton mounts and as tokens stream in, which would otherwise flip
+    // this to false without the user having scrolled at all.
+    setAtBottom(el.scrollHeight - el.scrollTop - el.clientHeight < 48);
+  }, []);
+
+  // The in-flight turn's own assistant message is not a previous query — it is
+  // the one being waited on.
+  const hasPreviousAnswer = messages.some(
+    (m, i) =>
+      m.role === "assistant" && !(i === messages.length - 1 && awaitingArtifact),
+  );
+  const showJumpToLatest =
+    (awaitingArtifact || !!isRestoring) && hasPreviousAnswer && !atBottom;
+
   return (
     <motion.div
       layout
@@ -111,85 +136,107 @@ export function PriorAuthChatPanel({
         </div>
       </div>
 
-      <div
-        ref={messagesContainerRef}
-        className="flex-1 min-h-0 px-4 py-4 space-y-3"
-        style={{ overflowY: 'scroll', maxHeight: '100%' }}
-      >
-        {messages.length === 0 && !isRestoring ? (
-          <div className="flex flex-col items-center justify-center h-full text-center px-4 py-8">
-            <div className="size-11 bg-primary/10 rounded-full flex items-center justify-center mb-3">
-              <Sparkles className="size-5 text-blue-600" strokeWidth={1.75} />
-            </div>
-            {/* The brand book's `heading-2` (800 weight, -0.025em tracking),
-                held at the bottom of its 24-38px clamp so it reads as a
-                headline without overpowering a side panel.
+      <div className="relative flex-1 min-h-0">
+        <div
+          ref={messagesContainerRef}
+          onScroll={handleScroll}
+          className="h-full px-4 py-4 space-y-3"
+          style={{ overflowY: 'scroll', maxHeight: '100%' }}
+        >
+          {messages.length === 0 && !isRestoring ? (
+            <div className="flex flex-col items-center justify-center h-full text-center px-4 py-8">
+              <div className="size-11 bg-primary/10 rounded-full flex items-center justify-center mb-3">
+                <Sparkles className="size-5 text-blue-600" strokeWidth={1.75} />
+              </div>
+              {/* The brand book's `heading-2` (800 weight, -0.025em tracking),
+                  held at the bottom of its 24-38px clamp so it reads as a
+                  headline without overpowering a side panel.
 
-                Gradient clause treatment, as Hero.tsx does it: `bg-gradient-to-br`
-                is the book's 135deg, and in Theme B `accent-foreground` and
-                `primary` resolve to the marketing site's own #60a5fa -> #3b82f6,
-                so this is the source gradient without re-hardcoding it. The
-                whole sentence carries it, so the ramp runs its length.
+                  Gradient clause treatment, as Hero.tsx does it: `bg-gradient-to-br`
+                  is the book's 135deg, and in Theme B `accent-foreground` and
+                  `primary` resolve to the marketing site's own #60a5fa -> #3b82f6,
+                  so this is the source gradient without re-hardcoding it. The
+                  whole sentence carries it, so the ramp runs its length.
 
-                Theme B only: that gradient on Theme A's white card measures
-                2.6-3.7:1, so Theme A keeps the solid ink. */}
-            <h2 className="text-2xl md:text-[28px] font-extrabold tracking-[-0.025em] leading-[1.15] text-foreground mb-2 dark:bg-gradient-to-br dark:from-accent-foreground dark:to-primary dark:bg-clip-text dark:text-transparent">
-              Let&apos;s check your prior authorization readiness
-            </h2>
-            <p className="text-sm text-muted-foreground max-w-sm mb-5">
-              Complete the request form and click &quot;Generate Authorization&quot; for a
-              full coverage and documentation review — or ask a quick question to get
-              started.
-            </p>
-            <div className="flex flex-col gap-2 w-full max-w-sm">
-              <p className="text-[11px] font-semibold uppercase tracking-wide text-faint">
-                Try asking
+                  Theme B only: that gradient on Theme A's white card measures
+                  2.6-3.7:1, so Theme A keeps the solid ink. */}
+              <h2 className="text-2xl md:text-[28px] font-extrabold tracking-[-0.025em] leading-[1.15] text-foreground mb-2 dark:bg-gradient-to-br dark:from-accent-foreground dark:to-primary dark:bg-clip-text dark:text-transparent">
+                Let&apos;s check your prior authorization readiness
+              </h2>
+              <p className="text-sm text-muted-foreground max-w-sm mb-5">
+                Complete the request form and click &quot;Generate Authorization&quot; for a
+                full coverage and documentation review — or ask a quick question to get
+                started.
               </p>
-              {[
-                "What documentation does Medicare require for a lumbar spine MRI?",
-                "Is prior authorization required for a knee arthroscopy?",
-                "What are common denial reasons for a lumbar epidural steroid injection?",
-              ].map((prompt) => (
-                <button
-                  key={prompt}
-                  type="button"
-                  onClick={() => setChatInput(prompt)}
-                  className="text-left text-sm text-foreground-soft bg-muted hover:bg-primary/5 hover:text-blue-700 border border-border hover:border-primary/20 rounded-lg px-3 py-2 transition-colors"
-                >
-                  {prompt}
-                </button>
-              ))}
+              <div className="flex flex-col gap-2 w-full max-w-sm">
+                <p className="text-[11px] font-semibold uppercase tracking-wide text-faint">
+                  Try asking
+                </p>
+                {[
+                  "What documentation does Medicare require for a lumbar spine MRI?",
+                  "Is prior authorization required for a knee arthroscopy?",
+                  "What are common denial reasons for a lumbar epidural steroid injection?",
+                ].map((prompt) => (
+                  <button
+                    key={prompt}
+                    type="button"
+                    onClick={() => setChatInput(prompt)}
+                    className="text-left text-sm text-foreground-soft bg-muted hover:bg-primary/5 hover:text-blue-700 border border-border hover:border-primary/20 rounded-lg px-3 py-2 transition-colors"
+                  >
+                    {prompt}
+                  </button>
+                ))}
+              </div>
             </div>
-          </div>
-        ) : (
-          <>
-            {messages.map((m, i) => {
-              if (m.role === "system") return <IntermediateStep key={m.id} message={m} />;
-              const sourceKey = (messages.length - 1 - i).toString();
-              const isLastMessage = i === messages.length - 1;
-              return (
-                <ChatMessageBubble
-                  key={m.id}
-                  message={m}
-                  sources={sourcesForMessages[sourceKey] as unknown[]}
-                  isLastMessage={isLastMessage}
-                  isLoading={isLastMessage && isProcessing}
-                />
-              );
-            })}
-            {isRestoring && (
-              <div data-testid="restore-skeleton" className="pt-1">
-                <ArtifactSkeleton />
-              </div>
-            )}
-            {awaitingArtifact && (
-              <div data-testid="pending-skeleton" className="pt-1">
-                <ArtifactSkeleton />
-              </div>
-            )}
-          </>
+          ) : (
+            <>
+              {messages.map((m, i) => {
+                if (m.role === "system") return <IntermediateStep key={m.id} message={m} />;
+                const sourceKey = (messages.length - 1 - i).toString();
+                const isLastMessage = i === messages.length - 1;
+                return (
+                  <ChatMessageBubble
+                    key={m.id}
+                    message={m}
+                    sources={sourcesForMessages[sourceKey] as unknown[]}
+                    isLastMessage={isLastMessage}
+                    isLoading={isLastMessage && isProcessing}
+                  />
+                );
+              })}
+              {isRestoring && (
+                <div data-testid="restore-skeleton" className="pt-1">
+                  <ArtifactSkeleton />
+                </div>
+              )}
+              {awaitingArtifact && (
+                <div data-testid="pending-skeleton" className="pt-1">
+                  <ArtifactSkeleton />
+                </div>
+              )}
+            </>
+          )}
+          <div ref={messagesEndRef} />
+        </div>
+
+        {showJumpToLatest && (
+          <button
+            type="button"
+            onClick={() => {
+              messagesEndRef.current?.scrollIntoView({
+                behavior: "smooth",
+                block: "end",
+              });
+              setAtBottom(true);
+            }}
+            data-testid="jump-to-latest"
+            aria-label="Scroll to the query in progress"
+            className="absolute bottom-3 left-1/2 flex -translate-x-1/2 items-center gap-1.5 rounded-full border border-border bg-card px-3 py-1.5 text-xs font-medium text-foreground-soft panel-shadow transition-colors hover:text-blue-600"
+          >
+            <ArrowDown className="size-3.5" strokeWidth={1.5} />
+            Jump to latest
+          </button>
         )}
-        <div ref={messagesEndRef} />
       </div>
 
       <div className="border-t border-border px-4 pt-3 pb-1 flex-shrink-0">
