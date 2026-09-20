@@ -130,7 +130,16 @@ export async function POST(req: NextRequest) {
       openAIApiKey: openApiKey,
     });
 
-    await SupabaseVectorStore.fromDocuments(splitDocs, embeddings, {
+    // Stamp the owner onto every chunk. `SupabaseVectorStore` only writes
+    // content/embedding/metadata, so `documents.user_id` is lifted out of
+    // metadata by a trigger; the column is NOT NULL, so an unstamped chunk
+    // fails the insert rather than landing in an untenanted namespace.
+    const ownedDocs = splitDocs.map((doc) => ({
+      ...doc,
+      metadata: { ...doc.metadata, user_id: userId },
+    }));
+
+    await SupabaseVectorStore.fromDocuments(ownedDocs, embeddings, {
       client: createClient(supabaseUrl!, supabaseServiceKey!),
       tableName: "documents",
     });
