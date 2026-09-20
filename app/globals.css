@@ -305,6 +305,21 @@ body {
 
 }
 
+/* Warning toasts.
+   `.toast-base` paints every toast the same blue gradient, so `toast.warning`
+   was visually identical to `toast.info` -- which matters here because the PHI
+   notice is the one toast a user must not read past. Amber, with the
+   description bumped from white/80 to white/92 so it still clears AA contrast
+   against the lighter end of the gradient. */
+[data-sonner-toast][data-type="warning"].toast-base {
+  background: #9a3412;
+  background: linear-gradient(to top, #7c2d12, #9a3412);
+}
+
+[data-sonner-toast][data-type="warning"] [data-description] {
+  color: rgba(255, 255, 255, 0.92) !important;
+}
+
 /* Toast spinner styling */
 [data-sonner-toast] [data-loading="true"] {
   --spinner-color: white !important;

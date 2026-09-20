@@ -8,6 +8,7 @@ import { IconSend2 } from "@tabler/icons-react";
 import { ChatMessageBubble } from "@/components/ChatMessageBubble";
 import { IntermediateStep } from "@/components/IntermediateStep";
 import { ArtifactSkeleton } from "@/components/prior-auth/artifact/ArtifactSkeleton";
+import { ArtifactPendingNotice } from "@/components/prior-auth/artifact/ArtifactPendingNotice";
 import { cn } from "@/utils/cn";
 import { usePriorAuthChat, usePriorAuthUi } from "@/components/providers/PriorAuthProvider";
 
@@ -169,7 +170,7 @@ export function PriorAuthChatPanel({
             )}
             {awaitingArtifact && (
               <div data-testid="pending-skeleton" className="pt-1">
-                <ArtifactSkeleton />
+                <ArtifactPendingNotice />
               </div>
             )}
           </>

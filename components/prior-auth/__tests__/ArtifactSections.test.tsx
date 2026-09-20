@@ -37,6 +37,24 @@ describe('Header', () => {
     render(<Header data={{ ...artifact, phiNotice: 'PHI was removed.' }} />)
     expect(screen.getByText('PHI was removed.')).toBeInTheDocument()
   })
+
+  /**
+   * This used to render as 12.5px `text-faint` under the header chips, which
+   * is where a notice goes to be missed. The toast that announces it is
+   * transient, so the durable copy has to carry the warning treatment the
+   * sibling `fallbackNotice` already uses.
+   */
+  it('gives the PHI notice a warning treatment, not faint body text', () => {
+    render(<Header data={{ ...artifact, phiNotice: 'PHI was removed.' }} />)
+    const el = screen.getByText('PHI was removed.')
+    expect(el.className).toMatch(/text-warning/)
+    expect(el.className).not.toMatch(/text-faint/)
+  })
+
+  it('omits the notice entirely when no PHI was removed', () => {
+    render(<Header data={artifact} />)
+    expect(screen.queryByText(/PHI/)).toBeNull()
+  })
 })
 
 describe('RequestOverviewCard', () => {

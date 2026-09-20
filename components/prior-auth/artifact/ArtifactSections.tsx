@@ -331,7 +331,9 @@ export function Header({ data }: { data: PartialPriorAuthArtifact }) {
         ) : null}
       </div>
       {data.phiNotice ? (
-        <p className="mt-2.5 text-[12.5px] text-faint">{data.phiNotice}</p>
+        <p className="mt-2.5 rounded-md border border-warning/30 bg-warning/10 px-2.5 py-1.5 text-xs text-warning">
+          {data.phiNotice}
+        </p>
       ) : null}
       {data.fallbackNotice ? (
         <p className="mt-2.5 rounded-md border border-warning/30 bg-warning/10 px-2.5 py-1.5 text-xs text-warning">
