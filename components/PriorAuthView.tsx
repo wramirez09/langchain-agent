@@ -17,6 +17,7 @@ import { PriorAuthFormPanel } from "@/components/prior-auth/PriorAuthFormPanel";
 import { PriorAuthChatPanel } from "@/components/prior-auth/PriorAuthChatPanel";
 import { PriorAuthOutputPanel } from "@/components/prior-auth/PriorAuthOutputPanel";
 import { createChatFetchWithRetry } from "@/lib/priorAuth/chatFetchWithRetry";
+import { serializeQuery } from "@/lib/priorAuth/serializeQuery";
 import { SavedQueriesPalette } from "@/components/saved-queries/SavedQueriesPalette";
 import { useCurrentUserId } from "@/lib/savedQueries/useCurrentUserId";
 import { useSavedQueries } from "@/lib/savedQueries/useSavedQueries";
@@ -243,18 +244,7 @@ export function PriorAuthView({
       return;
     }
 
-    const formEntries = [
-      formFields.guidelines && `Guidelines: ${formFields.guidelines}`,
-      formFields.state && `State: ${formFields.state}`,
-      formFields.treatment && `Treatment: ${formFields.treatment}`,
-      formFields.cptCodes && `CPT/HCPCS : ${formFields.cptCodes}`,
-      formFields.diagnosis && `Diagnosis: ${formFields.diagnosis}`,
-      formFields.patientHistory && `History: ${formFields.patientHistory}`,
-      formFields.relevantHistory && `Relevant Medical History: ${formFields.relevantHistory}`,
-    ].filter(Boolean);
-
-    const formString = formEntries.join(". ");
-    const combined = [formString, chatInput.trim()].filter(Boolean).join(" | ");
+    const combined = serializeQuery(formFields, { note: chatInput });
     if (!combined) return;
 
     setIsLoading(true);

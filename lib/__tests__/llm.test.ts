@@ -2,7 +2,7 @@ jest.mock('@langchain/openai', () => ({
   ChatOpenAI: jest.fn().mockImplementation((cfg: any) => ({ cfg })),
 }))
 
-import { llmAgent, llmSummarizer } from '../llm'
+import { llmAgent, llmSummarizer, llmExtractor } from '../llm'
 import { ChatOpenAI } from '@langchain/openai'
 
 const lastCfg = () =>
@@ -62,5 +62,25 @@ describe('llm factory', () => {
       expect.objectContaining({ model: 'gpt-4o-mini', temperature: 0 }),
     )
     expect(cfg).not.toHaveProperty('reasoningEffort')
+  })
+
+  // The note-ingest path: cheapest model, zod-validated output, feeds a billed
+  // screening run — so temperature 0 and a non-reasoning default.
+  it('llmExtractor defaults to gpt-4o-mini at temperature 0', () => {
+    delete process.env.EXTRACTOR_MODEL
+    llmExtractor()
+    const cfg = lastCfg()
+    expect(cfg).toEqual(
+      expect.objectContaining({ model: 'gpt-4o-mini', temperature: 0 }),
+    )
+    expect(cfg).not.toHaveProperty('reasoningEffort')
+  })
+
+  it('routes a reasoning-model extractor override through reasoningEffort', () => {
+    process.env.EXTRACTOR_MODEL = 'gpt-5.5'
+    llmExtractor()
+    const cfg = lastCfg()
+    expect(cfg.reasoningEffort).toBe('low')
+    expect(cfg).not.toHaveProperty('temperature')
   })
 })

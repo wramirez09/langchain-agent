@@ -48,3 +48,17 @@ export const llmSummarizer = () => {
     timeout: 90000,
   });
 };
+
+
+// Temperature 0 / effort "low": the output is zod-validated and feeds a billed
+// screening run, so reproducibility matters more than phrasing. Routed through
+// samplingParams so pointing EXTRACTOR_MODEL at a gpt-5 model still works.
+export const llmExtractor = () => {
+  const model = process.env.EXTRACTOR_MODEL ?? "gpt-4o-mini";
+  return new ChatOpenAI({
+    model,
+    ...samplingParams(model, "low", 0),
+    maxRetries: 2,
+    timeout: 60000,
+  });
+};
