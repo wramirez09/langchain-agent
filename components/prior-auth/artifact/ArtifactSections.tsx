@@ -232,6 +232,20 @@ function FindingsList({
   );
 }
 
+/**
+ * The agent writes some variant of "Not provided after PHI removal" in place
+ * of a value the HIPAA rules made it strip. That is the one string in a report
+ * that has to read as a gap in the REQUEST rather than as a finding, so it is
+ * the only text given the destructive ink. The plain "Not provided" fallbacks
+ * this file renders itself keep their faint treatment — they mean the user
+ * simply supplied nothing, which is ordinary.
+ */
+const PHI_REMOVED = /\bPHI\s+remov/i;
+
+export function isPhiRemovedText(v: React.ReactNode): boolean {
+  return typeof v === "string" && PHI_REMOVED.test(v);
+}
+
 function Field({
   k,
   v,
@@ -246,7 +260,16 @@ function Field({
   return (
     <div className={cn("min-w-0", full && "sm:col-span-2")}>
       <div className="mb-1 text-[12.5px] font-semibold text-muted-foreground">{k}</div>
-      <div className={cn("text-[15px]", na ? "text-faint" : "text-foreground")}>
+      <div
+        className={cn(
+          "text-[15px]",
+          na
+            ? "text-faint"
+            : isPhiRemovedText(v)
+              ? "text-destructive"
+              : "text-foreground",
+        )}
+      >
         {v}
       </div>
     </div>
@@ -513,7 +536,14 @@ export function ClinicalContextCard({
           <h4 className="mb-3 text-[12.5px] font-semibold text-foreground">
             Medical History
           </h4>
-          <p className="text-[14.5px] leading-[1.62] text-foreground-soft">
+          <p
+            className={cn(
+              "text-[14.5px] leading-[1.62]",
+              isPhiRemovedText(ov.medicalHistory)
+                ? "text-destructive"
+                : "text-foreground-soft",
+            )}
+          >
             {ov.medicalHistory}
           </p>
         </>

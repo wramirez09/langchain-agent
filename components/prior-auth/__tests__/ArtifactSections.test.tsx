@@ -59,6 +59,50 @@ describe('RequestOverviewCard', () => {
   })
 })
 
+describe('PHI-removed values', () => {
+  it('reds a field value the agent stripped, not the plain "Not provided"', () => {
+    render(
+      <RequestOverviewCard
+        index={1}
+        ov={{
+          ...artifact.requestOverview,
+          treatment: 'Not provided after PHI removal',
+          cpt: [],
+        }}
+      />,
+    )
+    expect(screen.getByText('Not provided after PHI removal')).toHaveClass(
+      'text-destructive',
+    )
+    // The card's own fallback means the user supplied nothing — still faint.
+    expect(screen.getAllByText('Not provided')[0]).toHaveClass('text-faint')
+  })
+
+  it('reds a stripped medical history', () => {
+    render(
+      <ClinicalContextCard
+        index={2}
+        ov={{ ...artifact.requestOverview, medicalHistory: 'Not provided after PHI removal' }}
+      />,
+    )
+    expect(screen.getByText('Not provided after PHI removal')).toHaveClass(
+      'text-destructive',
+    )
+  })
+
+  it('leaves ordinary history text alone', () => {
+    render(
+      <ClinicalContextCard
+        index={2}
+        ov={{ ...artifact.requestOverview, medicalHistory: 'Knee pain for 3 weeks.' }}
+      />,
+    )
+    expect(screen.getByText('Knee pain for 3 weeks.')).toHaveClass(
+      'text-foreground-soft',
+    )
+  })
+})
+
 describe('ClinicalContextCard', () => {
   it('renders medical history and key findings as blue-ring bullets', () => {
     const { container } = render(
