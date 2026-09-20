@@ -18,6 +18,7 @@ import { render, screen } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { PriorAuthChatPanel } from '../PriorAuthChatPanel'
 import { PriorAuthProvider } from '../../providers/PriorAuthProvider'
+import { encodeFrame } from '@/lib/priorAuth/streamFrames'
 
 const wrap = (ui: React.ReactNode) => (
   <PriorAuthProvider>{ui}</PriorAuthProvider>
@@ -121,6 +122,45 @@ describe('PriorAuthChatPanel', () => {
           messages={[
             { id: 'u1', role: 'user', content: 'knee MRI' } as any,
             { id: 's1', role: 'system', content: '{"action":{"name":"x"}}' } as any,
+          ]}
+        />
+      )
+    )
+    expect(screen.getByTestId('pending-skeleton')).toBeInTheDocument()
+  })
+
+  it('keeps the pending skeleton while the assistant message carries only progress frames', () => {
+    // This is the long middle of a run: the assistant message exists, so the
+    // bubble is rendering its rotating spinner, but nothing has been written
+    // to the body yet.
+    render(
+      wrap(
+        <PriorAuthChatPanel
+          {...baseProps}
+          isProcessing
+          messages={[
+            { id: 'u1', role: 'user', content: 'knee MRI' } as any,
+            {
+              id: 'a1',
+              role: 'assistant',
+              content: encodeFrame({ t: 'tool', name: 'ncd_search', status: 'running' }),
+            } as any,
+          ]}
+        />
+      )
+    )
+    expect(screen.getByTestId('pending-skeleton')).toBeInTheDocument()
+  })
+
+  it('keeps the pending skeleton when a frame arrives half-written', () => {
+    render(
+      wrap(
+        <PriorAuthChatPanel
+          {...baseProps}
+          isProcessing
+          messages={[
+            { id: 'u1', role: 'user', content: 'knee MRI' } as any,
+            { id: 'a1', role: 'assistant', content: '\u241E{"t":"to' } as any,
           ]}
         />
       )

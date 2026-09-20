@@ -8,6 +8,7 @@ import { IconSend2 } from "@tabler/icons-react";
 import { ChatMessageBubble } from "@/components/ChatMessageBubble";
 import { IntermediateStep } from "@/components/IntermediateStep";
 import { ArtifactSkeleton } from "@/components/prior-auth/artifact/ArtifactSkeleton";
+import { stripControlFrames } from "@/lib/priorAuth/streamFrames";
 import { cn } from "@/utils/cn";
 import { usePriorAuthChat, usePriorAuthUi } from "@/components/providers/PriorAuthProvider";
 
@@ -45,16 +46,30 @@ export function PriorAuthChatPanel({
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const messagesContainerRef = useRef<HTMLDivElement>(null);
 
-  // A generation is in flight but the artifact hasn't started streaming yet:
-  // the last message is still the user's request (or an intermediate step).
-  // Show the same skeleton as the restore path so the wait reads identically;
-  // it drops out the moment the assistant message starts streaming in.
+  // A generation is in flight but the artifact hasn't started streaming yet.
+  // Two shapes of that wait: the last message is still the user's request (or
+  // an intermediate step), OR an assistant message already exists but carries
+  // nothing except progress frames — which is what ChatMessageBubble renders
+  // as the rotating "Evaluating coding alignment..." spinner. The second case
+  // is the long one, so the skeleton has to cover it too.
+  //
+  // `settled` is derived exactly as the bubble derives it (strip the control
+  // frames, then drop a half-arrived one) so the skeleton tracks the spinner
+  // one-for-one: it appears with it and drops out on the same render that real
+  // artifact text starts streaming in.
   const lastMessage = messages[messages.length - 1];
+  const lastSettled = React.useMemo(() => {
+    if (!lastMessage || lastMessage.role !== "assistant") return "";
+    return stripControlFrames(lastMessage.content)
+      .body.trim()
+      .replace(/␞.*$/s, "")
+      .trim();
+  }, [lastMessage]);
   const awaitingArtifact =
     isProcessing &&
     !isRestoring &&
     messages.length > 0 &&
-    lastMessage?.role !== "assistant";
+    (lastMessage?.role !== "assistant" || !lastSettled);
 
   return (
     <motion.div

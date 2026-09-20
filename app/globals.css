@@ -206,23 +206,92 @@ body {
 
    Theme A has no counterpart on the marketing site and gets none.
 
-   The dot grid is the marketing site's sitewide `body::before`
-   (note-doctor-marketing src/styles/index.css: 1px dots of
-   rgba(59,130,246,0.1) on a 36px lattice). It rides on the same
-   background-image stack as the glow for the same reason — no
-   pseudo-element, no stacking context — and is listed FIRST so the dots sit
-   above the ellipse, which is the order the site paints them in. */
+   The glow stays a background-IMAGE; the dot grid does not. */
 .dark .app-ground {
-  background-image:
-    radial-gradient(circle, rgba(59, 130, 246, 0.1) 1px, transparent 1px),
-    radial-gradient(
-      ellipse at 50% 30%,
-      rgba(59, 130, 246, 0.18) 0%,
-      transparent 70%
-    );
-  background-size:
-    36px 36px,
-    cover;
+  background-image: radial-gradient(
+    ellipse at 50% 30%,
+    rgba(59, 130, 246, 0.18) 0%,
+    transparent 70%
+  );
+  /* The drifting dot layer below is `z-index: -1`, which only paints above
+     this element's own background if this element is a stacking context.
+     Without it the layer falls back into the root context and is painted
+     BEFORE `bg-background`, i.e. invisible. `z-index: 0` (not `isolation`)
+     so it is obvious why it is here. No fixed-position descendant is
+     affected: a stacking context is not a containing block.
+
+     `overflow: hidden` clips the layer's one-tile bleed. Without it the
+     bleed below the shell would put a 36px scrollbar on a page that is not
+     meant to scroll at all. */
+  position: relative;
+  z-index: 0;
+  overflow: hidden;
+}
+
+/* The dot grid is the marketing site's sitewide `body::before`
+   (note-doctor-marketing src/styles/index.css: 1px dots of
+   rgba(59,130,246,0.1) on a 36px lattice), drifting bottom-left to top-right.
+
+   It is a pseudo-element rather than a second background-image because the
+   only way to animate this without repainting a viewport-sized area every
+   frame is `transform`, which needs its own box. translate3d + will-change
+   put the layer on its own compositor layer, so the loop costs no paint at
+   all once rasterized.
+
+   Geometry: the box is bled one full tile on the two edges the drift moves
+   AWAY from (left and bottom), and the travel is +36px x / -36px y. So the
+   layer covers the parent at every point of the cycle, and lands exactly one
+   tile on — a square lattice is back in phase after one tile in each axis,
+   so the wrap is invisible.
+
+   Timing is linear on purpose: an eased loop reaches zero velocity at the
+   wrap, which on a seamless tile reads as a stutter rather than as easing.
+   The ease is spent on the entrance instead, so the layer fades up rather
+   than popping in on load or on a theme switch. */
+.dark .app-ground::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  right: 0;
+  bottom: -36px;
+  left: -36px;
+  z-index: -1;
+  pointer-events: none;
+  background-image: radial-gradient(
+    circle,
+    rgba(59, 130, 246, 0.1) 1px,
+    transparent 1px
+  );
+  background-size: 36px 36px;
+  will-change: transform;
+  animation:
+    app-ground-drift 8s linear infinite,
+    app-ground-dots-in 700ms cubic-bezier(0.4, 0, 0.2, 1) both;
+}
+
+@keyframes app-ground-drift {
+  from {
+    transform: translate3d(0, 0, 0);
+  }
+  to {
+    transform: translate3d(36px, -36px, 0);
+  }
+}
+
+@keyframes app-ground-dots-in {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+/* Motion is decoration here; the lattice itself is not. */
+@media (prefers-reduced-motion: reduce) {
+  .dark .app-ground::before {
+    animation: none;
+  }
 }
 
 /* The two main panels (Request Details / Chat Assistant) sit on the app
