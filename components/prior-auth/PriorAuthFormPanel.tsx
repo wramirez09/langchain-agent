@@ -147,7 +147,7 @@ export function PriorAuthFormPanel({
               options={guidelinesOptions}
               value={guidelinesOptions.find(opt => opt.value === formFields.guidelines) || null}
               onChange={(v) => handleGuidelinesChange(v?.value ?? "")}
-              placeholder="Select..."
+              placeholder="medicare or commercial"
               classNamePrefix="react-select"
               styles={selectStyles}
             />
@@ -163,7 +163,7 @@ export function PriorAuthFormPanel({
               options={stateOptions}
               value={stateOptions.find(opt => opt.value === formFields.state) || null}
               onChange={(v) => updateFormField("state", v?.value ?? "")}
-              placeholder="Select..."
+              placeholder="FL, CA, NY, etc."
               classNamePrefix="react-select"
               styles={{
                 ...selectStyles,
@@ -196,7 +196,7 @@ export function PriorAuthFormPanel({
               options={ncdOptions}
               value={formFields.treatment ? { value: formFields.treatment, label: formFields.treatment } : null}
               onChange={(v) => updateFormField("treatment", v?.value ?? "")}
-              placeholder="Select..."
+              placeholder="arthroscopy, knee replacement, etc."
               classNamePrefix="react-select"
               styles={selectStyles}
             />
