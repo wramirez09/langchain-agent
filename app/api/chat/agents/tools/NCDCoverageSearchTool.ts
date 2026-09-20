@@ -11,6 +11,7 @@ import {
   scoreHybrid,
   MedicareDoc,
 } from "./utils/medicareHybridIndex";
+import { logSafeInput, logSafeText } from "./utils/logSafe";
 
 const RAW_DATA_CACHE_KEY = "cms-ncd-raw-data";
 const CMS_NCD_API_URL =
@@ -71,11 +72,16 @@ export class NCDCoverageSearchTool extends StructuredTool<typeof MedicareSearchI
     const cacheKey = `ncd-search:v2:${JSON.stringify(normalized)}`;
     const cachedResult: string | null = cache.get(cacheKey);
     if (cachedResult) {
-      console.log(`[NCDCoverageSearchTool] Cache hit for query: "${normalized.query}"`);
+      console.log(
+        `[NCDCoverageSearchTool] Cache hit for query: ${logSafeText(normalized.query)}`,
+      );
       return cachedResult;
     }
 
-    console.log(`[NCDCoverageSearchTool] Searching NCDs:`, JSON.stringify(normalized));
+    console.log(
+      `[NCDCoverageSearchTool] Searching NCDs:`,
+      JSON.stringify(logSafeInput(normalized)),
+    );
 
     try {
       const responseData = await fetchNcdList();
