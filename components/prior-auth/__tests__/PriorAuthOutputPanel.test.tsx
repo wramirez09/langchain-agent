@@ -107,6 +107,33 @@ describe('PriorAuthOutputPanel — progress while the report is withheld', () =>
     expect(screen.getByText(/On this page/i)).toBeInTheDocument()
   })
 
+  it('gives every query its own navigation, with ids scoped per report', () => {
+    ;(globalThis as any).IntersectionObserver = class {
+      observe() {}
+      disconnect() {}
+      unobserve() {}
+    }
+    const { ARTIFACT_JSON_EXAMPLE } = require('@/lib/priorAuth/artifactSchema')
+    const { container } = render(
+      <PriorAuthOutputPanel
+        messages={[
+          { id: 'm1', role: 'assistant', content: ARTIFACT_JSON_EXAMPLE } as any,
+          { id: 'm2', role: 'assistant', content: ARTIFACT_JSON_EXAMPLE } as any,
+        ]}
+        isProcessing={false}
+      />
+    )
+    // One nav per report, not one for the latest only.
+    expect(screen.getAllByText(/On this page/i)).toHaveLength(2)
+
+    // Scoped ids: no duplicates across the two documents, so each nav's
+    // links resolve inside its own report.
+    const ids = Array.from(container.querySelectorAll('section[id]')).map((el) => el.id)
+    expect(new Set(ids).size).toBe(ids.length)
+    expect(ids.some((id) => id.startsWith('m1-'))).toBe(true)
+    expect(ids.some((id) => id.startsWith('m2-'))).toBe(true)
+  })
+
   it('still shows the empty state before a run starts', () => {
     render(<PriorAuthOutputPanel messages={[]} isProcessing={false} />)
     expect(screen.getByText(/No output yet/)).toBeInTheDocument()

@@ -78,11 +78,18 @@ export function PriorAuthOutputPanel({
     );
   }
 
-  // The Output tab shows the latest report as a full-width document with the
-  // sticky left-side navigation. Earlier messages (and any non-artifact text)
-  // fall back to the standard bubble renderer.
-  const last = latest;
-  const lastIsArtifact = looksLikeArtifact(latestBody);
+  // Every assistant turn is its own report, and each renders as a full-width
+  // document with its OWN sticky navigation — the nav belongs to the document,
+  // not to the panel, so scrolling back to an earlier query gives you that
+  // query's sections rather than the latest one's. Non-artifact text (a plain
+  // markdown reply) still falls back to the bubble renderer.
+  const docs = assistantMessages.map((m, i) => ({
+    message: m,
+    isLast: i === assistantMessages.length - 1,
+    // The heuristic has to run on the stripped body: progress frames precede
+    // the answer, so a finished report is otherwise mistaken for plain text.
+    isArtifact: looksLikeArtifact(stripControlFrames(m.content).body),
+  }));
 
   return (
     <div className="h-full overflow-y-auto bg-muted px-4 py-6 sm:px-6">
@@ -103,34 +110,33 @@ export function PriorAuthOutputPanel({
             {saved ? "Saved" : "Save"}
           </button>
         </div>
-        {lastIsArtifact ? (
-          <>
-            {assistantMessages.slice(0, -1).map((m) => (
-              <div key={m.id} className="mx-auto mb-6 max-w-2xl">
-                <ChatMessageBubble message={m} sources={[]} bare />
-              </div>
-            ))}
-            <PriorAuthArtifact
-              raw={last.content}
-              streaming={isProcessing}
-              withNav
-              messageId={last.id}
-            />
-          </>
-        ) : (
-          <div className="mx-auto max-w-2xl space-y-2">
-            {assistantMessages.map((m, i, arr) => (
-              <ChatMessageBubble
-                key={m.id}
-                message={m}
-                sources={[]}
-                isLastMessage={i === arr.length - 1}
-                isLoading={i === arr.length - 1 && isProcessing}
-                bare
-              />
-            ))}
-          </div>
-        )}
+        <div className="space-y-10">
+          {docs.map(({ message, isLast, isArtifact }, i) => (
+            <div
+              key={message.id}
+              className={cn(i > 0 && "border-t border-border pt-10")}
+            >
+              {isArtifact ? (
+                <PriorAuthArtifact
+                  raw={message.content}
+                  streaming={isLast && isProcessing}
+                  withNav
+                  messageId={message.id}
+                />
+              ) : (
+                <div className="mx-auto max-w-2xl">
+                  <ChatMessageBubble
+                    message={message}
+                    sources={[]}
+                    isLastMessage={isLast}
+                    isLoading={isLast && isProcessing}
+                    bare
+                  />
+                </div>
+              )}
+            </div>
+          ))}
+        </div>
       </div>
     </div>
   );

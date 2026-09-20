@@ -62,41 +62,49 @@ export function PriorAuthArtifact({
 
   const summaryDone = has(data.summary) && has(data.summary?.rationale);
 
+  // The Output tab stacks every query's report on one page, so the section
+  // ids have to be unique per report — otherwise the second document's nav
+  // would scroll to the first document's sections, and the ids themselves
+  // would be duplicated. The message id is the scope. Without one (the chat
+  // panel renders a single artifact, no nav) the bare manifest ids stand.
+  const sectionDomId = (id: ArtifactSectionId) =>
+    messageId ? `${messageId}-${id}` : id;
+
   // Order, ids, and presence conditions come from the shared manifest so the
   // PDF numbers its sections identically. Numbering is derived from what's
   // present (stable because the JSON streams top-down in this order).
   const renderers: Record<ArtifactSectionId, (i: number) => React.ReactNode> = {
-    overview: (i) => <RequestOverviewCard id="overview" index={i} ov={data.requestOverview} />,
-    context: (i) => <ClinicalContextCard id="context" index={i} ov={data.requestOverview} />,
+    overview: (i) => <RequestOverviewCard id={sectionDomId("overview")} index={i} ov={data.requestOverview} />,
+    context: (i) => <ClinicalContextCard id={sectionDomId("context")} index={i} ov={data.requestOverview} />,
     authorization: (i) => (
       <PaRequiredCard
-        id="authorization"
+        id={sectionDomId("authorization")}
         index={i}
         value={data.priorAuthRequired}
         rationale={data.priorAuthRationale}
       />
     ),
     medicare: (i) => (
-      <MedicarePoliciesCard id="medicare" index={i} policies={data.medicarePolicies} />
+      <MedicarePoliciesCard id={sectionDomId("medicare")} index={i} policies={data.medicarePolicies} />
     ),
     criteria: (i) => (
-      <CriteriaCard id="criteria" index={i} criteria={data.medicalNecessityCriteria} />
+      <CriteriaCard id={sectionDomId("criteria")} index={i} criteria={data.medicalNecessityCriteria} />
     ),
-    codes: (i) => <CodesCard id="codes" index={i} codes={data.relevantCodes} />,
+    codes: (i) => <CodesCard id={sectionDomId("codes")} index={i} codes={data.relevantCodes} />,
     documentation: (i) => (
       <DocumentationCard
-        id="documentation"
+        id={sectionDomId("documentation")}
         index={i}
         groups={data.requiredDocumentation}
         messageId={messageId}
       />
     ),
-    limitations: (i) => <LimitationsCard id="limitations" index={i} items={data.limitations} />,
-    summary: (i) => <SummaryCard id="summary" index={i} summary={data.summary} />,
+    limitations: (i) => <LimitationsCard id={sectionDomId("limitations")} index={i} items={data.limitations} />,
+    summary: (i) => <SummaryCard id={sectionDomId("summary")} index={i} summary={data.summary} />,
   };
 
   const builders = ARTIFACT_SECTIONS.filter((s) => s.present(data)).map((s) => ({
-    id: s.id,
+    id: sectionDomId(s.id),
     nav: s.nav,
     render: renderers[s.id],
   }));
