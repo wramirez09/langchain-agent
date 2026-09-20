@@ -12,7 +12,19 @@ yarn lint         # Run ESLint
 yarn format       # Prettier-format the app/ directory
 ```
 
-No test suite is configured. Use `yarn lint` for static checks.
+```bash
+yarn test         # Jest
+yarn test:coverage
+yarn typecheck    # tsc --noEmit
+yarn e2e          # Playwright
+```
+
+Tests are gated, not optional. `.husky/pre-commit` runs jest; `.husky/pre-push`
+runs jest, then `yarn typecheck`, then `yarn lint`, plus `yarn build` when the
+target is `main` or `dev`. `jest.config.js` collects coverage from `lib/**`,
+`app/api/chat/agents/tools/**`, `utils/**` and an explicit component allowlist
+at 80% lines/functions/statements and 60% branches -- anything new under `lib/`
+is covered by that gate automatically.
 
 ## Tech Stack
 
@@ -51,10 +63,70 @@ Uses `createReactAgent` (LangGraph) with these tools:
 - `CommercialGuidelineSearchTool` — searches commercial payer guidelines
 - `PolicyContentExtractorTool` — extracts content from uploaded policy documents
 - `localLcdSearchTool` — LCD (Local Coverage Determination) lookup
-- `FileUploadTool` — handles user-uploaded documents
 - SerpAPI — web search fallback
 
-Responses stream via Vercel AI SDK `StreamingTextResponse`. The system prompt enforces HIPAA compliance (strips PHI).
+Responses stream via Vercel AI SDK `StreamingTextResponse`.
+
+`createAgentTools()` in `lib/handlers/runAgent.ts` is the registry. `FileUploadTool`
+exists in the tools directory but is **not** registered and does not work
+(relative fetch URL, wrong response key, and it parses a Gemini-shaped response
+from an OpenAI call).
+
+**PHI.** The system prompt asks the model to strip identifiers, but an
+instruction inside the request cannot protect the request — the text has
+already reached OpenAI by the time it is read. The actual control is `lib/phi`,
+which runs in the browser:
+
+- `lib/phi/redact.ts` de-identifies text before it crosses the network. Rules
+  report spans against the original string and one pass applies them, so
+  offsets stay stable and the UI can highlight exactly what was removed.
+- `lib/phi/detect.ts` re-scans the result. It backs the confirm gate in the UI
+  and the tripwire in `POST /api/notes/extract`, and reports categories and
+  counts only — never matched text.
+- Names are two-tier on purpose: anchored forms (honorific, credential, label)
+  and a given-name-plus-surname pair are redacted; a lone capitalised token is
+  soft-flagged for a human, because a bare-token gazetteer cannot tell
+  "Parkinson" the diagnosis from "Parkinson" the patient.
+- `components/prior-auth/UserRequestFields.tsx` scrubs the echoed request too;
+  that card is the surface most likely to be displaying PHI at any moment.
+
+This does not make the product a Business Associate.
+`documents/privacy-policy.md` still disclaims that, and raw note text is never
+sent — but anything a user types into the chat box is.
+
+### Note ingest (`lib/phi`, `lib/noteIngest`, `app/api/notes/extract`)
+
+A clinician attaches a clinical note from the paperclip in the chat input and
+gets a screening. The whole design follows from one constraint:
+`documents/privacy-policy.md` disclaims Business Associate status, so the raw
+note must never cross the network.
+
+```
+ browser                                        server
+ file -> extractTextFromFile   (txt/md/pdf, all lazily imported)
+      -> redactPhi             (lib/phi)
+      -> confirm gate          (NoteIngestDialog; the user ticks a box)
+      -> POST redacted text ----> /api/notes/extract
+                                    auth -> detectPhi tripwire (422)
+                                    -> deterministic fields (codes/state/payer)
+                                    -> llmExtractor() for the narrative
+                                    -> serializeQuery()
+      <- query string <--------------'
+      -> chat.append -> screening runs
+```
+
+- `lib/noteIngest/codes.ts` has its own cue-gated CPT/ICD extractors. The ones
+  in `commercialGuidelineTypes.ts` are tuned for a curated corpus where every
+  five-digit number is a CPT code; on note prose they read `T12` (a vertebra)
+  as ICD-10 T12.
+- `lib/priorAuth/serializeQuery.ts` is the only place a request becomes a
+  string. The form path and the note path both call it, because
+  `UserRequestFields` parses that string back by regex and the two must not
+  drift. The `"CPT/HCPCS : "` spacing is load-bearing.
+- `.docx` and images are recognised and rejected by name; neither is
+  implemented. Images need OCR, which would run in the browser and brings a
+  real risk of its own: OCR errors can mangle an identifier past the point
+  where a regex still matches it.
 
 ### MCP Server (`app/api/mcp` + `lib/mcp/`)
 
@@ -105,6 +177,10 @@ purpose. Copy it to `.env.development.local` / `.env.production.local`.
 
 The deployed source of truth is Vercel (Production / Preview / Development);
 keep `.env.example` in sync when adding or removing a variable.
+
+`EXTRACTOR_MODEL` (note -> PA fields, defaults to `gpt-4o-mini`) and
+`NOTE_EXTRACT_RATE_LIMIT_PER_DAY` (defaults to 200) belong to the note-ingest
+path.
 
 Five that fail quietly and are worth knowing:
 - `STRIPE_SECRET_KEY` — one key per environment, the environment decides live
