@@ -119,10 +119,24 @@ describe("redactPhi — span bookkeeping", () => {
     expect(r.spans[0].ruleId).toBe("label-mrn");
   });
 
-  it("keeps a city/state/ZIP as one span rather than splitting off the ZIP", () => {
+  /**
+   * Safe Harbor strips geography finer than a state and permits the state
+   * itself -- and the Medicare path searches LCD/LCA by MAC jurisdiction, so
+   * dropping "TX" would cost the screening a field it needs.
+   */
+  it("drops the city and ZIP but keeps the state code", () => {
     const r = redactPhi(N("Austin, TX 78701"));
-    expect(r.spans).toHaveLength(1);
-    expect(r.spans[0].category).toBe("geo");
+    expect(r.redacted).toBe("[GEO], TX [GEO]");
+    expect(r.redacted).toContain("TX");
+    expect(r.spans.map((s) => s.original)).toEqual(["Austin", "78701"]);
+  });
+
+  it("keeps every span aligned when a rule reports several per match", () => {
+    const note = N("Seen in Austin, TX 78701 last week.");
+    const r = redactPhi(note);
+    for (const s of r.spans) {
+      expect(note.slice(s.start, s.end)).toBe(s.original);
+    }
   });
 });
 

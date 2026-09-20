@@ -67,6 +67,43 @@ function scanAnchored(
   return out;
 }
 
+/**
+ * Spans for several capture groups of one match, given as group indices. Used
+ * where a match contains BOTH text to remove and text to keep -- see the
+ * city/state/ZIP rule, which must drop the city and the ZIP while leaving the
+ * state code standing.
+ *
+ * REQUIRES that the groups tile the whole match with no uncaptured text
+ * between them -- offsets are computed by summing group lengths, so a
+ * non-capturing group in the middle silently shifts every span after it.
+ */
+function scanGroups(
+  text: string,
+  re: RegExp,
+  groups: number[],
+  category: PhiCategory,
+  ruleId: string,
+): RawSpan[] {
+  const out: RawSpan[] = [];
+  for (const m of text.matchAll(re)) {
+    if (m.index === undefined) continue;
+    let offset = m.index;
+    for (let g = 1; g < m.length; g++) {
+      const piece = m[g] ?? "";
+      if (groups.includes(g) && piece) {
+        out.push({
+          start: offset,
+          end: offset + piece.length,
+          category,
+          ruleId,
+        });
+      }
+      offset += piece.length;
+    }
+  }
+  return out;
+}
+
 const US_STATES =
   "AL|AK|AZ|AR|CA|CO|CT|DE|FL|GA|HI|ID|IL|IN|IA|KS|KY|LA|ME|MD|MA|MI|MN|MS|MO|MT|NE|NV|NH|NJ|NM|NY|NC|ND|OH|OK|OR|PA|RI|SC|SD|TN|TX|UT|VT|VA|WA|WV|WI|WY|DC";
 
@@ -338,20 +375,30 @@ const PATTERN_RULES: PhiRule[] = [
       ),
   },
   {
-    // "Austin, TX 78701" -- consumes the ZIP so the ZIP rule cannot see it.
+    /**
+     * "Austin, TX 78701" -- drops the city and the ZIP, KEEPS the state.
+     *
+     * Safe Harbor removes geography finer than a state and explicitly permits
+     * the state itself, and the screening needs it: LCD/LCA coverage is
+     * decided per MAC jurisdiction, so a note stripped of "TX" loses the
+     * field the Medicare path searches on. The match is split across capture
+     * groups so the ZIP is consumed here and the standalone ZIP rule never
+     * sees it.
+     */
     id: "city-state-zip",
     category: "geo",
     placeholder: "[GEO]",
     priority: 70,
     find: (t) =>
-      scanWhole(
+      scanGroups(
         t,
         new RegExp(
-          "\\b[A-Z][A-Za-z.'-]+(?:\\s[A-Z][A-Za-z.'-]+){0,3},\\s*(?:" +
+          "([A-Z][A-Za-z.'-]+(?:\\s[A-Z][A-Za-z.'-]+){0,3})(,\\s*)(" +
             US_STATES +
-            ")\\s+\\d{5}(?:-\\d{4})?\\b",
+            ")(\\s+)(\\d{5}(?:-\\d{4})?)\\b",
           "g",
         ),
+        [1, 5],
         "geo",
         "city-state-zip",
       ),
