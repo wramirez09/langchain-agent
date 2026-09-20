@@ -102,27 +102,91 @@ describe("UserRequestFields — while the request is being checked", () => {
     expect(screen.getByText("CPT / HCPCS")).toBeInTheDocument();
   });
 
-  it("reveals the values once the check is done", () => {
+  it("reveals the clinical values once the check is done", () => {
     const { rerender } = render(
+      <UserRequestFields pending content={serializeQuery(FIELDS)} />,
+    );
+    expect(screen.queryByText("lumbar fusion L4-L5")).toBeNull();
+
+    rerender(<UserRequestFields content={serializeQuery(FIELDS)} />);
+    expect(screen.getByText("lumbar fusion L4-L5")).toBeInTheDocument();
+    expect(screen.queryByTestId("request-phi-check")).toBeNull();
+  });
+
+  /**
+   * The shimmer is not the control -- it only covers the wait. What the user
+   * typed is scrubbed on the way to the screen, so a name they put in the
+   * Diagnosis box never comes back when the check finishes.
+   */
+  it("does NOT reveal PHI when the check finishes", () => {
+    render(
       <UserRequestFields
-        pending
         content={serializeQuery({ ...FIELDS, diagnosis: "john smith" })}
       />,
     );
     expect(screen.queryByText("john smith")).toBeNull();
-
-    rerender(
-      <UserRequestFields
-        content={serializeQuery({ ...FIELDS, diagnosis: "john smith" })}
-      />,
-    );
-    expect(screen.getByText("john smith")).toBeInTheDocument();
-    expect(screen.queryByTestId("request-phi-check")).toBeNull();
+    expect(screen.getByText("[NAME]")).toBeInTheDocument();
   });
 
   it("falls through to plain text when there are no labeled fields", () => {
     render(<UserRequestFields pending content="just a follow-up question" />);
     expect(screen.queryByTestId("request-phi-check")).toBeNull();
     expect(screen.getByText("just a follow-up question")).toBeInTheDocument();
+  });
+});
+
+describe("UserRequestFields — scrubbing what the user typed", () => {
+  const withDiagnosis = (d: string) =>
+    serializeQuery({ ...FIELDS, diagnosis: d });
+
+  it.each([
+    ["a lowercase full name", "john smith"],
+    ["a capitalised full name", "John Smith"],
+    ["a name with a middle initial", "John A. Smith"],
+    ["a hyphenated surname", "Maria Rodriguez-Lopez"],
+  ])("removes %s from the Diagnosis field", (_label, value) => {
+    render(<UserRequestFields content={withDiagnosis(value)} />);
+    expect(screen.queryByText(value)).toBeNull();
+    expect(screen.getByText("[NAME]")).toBeInTheDocument();
+  });
+
+  it.each([
+    ["an email", "jane.doe@example.com", "[EMAIL]"],
+    ["a phone number", "(555) 123-4567", "[PHONE]"],
+    ["an SSN", "123-45-6789", "[SSN]"],
+  ])("removes %s from free text", (_label, value, placeholder) => {
+    render(<UserRequestFields content={withDiagnosis(value)} />);
+    expect(screen.queryByText(value)).toBeNull();
+    expect(screen.getByText(placeholder)).toBeInTheDocument();
+  });
+
+  /**
+   * The reason a bare-token gazetteer was rejected: these are all diagnoses,
+   * and stripping them would leave the user staring at a request that no
+   * longer says what they asked for.
+   */
+  it.each([
+    "Parkinson's disease",
+    "Graves disease",
+    "Baker's cyst",
+    "Smith fracture",
+    "Kellgren-Lawrence grade 3",
+  ])("leaves the clinical term %s alone", (term) => {
+    render(<UserRequestFields content={withDiagnosis(term)} />);
+    expect(screen.getByText(term)).toBeInTheDocument();
+  });
+
+  it("scrubs a trailing free-text note too", () => {
+    render(
+      <UserRequestFields
+        content={serializeQuery(FIELDS, { note: "call john smith back" })}
+      />,
+    );
+    expect(screen.queryByText(/john smith/)).toBeNull();
+  });
+
+  it("scrubs an unlabeled follow-up message", () => {
+    render(<UserRequestFields content="is john smith approved?" />);
+    expect(screen.queryByText(/john smith/)).toBeNull();
   });
 });

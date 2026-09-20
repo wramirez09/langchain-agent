@@ -1,5 +1,7 @@
 import React from "react";
 import { cn } from "@/utils/cn";
+import { normalizeNoteText } from "@/lib/phi/normalize";
+import { redactPhi } from "@/lib/phi/redact";
 
 // The PA form serializes its inputs into a single labeled string (see
 // PriorAuthView.handleGenerateAuth):
@@ -121,6 +123,37 @@ function Field({
   );
 }
 
+/**
+ * Scrub the echoed request before it is painted.
+ *
+ * The user typed this, so it is the one place in the product guaranteed to
+ * render whatever PHI someone pasted into a free-text box -- a name in the
+ * Diagnosis field is the common case. Running it through the same engine the
+ * note intake uses means the card shows "[NAME]" instead.
+ *
+ * Being aggressive is safe HERE in a way it is not in the note pipeline: this
+ * only changes what is drawn. The message itself is untouched, so nothing
+ * downstream -- the screening, the artifact, the PDF -- sees a different
+ * string, and a false positive costs a redacted word on screen rather than a
+ * wrong determination.
+ *
+ * It does NOT unsend anything. The raw text was already posted and is already
+ * persisted by `runAgent` into `chat_messages`. This stops the display
+ * repeating it; keeping it out of the request in the first place is the
+ * client-side redaction in `lib/phi`, and out of the database is a separate
+ * problem.
+ */
+function scrub(value: string): string {
+  if (!value) return value;
+  try {
+    return redactPhi(normalizeNoteText(value)).redacted;
+  } catch {
+    // Never let a redaction bug blank the card -- showing the original is the
+    // status quo, showing nothing is a regression.
+    return value;
+  }
+}
+
 export function UserRequestFields({
   content,
   pending = false,
@@ -164,7 +197,7 @@ export function UserRequestFields({
   if (fields.length === 0) {
     return (
       <p className="whitespace-pre-wrap text-[15px] leading-[1.55] text-foreground-soft [overflow-wrap:anywhere]">
-        {notes ?? content}
+        {scrub(notes ?? content)}
       </p>
     );
   }
@@ -172,9 +205,9 @@ export function UserRequestFields({
   return (
     <div className="grid grid-cols-1 gap-x-8 gap-y-5 sm:grid-cols-2">
       {fields.map((f) => (
-        <Field key={f.label} k={f.label} v={f.value} full={f.full} />
+        <Field key={f.label} k={f.label} v={scrub(f.value)} full={f.full} />
       ))}
-      {notes ? <Field full k="Additional Notes" v={notes} /> : null}
+      {notes ? <Field full k="Additional Notes" v={scrub(notes)} /> : null}
     </div>
   );
 }
