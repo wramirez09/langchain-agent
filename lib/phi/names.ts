@@ -24,6 +24,7 @@
 
 import type { PhiRule, RawSpan, SoftFlag } from "./types";
 import { isClinicalEponym } from "./eponyms";
+import { GIVEN_NAMES, SURNAMES } from "./gazetteer";
 
 /**
  * A capitalized name-ish token. Has to cover more than "Firstname":
@@ -117,7 +118,96 @@ const credentialRule: PhiRule = {
   },
 };
 
-export const NAME_RULES: PhiRule[] = [honorificRule, credentialRule];
+/**
+ * A given name immediately followed by a surname: "john smith", "Maria
+ * Rodriguez", "J. Smith" is handled too via the optional middle initial.
+ *
+ * This is NOT the bare-token gazetteer sweep rejected above, and the
+ * difference is the whole point. A single gazetteer hit is unusable here --
+ * Parkinson, Graves, Baker and Smith are all diagnoses. TWO adjacent hits,
+ * first name then surname, is a shape that essentially never occurs in
+ * clinical prose and is exactly what someone types into a Diagnosis box when
+ * they mean the patient. It is also case-insensitive, because a person typing
+ * a name into a form types "john smith", and the anchored rules above all
+ * assume capitalisation.
+ *
+ * Either half being a clinical term in context still suppresses the match, so
+ * "Graves disease" and "Smith fracture" survive.
+ */
+
+/** True when the token, or either half of a hyphenated compound, is a surname. */
+function isSurname(token: string): boolean {
+  const lower = token.toLowerCase();
+  if (SURNAMES.has(lower)) return true;
+  const parts = lower.split("-");
+  return parts.length > 1 && parts.some((p) => SURNAMES.has(p));
+}
+
+const fullNameRule: PhiRule = {
+  id: "name-full",
+  category: "name",
+  placeholder: "[NAME]",
+  priority: 94,
+  find: (text) => {
+    // Tokenise rather than matching pairs with one regex. A pair regex
+    // consumes its match and resumes after it, so in "call john smith back"
+    // the engine takes "call john", fails, and never tests "john smith" --
+    // candidates overlap, and only a token walk sees all of them.
+    const tokens: Array<{ text: string; start: number; end: number }> = [];
+    for (const m of text.matchAll(/[A-Za-z][A-Za-z'-]*\.?/g)) {
+      if (m.index === undefined) continue;
+      tokens.push({ text: m[0], start: m.index, end: m.index + m[0].length });
+    }
+
+    /** Only whitespace between two tokens -- no comma, no newline, no words. */
+    const adjacent = (a: { end: number }, b: { start: number }) =>
+      /^[ \t]*$/.test(text.slice(a.end, b.start));
+
+    const out: RawSpan[] = [];
+    for (let i = 0; i < tokens.length - 1; i++) {
+      const first = tokens[i];
+      if (!GIVEN_NAMES.has(first.text.toLowerCase())) continue;
+
+      // Optionally skip a middle initial: "John A. Smith".
+      let j = i + 1;
+      const isInitial = /^[A-Za-z]\.?$/.test(tokens[j].text);
+      if (isInitial && j + 1 < tokens.length) j += 1;
+      const last = tokens[j];
+      if (!last || last === first) continue;
+
+      // Every step has to be whitespace-separated or this is not one name.
+      let contiguous = true;
+      for (let k = i; k < j; k++) {
+        if (!adjacent(tokens[k], tokens[k + 1])) contiguous = false;
+      }
+      if (!contiguous) continue;
+
+      const bare = last.text.replace(/\.$/, "");
+      if (!isSurname(bare)) continue;
+
+      const after = text.slice(last.end, last.end + 40);
+      // "Graves disease", "Smith fracture" -- a clinical qualifier means this
+      // is a medical term, not a person.
+      if (isClinicalEponym(bare, after)) continue;
+      if (isClinicalEponym(first.text, " " + bare)) continue;
+
+      out.push({
+        start: first.start,
+        end: last.end,
+        category: "name",
+        ruleId: "name-full",
+      });
+      i = j; // consume the name so its surname cannot start another pair
+    }
+    return out;
+  },
+};
+
+export const NAME_RULES: PhiRule[] = [
+  honorificRule,
+  credentialRule,
+  fullNameRule,
+];
 
 /* ------------------------------------------------------------------ */
 /* soft flags                                                          */

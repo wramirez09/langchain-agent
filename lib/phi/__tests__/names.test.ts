@@ -40,6 +40,7 @@ describe("anchored name rules — hard redaction", () => {
     expect(NAME_RULES.map((r) => r.id)).toEqual([
       "name-honorific",
       "name-credential",
+      "name-full",
     ]);
   });
 });
@@ -105,5 +106,60 @@ describe("findSuspectNames — soft flags", () => {
     expect(diego).toBeDefined();
     expect(t.slice(diego!.start, diego!.end)).toBe("Diego");
     expect(diego!.reason).toBe("suspect-name");
+  });
+});
+
+describe("full-name rule", () => {
+  const out = (t: string) => redactPhi(N(t)).redacted;
+
+  it.each([
+    ["lowercase, as typed into a form", "Diagnosis: john smith"],
+    ["mid-sentence", "call john smith back tomorrow"],
+    ["at the start of a question", "is john smith approved?"],
+    ["with a middle initial", "seen by John A. Smith today"],
+    ["with a hyphenated surname", "spoke to Maria Rodriguez-Lopez"],
+  ])("redacts a full name %s", (_label, text) => {
+    expect(out(text)).toContain("[NAME]");
+    expect(out(text)).not.toMatch(/smith|rodriguez|lopez/i);
+  });
+
+  /**
+   * Candidate pairs overlap. A pair regex consumes "call john", fails, and
+   * resumes past it -- never testing "john smith". This is the regression.
+   */
+  it("finds a name preceded by a non-name word", () => {
+    expect(out("call john smith back")).toBe("call [NAME] back");
+  });
+
+  it("finds several names in one line", () => {
+    expect(out("patient james brown seen by robert lee")).toBe(
+      "patient [NAME] seen by [NAME]",
+    );
+  });
+
+  it("catches the unanchored relative the soft-flag path only warned about", () => {
+    expect(out("Discussed with the daughter Maria Lopez")).toContain("[NAME]");
+  });
+
+  it.each([
+    "Parkinson's disease",
+    "Graves disease",
+    "Baker's cyst",
+    "Smith fracture",
+    "Kellgren-Lawrence grade 3",
+    "Hill-Sachs lesion",
+    "Osgood-Schlatter disease",
+  ])("leaves the clinical term %s alone", (term) => {
+    expect(out(`68F with ${term}, failed PT x8 weeks`)).toContain(term);
+  });
+
+  it("needs BOTH halves; a lone gazetteer token is not a name", () => {
+    expect(out("Diagnosis: smith")).toBe("Diagnosis: smith");
+    expect(out("Diagnosis: john")).toBe("Diagnosis: john");
+  });
+
+  it("does not join two names across a comma or newline", () => {
+    expect(out("john, smith")).toBe("john, smith");
+    expect(out("john\nsmith")).toBe("john\nsmith");
   });
 });
