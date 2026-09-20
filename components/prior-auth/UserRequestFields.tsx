@@ -27,12 +27,22 @@ const FIELD_DEFS: FieldDef[] = [
     re: /Relevant Medical History\s*:/,
     full: true,
   },
-  { key: "history", label: "History", re: /(?<!Relevant Medical )History\s*:/, full: true },
+  {
+    key: "history",
+    label: "History",
+    re: /(?<!Relevant Medical )History\s*:/,
+    full: true,
+  },
   // Emitted by the de-identified-note intake (lib/phi + /api/notes/extract),
   // never by the form. Rendering it here is what makes the attestation
   // durable: it rides along into the saved query and the PDF export rather
   // than living only on the upload screen the clinician already left.
-  { key: "deidentification", label: "De-identification", re: /De-identification\s*:/, full: true },
+  {
+    key: "deidentification",
+    label: "De-identification",
+    re: /De-identification\s*:/,
+    full: true,
+  },
 ];
 
 type ParsedField = { label: string; value: string; full?: boolean };
@@ -80,6 +90,16 @@ function parseRequest(raw: string): {
   return { fields, notes };
 }
 
+/** Shimmer stand-in for a value that is still being checked. */
+function ValueBar({ w }: { w: string }) {
+  return (
+    <div
+      className="h-[15px] animate-pulse rounded bg-gradient-to-r from-muted via-border to-muted bg-[length:200%_100%]"
+      style={{ width: w }}
+    />
+  );
+}
+
 function Field({
   k,
   v,
@@ -91,7 +111,9 @@ function Field({
 }) {
   return (
     <div className={cn("min-w-0", full && "sm:col-span-2")}>
-      <div className="mb-1 text-[12.5px] font-semibold text-muted-foreground">{k}</div>
+      <div className="mb-1 text-[12.5px] font-semibold text-muted-foreground">
+        {k}
+      </div>
       <div className="text-[15px] leading-[1.5] text-foreground [overflow-wrap:anywhere]">
         {v}
       </div>
@@ -99,8 +121,43 @@ function Field({
   );
 }
 
-export function UserRequestFields({ content }: { content: string }) {
+export function UserRequestFields({
+  content,
+  pending = false,
+}: {
+  content: string;
+  /**
+   * True while the request is being screened for identifiers.
+   *
+   * This card echoes back exactly what the user typed, and what they type is
+   * the highest-risk text in the product -- the Diagnosis and History fields
+   * invite free text, and people put patient names in them. Holding the values
+   * behind a shimmer until the check has run means the one surface that
+   * reliably displays PHI is not doing so while we are still deciding whether
+   * it is PHI. The labels stay visible, so the card keeps its shape and the
+   * user can see their request was received.
+   */
+  pending?: boolean;
+}) {
   const { fields, notes } = parseRequest(content);
+
+  if (pending && fields.length > 0) {
+    return (
+      <div
+        data-testid="request-phi-check"
+        className="grid grid-cols-1 gap-x-8 gap-y-5 sm:grid-cols-2"
+      >
+        {fields.map((f, i) => (
+          <Field
+            key={f.label}
+            k={f.label}
+            full={f.full}
+            v={<ValueBar w={`${[72, 58, 84, 64][i % 4]}%`} />}
+          />
+        ))}
+      </div>
+    );
+  }
 
   // Fallback: a message with no structured fields (e.g. a typed follow-up
   // question) renders as plain text rather than an empty grid.
