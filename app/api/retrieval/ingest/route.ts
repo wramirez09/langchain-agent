@@ -1,4 +1,5 @@
-import { NextResponse } from "next/server";
+import { NextResponse, type NextRequest } from "next/server";
+import { getUserFromRequest } from "@/lib/auth/getUserFromRequest";
 import { RecursiveCharacterTextSplitter } from "langchain/text_splitter";
 import { OpenAIEmbeddings } from "@langchain/openai";
 import { llmAgent } from "@/lib/llm";
@@ -6,8 +7,6 @@ import { SupabaseVectorStore } from "@langchain/community/vectorstores/supabase"
 import { createClient } from "@supabase/supabase-js";
 import { PDFLoader } from "@langchain/community/document_loaders/fs/pdf";
 import { HumanMessage } from "@langchain/core/messages";
-
-
 
 const supabaseUrl = process.env.SUPABASE_URL;
 const supabaseServiceKey = process.env.SUPABASE_PRIVATE_KEY;
@@ -19,60 +18,84 @@ if (!supabaseUrl || !supabaseServiceKey || !openApiKey) {
   );
 }
 
-export async function POST(req: Request) {
+/**
+ * NOTE: this is the legacy PDF ingest, kept for the existing upload flow. It
+ * embeds the document into the shared `documents` vector table, which has no
+ * tenant column, so anything ingested here is retrievable by any user's query
+ * (see `app/api/chat/retrieval/route.ts`). Clinical notes go through
+ * `POST /api/notes/extract` instead, which de-identifies client-side and
+ * persists nothing.
+ *
+ * Auth was missing entirely until now: the route was reachable anonymously and
+ * spent OpenAI embedding + completion tokens on every call.
+ */
+export async function POST(req: NextRequest) {
   try {
+    let userId: string | undefined;
+    try {
+      const user = await getUserFromRequest(req);
+      userId = user?.id;
+    } catch {
+      userId = undefined;
+    }
+    if (!userId) {
+      return NextResponse.json(
+        { success: false, error: "Unauthorized" },
+        { status: 401 },
+      );
+    }
 
-    console.log('Received file upload request');
+    console.log("Received file upload request");
 
     const formData = await req.formData();
     const file = formData.get("file");
 
     if (!file) {
-      console.error('No file found in form data');
+      console.error("No file found in form data");
       return NextResponse.json(
         {
           success: false,
-          error: "No file uploaded"
+          error: "No file uploaded",
         },
-        { status: 400 }
+        { status: 400 },
       );
     }
 
     if (!(file instanceof Blob)) {
-      console.error('Invalid file format:', file);
+      console.error("Invalid file format:", file);
       return NextResponse.json(
         {
           success: false,
-          error: "Invalid file format"
+          error: "Invalid file format",
         },
-        { status: 400 }
+        { status: 400 },
       );
     }
 
     // Verify file type
-    if (file.type !== 'application/pdf') {
-      console.error('Unsupported file type:', file.type);
+    if (file.type !== "application/pdf") {
+      console.error("Unsupported file type:", file.type);
       return NextResponse.json(
         {
           success: false,
-          error: "Only PDF files are supported"
+          error: "Only PDF files are supported",
         },
-        { status: 400 }
+        { status: 400 },
       );
     }
 
     // Verify file size (10MB max)
     const maxSize = 10 * 1024 * 1024; // 10MB
     if (file.size > maxSize) {
-      console.error('File size exceeds limit:', file.size);
+      console.error("File size exceeds limit:", file.size);
       return NextResponse.json(
         { error: "File size exceeds 10MB limit" },
-        { status: 400 }
+        { status: 400 },
       );
     }
 
     // Process the PDF file
-    console.log('Processing PDF file...');
+    console.log("Processing PDF file...");
 
     const arrayBuffer = await file.arrayBuffer();
     const buffer = Buffer.from(arrayBuffer);
@@ -80,9 +103,11 @@ export async function POST(req: Request) {
     const blob = new Blob([buffer as BlobPart], { type: file.type });
     const loader = new PDFLoader(blob);
 
-    const docs = await loader.load().catch(error => {
+    const docs = await loader.load().catch((error) => {
       console.error("Error loading PDF:", error);
-      throw new Error("Failed to process PDF file. The file may be corrupted or not a valid PDF.");
+      throw new Error(
+        "Failed to process PDF file. The file may be corrupted or not a valid PDF.",
+      );
     });
 
     if (!docs || docs.length === 0) {
@@ -95,7 +120,7 @@ export async function POST(req: Request) {
       chunkOverlap: 200,
     });
 
-    const splitDocs = await textSplitter.splitDocuments(docs).catch(error => {
+    const splitDocs = await textSplitter.splitDocuments(docs).catch((error) => {
       console.error("Error splitting document:", error);
       throw new Error("Failed to process document content.");
     });
@@ -105,14 +130,10 @@ export async function POST(req: Request) {
       openAIApiKey: openApiKey,
     });
 
-    await SupabaseVectorStore.fromDocuments(
-      splitDocs,
-      embeddings,
-      {
-        client: createClient(supabaseUrl!, supabaseServiceKey!),
-        tableName: 'documents',
-      }
-    );
+    await SupabaseVectorStore.fromDocuments(splitDocs, embeddings, {
+      client: createClient(supabaseUrl!, supabaseServiceKey!),
+      tableName: "documents",
+    });
 
     // Generate a query from the document
     const queryPrompt = `You are a medical information extraction assistant. Your task is to analyze the following document content from a patient's medical record or a prior authorization form.
@@ -128,7 +149,10 @@ The query should include:
 Combine these points into a single, natural-language question. Do not include any filler text, just the query.
 Document Content to Analyze:
 
-${splitDocs.slice(0, 5).map(doc => doc.pageContent).join("\n\n---\n\n")}`;
+${splitDocs
+  .slice(0, 5)
+  .map((doc) => doc.pageContent)
+  .join("\n\n---\n\n")}`;
 
     // Invoke the agent with the prompt
     const result = await llmAgent().invoke([
@@ -137,14 +161,14 @@ ${splitDocs.slice(0, 5).map(doc => doc.pageContent).join("\n\n---\n\n")}`;
 
     const generatedQuery = result.content;
 
-    console.log('Successfully processed PDF and generated query');
+    console.log("Successfully processed PDF and generated query");
     return NextResponse.json(
       {
         success: true,
         generatedQuery: generatedQuery,
-        documentId: `doc_${Date.now()}`
+        documentId: `doc_${Date.now()}`,
       },
-      { status: 200 }
+      { status: 200 },
     );
     // Error handling is done in the catch block above
   } catch (error: any) {
@@ -152,14 +176,14 @@ ${splitDocs.slice(0, 5).map(doc => doc.pageContent).join("\n\n---\n\n")}`;
     return NextResponse.json(
       {
         success: false,
-        error: error.message || "Internal server error"
+        error: error.message || "Internal server error",
       },
       {
         status: error.status || 500,
         headers: {
-          'Content-Type': 'application/json'
-        }
-      }
+          "Content-Type": "application/json",
+        },
+      },
     );
   }
 }
