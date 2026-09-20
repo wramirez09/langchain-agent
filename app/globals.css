@@ -204,13 +204,43 @@ body {
    inner panels do — so this reads as fixed without background-attachment,
    which is unreliable on iOS.
 
-   Theme A has no counterpart on the marketing site and gets none. */
+   Theme A has no counterpart on the marketing site and gets none.
+
+   The dot grid is the marketing site's sitewide `body::before`
+   (note-doctor-marketing src/styles/index.css: 1px dots of
+   rgba(59,130,246,0.1) on a 36px lattice). It rides on the same
+   background-image stack as the glow for the same reason — no
+   pseudo-element, no stacking context — and is listed FIRST so the dots sit
+   above the ellipse, which is the order the site paints them in. */
 .dark .app-ground {
-  background-image: radial-gradient(
-    ellipse at 50% 30%,
-    rgba(59, 130, 246, 0.18) 0%,
-    transparent 70%
-  );
+  background-image:
+    radial-gradient(circle, rgba(59, 130, 246, 0.1) 1px, transparent 1px),
+    radial-gradient(
+      ellipse at 50% 30%,
+      rgba(59, 130, 246, 0.18) 0%,
+      transparent 70%
+    );
+  background-size:
+    36px 36px,
+    cover;
+}
+
+/* The two main panels (Request Details / Chat Assistant) sit on the app
+   ground rather than flat against it. Theme B uses the marketing site's own
+   panel elevation verbatim (developers/page.tsx, McpAnnouncement.tsx:
+   0 24px 60px -30px rgba(0,0,0,0.7)) — a wide, heavily negative-spread cast
+   that reads as depth over a dark ground without a visible grey halo.
+
+   Theme A gets a lighter two-stop version of the same shape: the brand value
+   is tuned for a near-black ground and turns to mud on the light palette. */
+.panel-shadow {
+  box-shadow:
+    0 12px 32px -18px rgba(15, 23, 42, 0.28),
+    0 2px 6px -2px rgba(15, 23, 42, 0.06);
+}
+
+.dark .panel-shadow {
+  box-shadow: 0 24px 60px -30px rgba(0, 0, 0, 0.7);
 }
 
 .bottom-fixed-element {

@@ -68,7 +68,7 @@ const TopBar: React.FC = () => {
   }, []);
 
   return (
-    <div className="h-16 bg-card border-b border-border flex items-center px-4 md:px-6 z-50 flex-shrink-0">
+    <div className="h-16 bg-transparent border-b border-border flex items-center px-4 md:px-6 z-50 flex-shrink-0">
       {/* Left — hamburger on mobile, spacer on desktop */}
       <div className="flex-1 flex items-center">
         {isLoggedIn && (

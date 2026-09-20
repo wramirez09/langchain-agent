@@ -56,7 +56,7 @@ const FormInputs: React.FC<Props> = (props: Props) => {
     (value: string) => {
       setSelectedGuideline(value);
       props.onStateFormStateChange("Guidelines", value);
-      
+
       // Clear state selection when switching to Commercial
       if (value === "Commercial") {
         props.onStateFormStateChange("State", "");
@@ -132,8 +132,8 @@ const FormInputs: React.FC<Props> = (props: Props) => {
             <Stethoscope size={16} color="#7C3AED" />
             Pre-Auth Request
           </label>
-         
-          <CreatableSelect isClearable options={ncdOptions} onChange={(value)=>HandleTreatmentSelectChange(value)} className=""/>
+
+          <CreatableSelect isClearable options={ncdOptions} onChange={(value) => HandleTreatmentSelectChange(value)} className="" />
           <p className="text-xs text-muted-foreground mt-1">
             *Can&apos;t find what you&apos;re looking for? Type to create a new option
           </p>
@@ -141,11 +141,11 @@ const FormInputs: React.FC<Props> = (props: Props) => {
         <div>
           <label className="flex items-center gap-2 text-md font-medium text-foreground mb-1">
             <FileBarChart size={16} color="#4F46E5" />
-            CPT/HCPCS 
+            CPT/HCPCS
           </label>
           <Input
             className="w-full h-9 bg-card border-primary/20 text-foreground focus-visible:ring-primary/30 focus-visible:border-primary/40"
-            placeholder="CPT Codes"
+            placeholder="29881, 29880, 27447"
             onChange={handleCptChange}
           />
         </div>
@@ -159,7 +159,7 @@ const FormInputs: React.FC<Props> = (props: Props) => {
         </label>
         <Textarea
           className="w-full bg-card border-primary/20 text-foreground focus-visible:ring-primary/30 focus-visible:border-primary/40 min-h-[100px] max-h-[200px] overflow-y-auto resize-y"
-          placeholder="knee pain"
+          placeholder="knee swelling for over 3 weeks."
           onChange={handleDiagnosisChange}
         />
       </div>
@@ -180,7 +180,7 @@ const FormInputs: React.FC<Props> = (props: Props) => {
       {/* Chat Context */}
       <div>
         <label className="block text-md font-semi-bold text-foreground mb-1">
-          Relevant Medical History 
+          Relevant Medical History
         </label>
         <Textarea
           className="w-full bg-card border-primary/20 text-foreground focus-visible:ring-primary/30 focus-visible:border-primary/40 min-h-[100px] max-h-[200px] overflow-y-auto resize-y"

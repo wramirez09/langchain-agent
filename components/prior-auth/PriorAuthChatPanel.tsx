@@ -61,7 +61,7 @@ export function PriorAuthChatPanel({
       layout
       transition={{ duration: 0.3, ease: [0.4, 0, 0.2, 1] }}
       className={cn(
-        "flex flex-col flex-1 min-h-0 bg-card rounded-lg border border-border shadow-sm overflow-hidden",
+        "flex flex-col flex-1 min-h-0 bg-card rounded-lg border border-border panel-shadow overflow-hidden",
         activeFormTab !== "chat" && "hidden md:flex",
         isLayoutSwapped && "md:order-1"
       )}
