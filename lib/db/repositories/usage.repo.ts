@@ -64,9 +64,15 @@ export async function getUsageSummaryByOrgId(
   // `mcp_tool` / `mcp_extract` / `mcp_resource`; a full MCP screening meters
   // `orchestrator` from inside runAgent and so lands in `agents`, which is
   // right — it is the same run as a POST to /v1/agents.
+  //
+  // `note_extract` (the de-identified-note intake at /api/notes/extract) joins
+  // `agents` rather than getting its own key. It is always followed by an
+  // `orchestrator` run it is part of, so it belongs in that bucket — and a new
+  // top-level key would change the shape of the MCP `get_usage` tool, which
+  // spreads this object wholesale (lib/mcp/tools/account.ts).
   const [total, agents, chat, mcp] = await Promise.all([
     base(),
-    base().eq("usage_type", "orchestrator"),
+    base().in("usage_type", ["orchestrator", "note_extract"]),
     base().eq("usage_type", "chat"),
     base().in("usage_type", ["mcp_tool", "mcp_extract", "mcp_resource"]),
   ])

@@ -92,7 +92,9 @@ describe('usage.repo', () => {
     // the count to that endpoint. Mirrors the head/count query the repo builds.
     const COUNTS: Record<string, number> = {
       total: 11,
-      orchestrator: 3,
+      // `agents` is now an `.in(...)` too: a note ingest meters `note_extract`
+      // and then the screening it belongs to meters `orchestrator`.
+      'orchestrator,note_extract': 3,
       chat: 2,
       // The `mcp` bucket is an `.in(...)` over three usage types, keyed here by
       // the joined list so the fake builder can distinguish it from an `.eq`.
@@ -106,6 +108,40 @@ describe('usage.repo', () => {
       gte: () => builder(type),
       then: (resolve: (v: any) => void) =>
         resolve({ count: type ? COUNTS[type] : COUNTS.total, error: null }),
+    })
+
+    /**
+     * Guard on the shape, not just the numbers: the MCP `get_usage` tool
+     * spreads this object wholesale, so adding a top-level key here silently
+     * changes a published tool's output.
+     */
+    it('exposes exactly total/agents/chat/mcp', async () => {
+      helpers.from.mockImplementation(() => ({ select: () => builder(null) }))
+      const summary = await getUsageSummaryByOrgId('org-1', '2026-06-01T00:00:00Z')
+      expect(Object.keys(summary).sort()).toEqual([
+        'agents',
+        'chat',
+        'mcp',
+        'total',
+      ])
+    })
+
+    it('counts note_extract in the agents bucket', async () => {
+      const seen: string[][] = []
+      const spy = (type: string | null): any => ({
+        eq: (col: string, val: string) =>
+          col === 'usage_type' ? spy(val) : spy(type),
+        in: (col: string, vals: string[]) => {
+          if (col === 'usage_type') seen.push(vals)
+          return col === 'usage_type' ? spy(vals.join(',')) : spy(type)
+        },
+        gte: () => spy(type),
+        then: (resolve: (v: any) => void) =>
+          resolve({ count: type ? COUNTS[type] : COUNTS.total, error: null }),
+      })
+      helpers.from.mockImplementation(() => ({ select: () => spy(null) }))
+      await getUsageSummaryByOrgId('org-1', '2026-06-01T00:00:00Z')
+      expect(seen).toContainEqual(['orchestrator', 'note_extract'])
     })
 
     it('returns total plus per-endpoint counts scoped to the org', async () => {
