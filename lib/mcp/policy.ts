@@ -1,4 +1,4 @@
-import type { ApiAuthContext } from "@/lib/auth/resolveApiAuth";
+import type { McpAuthContext } from "./auth";
 
 /**
  * Which existing API-key scope each MCP tool requires.
@@ -23,6 +23,9 @@ export const TOOL_SCOPES: Record<string, readonly string[] | null> = {
   medicare_policy_detail: ["agents", "chat"],
   commercial_guidelines_search: ["agents", "chat"],
   policy_content_extractor: ["agents", "chat"],
+  // ChatGPT's deep-research contract, projected over the retrieval above.
+  search: ["agents", "chat"],
+  fetch: ["agents", "chat"],
   // Full screening *is* `/api/v1/agents`, so it takes that endpoint's scope.
   run_prior_auth_screening: ["agents"],
   // Key introspection, like `/api/v1/me`.
@@ -38,7 +41,7 @@ const ENDPOINT_SCOPES = ["agents", "chat"] as const;
  * worth listing, so it is refused at the door rather than handed an empty
  * tool list it cannot act on.
  */
-export function hasAnyMcpScope(auth: ApiAuthContext): boolean {
+export function hasAnyMcpScope(auth: McpAuthContext): boolean {
   return ENDPOINT_SCOPES.some((s) => auth.scopes.includes(s));
 }
 
@@ -50,7 +53,7 @@ export function hasAnyMcpScope(auth: ApiAuthContext): boolean {
  * per request). A caller therefore never sees a tool that would 403 — better
  * than advertising it and failing the call.
  */
-export function canUse(auth: ApiAuthContext, name: string): boolean {
+export function canUse(auth: McpAuthContext, name: string): boolean {
   const required = TOOL_SCOPES[name];
   if (required === undefined) return false;
   if (required === null) return true;

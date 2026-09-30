@@ -1,6 +1,6 @@
 import { createMcpHandler, type McpHttpHandler } from "@modelcontextprotocol/server";
 
-import type { ApiAuthContext } from "@/lib/auth/resolveApiAuth";
+import type { McpAuthContext } from "./auth";
 
 import { buildCallContext } from "./context";
 import { buildMcpServer } from "./server";
@@ -26,7 +26,7 @@ export function getHandler(): McpHttpHandler {
   if (handler) return handler;
   handler = createMcpHandler(
     (reqCtx) => {
-      const auth = reqCtx.authInfo?.extra?.auth as ApiAuthContext | undefined;
+      const auth = reqCtx.authInfo?.extra?.auth as McpAuthContext | undefined;
       if (!auth) {
         // Unreachable through the route, which rejects before it gets here.
         throw new Error("MCP handler reached without resolved auth.");
@@ -39,18 +39,19 @@ export function getHandler(): McpHttpHandler {
 }
 
 /**
- * Wrap our resolved API-key auth in the SDK's `AuthInfo` envelope.
+ * Wrap our resolved auth (API key or OAuth) in the SDK's `AuthInfo` envelope.
  *
  * `token` is required by the type but deliberately not the caller's key: the
  * SDK never inspects it, and the plaintext secret has no reason to travel any
  * further than the function that hashed it. Everything the tools need rides in
  * `extra.auth`.
  */
-export function toAuthInfo(auth: ApiAuthContext) {
+export function toAuthInfo(auth: McpAuthContext) {
   return {
     token: "redacted",
-    clientId: auth.apiKeyId,
+    clientId: auth.apiKeyId ?? auth.oauthClientId ?? "unknown",
     scopes: auth.scopes,
+    expiresAt: auth.expiresAt,
     extra: { auth },
   };
 }

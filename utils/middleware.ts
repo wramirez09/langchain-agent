@@ -45,6 +45,9 @@ export async function updateSession(request: NextRequest) {
     !request.nextUrl.pathname.startsWith('/pdf') &&
     !request.nextUrl.pathname.startsWith('/legal') &&
     !request.nextUrl.pathname.startsWith('/admin') &&
+    // The OAuth consent page sends a signed-out user to login itself, with a
+    // `next` that brings them back to the pending authorization.
+    !request.nextUrl.pathname.startsWith('/oauth') &&
     request.nextUrl.pathname !== '/'
   ) {
     // Redirect unauthenticated users to the home page

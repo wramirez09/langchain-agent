@@ -63,6 +63,15 @@ The groundwork is unusually favorable: `resolveApiAuth(req: Request)` is transpo
 
 **Decisions locked:** expose a server (not consume); publish retrieval tools + full screening + account tools + guideline resources; Bearer API-key auth (`sk_live_…`), no OAuth this phase.
 
+> **Update 2026-09-30 — OAuth connectors.** OAuth has since been added for the
+> claude.ai / ChatGPT connectors, with Supabase Auth's OAuth 2.1 server (beta)
+> as the authorization server. `lib/mcp/auth.ts` branches on token shape: `sk_`
+> keys are unchanged, anything else is verified by `lib/mcp/oauth/verifyToken.ts`.
+> Discovery is `app/.well-known/oauth-protected-resource`; consent is
+> `app/oauth/consent`. `search` / `fetch` (`lib/mcp/tools/searchFetch.ts`) were
+> added for ChatGPT deep research. See CLAUDE.md's MCP section for the
+> constraints this inherits from Supabase.
+
 ---
 
 ## Architecture decision: `@modelcontextprotocol/server@2.0.0`

@@ -1,13 +1,14 @@
 import { redirect } from "next/navigation";
 import { createClient } from "@/utils/server";
+import { safeNext } from "@/lib/auth/safeNext";
 import { LoginClient } from "./LoginClient";
 
 export default async function Page({
   searchParams,
 }: {
-  searchParams: Promise<{ mobile?: string; redirect?: string }>;
+  searchParams: Promise<{ mobile?: string; redirect?: string; next?: string }>;
 }) {
-  const { mobile, redirect: redirectParam } = await searchParams;
+  const { mobile, redirect: redirectParam, next } = await searchParams;
   const isMobileDeepLink = mobile === "true" && redirectParam === "login";
 
   // Authenticated web users must never see the sign-in form — send them to
@@ -18,7 +19,7 @@ export default async function Page({
     const {
       data: { session },
     } = await supabase.auth.getSession();
-    if (session) redirect("/protected/preAuth");
+    if (session) redirect(safeNext(next, "/protected/preAuth"));
   }
 
   return <LoginClient />;

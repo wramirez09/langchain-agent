@@ -1,6 +1,7 @@
 "use client";
 import { useSearchParams } from "next/navigation";
 import { LoginForm } from "@/components/login-form";
+import { safeNext } from "@/lib/auth/safeNext";
 import { Suspense, useEffect } from "react";
 
 function LoginContent() {
@@ -8,6 +9,8 @@ function LoginContent() {
 
   const isMobile = searchParams.get("mobile") === "true";
   const redirect = searchParams.get("redirect");
+  // Set by the OAuth consent page so a connector sign-in resumes after login.
+  const next = safeNext(searchParams.get("next"), "/protected/preAuth");
 
   useEffect(() => {
     if (isMobile && redirect === "login") {
@@ -27,7 +30,7 @@ function LoginContent() {
           <p className="text-dark">Sign in to your account to continue</p>
         </div>
         <div className="bg-card rounded-xl shadow-md p-8">
-          <LoginForm />
+          <LoginForm next={next} />
         </div>
       </div>
     </div>

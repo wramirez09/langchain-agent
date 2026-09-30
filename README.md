@@ -122,7 +122,21 @@ claude mcp add --transport http notedoctor https://app.notedoctor.ai/api/mcp \
 export MCP_TOOL_TIMEOUT=300000
 ```
 
-It reuses the public API's key, scopes, plan gating, rate limits and error
+**claude.ai / Claude Desktop / ChatGPT** sign in with OAuth instead of a key —
+add `https://app.notedoctor.ai/api/mcp` as a connector:
+
+- Claude: Settings → Connectors → Add custom connector → paste the URL.
+- ChatGPT: Settings → Apps → Advanced → Developer mode on → Create → paste the
+  URL, authentication OAuth.
+
+Both discover Supabase Auth's OAuth 2.1 server from
+`/.well-known/oauth-protected-resource/api/mcp`, register themselves (DCR), and
+send the user to `/oauth/consent`. That server must be enabled on the Supabase
+project (Auth → OAuth Server, dynamic registration on, authorization path
+`/oauth/consent`). A connector user gets default `agents` + `chat` access on
+their own org and needs an active subscription, like a key.
+
+With a key, MCP reuses the public API's key, scopes, plan gating, rate limits and error
 envelope exactly — a key needs `agents` or `chat`, and `run_prior_auth_screening`
 needs `agents`. Implementation lives in `lib/mcp/**`, with `app/api/mcp/route.ts`
 as transport edge only. Guideline resources are gated behind

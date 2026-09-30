@@ -11,7 +11,11 @@ import { useState } from 'react';
 import { Loader2 } from 'lucide-react';
 import { LoadingOverlay } from './ui/loading-overlay';
 
-export function LoginForm({ className, ...props }: React.ComponentPropsWithoutRef<'div'>) {
+export function LoginForm({
+  className,
+  next = '/protected/preAuth',
+  ...props
+}: React.ComponentPropsWithoutRef<'div'> & { next?: string }) {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [error, setError] = useState<string | null>(null);
@@ -30,7 +34,7 @@ export function LoginForm({ className, ...props }: React.ComponentPropsWithoutRe
         password,
       });
       if (error) throw error;
-      router.push('/protected/preAuth');
+      router.push(next);
     } catch (error: unknown) {
       setError(error instanceof Error ? error.message : 'An error occurred');
       setIsLoading(false);

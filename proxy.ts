@@ -23,9 +23,13 @@ export const config = {
      * and integrators importing the OpenAPI spec the docs page links to.
      * They were silently redirected to the homepage.
      *
+     * `.well-known` is OAuth discovery for the MCP connectors (claude.ai,
+     * ChatGPT): their servers fetch it with no session, and a 307 to `/` there
+     * fails the connector's sign-in before it starts.
+     *
      * Listed explicitly rather than by extension — a blanket `.yaml`/`.txt`
      * exclusion would also un-gate any such file added later by accident.
      */
-    '/((?!api|_next/static|_next/image|favicon.ico|robots.txt|sitemap.xml|openapi.yaml|llms.txt|.*\\.(?:svg|png|jpg|jpeg|gif|webp)$).*)',
+    '/((?!api|\\.well-known|_next/static|_next/image|favicon.ico|robots.txt|sitemap.xml|openapi.yaml|llms.txt|.*\\.(?:svg|png|jpg|jpeg|gif|webp)$).*)',
   ],
 }
