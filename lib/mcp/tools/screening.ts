@@ -176,7 +176,7 @@ export function registerScreeningTool(server: McpServer, ctx: McpCallContext): v
             identity: {
               userId: auth.createdBy,
               orgId: auth.orgId,
-              apiKeyId: auth.apiKeyId,
+              apiKeyId: auth.apiKeyId ?? undefined,
               // Load-bearing: `runAgent` skips chat_messages persistence for
               // `source: "api"`, which is what keeps MCP traffic — third-party
               // text that may contain PHI — out of our custody. Never change

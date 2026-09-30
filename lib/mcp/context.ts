@@ -1,6 +1,6 @@
 import { waitUntil } from "@vercel/functions";
 
-import type { ApiAuthContext } from "@/lib/auth/resolveApiAuth";
+import type { McpAuthContext } from "./auth";
 
 /**
  * Everything a tool handler needs about the caller, built once per request by
@@ -11,14 +11,14 @@ import type { ApiAuthContext } from "@/lib/auth/resolveApiAuth";
  * already paid for in compute.
  */
 export type McpCallContext = {
-  auth: ApiAuthContext;
+  auth: McpAuthContext;
   meter: (usageType: string) => void;
 };
 
 /** Usage types billed by this surface. Keep in sync with `usage.repo`'s `mcp` bucket. */
 export const MCP_USAGE_TYPES = ["mcp_tool", "mcp_extract", "mcp_resource"] as const;
 
-export function buildCallContext(auth: ApiAuthContext): McpCallContext {
+export function buildCallContext(auth: McpAuthContext): McpCallContext {
   return {
     auth,
     meter: (usageType: string) => {
@@ -31,7 +31,7 @@ export function buildCallContext(auth: ApiAuthContext): McpCallContext {
             reportUsage({
               userId: auth.createdBy,
               orgId: auth.orgId,
-              apiKeyId: auth.apiKeyId,
+              apiKeyId: auth.apiKeyId ?? undefined,
               source: "api",
               usageType,
               environment: auth.environment,

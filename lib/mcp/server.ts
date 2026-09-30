@@ -5,6 +5,7 @@ import { registerGuidelineResources } from "./resources/guidelines";
 import { registerAccountTools } from "./tools/account";
 import { registerRetrievalTools } from "./tools/retrieval";
 import { registerScreeningTool } from "./tools/screening";
+import { registerSearchFetchTools } from "./tools/searchFetch";
 
 export const MCP_SERVER_NAME = "notedoctor";
 
@@ -13,7 +14,7 @@ export const MCP_SERVER_NAME = "notedoctor";
  * not when the app deploys. It is what a client reports and what a support
  * conversation refers to, so it should mean something.
  */
-export const MCP_SERVER_VERSION = "1.0.0";
+export const MCP_SERVER_VERSION = "1.1.0";
 
 /**
  * Build the server instance for one request.
@@ -32,6 +33,7 @@ export function buildMcpServer(ctx: McpCallContext): McpServer {
   registerAccountTools(server, ctx);
   registerRetrievalTools(server, ctx);
   registerScreeningTool(server, ctx);
+  registerSearchFetchTools(server, ctx);
   registerGuidelineResources(server, ctx);
 
   return server;

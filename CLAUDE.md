@@ -84,6 +84,22 @@ introspection to MCP clients (Claude Code, Claude Desktop, Cursor) over
   `runAgent` already meters `orchestrator`.
 - Guideline resources (`notedoctor://guideline/{corpusId}`) are gated behind
   `MCP_EXPOSE_GUIDELINE_RESOURCES` and **off by default**.
+- **OAuth (claude.ai / ChatGPT connectors).** `lib/mcp/auth.ts` branches on
+  token shape: `sk_` keys go through `resolveApiAuth` unchanged; anything else
+  is a Supabase OAuth 2.1 server access token, checked by
+  `lib/mcp/oauth/verifyToken.ts`. The authorization server is Supabase's (beta,
+  enabled per project in the dashboard; consent UI at `app/oauth/consent`,
+  discovery at `app/.well-known/oauth-protected-resource`). Its tokens carry
+  `aud: "authenticated"` like any session JWT, so the `client_id` claim is what
+  tells them apart — a plain browser session token is refused. OAuth callers
+  get `agents`+`chat`, `apiKeyId: null` (`usage_logs.api_key_id` is an FK), and
+  a rate-limit bucket of `oauth:<client>:<user>`. Supabase offers DCR only (no
+  CIMD) and no `iss` in the authorize response, so ChatGPT uses its per-app
+  callback URL rather than the stable one. `proxy.ts` excludes `.well-known`
+  and `utils/middleware.ts` allowlists `/oauth`; both are load-bearing.
+- `search` / `fetch` exist for ChatGPT deep research. `fetch` on a guideline
+  returns an excerpt unless `MCP_EXPOSE_GUIDELINE_RESOURCES` is on — it is as
+  bulk-readable as a resource.
 - Client timeouts are the known sharp edge: a screening takes 45-65s, so
   document `MCP_TOOL_TIMEOUT=300000`.
 

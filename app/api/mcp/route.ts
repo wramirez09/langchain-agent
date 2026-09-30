@@ -9,7 +9,11 @@ import {
   rateLimitedResponse,
   NO_STORE,
 } from "@/lib/api/publicApi";
-import { MCP_WWW_AUTHENTICATE, resolveMcpAuth } from "@/lib/mcp/auth";
+import {
+  mcpWwwAuthenticate,
+  rateLimitSubject,
+  resolveMcpAuth,
+} from "@/lib/mcp/auth";
 import { getHandler, toAuthInfo } from "@/lib/mcp/handler";
 import { hasAnyMcpScope } from "@/lib/mcp/policy";
 
@@ -32,19 +36,22 @@ export const dynamic = "force-dynamic";
  * public-API contracts (401/402/403/429 shapes, rate-limit headers,
  * `Idempotency-Key`) byte-identical to the REST surface.
  *
- * No CORS, matching `/api/v1/*`: the key is a secret and must never ship to a
- * browser. `proxy.ts`'s matcher already excludes `/api`, so no middleware
- * change is needed.
+ * Two credentials reach this route: an `sk_` API key (Claude Code, Cursor,
+ * scripts) and a Supabase OAuth access token (claude.ai / ChatGPT connectors).
+ * `resolveMcpAuth` normalises both to one context, so nothing below branches.
+ *
+ * No CORS, matching `/api/v1/*`: connectors call from their own servers, and
+ * the key is a secret that must never ship to a browser. `proxy.ts`'s matcher
+ * already excludes `/api`, so no middleware change is needed.
  */
 async function handle(req: Request): Promise<Response> {
   /* ---------- AUTH ---------- */
   const authResult = await resolveMcpAuth(req);
   if (!authResult.ok) {
-    // Send `WWW-Authenticate` so a client prompts for a token rather than
-    // failing opaquely — and so an OAuth-capable client has something to read
-    // when that phase lands.
+    // `WWW-Authenticate` with `resource_metadata` is what starts OAuth in the
+    // claude.ai and ChatGPT connectors; an API-key client just prompts.
     return apiError(authResult.code, authResult.message, authResult.status, {
-      "WWW-Authenticate": MCP_WWW_AUTHENTICATE,
+      "WWW-Authenticate": mcpWwwAuthenticate(),
     });
   }
   const { auth } = authResult;
@@ -65,11 +72,11 @@ async function handle(req: Request): Promise<Response> {
    * arrays, so a batching client could in principle smuggle N calls for one
    * token; no shipping MCP client batches, and the org-level limiter plus
    * maxDuration bound the blast radius. Documented rather than over-built. */
-  const rl = await checkRateLimit(auth.orgId, auth.apiKeyId, auth.tier);
+  const rl = await checkRateLimit(auth.orgId, rateLimitSubject(auth), auth.tier);
   const rlHeaders = rateLimitHeaders(rl);
   if (!rl.success) return rateLimitedResponse(rl);
 
-  waitUntil(touchApiKey(auth.apiKeyId));
+  if (auth.apiKeyId) waitUntil(touchApiKey(auth.apiKeyId));
 
   /* ---------- SERVE ---------- */
   const res = await getHandler().fetch(req, { authInfo: toAuthInfo(auth) });

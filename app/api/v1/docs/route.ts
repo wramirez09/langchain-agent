@@ -393,6 +393,18 @@ const HTML = `<!doctype html>
 # A full screening takes 45-65s. Raise the tool timeout before running one:
 export MCP_TOOL_TIMEOUT=300000</code></pre>
     </figure>
+    <h3>Claude and ChatGPT connectors</h3>
+    <p>In claude.ai, Claude Desktop and ChatGPT, add NoteDoctorAi as a connector and sign in with
+    your NoteDoctorAi account — no key to paste.</p>
+    <ul>
+      <li><strong>Claude:</strong> Settings → Connectors → Add custom connector →
+      <code>https://app.notedoctor.ai/api/mcp</code>.</li>
+      <li><strong>ChatGPT:</strong> Settings → Apps → Advanced → turn on Developer mode → Create →
+      <code>https://app.notedoctor.ai/api/mcp</code>, authentication OAuth.</li>
+    </ul>
+    <p>A connector acts on your own account with the same tools an <code>agents</code> +
+    <code>chat</code> key has, and is billed to your subscription. The <code>search</code> and
+    <code>fetch</code> tools make NoteDoctorAi available to ChatGPT deep research.</p>
     <div class="callout"><strong>Tool timeouts are the one thing to configure.</strong> Most clients
     give up on a tool call at 60 seconds, which is inside the normal range for
     <code>run_prior_auth_screening</code>. The server emits progress notifications to hold the
@@ -407,6 +419,7 @@ export MCP_TOOL_TIMEOUT=300000</code></pre>
       <tr><td><code>commercial_guidelines_search</code></td><td>agents / chat</td><td>The commercial-payer guideline corpus.</td></tr>
       <tr><td><code>policy_content_extractor</code></td><td>agents / chat</td><td>Up to three payer policy pages, extracted to JSON.</td></tr>
       <tr><td><code>run_prior_auth_screening</code></td><td>agents</td><td>The full screening, returning the same artifact as <code>/v1/agents</code>.</td></tr>
+      <tr><td><code>search</code> · <code>fetch</code></td><td>agents / chat</td><td>Search NCDs and commercial guidelines by free text, then fetch one result by id. The contract ChatGPT deep research uses.</td></tr>
       <tr><td><code>whoami</code> · <code>usage</code></td><td>any key</td><td>Key introspection and month-to-date usage. Unmetered.</td></tr>
     </table>
     <p>A tool your key is not scoped for is simply absent from <code>tools/list</code> — you will

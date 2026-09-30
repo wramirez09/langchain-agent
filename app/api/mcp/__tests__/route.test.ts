@@ -13,7 +13,9 @@ const fetchMock = jest.fn();
 
 jest.mock("@/lib/mcp/auth", () => ({
   resolveMcpAuth: (...a: any[]) => resolveMock(...a),
-  MCP_WWW_AUTHENTICATE: 'Bearer realm="notedoctor-mcp"',
+  mcpWwwAuthenticate: () => 'Bearer realm="notedoctor-mcp", resource_metadata="x"',
+  rateLimitSubject: (auth: any) =>
+    auth.apiKeyId ?? `oauth:${auth.oauthClientId}:${auth.createdBy}`,
 }));
 jest.mock("@/lib/billing/apiAccess", () => ({
   userHasApiAccess: (...a: any[]) => accessMock(...a),
@@ -77,7 +79,9 @@ describe("POST /api/mcp", () => {
     const res = await POST(req());
 
     expect(res.status).toBe(401);
-    expect(res.headers.get("WWW-Authenticate")).toBe('Bearer realm="notedoctor-mcp"');
+    expect(res.headers.get("WWW-Authenticate")).toBe(
+      'Bearer realm="notedoctor-mcp", resource_metadata="x"',
+    );
     expect((await res.json()).error.code).toBe("unauthorized");
     expect(accessMock).not.toHaveBeenCalled();
     expect(fetchMock).not.toHaveBeenCalled();
@@ -143,6 +147,20 @@ describe("POST /api/mcp", () => {
     expect(options.authInfo.scopes).toEqual(["agents", "chat"]);
     // The caller's key never travels past the function that hashed it.
     expect(options.authInfo.token).toBe("redacted");
+  });
+
+  it("serves an OAuth principal: limits on the client+user bucket and never touches a key row", async () => {
+    resolveMock.mockResolvedValue({
+      ok: true,
+      auth: { ...validAuth.auth, apiKeyId: null, oauthClientId: "c1" },
+    });
+
+    const res = await POST(req());
+
+    expect(res.status).toBe(200);
+    expect(rateMock).toHaveBeenCalledWith("org-1", "oauth:c1:u1", "standard");
+    expect(touchMock).not.toHaveBeenCalled();
+    expect(accessMock).toHaveBeenCalledWith("u1");
   });
 
   it("streams an SSE body through untouched", async () => {

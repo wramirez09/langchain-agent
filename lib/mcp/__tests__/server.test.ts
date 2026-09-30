@@ -68,6 +68,7 @@ describe("tools/list", () => {
     await connect(["agents", "chat"]);
     expect(await toolNames()).toEqual([
       "commercial_guidelines_search",
+      "fetch",
       "local_coverage_article_search",
       "local_lcd_search",
       "medicare_multi_search",
@@ -75,6 +76,7 @@ describe("tools/list", () => {
       "ncd_coverage_search",
       "policy_content_extractor",
       "run_prior_auth_screening",
+      "search",
       "usage",
       "whoami",
     ]);
@@ -104,7 +106,13 @@ describe("tools/list", () => {
 
   it("never publishes the generic web search", async () => {
     await connect(["agents", "chat"]);
-    expect(await toolNames()).not.toContain("search");
+    // LangChain's SerpAPI tool is also named `search`. Ours is the ChatGPT
+    // deep-research contract over our own corpora — assert it is that one.
+    const { tools } = await client.listTools();
+    const search = tools.find((t) => t.name === "search")!;
+    expect(search.description).toMatch(/Medicare/);
+    expect(search.description).not.toMatch(/web|google|serp/i);
+    expect(await toolNames()).not.toContain("serpapi");
   });
 });
 
