@@ -67,7 +67,15 @@ export function PriorAuthChatPanel({
       )}
     >
       <div className="px-6 py-4 border-b border-border flex items-center justify-between flex-shrink-0">
-        <h3 className="text-sm font-semibold text-foreground">Chat Assistant</h3>
+        <h3 className="flex items-center gap-1.5 text-sm font-semibold text-foreground">
+          <Sparkles
+            size={16}
+            strokeWidth={1.7}
+            aria-hidden="true"
+            className="shrink-0 text-blue-600"
+          />
+          Ai Assistant
+        </h3>
         <div className="flex items-center gap-3">
           <button
             onClick={onSaveQuery}
