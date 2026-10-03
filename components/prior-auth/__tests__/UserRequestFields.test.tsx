@@ -190,3 +190,25 @@ describe("UserRequestFields — scrubbing what the user typed", () => {
     expect(screen.queryByText(/john smith/)).toBeNull();
   });
 });
+
+describe("UserRequestFields — field icons", () => {
+  const iconClass = (label: string) =>
+    screen.getByText(label).querySelector("svg")?.getAttribute("class") ?? "";
+
+  it("labels each field with the form's icon, but not free-text notes", () => {
+    render(
+      <UserRequestFields content="Guidelines: Medicare. State: Arizona. Treatment: Acupuncture | Any priors needed?" />,
+    );
+    expect(iconClass("Guidelines")).toContain("lucide-file-text");
+    expect(iconClass("State")).toContain("lucide-map-pin");
+    expect(iconClass("Treatment")).toContain("lucide-stethoscope");
+    expect(screen.getByText("Additional Notes").querySelector("svg")).toBeNull();
+  });
+
+  it("keeps the icons on the labels while values are hidden", () => {
+    render(
+      <UserRequestFields pending content="Guidelines: Medicare. State: Arizona" />,
+    );
+    expect(iconClass("Guidelines")).toContain("lucide-file-text");
+  });
+});
