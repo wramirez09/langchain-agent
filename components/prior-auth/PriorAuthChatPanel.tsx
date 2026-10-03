@@ -110,7 +110,10 @@ export function PriorAuthChatPanel({
         style={{ overflowY: 'scroll', maxHeight: '100%' }}
       >
         {messages.length === 0 && !isRestoring ? (
-          <div className="flex flex-col items-center justify-center h-full text-center px-4 py-8">
+          // min-h-full, not h-full: centred when it fits, but when it's taller than
+          // the panel (phones) it grows and scrolls instead of overflowing above
+          // the top, where justify-center would clip the heading.
+          <div className="flex flex-col items-center justify-center min-h-full text-center px-4 py-8">
             <div className="size-11 bg-primary/10 rounded-full flex items-center justify-center mb-3">
               <Sparkles className="size-5 text-blue-600" strokeWidth={1.75} />
             </div>
