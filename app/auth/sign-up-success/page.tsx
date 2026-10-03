@@ -4,9 +4,9 @@ import Link from 'next/link';
 
 export default function Page() {
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gradient-light p-6">
+    <div className="min-h-screen flex items-center justify-center bg-gradient-light dark:bg-none p-6">
       <div className="w-full max-w-md text-center">
-        <div className="bg-card rounded-xl shadow-md p-8">
+        <div className="bg-card rounded-xl shadow-md p-8 dark:border dark:border-border dark:shadow-[0_24px_60px_-30px_rgba(0,0,0,0.7)]">
           <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-full bg-success/10 mb-6">
             <CheckCircle2 className="h-10 w-10 text-success" />
           </div>
@@ -22,7 +22,7 @@ export default function Page() {
             </Button>
             <p className="text-sm text-muted-foreground">
               Didn&apos;t receive an email?{' '}
-              <Link href="/auth/sign-up" className="font-medium text-blue-600 hover:underline">
+              <Link href="/auth/sign-up" className="font-medium text-blue-600 dark:text-accent-foreground hover:underline">
                 Try again
               </Link>
             </p>

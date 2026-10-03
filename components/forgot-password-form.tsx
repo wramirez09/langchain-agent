@@ -44,7 +44,7 @@ export function ForgotPasswordForm({ className, ...props }: React.ComponentProps
       {success ? (
         <div className="space-y-2 text-center">
           <p className="text-lg font-semibold text-foreground">Check Your Email</p>
-          <p className="text-sm text-dark">
+          <p className="text-sm text-dark dark:text-muted-foreground">
             If you registered using your email and password, you will receive a
             password reset email.
           </p>
@@ -74,7 +74,7 @@ export function ForgotPasswordForm({ className, ...props }: React.ComponentProps
               )}
               <Button
                 type="submit"
-                className="w-full bg-gradient-to-b from-blue-500 to-blue-600 text-white"
+                className="w-full bg-gradient-to-b from-blue-500 to-blue-600 text-white dark:shadow-[0_0_32px_rgba(59,130,246,0.35)]"
                 disabled={isLoading}
               >
                 {isLoading ? (
@@ -88,11 +88,11 @@ export function ForgotPasswordForm({ className, ...props }: React.ComponentProps
               </Button>
             </div>
           </form>
-          <div className="text-center text-sm text-dark">
+          <div className="text-center text-sm text-dark dark:text-muted-foreground">
             Already have an account?{' '}
             <Link
               href="/auth/login"
-              className="font-medium text-blue-600 hover:underline"
+              className="font-medium text-blue-600 dark:text-accent-foreground hover:underline"
             >
               Sign in
             </Link>

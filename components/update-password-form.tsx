@@ -12,6 +12,7 @@ import {
   CardTitle,
 } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
+import { PasswordInput } from "@/components/ui/password-input";
 import { Label } from "@/components/ui/label";
 
 // This page serves two distinct flows on the same URL:
@@ -129,8 +130,7 @@ function UpdatePasswordFormCore() {
 
             <div>
               <Label>New Password</Label>
-              <Input
-                type="password"
+              <PasswordInput
                 required
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}

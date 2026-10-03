@@ -26,6 +26,17 @@ jest.mock('next/image', () => ({
 }))
 jest.mock('@/public/images/ndLogo.png', () => 'logo.png', { virtual: true })
 
+const mockOpenBillingPortal = jest.fn()
+jest.mock('@/lib/billing/openBillingPortal', () => ({
+  openBillingPortal: () => mockOpenBillingPortal(),
+}))
+
+let mockPathname = '/'
+jest.mock('next/navigation', () => ({ usePathname: () => mockPathname }))
+jest.mock('next-themes', () => ({
+  useTheme: () => ({ theme: 'dark', setTheme: jest.fn() }),
+}))
+
 const mockToggleIsOpen = jest.fn()
 jest.mock('@/components/providers/MobileSidebarProvider', () => ({
   useMobileSidebar: () => ({ toggleIsOpen: mockToggleIsOpen }),
@@ -84,4 +95,37 @@ describe('TopBar', () => {
     await user.click(btn)
     expect(mockToggleIsOpen).toHaveBeenCalled()
   })
+
+  it('avatar opens the billing portal', async () => {
+    mockGetSession.mockResolvedValue({
+      data: { session: { user: { id: 'u1', email: 'will.smith@example.com' } } },
+    })
+    mockFromSelectEqSingle.mockResolvedValue({
+      data: { full_name: 'Will Smith', email: 'will.smith@example.com' },
+    })
+    render(<TopBar />)
+    const avatar = await screen.findByRole('button', { name: 'Billing' })
+    await userEvent.setup().click(avatar)
+    expect(mockOpenBillingPortal).toHaveBeenCalledTimes(1)
+  })
+
+  it.each(['/', '/auth/login', '/legal/terms-of-service', '/agents/api-keys'])(
+    'shows the theme selector on %s (no side nav there)',
+    async (path) => {
+      mockPathname = path
+      mockGetSession.mockResolvedValue({ data: { session: null } })
+      render(<TopBar />)
+      expect(screen.getByRole('radiogroup', { name: 'Color theme' })).toBeInTheDocument()
+    }
+  )
+
+  it.each(['/agents', '/protected/preAuth'])(
+    'leaves the theme selector to the side nav on %s',
+    async (path) => {
+      mockPathname = path
+      mockGetSession.mockResolvedValue({ data: { session: null } })
+      render(<TopBar />)
+      expect(screen.queryByRole('radiogroup', { name: 'Color theme' })).toBeNull()
+    }
+  )
 })

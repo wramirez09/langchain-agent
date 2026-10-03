@@ -1,4 +1,5 @@
 import ApiKeysManager from "@/components/ApiKeysManager";
+import { BackToAppLink } from "@/components/BackToAppLink";
 
 export const metadata = {
   title: "API Keys",
@@ -10,6 +11,7 @@ export default function ApiKeysPage() {
   return (
     <main className="h-full overflow-y-auto">
       <div className="mx-auto w-full max-w-[1200px] px-4 py-8 sm:px-6 md:py-10">
+        <BackToAppLink className="mb-4" />
         <header>
           <h1 className="text-3xl font-extrabold leading-[1.15] tracking-[-0.026em]">API Keys</h1>
           <p className="mt-2 max-w-[56ch] text-sm leading-relaxed text-muted-foreground">

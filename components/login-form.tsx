@@ -4,6 +4,7 @@ import { cn } from "@/utils/cn";
 import { createClient } from '@/utils/client';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
+import { PasswordInput } from '@/components/ui/password-input';
 import { Label } from '@/components/ui/label';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
@@ -68,14 +69,13 @@ export function LoginForm({
               </Label>
               <Link
                 href="/auth/forgot-password"
-                className="text-sm font-medium text-blue-600 hover:underline"
+                className="text-sm font-medium text-blue-600 dark:text-accent-foreground hover:underline"
               >
                 Forgot password?
               </Link>
             </div>
-            <Input
+            <PasswordInput
               id="password"
-              type="password"
               value={password}
               onChange={(e) => setPassword(e.target.value)}
               disabled={isLoading}
@@ -89,7 +89,7 @@ export function LoginForm({
           )}
           <Button
             type="submit"
-            className="w-full bg-gradient-to-b from-blue-500 to-blue-600 text-white"
+            className="w-full bg-gradient-to-b from-blue-500 to-blue-600 text-white dark:shadow-[0_0_32px_rgba(59,130,246,0.35)]"
             disabled={isLoading}
           >
             {isLoading ? (
@@ -103,11 +103,11 @@ export function LoginForm({
           </Button>
         </div>
       </form>
-      <div className="text-center text-sm text-dark">
+      <div className="text-center text-sm text-dark dark:text-muted-foreground">
         Don&apos;t have an account?{' '}
         <Link
           href="/auth/sign-up"
-          className="font-medium text-blue-600 hover:underline"
+          className="font-medium text-blue-600 dark:text-accent-foreground hover:underline"
         >
           Sign up
         </Link>

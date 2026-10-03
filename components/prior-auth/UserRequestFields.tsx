@@ -1,5 +1,6 @@
 import React from "react";
 import { cn } from "@/utils/cn";
+import { FIELD_ICONS, type FieldIconKey } from "@/components/prior-auth/fieldIcons";
 
 // The PA form serializes its inputs into a single labeled string (see
 // PriorAuthView.handleGenerateAuth):
@@ -9,7 +10,7 @@ import { cn } from "@/utils/cn";
 // user's request renders as separated, labeled fields mirroring the agent's
 // Request Overview card — instead of one opaque run-on sentence.
 
-type FieldDef = { key: string; label: string; re: RegExp; full?: boolean };
+type FieldDef = { key: FieldIconKey; label: string; re: RegExp; full?: boolean };
 
 // Order doesn't matter for matching (each regex is matched independently), but
 // `full` controls whether a field spans both grid columns.
@@ -30,7 +31,12 @@ const FIELD_DEFS: FieldDef[] = [
   { key: "history", label: "History", re: /(?<!Relevant Medical )History\s*:/, full: true },
 ];
 
-type ParsedField = { label: string; value: string; full?: boolean };
+type ParsedField = {
+  key: FieldIconKey;
+  label: string;
+  value: string;
+  full?: boolean;
+};
 
 function parseRequest(raw: string): {
   fields: ParsedField[];
@@ -68,7 +74,7 @@ function parseRequest(raw: string): {
         .trim()
         .replace(/[.\s]+$/, "")
         .trim();
-      return { label: mk.def.label, value, full: mk.def.full };
+      return { key: mk.def.key, label: mk.def.label, value, full: mk.def.full };
     })
     .filter((f) => f.value);
 
@@ -79,14 +85,29 @@ function Field({
   k,
   v,
   full,
+  icon,
 }: {
   k: string;
   v: React.ReactNode;
   full?: boolean;
+  /** Same icon the form labels this field with; omitted for free-text notes. */
+  icon?: FieldIconKey;
 }) {
+  const fieldIcon = icon ? FIELD_ICONS[icon] : null;
   return (
     <div className={cn("min-w-0", full && "sm:col-span-2")}>
-      <div className="mb-1 text-[12.5px] font-semibold text-muted-foreground">{k}</div>
+      <div className="mb-1 flex items-center gap-1.5 text-[12.5px] font-semibold text-muted-foreground">
+        {fieldIcon && (
+          <fieldIcon.Icon
+            size={14}
+            color={fieldIcon.color}
+            strokeWidth={1.25}
+            aria-hidden="true"
+            className="shrink-0"
+          />
+        )}
+        {k}
+      </div>
       <div className="text-[15px] leading-[1.5] text-foreground [overflow-wrap:anywhere]">
         {v}
       </div>
@@ -110,7 +131,7 @@ export function UserRequestFields({ content }: { content: string }) {
   return (
     <div className="grid grid-cols-1 gap-x-8 gap-y-5 sm:grid-cols-2">
       {fields.map((f) => (
-        <Field key={f.label} k={f.label} v={f.value} full={f.full} />
+        <Field key={f.label} k={f.label} v={f.value} full={f.full} icon={f.key} />
       ))}
       {notes ? <Field full k="Additional Notes" v={notes} /> : null}
     </div>

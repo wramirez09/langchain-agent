@@ -6,10 +6,18 @@ import * as React from 'react';
 import { Menu } from 'lucide-react';
 import { createClient } from '@/utils/client';
 import { useMobileSidebar } from '@/components/providers/MobileSidebarProvider';
-import { ThemeToggle } from '@/components/ThemeToggle';
+import { openBillingPortal } from '@/lib/billing/openBillingPortal';
+import { usePathname } from 'next/navigation';
+import { ThemeToggle } from '@/components/theme/ThemeToggle';
+
+// Routes that render AppSidebar, whose Theme group is the selector there.
+// Every other page (public, auth, legal, API) gets one in the top bar.
+const SIDEBAR_ROUTES = ['/agents', '/protected/preAuth'];
 
 const TopBar: React.FC = () => {
   const { toggleIsOpen } = useMobileSidebar();
+  const pathname = usePathname();
+  const showThemeToggle = !SIDEBAR_ROUTES.includes(pathname ?? '');
   const [displayName, setDisplayName] = React.useState('');
   const [displayEmail, setDisplayEmail] = React.useState('');
   const [initials, setInitials] = React.useState('');
@@ -90,19 +98,25 @@ const TopBar: React.FC = () => {
         className="flex items-center justify-center gap-2"
       >
         <Image src={logo} alt="NoteDoctorAiLogo" className="h-8 w-auto" />
-        {/* The wordmark yields to the logo on phones so the theme control and
-          avatar have room; the mark alone still identifies the app. */}
+        {/* The wordmark yields to the logo on phones; the mark alone still
+          identifies the app. */}
         <span className="hidden sm:inline text-md font-bold text-foreground">NoteDoctorAi</span>
       </Link>
 
       {/* Right — user info */}
       <div className="flex-1 flex items-center justify-end gap-3">
-        <ThemeToggle className="w-auto" />
+        {showThemeToggle && <ThemeToggle />}
         {isLoggedIn && (
           <div className="flex items-center gap-3">
-            <div className="w-9 h-9 bg-blue-600 rounded-full flex items-center justify-center flex-shrink-0">
+            <button
+              type="button"
+              onClick={openBillingPortal}
+              aria-label="Billing"
+              title="Billing"
+              className="w-9 h-9 bg-blue-600 rounded-full flex items-center justify-center flex-shrink-0 transition-shadow hover:ring-2 hover:ring-ring/40 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background"
+            >
               <span className="text-sm font-semibold text-white">{initials || 'U'}</span>
-            </div>
+            </button>
           </div>
         )}
       </div>

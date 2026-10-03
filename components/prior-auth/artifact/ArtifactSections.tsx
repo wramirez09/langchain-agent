@@ -191,10 +191,18 @@ function CodeChip({ code }: { code?: string }) {
 
 const BlueCheckIcon = (
   <svg viewBox="0 0 20 20" fill="none" className="h-[18px] w-[18px]">
-    <circle cx="10" cy="10" r="9" fill="#eff4ff" stroke="#dbe6fe" />
+    <circle
+      cx="10"
+      cy="10"
+      r="9"
+      fill="#eff4ff"
+      stroke="#dbe6fe"
+      className="dark:fill-accent dark:stroke-primary/30"
+    />
     <path
       d="M6.4 10.3l2.4 2.4L13.8 7.6"
       stroke="#238dd2"
+      className="dark:stroke-accent-foreground"
       strokeWidth="1"
       strokeLinecap="round"
       strokeLinejoin="round"
@@ -903,7 +911,7 @@ export function DocumentationCard({
                           }
                           : { defaultChecked: provided })}
                         aria-label={provided ? "Provided" : "Not in record"}
-                        className="mt-0.5 h-4 w-4 flex-none cursor-pointer rounded border-border accent-[#15803d]"
+                        className="mt-0.5 h-4 w-4 flex-none cursor-pointer rounded border-border accent-[#15803d] dark:accent-success"
                       />
                       <span className="min-w-0 text-foreground-soft">{d?.item}</span>
                       {/* {d?.provided === false ? (

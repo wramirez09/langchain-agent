@@ -3,6 +3,7 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 
 import { cn } from "@/utils/cn";
+import { BackToAppLink } from "@/components/BackToAppLink";
 import {
   clearPlaygroundHistory,
   deletePlaygroundRequest,
@@ -497,6 +498,7 @@ export default function ApiPlayground() {
   if (apiAccess === false) {
     return (
       <div className="mx-auto mt-8 w-full max-w-3xl px-4">
+        <BackToAppLink className="mb-4" />
         <div className="rounded-lg border border-warning/60 bg-warning/5 px-4 py-4 text-sm dark:bg-warning/10">
           <p className="font-medium text-warning dark:text-warning">
             The API playground requires an active subscription.
@@ -517,6 +519,8 @@ export default function ApiPlayground() {
     <div className="flex h-full min-h-0 flex-col bg-background">
       {/* Toolbar */}
       <div className="flex min-h-[60px] flex-shrink-0 flex-wrap items-center gap-x-4 gap-y-2 border-b bg-card px-4 py-2 sm:px-6">
+        <BackToAppLink />
+        <span className="h-5 w-px bg-border" />
         <h1 className="text-[17px] font-semibold tracking-tight">API Playground</h1>
         <span className="hidden h-5 w-px bg-border sm:block" />
         <div className="flex h-8 items-center gap-2 rounded-lg border bg-card px-2.5">

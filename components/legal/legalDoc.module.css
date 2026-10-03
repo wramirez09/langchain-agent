@@ -11,6 +11,13 @@
   --surface: #ffffff;
   --bg: #f7f9fb;
   --line: #edeef2;
+  --tint: #eef6fc; /* brand wash: back-link hover, updated pill */
+  --tint-line: #d8ebf8;
+  --raised: #fff; /* TOC hover / active row */
+  --danger-bg: #fbf4f3;
+  --danger-line: #f1d9d6;
+  --danger-edge: #d9534f;
+  --danger-ink: #b5302b;
 
   height: 100%;
   overflow-y: auto;
@@ -20,6 +27,37 @@
   line-height: 1.6;
   -webkit-font-smoothing: antialiased;
   font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+}
+
+/* Theme B (Midnight). Same roles mapped onto the app's dark tokens in
+   app/globals.css, so the legal pages sit on the shared navy ground (glow +
+   dot grid show through) with the marketing panel gradient on the document.
+   The brand book defines no red; the callout reuses the app-only
+   --destructive ink, which is held to 4.5:1 on bg-card. */
+:global(.dark) .page {
+  --brand: #60a5fa; /* blue-mid: brand ink for text on dark */
+  --brand-hover: #3b82f6;
+  --ink: hsl(var(--foreground));
+  --text: hsl(var(--foreground-soft));
+  --muted: hsl(var(--muted-foreground));
+  --faint: hsl(var(--muted-foreground));
+  --surface: hsl(var(--card));
+  --bg: transparent;
+  --line: hsl(var(--border));
+  --tint: rgba(59, 130, 246, 0.12); /* blue-dim */
+  --tint-line: rgba(59, 130, 246, 0.2);
+  --raised: rgba(255, 255, 255, 0.04);
+  --danger-bg: hsl(var(--destructive) / 0.08);
+  --danger-line: hsl(var(--destructive) / 0.25);
+  --danger-edge: hsl(var(--destructive));
+  --danger-ink: hsl(var(--destructive));
+}
+:global(.dark) .doc {
+  background-image: linear-gradient(160deg, #131d35 0%, #0f1522 100%);
+  box-shadow: 0 24px 60px -30px rgba(0, 0, 0, 0.7);
+}
+:global(.dark) .legalbox {
+  background: hsl(var(--secondary));
 }
 
 /* back link row (the global TopBar provides the logo/wordmark) */
@@ -43,7 +81,7 @@
   transition: background 0.15s;
 }
 .back:hover {
-  background: #eef6fc;
+  background: var(--tint);
 }
 .back svg {
   width: 16px;
@@ -99,12 +137,12 @@
 }
 .toc a:hover {
   color: var(--ink);
-  background: #fff;
+  background: var(--raised);
 }
 .toc a.active {
   color: var(--brand);
   border-left-color: var(--brand);
-  background: #fff;
+  background: var(--raised);
   font-weight: 600;
 }
 .toc a.active::before {
@@ -138,8 +176,8 @@
   font-size: 13px;
   font-weight: 600;
   color: var(--brand);
-  background: #eef6fc;
-  border: 1px solid #d8ebf8;
+  background: var(--tint);
+  border: 1px solid var(--tint-line);
   padding: 5px 12px;
   border-radius: 999px;
 }
@@ -215,9 +253,9 @@
 }
 
 .callout {
-  background: #fbf4f3;
-  border: 1px solid #f1d9d6;
-  border-left: 3px solid #d9534f;
+  background: var(--danger-bg);
+  border: 1px solid var(--danger-line);
+  border-left: 3px solid var(--danger-edge);
   border-radius: 8px;
   padding: 14px 18px;
   margin: 0 0 14px;
@@ -226,7 +264,7 @@
   margin: 0;
 }
 .callout strong {
-  color: #b5302b;
+  color: var(--danger-ink);
 }
 
 .legalbox {

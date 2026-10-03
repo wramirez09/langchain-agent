@@ -72,14 +72,14 @@ function AcceptTermsContent() {
   }
 
   return (
-    <div className="h-screen bg-muted overflow-y-auto">
+    <div className="h-screen bg-muted dark:bg-transparent overflow-y-auto">
       <div className="w-full max-w-3xl mx-auto px-4 py-8 pb-24">
         <Card>
           <CardHeader>
-            <CardTitle className="text-2xl text-dark font-semibold">
+            <CardTitle className="text-2xl text-dark dark:text-foreground font-semibold">
               Accept Terms & Privacy Policy
             </CardTitle>
-            <CardDescription className="text-dark font-medium">
+            <CardDescription className="text-dark dark:text-muted-foreground font-medium">
               Before proceeding to payment, please review and accept our legal agreements
             </CardDescription>
           </CardHeader>

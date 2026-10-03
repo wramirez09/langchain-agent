@@ -11,15 +11,19 @@ import {
   KeyRound,
   FlaskConical,
   Code2,
+  SunMoon,
+  Check,
 } from 'lucide-react';
+import { useTheme } from 'next-themes';
+import { THEME_OPTIONS, noopSubscribe } from '@/components/theme/themeOptions';
 import { cn } from '@/utils/cn';
 import { createClient } from '@/utils/client';
 import { useRouter } from 'next/navigation';
 import { useMobileSidebar } from '@/components/providers/MobileSidebarProvider';
 import { usePriorAuthChat } from '@/components/providers/PriorAuthProvider';
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useSyncExternalStore } from 'react';
 import Link from 'next/link';
-import { toast } from 'sonner';
+import { openBillingPortal } from '@/lib/billing/openBillingPortal';
 
 export type AppView = 'auth' | 'upload' | 'export';
 
@@ -43,7 +47,7 @@ const supportLinks = [
 // Fly-out rail row: the icon stays put in the slim rail while the label
 // (`fb-label`, styled in globals.css) fades/slides in as the rail expands.
 const rowClass =
-  'relative w-full flex items-center gap-[15px] h-[46px] px-3.5 rounded-xl text-left transition-colors';
+  'relative w-full flex items-center gap-[15px] h-[46px] px-[15.5px] rounded-xl text-left transition-colors';
 
 // API rows nested under the Developer group — same row, deeper left padding
 // so they read as children of the Developer header.
@@ -62,6 +66,81 @@ function SectionHead({ children }: { children: React.ReactNode }) {
 function ActiveBar() {
   return (
     <span className="absolute -left-[15.5px] top-3 bottom-3 w-[7px] rounded-full bg-primary" />
+  );
+}
+
+/** Collapsible group header (Developer, Theme): icon, label, rotating caret. */
+function AccordionHeader({
+  icon: Icon,
+  label,
+  open,
+  onToggle,
+  controls,
+}: {
+  icon: React.ElementType;
+  label: string;
+  open: boolean;
+  onToggle: () => void;
+  controls: string;
+}) {
+  return (
+    <button
+      type="button"
+      onClick={onToggle}
+      aria-expanded={open}
+      aria-controls={controls}
+      aria-label={label}
+      className={cn(rowClass, 'text-muted-foreground hover:bg-accent')}
+    >
+      <Icon size={18} strokeWidth={1.7} className="shrink-0" />
+      <span className="fb-label text-[13px] font-semibold text-foreground-soft">{label}</span>
+      {/* The rotation lives on the icon, not the .fb-label wrapper:
+          `.flyout-wrap.is-open .fb-label` sets `transform: none` for the label
+          slide-in, which would otherwise cancel rotate-90. */}
+      <span aria-hidden className="fb-label ml-auto shrink-0 text-faint">
+        <ChevronRight
+          size={16}
+          strokeWidth={2}
+          className={cn(
+            'transition-transform duration-200 ease-out motion-reduce:transition-none',
+            open && 'rotate-90',
+          )}
+        />
+      </span>
+    </button>
+  );
+}
+
+/**
+ * A group's children. Always mounted so the height can animate: a 0fr -> 1fr
+ * grid row eases between collapsed and the content's natural height. Closed,
+ * the group is inert + aria-hidden so its rows can't be tabbed to or read out
+ * while invisible.
+ */
+function AccordionPanel({
+  id,
+  open,
+  children,
+  ...rest
+}: {
+  id: string;
+  open: boolean;
+  children: React.ReactNode;
+} & React.HTMLAttributes<HTMLDivElement>) {
+  return (
+    <div
+      id={id}
+      inert={!open}
+      aria-hidden={!open}
+      className={cn(
+        'grid transition-[grid-template-rows,opacity] duration-200 ease-out motion-reduce:transition-none',
+        open ? 'grid-rows-[1fr] opacity-100' : 'grid-rows-[0fr] opacity-0',
+      )}
+    >
+      <div {...rest} className="flex min-h-0 flex-col gap-[3px] overflow-hidden">
+        {children}
+      </div>
+    </div>
   );
 }
 
@@ -116,6 +195,17 @@ export function AppSidebar({ activeView, onViewChange }: AppSidebarProps) {
   // "Developer" is a collapsible group header, not a link — it only expands
   // and collapses its children. Open by default so the API rows are visible.
   const [devOpen, setDevOpen] = useState(true);
+  // Theme group starts closed — it's a preference, not navigation.
+  const [themeOpen, setThemeOpen] = useState(false);
+  const { theme, setTheme } = useTheme();
+  // next-themes only knows the stored theme on the client; leave every option
+  // unselected until mount so server and client markup agree.
+  const mounted = useSyncExternalStore(
+    noopSubscribe,
+    () => true,
+    () => false,
+  );
+  const activeTheme = THEME_OPTIONS.find((o) => mounted && o.value === theme);
   useEffect(() => {
     let cancelled = false;
     fetch('/api/org')
@@ -138,41 +228,6 @@ export function AppSidebar({ activeView, onViewChange }: AppSidebarProps) {
   const handleNavClick = (view: AppView) => {
     onViewChange(view);
     collapseFlyout();
-  };
-
-  const handleBilling = async () => {
-    // Open the tab synchronously (inside the click handler) so the browser
-    // treats it as user-initiated and doesn't block the popup; we redirect it
-    // once the Stripe portal URL resolves.
-    const billingTab = window.open("", "_blank");
-    try {
-      const res = await fetch("/api/stripe/billing", { method: "POST" });
-      const data = await res.json();
-      if (!res.ok) {
-        billingTab?.close();
-        // Prefer the server's message: a 404 here covers several distinct
-        // causes (no customer on the profile, a deleted customer, or a customer
-        // that belongs to a different Stripe account than the running key), and
-        // collapsing them all into "complete your subscription" told subscribed
-        // users to subscribe again and hid the real reason.
-        if (res.status === 401) {
-          toast.error('Please log in to access billing.');
-        } else {
-          toast.error(data.error || 'Unable to open billing portal.');
-        }
-        return;
-      }
-      if (data.url) {
-        if (billingTab) billingTab.location.href = data.url;
-        else window.open(data.url, "_blank", "noopener,noreferrer");
-      } else {
-        billingTab?.close();
-      }
-    } catch (err) {
-      billingTab?.close();
-      console.error('Portal error:', err);
-      toast.error('Unable to open billing portal. Please try again later.');
-    }
   };
 
   const handleLogout = async () => {
@@ -258,10 +313,10 @@ export function AppSidebar({ activeView, onViewChange }: AppSidebarProps) {
                     )}
                   >
                     {isActive && <ActiveBar />}
-                    <Icon size={21} strokeWidth={1.7} className="shrink-0" />
+                    <Icon size={18} strokeWidth={1.7} className="shrink-0" />
                     <span
                       className={cn(
-                        'fb-label text-sm',
+                        'fb-label text-[13px]',
                         isActive ? 'font-bold text-primary' : 'font-semibold',
                         !isActive && !isDisabled && 'text-foreground-soft',
                       )}
@@ -274,31 +329,14 @@ export function AppSidebar({ activeView, onViewChange }: AppSidebarProps) {
 
               {hasOrg ? (
                 <>
-                  <button
-                    type="button"
-                    onClick={() => setDevOpen((o) => !o)}
-                    aria-expanded={devOpen}
-                    aria-label="Developer"
-                    className={cn(rowClass, 'text-muted-foreground hover:bg-accent')}
-                  >
-                    <Code2 size={21} strokeWidth={1.7} className="shrink-0" />
-                    <span className="fb-label text-sm font-semibold text-foreground-soft">
-                      Developer
-                    </span>
-                    <ChevronRight
-                      size={16}
-                      strokeWidth={2}
-                      aria-hidden
-                      className={cn(
-                        'fb-label ml-auto shrink-0 text-faint transition-transform',
-                        devOpen && 'rotate-90',
-                      )}
-                    />
-                  </button>
-
-                  {/* Children of the Developer group — hidden when collapsed. */}
-                  {devOpen && (
-                    <>
+                  <AccordionHeader
+                    icon={Code2}
+                    label="Developer"
+                    open={devOpen}
+                    onToggle={() => setDevOpen((o) => !o)}
+                    controls="sidebar-developer-group"
+                  />
+                  <AccordionPanel id="sidebar-developer-group" open={devOpen}>
                       <Link
                         href="/agents/api-keys"
                         onClick={collapseFlyout}
@@ -308,8 +346,8 @@ export function AppSidebar({ activeView, onViewChange }: AppSidebarProps) {
                           'transition-[padding] text-muted-foreground hover:bg-accent',
                         )}
                       >
-                        <KeyRound size={18} strokeWidth={1.7} className="shrink-0" />
-                        <span className="fb-label text-sm font-medium text-muted-foreground">
+                        <KeyRound size={16} strokeWidth={1.7} className="shrink-0" />
+                        <span className="fb-label text-[13px] font-medium text-muted-foreground">
                           API Keys
                         </span>
                       </Link>
@@ -323,13 +361,12 @@ export function AppSidebar({ activeView, onViewChange }: AppSidebarProps) {
                           'transition-[padding] text-muted-foreground hover:bg-accent',
                         )}
                       >
-                        <FlaskConical size={18} strokeWidth={1.7} className="shrink-0" />
-                        <span className="fb-label text-sm font-medium text-muted-foreground">
+                        <FlaskConical size={16} strokeWidth={1.7} className="shrink-0" />
+                        <span className="fb-label text-[13px] font-medium text-muted-foreground">
                           API Playground
                         </span>
                       </Link>
-                    </>
-                  )}
+                  </AccordionPanel>
                 </>
               ) : (
                 /* No org but API-enabled — surface API Keys on its own */
@@ -339,8 +376,8 @@ export function AppSidebar({ activeView, onViewChange }: AppSidebarProps) {
                   aria-label="API Keys"
                   className={cn(rowClass, 'text-muted-foreground hover:bg-accent')}
                 >
-                  <KeyRound size={21} strokeWidth={1.7} className="shrink-0" />
-                  <span className="fb-label text-sm font-semibold text-foreground-soft">
+                  <KeyRound size={18} strokeWidth={1.7} className="shrink-0" />
+                  <span className="fb-label text-[13px] font-semibold text-foreground-soft">
                     API Keys
                   </span>
                 </Link>
@@ -355,12 +392,65 @@ export function AppSidebar({ activeView, onViewChange }: AppSidebarProps) {
                   aria-label="API Playground"
                   className={cn(rowClass, 'text-muted-foreground hover:bg-accent')}
                 >
-                  <FlaskConical size={21} strokeWidth={1.7} className="shrink-0" />
-                  <span className="fb-label text-sm font-semibold text-foreground-soft">
+                  <FlaskConical size={18} strokeWidth={1.7} className="shrink-0" />
+                  <span className="fb-label text-[13px] font-semibold text-foreground-soft">
                     API Playground
                   </span>
                 </Link>
               )}
+
+              <AccordionHeader
+                icon={activeTheme?.icon ?? SunMoon}
+                label="Theme"
+                open={themeOpen}
+                onToggle={() => setThemeOpen((o) => !o)}
+                controls="sidebar-theme-group"
+              />
+              <AccordionPanel
+                id="sidebar-theme-group"
+                open={themeOpen}
+                role="radiogroup"
+                aria-label="Color theme"
+              >
+                {THEME_OPTIONS.map(({ value, label, icon: Icon }) => {
+                  const selected = mounted && theme === value;
+                  return (
+                    <button
+                      key={value}
+                      type="button"
+                      role="radio"
+                      aria-checked={selected}
+                      aria-label={label}
+                      onClick={() => setTheme(value)}
+                      className={cn(
+                        railOpen ? nestedRowClass : rowClass,
+                        'transition-[padding]',
+                        selected
+                          ? 'bg-primary/10 text-primary'
+                          : 'text-muted-foreground hover:bg-accent',
+                      )}
+                    >
+                      <Icon size={16} strokeWidth={1.7} className="shrink-0" />
+                      <span
+                        className={cn(
+                          'fb-label text-[13px]',
+                          selected ? 'font-semibold text-primary' : 'font-medium text-muted-foreground',
+                        )}
+                      >
+                        {label}
+                      </span>
+                      {selected && (
+                        <Check
+                          size={16}
+                          strokeWidth={2}
+                          aria-hidden
+                          className="fb-label ml-auto shrink-0"
+                        />
+                      )}
+                    </button>
+                  );
+                })}
+              </AccordionPanel>
 
               <div className="h-3.5" />
 
@@ -369,8 +459,8 @@ export function AppSidebar({ activeView, onViewChange }: AppSidebarProps) {
                 const linkClass = cn(rowClass, 'text-muted-foreground hover:bg-accent');
                 const inner = (
                   <>
-                    <Icon size={21} strokeWidth={1.7} className="shrink-0" />
-                    <span className="fb-label text-sm font-semibold text-foreground-soft">
+                    <Icon size={18} strokeWidth={1.7} className="shrink-0" />
+                    <span className="fb-label text-[13px] font-semibold text-foreground-soft">
                       {label}
                     </span>
                   </>
@@ -393,8 +483,8 @@ export function AppSidebar({ activeView, onViewChange }: AppSidebarProps) {
               aria-label="Logout"
               className={cn(rowClass, 'text-destructive hover:bg-accent')}
             >
-              <LogOut size={21} strokeWidth={1.7} className="shrink-0" />
-              <span className="fb-label text-sm font-semibold">Logout</span>
+              <LogOut size={18} strokeWidth={1.7} className="shrink-0" />
+              <span className="fb-label text-[13px] font-semibold">Logout</span>
             </button>
 
             <div className="h-px bg-border mx-2 my-3" />
@@ -403,7 +493,7 @@ export function AppSidebar({ activeView, onViewChange }: AppSidebarProps) {
                 reveal on expand. Opens the Stripe billing portal, so the row
                 is labelled for what it actually does. */}
             <button
-              onClick={handleBilling}
+              onClick={openBillingPortal}
               aria-label="Billing"
               className="flex items-center gap-[11px] h-[52px] px-1.5 rounded-xl text-left hover:bg-accent transition-colors"
             >
@@ -411,7 +501,7 @@ export function AppSidebar({ activeView, onViewChange }: AppSidebarProps) {
                 {accountInitial}
               </span>
               <span className="fb-label min-w-0 flex-1">
-                <span className="block truncate text-sm font-semibold text-foreground-soft">
+                <span className="block truncate text-[13px] font-semibold text-foreground-soft">
                   {accountHandle}
                 </span>
                 <span className="block text-[11.5px] text-faint">

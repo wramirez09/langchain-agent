@@ -29,6 +29,11 @@ jest.mock('next/image', () => ({
   // eslint-disable-next-line @next/next/no-img-element
   default: ({ src, alt }: any) => <img src={src?.src ?? src} alt={alt} />,
 }))
+const mockSetTheme = jest.fn()
+let mockTheme = 'dark'
+jest.mock('next-themes', () => ({
+  useTheme: () => ({ theme: mockTheme, setTheme: mockSetTheme }),
+}))
 // Tooltip primitives — render children directly
 jest.mock('@/components/ui/tooltip', () => ({
   Tooltip: ({ children }: any) => <>{children}</>,
@@ -301,6 +306,31 @@ describe('AppSidebar', () => {
     expect(
       screen.getByRole('link', { name: 'API Playground' })
     ).toHaveAttribute('href', '/agents/api-playground')
+  })
+
+  it('Theme is a collapsed accordion that sets the color theme', async () => {
+    mockTheme = 'dark'
+    mockSetTheme.mockReset()
+    const user = userEvent.setup()
+    await renderSidebar(<AppSidebar activeView="auth" onViewChange={() => {}} />)
+
+    const header = await screen.findByRole('button', { name: 'Theme' })
+    expect(header).toHaveAttribute('aria-expanded', 'false')
+    expect(screen.queryByRole('radio', { name: 'Classic' })).not.toBeInTheDocument()
+
+    await user.click(header)
+    expect(header).toHaveAttribute('aria-expanded', 'true')
+    expect(screen.getByRole('radio', { name: 'Midnight' })).toHaveAttribute(
+      'aria-checked',
+      'true'
+    )
+    expect(screen.getByRole('radio', { name: 'Classic' })).toHaveAttribute(
+      'aria-checked',
+      'false'
+    )
+
+    await user.click(screen.getByRole('radio', { name: 'Classic' }))
+    expect(mockSetTheme).toHaveBeenCalledWith('light')
   })
 
   // Exception path: no org but API access paid for — the API rows stand alone

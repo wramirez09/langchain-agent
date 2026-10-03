@@ -95,11 +95,11 @@ export function SignUpForm({ className, ...props }: React.ComponentPropsWithoutR
           />
         </div>
       </form>
-      <div className="text-center text-sm text-dark">
+      <div className="text-center text-sm text-dark dark:text-muted-foreground">
         Already have an account?{' '}
         <Link
           href="/auth/login"
-          className="font-medium text-blue-600 hover:underline"
+          className="font-medium text-blue-600 dark:text-accent-foreground hover:underline"
         >
           Sign in
         </Link>

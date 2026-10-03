@@ -106,7 +106,7 @@ const UploadDocumentsForm: React.FC<{
             type="button"
             variant="outline"
             onClick={() => setModalOpen(false)}
-            className="w-full sm:w-[120px] px-5 text-dark button-ghost"
+            className="w-full sm:w-[120px] px-5 text-dark dark:text-foreground button-ghost"
             disabled={uploading || !document}
           >
             Cancel
@@ -135,7 +135,7 @@ const UploadDocumentsForm: React.FC<{
       </div>
 
       {uploading && (
-        <div className="absolute inset-0 bg-white/90 backdrop-blur-sm flex items-center justify-center rounded-lg z-10">
+        <div className="absolute inset-0 bg-white/90 dark:bg-background/90 backdrop-blur-sm flex items-center justify-center rounded-lg z-10">
           <div className="flex flex-col items-center gap-3">
             <LoaderCircle className="animate-spin h-10 w-10 text-primary" />
             <p className="font-medium text-foreground">Processing your document</p>

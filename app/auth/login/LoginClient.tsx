@@ -23,13 +23,13 @@ function LoginContent() {
   }
 
   return (
-    <div className="h-full flex items-center justify-center bg-gradient-light p-6">
+    <div className="h-full flex items-center justify-center bg-gradient-light dark:bg-none p-6">
       <div className="w-full max-w-md">
         <div className="text-center mb-8">
           <h1 className="text-4xl font-bold text-foreground mb-2">Welcome</h1>
-          <p className="text-dark">Sign in to your account to continue</p>
+          <p className="text-dark dark:text-muted-foreground">Sign in to your account to continue</p>
         </div>
-        <div className="bg-card rounded-xl shadow-md p-8">
+        <div className="bg-card rounded-xl shadow-md p-8 dark:border dark:border-border dark:shadow-[0_24px_60px_-30px_rgba(0,0,0,0.7)]">
           <LoginForm next={next} />
         </div>
       </div>
@@ -39,7 +39,7 @@ function LoginContent() {
 
 export function LoginClient() {
   return (
-    <Suspense fallback={<div className="min-h-screen flex items-center justify-center bg-gradient-light p-6">
+    <Suspense fallback={<div className="min-h-screen flex items-center justify-center bg-gradient-light dark:bg-none p-6">
       <div className="text-center">Loading...</div>
     </div>}>
       <LoginContent />

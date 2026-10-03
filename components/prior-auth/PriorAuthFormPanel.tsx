@@ -2,7 +2,8 @@
 
 import React, { useRef } from "react";
 import { motion } from "framer-motion";
-import { Send, LoaderCircle, FileText, MapPin, Stethoscope, FileBarChart, Activity, ClipboardList, BookOpen, Info } from "lucide-react";
+import { Send, LoaderCircle, Info } from "lucide-react";
+import { FIELD_ICONS, type FieldIconKey } from "@/components/prior-auth/fieldIcons";
 import Select from "react-select";
 import CreatableSelect from "react-select/creatable";
 import { Button } from "@/components/ui/button";
@@ -15,6 +16,11 @@ import { data as stateData } from "@/app/agents/metaData/states";
 import { ncdOptions } from "@/data/ncdOptions";
 import { type SelectOption } from "@/data/selectOptions";
 import { usePriorAuthForm, usePriorAuthUi } from "@/components/providers/PriorAuthProvider";
+
+function FieldIcon({ field }: { field: FieldIconKey }) {
+  const { Icon, color } = FIELD_ICONS[field];
+  return <Icon size={13} color={color} strokeWidth={1} />;
+}
 
 const stateOptions = stateData.map((s) => ({ value: s.description, label: s.description }));
 
@@ -110,7 +116,7 @@ export function PriorAuthFormPanel({
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-3">
           <div>
             <label className="flex items-center gap-1.5 text-xs text-foreground-soft mb-1.5">
-              <FileText size={13} color="#2563EB" strokeWidth={1} />
+              <FieldIcon field="guidelines" />
               Guidelines
               <TooltipProvider delayDuration={150}>
                 <Tooltip>
@@ -154,7 +160,7 @@ export function PriorAuthFormPanel({
           </div>
           <div>
             <label className="flex items-center gap-1.5 text-xs text-foreground-soft mb-1.5">
-              <MapPin size={13} color="#059669" strokeWidth={1} />
+              <FieldIcon field="state" />
               State
             </label>
             <Select
@@ -188,7 +194,7 @@ export function PriorAuthFormPanel({
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-3">
           <div>
             <label className="flex items-center gap-1.5 text-xs text-foreground-soft mb-1.5">
-              <Stethoscope size={13} color="#7C3AED" strokeWidth={1} />
+              <FieldIcon field="treatment" />
               Pre-Auth Request
             </label>
             <CreatableSelect
@@ -207,7 +213,7 @@ export function PriorAuthFormPanel({
           </div>
           <div>
             <label className="flex items-center gap-1.5 text-xs text-foreground-soft mb-1.5">
-              <FileBarChart size={13} color="#4F46E5" strokeWidth={1} />
+              <FieldIcon field="cpt" />
               CPT/HCPCS
             </label>
             <Input
@@ -221,7 +227,7 @@ export function PriorAuthFormPanel({
 
         <div>
           <label className="flex items-center gap-1.5 text-xs text-foreground-soft mb-1.5">
-            <Activity size={13} color="#F97316" strokeWidth={1} />
+            <FieldIcon field="diagnosis" />
             Diagnosis
           </label>
           <Textarea
@@ -251,7 +257,7 @@ export function PriorAuthFormPanel({
           <AccordionItem value="patient-history" className="border border-border rounded-lg px-3 py-0" ref={patientHistoryRef}>
             <AccordionTrigger className="hover:no-underline py-3 text-xs font-semibold text-foreground">
               <span className="flex items-center gap-1.5">
-                <ClipboardList size={13} color="#F43F5E" strokeWidth={1} />
+                <FieldIcon field="history" />
                 Patient(s) Medical History
               </span>
             </AccordionTrigger>
@@ -268,7 +274,7 @@ export function PriorAuthFormPanel({
           <AccordionItem value="relevant-history" className="border border-border rounded-lg px-3 py-0" ref={relevantHistoryRef}>
             <AccordionTrigger className="hover:no-underline py-3 text-xs font-semibold text-foreground">
               <span className="flex items-center gap-1.5">
-                <BookOpen size={13} color="#0EA5E9" strokeWidth={1} />
+                <FieldIcon field="relevantHistory" />
                 Relevant Medical History
               </span>
             </AccordionTrigger>

@@ -67,7 +67,7 @@ export function LegalDocumentViewer({ content, className }: LegalDocumentViewerP
             return (
               <a 
                 href={mailtoHref} 
-                className="text-blue-600 hover:underline font-medium"
+                className="text-blue-600 dark:text-accent-foreground hover:underline font-medium"
                 {...props} 
               />
             );

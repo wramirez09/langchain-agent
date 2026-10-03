@@ -192,6 +192,19 @@ body {
   background-image: linear-gradient(160deg, #131d35 0%, #0f1522 100%);
 }
 
+/* Landing hero. Theme A keeps its original blue sweep. Theme B paints
+   nothing of its own: the marketing hero (home/Hero.tsx) sits on the bare
+   page ground — #0c0f1a with the blue ellipse and dot grid — and the shell's
+   `.app-ground` already paints exactly that, so the hero lets it show
+   through. A second glow here would double the ellipse. */
+.landing-hero {
+  background: linear-gradient(160deg, #4aa8e0 0%, #2f86d5 55%, #2570c4 100%);
+}
+
+.dark .landing-hero {
+  background: transparent;
+}
+
 /* ── Theme B atmosphere ───────────────────────────────────────────────
    The marketing site's page ground is solid #0c0f1a; its depth comes from a
    blue ellipse painted behind the hero, not from tinting the ground. This is
@@ -281,6 +294,11 @@ body {
   background: transparent;
   border-color: white;
   border-width: 1px;
+}
+
+/* White is invisible on Classic's white panels; on Midnight it glares. */
+.dark .button-ghost {
+  border-color: hsl(var(--border));
 }
 
 .chat-bg {
