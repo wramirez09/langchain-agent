@@ -8,16 +8,17 @@ const wrap = (ui: React.ReactNode) => (
 )
 
 describe('PriorAuthTabs', () => {
-  it('renders the input tab and at least one output tab', () => {
+  it('renders the desktop Request and Report tabs', () => {
     render(wrap(<PriorAuthTabs isLayoutSwapped={false} setIsLayoutSwapped={() => {}} />))
-    expect(screen.getByRole('button', { name: 'Input' })).toBeInTheDocument()
-    expect(screen.getAllByRole('button', { name: 'Output' }).length).toBeGreaterThan(0)
+    // Request and Report each exist twice: the phone/tablet tab and the desktop tab.
+    expect(screen.getAllByRole('button', { name: 'Request' })).toHaveLength(2)
+    expect(screen.getAllByRole('button', { name: 'Report' })).toHaveLength(2)
   })
 
-  it('Output button switches the active tab', async () => {
+  it('Report button switches the active tab', async () => {
     const user = userEvent.setup()
     render(wrap(<PriorAuthTabs isLayoutSwapped={false} setIsLayoutSwapped={() => {}} />))
-    const outputBtns = screen.getAllByRole('button', { name: 'Output' })
+    const outputBtns = screen.getAllByRole('button', { name: 'Report' })
     // Click the desktop one (last)
     await user.click(outputBtns[outputBtns.length - 1])
     expect(outputBtns[outputBtns.length - 1].className).toMatch(/border-blue-600/)
@@ -33,11 +34,32 @@ describe('PriorAuthTabs', () => {
     expect(setSwapped).toHaveBeenCalledWith(true)
   })
 
-  it('shows mobile tabs (pre-auth, chat, output)', () => {
+  it('shows the phone/tablet tabs (Request, Ai Assistant, Report)', async () => {
+    const user = userEvent.setup()
     render(
       wrap(<PriorAuthTabs isLayoutSwapped={false} setIsLayoutSwapped={() => {}} />)
     )
-    expect(screen.getByRole('button', { name: 'Pre-Auth' })).toBeInTheDocument()
-    expect(screen.getByRole('button', { name: 'Chat' })).toBeInTheDocument()
+    const assistant = screen.getByRole('button', { name: 'Ai Assistant' })
+    await user.click(assistant)
+    expect(assistant.className).toMatch(/border-blue-600/)
+  })
+
+  // jsdom applies no CSS, so check the classes that do the hiding: each label
+  // must render as exactly one phone/tablet tab and one desktop tab, never two
+  // visible at the same width.
+  it('shows only one set of tabs at each size', () => {
+    render(wrap(<PriorAuthTabs isLayoutSwapped={false} setIsLayoutSwapped={() => {}} />))
+    for (const name of ['Request', 'Report']) {
+      const [phone, desktop] = screen.getAllByRole('button', { name })
+      expect(phone.className.split(' ')).toContain('md:hidden')
+      expect(desktop.className.split(' ')).toContain('hidden')
+      expect(desktop.className.split(' ')).toContain('md:flex')
+      expect(desktop.className.split(' ')).not.toContain('flex')
+    }
+  })
+
+  it('keeps Saved named for screen readers when its label is hidden', () => {
+    render(wrap(<PriorAuthTabs isLayoutSwapped={false} setIsLayoutSwapped={() => {}} />))
+    expect(screen.getByRole('button', { name: 'Saved' })).toBeInTheDocument()
   })
 })

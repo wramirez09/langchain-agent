@@ -4,7 +4,7 @@ import * as React from "react";
 import CreatableSelect from "react-select/creatable";
 import { SelectOption } from "@/data/selectOptions";
 import { StylesConfig } from "react-select";
-import { useMediaQuery } from "@/utils/use-media-query";
+import { DESKTOP_QUERY, useMediaQuery } from "@/utils/use-media-query";
 
 interface CreatableSelectComponentProps {
   options: SelectOption[];
@@ -24,7 +24,7 @@ const CreatableSelectComponent: React.FC<CreatableSelectComponentProps> = ({
   placeholder = "Select an option",
   isDisabled = false,
 }) => {
-  const isDesktop = useMediaQuery("(min-width: 768px)");
+  const isDesktop = useMediaQuery(DESKTOP_QUERY);
   
   // Convert SelectOption to react-select format
   const selectOptions: OptionType[] = options.map(option => ({

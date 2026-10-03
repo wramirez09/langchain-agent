@@ -110,9 +110,9 @@ export function PriorAuthFormPanel({
       </div>
 
       <div className="flex-1 min-h-0 overflow-y-auto px-6 pb-4 pt-2 space-y-5">
-        {/* Two columns only from lg. This grid lives inside a ~30%-width panel,
-            so the md breakpoint (768px viewport) splits it while the panel is
-            still ~230px wide and the selects truncate to "Select." */}
+        {/* Two columns only from lg (desktop). This grid lives inside a
+            ~30%-width panel; any narrower and the selects truncate to
+            "Select." */}
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-3">
           <div>
             <label className="flex items-center gap-1.5 text-xs text-foreground-soft mb-1.5">
@@ -188,9 +188,9 @@ export function PriorAuthFormPanel({
           </div>
         </div>
 
-        {/* Two columns only from lg. This grid lives inside a ~30%-width panel,
-            so the md breakpoint (768px viewport) splits it while the panel is
-            still ~230px wide and the selects truncate to "Select." */}
+        {/* Two columns only from lg (desktop). This grid lives inside a
+            ~30%-width panel; any narrower and the selects truncate to
+            "Select." */}
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-3">
           <div>
             <label className="flex items-center gap-1.5 text-xs text-foreground-soft mb-1.5">

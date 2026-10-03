@@ -7,6 +7,18 @@ module.exports = {
     "./app/**/*.{js,ts,jsx,tsx,mdx}",
   ],
   theme: {
+  	// Tablets get the phone layout: `sm` and `md` both start at desktop
+  	// width, so nothing below 1024px picks up a larger-screen class. The
+  	// mobile/desktop split lives here (and in the 1023px media queries in
+  	// app/globals.css, components/legal/legalDoc.module.css, and
+  	// DESKTOP_QUERY in utils/use-media-query.ts) — keep them in step.
+  	screens: {
+  		sm: '1024px',
+  		md: '1024px',
+  		lg: '1024px',
+  		xl: '1280px',
+  		'2xl': '1536px'
+  	},
   	extend: {
   		fontFamily: {
   			sans: [

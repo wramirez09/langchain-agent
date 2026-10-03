@@ -291,7 +291,7 @@
   font-style: italic;
 }
 
-@media (max-width: 860px) {
+@media (max-width: 1023px) {
   .backRow {
     padding: 14px 18px 0;
   }

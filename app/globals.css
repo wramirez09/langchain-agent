@@ -238,7 +238,7 @@ body {
     cover;
 }
 
-/* The two main panels (Request Details / Chat Assistant) sit on the app
+/* The two main panels (Request Details / Ai Assistant) sit on the app
    ground rather than flat against it. Theme B uses the marketing site's own
    panel elevation verbatim (developers/page.tsx, McpAnnouncement.tsx:
    0 24px 60px -30px rgba(0,0,0,0.7)) — a wide, heavily negative-spread cast
@@ -399,7 +399,7 @@ body {
 }
 
 /* Mobile select fixes */
-@media (max-width: 767px) {
+@media (max-width: 1023px) {
 
   /* Prevent accidental activation on mobile */
   .mobile-select-touch {
@@ -535,7 +535,7 @@ body {
 
 /* Mobile drawer: always full-width with labels showing; it slides in/out
    instead of growing. */
-@media (max-width: 767px) {
+@media (max-width: 1023px) {
   .flyout-wrap,
   .flyout-wrap .flyout-rail {
     width: 256px;

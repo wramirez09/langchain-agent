@@ -19,7 +19,7 @@ import {
 } from "@/components/ui/popover";
 import { SelectOption } from "@/data/selectOptions";
 import { cn } from "@/utils/cn";
-import { useMediaQuery } from "@/utils/use-media-query";
+import { DESKTOP_QUERY, useMediaQuery } from "@/utils/use-media-query";
 
 export function AutoCompleteSelect({
   options,
@@ -31,7 +31,7 @@ export function AutoCompleteSelect({
   disabled?: boolean;
 }) {
   const [open, setOpen] = React.useState(false);
-  const isDesktop = useMediaQuery("(min-width: 768px)");
+  const isDesktop = useMediaQuery(DESKTOP_QUERY);
   const [selectedStatus, setSelectedStatus] =
     React.useState<SelectOption | null>(null);
 

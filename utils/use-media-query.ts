@@ -9,6 +9,10 @@ type UseMediaQueryOptions = {
 
 const IS_SERVER = typeof window === "undefined"
 
+/** Desktop layout starts here; tablets and phones share the mobile layout.
+ *  Matches the `sm`/`md` screens in tailwind.config.js. */
+export const DESKTOP_QUERY = "(min-width: 1024px)"
+
 export function useMediaQuery(
   query: string,
   {
