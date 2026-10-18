@@ -208,14 +208,14 @@ export function FileExportView() {
       </div>
 
       {/* PDF Preview area */}
-      <div className="flex-1 overflow-hidden m-6 rounded-lg border border-border shadow-sm bg-card">
+      <div className="flex-1 overflow-y-auto m-6 rounded-lg border border-border shadow-sm bg-card">
         {artifactForPdf ? (
           <ArtifactPdfPreview
             artifact={artifactForPdf}
             generatedAt={generatedAt}
           />
         ) : filteredMessages.length === 0 ? (
-          <div className="flex flex-col items-center justify-center h-full text-center px-8 py-16">
+          <div className="flex flex-col items-center justify-center min-h-full text-center px-8 py-16">
             <div className="size-16 bg-muted rounded-full flex items-center justify-center mb-4">
               <Download className="size-8 text-faint" />
             </div>

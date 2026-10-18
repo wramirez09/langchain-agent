@@ -1,6 +1,6 @@
 "use client";
 
-import React, { FormEvent, useRef } from "react";
+import React, { FormEvent } from "react";
 import { motion } from "framer-motion";
 import { type Message } from "ai";
 import { LoaderCircle, Trash2, AlertTriangle, Bookmark, Sparkles } from "lucide-react";
@@ -42,8 +42,6 @@ export function PriorAuthChatPanel({
 }: PriorAuthChatPanelProps) {
   const { chatInput, setChatInput } = usePriorAuthChat();
   const { activeFormTab } = usePriorAuthUi();
-  const messagesEndRef = useRef<HTMLDivElement>(null);
-  const messagesContainerRef = useRef<HTMLDivElement>(null);
 
   // A generation is in flight but the artifact hasn't started streaming yet:
   // the last message is still the user's request (or an intermediate step).
@@ -104,16 +102,14 @@ export function PriorAuthChatPanel({
         </div>
       </div>
 
-      <div
-        ref={messagesContainerRef}
-        className="flex-1 min-h-0 px-4 py-4 space-y-3"
-        style={{ overflowY: 'scroll', maxHeight: '100%' }}
-      >
+      <div className="flex-1 min-h-0 overflow-y-auto px-4 py-4 space-y-3">
         {messages.length === 0 && !isRestoring ? (
-          // min-h-full, not h-full: centred when it fits, but when it's taller than
-          // the panel (phones) it grows and scrolls instead of overflowing above
-          // the top, where justify-center would clip the heading.
-          <div className="flex flex-col items-center justify-center min-h-full text-center px-4 py-8">
+          // min-h-full, not h-full: centred when it fits, but when it is
+          // taller than the panel (phones) it grows and scrolls instead of
+          // overflowing above the top, where justify-center clips the heading.
+          <div
+            className="flex flex-col items-center justify-center min-h-full text-center px-4 py-8"
+          >
             <div className="size-11 bg-primary/10 rounded-full flex items-center justify-center mb-3">
               <Sparkles className="size-5 text-blue-600" strokeWidth={1.75} />
             </div>
@@ -161,7 +157,7 @@ export function PriorAuthChatPanel({
           <>
             {messages.map((m, i) => {
               if (m.role === "system") return <IntermediateStep key={m.id} message={m} />;
-              const sourceKey = (messages.length - 1 - i).toString();
+              const sourceKey = i.toString();
               const isLastMessage = i === messages.length - 1;
               return (
                 <ChatMessageBubble
@@ -185,7 +181,6 @@ export function PriorAuthChatPanel({
             )}
           </>
         )}
-        <div ref={messagesEndRef} />
       </div>
 
       <div className="border-t border-border px-4 pt-3 pb-1 flex-shrink-0">
@@ -214,13 +209,13 @@ export function PriorAuthChatPanel({
             {isProcessing ? (
               <LoaderCircle className="animate-spin size-4" strokeWidth={1} />
             ) : (
-              <IconSend2 className="size-2" strokeWidth={1} size={20} />
+              <IconSend2 className="size-4" strokeWidth={1} />
             )}
           </button>
         </form>
         <div className="mt-2 mb-2 p-1 bg-warning/5 border border-warning/20 rounded-md">
           <div className="flex items-center gap-2">
-            <AlertTriangle className="hidden sm:flex w-4 h-4 text-warning flex-shrink-0" strokeWidth={1} />
+            <AlertTriangle className="hidden md:flex w-4 h-4 text-warning flex-shrink-0" strokeWidth={1} />
             <p className="text-xs text-warning hidden md:block">
               <strong>HIPAA Compliance:</strong> Do not include patient-specific PHI such as names, dates of birth, medical record numbers, or other identifying information. Use generic descriptions only.
             </p>
