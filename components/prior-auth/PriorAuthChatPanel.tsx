@@ -1,6 +1,12 @@
 "use client";
 
-import React, { FormEvent, useState } from "react";
+import React, {
+  FormEvent,
+  useCallback,
+  useEffect,
+  useRef,
+  useState,
+} from "react";
 import { motion } from "framer-motion";
 import { type Message } from "ai";
 import {
@@ -10,6 +16,7 @@ import {
   Bookmark,
   Sparkles,
   Paperclip,
+  ArrowDown,
 } from "lucide-react";
 import { IconSend2 } from "@tabler/icons-react";
 import { ChatMessageBubble } from "@/components/ChatMessageBubble";
@@ -85,6 +92,43 @@ export function PriorAuthChatPanel({
   // tracks whether it is open.
   const [noteOpen, setNoteOpen] = useState(false);
 
+  // Once a response finishes, offer a jump to its Summary card while that
+  // card is below the fold. Scoped to this container and the LAST summary:
+  // section ids repeat once the chat holds more than one report.
+  const scrollRef = useRef<HTMLDivElement>(null);
+  const [showJump, setShowJump] = useState(false);
+  const responseDone =
+    !isProcessing && !isRestoring && lastMessage?.role === "assistant";
+
+  const lastSummary = useCallback(() => {
+    const all =
+      scrollRef.current?.querySelectorAll<HTMLElement>("section#summary");
+    return all && all.length ? all[all.length - 1] : null;
+  }, []);
+
+  const updateJump = useCallback(() => {
+    const box = scrollRef.current;
+    const el = lastSummary();
+    if (!responseDone || !box || !el) return setShowJump(false);
+    setShowJump(
+      el.getBoundingClientRect().top > box.getBoundingClientRect().bottom - 24,
+    );
+  }, [responseDone, lastSummary]);
+
+  useEffect(() => {
+    // After paint, so the new message's summary card is laid out.
+    const raf = requestAnimationFrame(updateJump);
+    const box = scrollRef.current;
+    if (!box) return () => cancelAnimationFrame(raf);
+    box.addEventListener("scroll", updateJump, { passive: true });
+    window.addEventListener("resize", updateJump);
+    return () => {
+      cancelAnimationFrame(raf);
+      box.removeEventListener("scroll", updateJump);
+      window.removeEventListener("resize", updateJump);
+    };
+  }, [updateJump, messages]);
+
   return (
     <>
       <HipaaCheckToast
@@ -143,15 +187,22 @@ export function PriorAuthChatPanel({
           </div>
         </div>
 
-        <div className="flex-1 min-h-0 overflow-y-auto px-4 py-4 space-y-3">
-          {messages.length === 0 && !isRestoring ? (
-            // min-h-full, not h-full: centred when it fits, but on phones it grows
-            // and scrolls instead of justify-center clipping the heading off the top.
-            <div className="flex flex-col items-center justify-center min-h-full text-center px-4 py-8">
-              <div className="size-11 bg-primary/10 rounded-full flex items-center justify-center mb-3">
-                <Sparkles className="size-5 text-blue-600" strokeWidth={1.75} />
-              </div>
-              {/* The brand book's `heading-2` (800 weight, -0.025em tracking),
+        <div className="relative flex-1 min-h-0 flex flex-col">
+          <div
+            ref={scrollRef}
+            className="flex-1 min-h-0 overflow-y-auto px-4 py-4 space-y-3"
+          >
+            {messages.length === 0 && !isRestoring ? (
+              // min-h-full, not h-full: centred when it fits, but on phones it grows
+              // and scrolls instead of justify-center clipping the heading off the top.
+              <div className="flex flex-col items-center justify-center min-h-full text-center px-4 py-8">
+                <div className="size-11 bg-primary/10 rounded-full flex items-center justify-center mb-3">
+                  <Sparkles
+                    className="size-5 text-blue-600"
+                    strokeWidth={1.75}
+                  />
+                </div>
+                {/* The brand book's `heading-2` (800 weight, -0.025em tracking),
                 held at the bottom of its 24-38px clamp so it reads as a
                 headline without overpowering a side panel.
 
@@ -163,71 +214,87 @@ export function PriorAuthChatPanel({
 
                 Theme B only: that gradient on Theme A's white card measures
                 2.6-3.7:1, so Theme A keeps the solid ink. */}
-              <h2 className="text-2xl md:text-[28px] font-extrabold tracking-[-0.025em] leading-[1.15] text-foreground mb-2 dark:bg-gradient-to-br dark:from-accent-foreground dark:to-primary dark:bg-clip-text dark:text-transparent">
-                Let&apos;s check your prior authorization readiness
-              </h2>
-              <p className="text-sm text-muted-foreground max-w-sm mb-5">
-                Complete the request form and click &quot;Generate
-                Authorization&quot; for a full coverage and documentation review
-                — or ask a quick question to get started.
-              </p>
-              <div className="flex flex-col gap-2 w-full max-w-sm">
-                <p className="text-[11px] font-semibold uppercase tracking-wide text-faint">
-                  Try asking
+                <h2 className="text-2xl md:text-[28px] font-extrabold tracking-[-0.025em] leading-[1.15] text-foreground mb-2 dark:bg-gradient-to-br dark:from-accent-foreground dark:to-primary dark:bg-clip-text dark:text-transparent">
+                  Let&apos;s check your prior authorization readiness
+                </h2>
+                <p className="text-sm text-muted-foreground max-w-sm mb-5">
+                  Complete the request form and click &quot;Generate
+                  Authorization&quot; for a full coverage and documentation
+                  review — or ask a quick question to get started.
                 </p>
-                {[
-                  "What documentation does Medicare require for a lumbar spine MRI?",
-                  "Is prior authorization required for a knee arthroscopy?",
-                  "What are common denial reasons for a lumbar epidural steroid injection?",
-                ].map((prompt) => (
-                  <button
-                    key={prompt}
-                    type="button"
-                    onClick={() => setChatInput(prompt)}
-                    className="text-left text-sm text-foreground-soft bg-muted hover:bg-primary/5 hover:text-blue-700 border border-border hover:border-primary/20 rounded-lg px-3 py-2 transition-colors"
-                  >
-                    {prompt}
-                  </button>
-                ))}
+                <div className="flex flex-col gap-2 w-full max-w-sm">
+                  <p className="text-[11px] font-semibold uppercase tracking-wide text-faint">
+                    Try asking
+                  </p>
+                  {[
+                    "What documentation does Medicare require for a lumbar spine MRI?",
+                    "Is prior authorization required for a knee arthroscopy?",
+                    "What are common denial reasons for a lumbar epidural steroid injection?",
+                  ].map((prompt) => (
+                    <button
+                      key={prompt}
+                      type="button"
+                      onClick={() => setChatInput(prompt)}
+                      className="text-left text-sm text-foreground-soft bg-muted hover:bg-primary/5 hover:text-blue-700 border border-border hover:border-primary/20 rounded-lg px-3 py-2 transition-colors"
+                    >
+                      {prompt}
+                    </button>
+                  ))}
+                </div>
               </div>
-            </div>
-          ) : (
-            <>
-              {messages.map((m, i) => {
-                if (m.role === "system")
-                  return <IntermediateStep key={m.id} message={m} />;
-                const sourceKey = i.toString();
-                const isLastMessage = i === messages.length - 1;
-                // The request under screening is the newest user message, which
-                // is NOT the last message once the assistant's placeholder has
-                // been appended.
-                // Same condition the toast uses -- a saved-query restore runs
-                // no screening, so neither the shimmer nor the announcement
-                // belongs there.
-                const phiChecking =
-                  checkingRequest && m.role === "user" && i === lastUserIndex;
-                return (
-                  <ChatMessageBubble
-                    key={m.id}
-                    message={m}
-                    sources={sourcesForMessages[sourceKey] as unknown[]}
-                    isLastMessage={isLastMessage}
-                    isLoading={isLastMessage && isProcessing}
-                    phiChecking={phiChecking}
-                  />
-                );
-              })}
-              {isRestoring && (
-                <div data-testid="restore-skeleton" className="pt-1">
-                  <ArtifactSkeleton />
-                </div>
-              )}
-              {awaitingArtifact && (
-                <div data-testid="pending-skeleton" className="pt-1">
-                  <ArtifactPendingNotice />
-                </div>
-              )}
-            </>
+            ) : (
+              <>
+                {messages.map((m, i) => {
+                  if (m.role === "system")
+                    return <IntermediateStep key={m.id} message={m} />;
+                  const sourceKey = i.toString();
+                  const isLastMessage = i === messages.length - 1;
+                  // The request under screening is the newest user message, which
+                  // is NOT the last message once the assistant's placeholder has
+                  // been appended.
+                  // Same condition the toast uses -- a saved-query restore runs
+                  // no screening, so neither the shimmer nor the announcement
+                  // belongs there.
+                  const phiChecking =
+                    checkingRequest && m.role === "user" && i === lastUserIndex;
+                  return (
+                    <ChatMessageBubble
+                      key={m.id}
+                      message={m}
+                      sources={sourcesForMessages[sourceKey] as unknown[]}
+                      isLastMessage={isLastMessage}
+                      isLoading={isLastMessage && isProcessing}
+                      phiChecking={phiChecking}
+                    />
+                  );
+                })}
+                {isRestoring && (
+                  <div data-testid="restore-skeleton" className="pt-1">
+                    <ArtifactSkeleton />
+                  </div>
+                )}
+                {awaitingArtifact && (
+                  <div data-testid="pending-skeleton" className="pt-1">
+                    <ArtifactPendingNotice />
+                  </div>
+                )}
+              </>
+            )}
+          </div>
+          {showJump && (
+            <button
+              type="button"
+              onClick={() =>
+                lastSummary()?.scrollIntoView({
+                  behavior: "smooth",
+                  block: "start",
+                })
+              }
+              className="absolute bottom-3 left-1/2 -translate-x-1/2 flex items-center gap-1.5 rounded-full bg-blue-600 px-3.5 py-2 text-xs font-medium text-white shadow-lg transition-colors hover:bg-blue-700"
+            >
+              <ArrowDown className="size-3.5" strokeWidth={2} />
+              Jump to summary
+            </button>
           )}
         </div>
 
