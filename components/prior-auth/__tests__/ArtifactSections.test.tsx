@@ -37,6 +37,24 @@ describe('Header', () => {
     render(<Header data={{ ...artifact, phiNotice: 'PHI was removed.' }} />)
     expect(screen.getByText('PHI was removed.')).toBeInTheDocument()
   })
+
+  /**
+   * This used to render as 12.5px `text-faint` under the header chips, which
+   * is where a notice goes to be missed. The toast that announces it is
+   * transient, so the durable copy has to carry the warning treatment the
+   * sibling `fallbackNotice` already uses.
+   */
+  it('gives the PHI notice a warning treatment, not faint body text', () => {
+    render(<Header data={{ ...artifact, phiNotice: 'PHI was removed.' }} />)
+    const el = screen.getByText('PHI was removed.')
+    expect(el.className).toMatch(/text-warning/)
+    expect(el.className).not.toMatch(/text-faint/)
+  })
+
+  it('omits the notice entirely when no PHI was removed', () => {
+    render(<Header data={artifact} />)
+    expect(screen.queryByText(/PHI/)).toBeNull()
+  })
 })
 
 describe('RequestOverviewCard', () => {
@@ -56,6 +74,50 @@ describe('RequestOverviewCard', () => {
   it('renders nothing when overview is absent', () => {
     const { container } = render(<RequestOverviewCard index={1} ov={undefined} />)
     expect(container).toBeEmptyDOMElement()
+  })
+})
+
+describe('PHI-removed values', () => {
+  it('reds a field value the agent stripped, not the plain "Not provided"', () => {
+    render(
+      <RequestOverviewCard
+        index={1}
+        ov={{
+          ...artifact.requestOverview,
+          treatment: 'Not provided after PHI removal',
+          cpt: [],
+        }}
+      />,
+    )
+    expect(screen.getByText('Not provided after PHI removal')).toHaveClass(
+      'text-destructive',
+    )
+    // The card's own fallback means the user supplied nothing — still faint.
+    expect(screen.getAllByText('Not provided')[0]).toHaveClass('text-faint')
+  })
+
+  it('reds a stripped medical history', () => {
+    render(
+      <ClinicalContextCard
+        index={2}
+        ov={{ ...artifact.requestOverview, medicalHistory: 'Not provided after PHI removal' }}
+      />,
+    )
+    expect(screen.getByText('Not provided after PHI removal')).toHaveClass(
+      'text-destructive',
+    )
+  })
+
+  it('leaves ordinary history text alone', () => {
+    render(
+      <ClinicalContextCard
+        index={2}
+        ov={{ ...artifact.requestOverview, medicalHistory: 'Knee pain for 3 weeks.' }}
+      />,
+    )
+    expect(screen.getByText('Knee pain for 3 weeks.')).toHaveClass(
+      'text-foreground-soft',
+    )
   })
 })
 

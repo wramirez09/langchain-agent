@@ -25,7 +25,7 @@ import { useEffect, useState, useSyncExternalStore } from 'react';
 import Link from 'next/link';
 import { openBillingPortal } from '@/lib/billing/openBillingPortal';
 
-export type AppView = 'auth' | 'upload' | 'export';
+export type AppView = 'auth' | 'export';
 
 interface AppSidebarProps {
   activeView: AppView;
@@ -34,7 +34,6 @@ interface AppSidebarProps {
 
 const navItems: { id: AppView; icon: React.ElementType; label: string }[] = [
   { id: 'auth', icon: FileText, label: 'Requests' },
-  // { id: 'upload', icon: Upload,   label: 'Upload File' },
   { id: 'export', icon: FileDown, label: 'Export' },
 ];
 

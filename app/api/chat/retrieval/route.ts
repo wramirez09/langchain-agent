@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { Message as VercelChatMessage, StreamingTextResponse } from "ai";
 
 import { createClient } from "@supabase/supabase-js";
+import { getUserFromRequest } from "@/lib/auth/getUserFromRequest";
 
 import { OpenAIEmbeddings } from "@langchain/openai";
 import { llmAgent } from "@/lib/llm";
@@ -13,8 +14,6 @@ import {
   BytesOutputParser,
   StringOutputParser,
 } from "@langchain/core/output_parsers";
-
-
 
 const combineDocumentsFn = (docs: Document[]) => {
   const serializedDocs = docs.map((doc) => doc.pageContent);
@@ -70,6 +69,21 @@ const answerPrompt = PromptTemplate.fromTemplate(ANSWER_TEMPLATE);
  */
 export async function POST(req: NextRequest) {
   try {
+    // `match_documents` now refuses a call that carries no owner, because the
+    // service-role key bypasses RLS and an unscoped query would read every
+    // user's uploads. So this route has to know who is asking -- it was
+    // previously unauthenticated.
+    let userId: string | undefined;
+    try {
+      const user = await getUserFromRequest(req);
+      userId = user?.id;
+    } catch {
+      userId = undefined;
+    }
+    if (!userId) {
+      return NextResponse.json({ error: "UNAUTHORIZED" }, { status: 401 });
+    }
+
     const body = await req.json();
     const messages = body.messages ?? [];
     const previousMessages = messages.slice(0, -1);
@@ -108,6 +122,7 @@ export async function POST(req: NextRequest) {
     });
 
     const retriever = vectorstore.asRetriever({
+      filter: { user_id: userId },
       callbacks: [
         {
           handleRetrieverEnd(documents) {

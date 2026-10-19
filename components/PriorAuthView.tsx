@@ -17,6 +17,7 @@ import { PriorAuthFormPanel } from "@/components/prior-auth/PriorAuthFormPanel";
 import { PriorAuthChatPanel } from "@/components/prior-auth/PriorAuthChatPanel";
 import { PriorAuthOutputPanel } from "@/components/prior-auth/PriorAuthOutputPanel";
 import { createChatFetchWithRetry } from "@/lib/priorAuth/chatFetchWithRetry";
+import { serializeQuery } from "@/lib/priorAuth/serializeQuery";
 import { SavedQueriesPalette } from "@/components/saved-queries/SavedQueriesPalette";
 import { useCurrentUserId } from "@/lib/savedQueries/useCurrentUserId";
 import { useSavedQueries } from "@/lib/savedQueries/useSavedQueries";
@@ -243,18 +244,7 @@ export function PriorAuthView({
       return;
     }
 
-    const formEntries = [
-      formFields.guidelines && `Guidelines: ${formFields.guidelines}`,
-      formFields.state && `State: ${formFields.state}`,
-      formFields.treatment && `Treatment: ${formFields.treatment}`,
-      formFields.cptCodes && `CPT/HCPCS : ${formFields.cptCodes}`,
-      formFields.diagnosis && `Diagnosis: ${formFields.diagnosis}`,
-      formFields.patientHistory && `History: ${formFields.patientHistory}`,
-      formFields.relevantHistory && `Relevant Medical History: ${formFields.relevantHistory}`,
-    ].filter(Boolean);
-
-    const formString = formEntries.join(". ");
-    const combined = [formString, chatInput.trim()].filter(Boolean).join(" | ");
+    const combined = serializeQuery(formFields, { note: chatInput });
     if (!combined) return;
 
     setIsLoading(true);
@@ -280,6 +270,35 @@ export function PriorAuthView({
       setIsLoading(false);
     }
   }, [formFields, chatInput, chat, clearTimeouts, setIsLoading, setIntermediateStepsLoading, setChatInput, setActiveFormTab]);
+
+  /**
+   * A de-identified note came back from /api/notes/extract as a serialized
+   * query. Fire it exactly like a form submission -- same append, same origin
+   * stamp -- so the transcript, the saved-query restore and the artifact all
+   * behave identically whether the request was typed or attached.
+   */
+  const handleNoteQuery = useCallback(
+    async (query: string) => {
+      if (!query.trim()) return;
+      setIsLoading(true);
+      setIntermediateStepsLoading(true);
+      setResponseReady(false);
+      setLastQueryOrigin("form");
+      setActiveFormTab("chat");
+      toast.info("Sending request to our AI agent");
+      try {
+        await chat.append({ role: "user", content: query });
+      } catch (error) {
+        if ((error as any)?.name !== "AbortError") {
+          toast.error("Failed to send the note");
+        }
+      } finally {
+        setIntermediateStepsLoading(false);
+        setIsLoading(false);
+      }
+    },
+    [chat, setIsLoading, setIntermediateStepsLoading, setActiveFormTab],
+  );
 
   const handleChatInputSubmit = useCallback(async (e?: FormEvent) => {
     e?.preventDefault();
@@ -519,6 +538,7 @@ export function PriorAuthView({
                 canSave={canSave}
                 saved={alreadySaved}
                 onSaveQuery={handleSaveQuery}
+                onNoteQuery={handleNoteQuery}
               />
             </div>
           </LayoutGroup>

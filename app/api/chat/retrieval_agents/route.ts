@@ -4,6 +4,7 @@ import { Message as VercelChatMessage, StreamingTextResponse } from "ai";
 import { createClient } from "@supabase/supabase-js";
 
 import { SupabaseVectorStore } from "@langchain/community/vectorstores/supabase";
+import { getUserFromRequest } from "@/lib/auth/getUserFromRequest";
 import {
   AIMessage,
   BaseMessage,
@@ -15,8 +16,6 @@ import { OpenAIEmbeddings } from "@langchain/openai";
 import { llmAgent } from "@/lib/llm";
 import { createRetrieverTool } from "langchain/tools/retriever";
 import { createReactAgent } from "@langchain/langgraph/prebuilt";
-
-
 
 const convertVercelMessageToLangChainMessage = (message: VercelChatMessage) => {
   if (message.role === "user") {
@@ -55,6 +54,21 @@ If you don't know how to answer a question, use the available tools to look up r
  */
 export async function POST(req: NextRequest) {
   try {
+    // `match_documents` now refuses a call that carries no owner, because the
+    // service-role key bypasses RLS and an unscoped query would read every
+    // user's uploads. So this route has to know who is asking -- it was
+    // previously unauthenticated.
+    let userId: string | undefined;
+    try {
+      const user = await getUserFromRequest(req);
+      userId = user?.id;
+    } catch {
+      userId = undefined;
+    }
+    if (!userId) {
+      return NextResponse.json({ error: "UNAUTHORIZED" }, { status: 401 });
+    }
+
     const body = await req.json();
     /**
      * We represent intermediate steps as system messages for display purposes,
@@ -68,7 +82,6 @@ export async function POST(req: NextRequest) {
       .map(convertVercelMessageToLangChainMessage);
     const returnIntermediateSteps = body.show_intermediate_steps;
 
-
     const client = createClient(
       process.env.SUPABASE_URL!,
       process.env.SUPABASE_PRIVATE_KEY!,
@@ -79,7 +92,7 @@ export async function POST(req: NextRequest) {
       queryName: "match_documents",
     });
 
-    const retriever = vectorstore.asRetriever();
+    const retriever = vectorstore.asRetriever({ filter: { user_id: userId } });
 
     /**
      * Wrap the retriever in a tool to present it to the agent in a

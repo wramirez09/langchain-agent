@@ -1,6 +1,8 @@
 import React from "react";
 import { cn } from "@/utils/cn";
 import { FIELD_ICONS, type FieldIconKey } from "@/components/prior-auth/fieldIcons";
+import { normalizeNoteText } from "@/lib/phi/normalize";
+import { redactPhi } from "@/lib/phi/redact";
 
 // The PA form serializes its inputs into a single labeled string (see
 // PriorAuthView.handleGenerateAuth):
@@ -10,7 +12,7 @@ import { FIELD_ICONS, type FieldIconKey } from "@/components/prior-auth/fieldIco
 // user's request renders as separated, labeled fields mirroring the agent's
 // Request Overview card — instead of one opaque run-on sentence.
 
-type FieldDef = { key: FieldIconKey; label: string; re: RegExp; full?: boolean };
+type FieldDef = { key: string; label: string; re: RegExp; full?: boolean };
 
 // Order doesn't matter for matching (each regex is matched independently), but
 // `full` controls whether a field spans both grid columns.
@@ -28,11 +30,26 @@ const FIELD_DEFS: FieldDef[] = [
     re: /Relevant Medical History\s*:/,
     full: true,
   },
-  { key: "history", label: "History", re: /(?<!Relevant Medical )History\s*:/, full: true },
+  {
+    key: "history",
+    label: "History",
+    re: /(?<!Relevant Medical )History\s*:/,
+    full: true,
+  },
+  // Emitted by the de-identified-note intake (lib/phi + /api/notes/extract),
+  // never by the form. Rendering it here is what makes the attestation
+  // durable: it rides along into the saved query and the PDF export rather
+  // than living only on the upload screen the clinician already left.
+  {
+    key: "deidentification",
+    label: "De-identification",
+    re: /De-identification\s*:/,
+    full: true,
+  },
 ];
 
 type ParsedField = {
-  key: FieldIconKey;
+  key: string;
   label: string;
   value: string;
   full?: boolean;
@@ -81,6 +98,16 @@ function parseRequest(raw: string): {
   return { fields, notes };
 }
 
+/** Shimmer stand-in for a value that is still being checked. */
+function ValueBar({ w }: { w: string }) {
+  return (
+    <div
+      className="h-[15px] animate-pulse rounded bg-gradient-to-r from-muted via-border to-muted bg-[length:200%_100%]"
+      style={{ width: w }}
+    />
+  );
+}
+
 function Field({
   k,
   v,
@@ -90,10 +117,14 @@ function Field({
   k: string;
   v: React.ReactNode;
   full?: boolean;
-  /** Same icon the form labels this field with; omitted for free-text notes. */
-  icon?: FieldIconKey;
+  /**
+   * Field key; gets the same icon the form labels it with. Fields the form
+   * doesn't have (De-identification, free-text notes) render without one.
+   */
+  icon?: string;
 }) {
-  const fieldIcon = icon ? FIELD_ICONS[icon] : null;
+  const fieldIcon =
+    icon && icon in FIELD_ICONS ? FIELD_ICONS[icon as FieldIconKey] : null;
   return (
     <div className={cn("min-w-0", full && "sm:col-span-2")}>
       <div className="mb-1 flex items-center gap-1.5 text-[12.5px] font-semibold text-muted-foreground">
@@ -115,15 +146,82 @@ function Field({
   );
 }
 
-export function UserRequestFields({ content }: { content: string }) {
+/**
+ * Scrub the echoed request before it is painted.
+ *
+ * The user typed this, so it is the one place in the product guaranteed to
+ * render whatever PHI someone pasted into a free-text box -- a name in the
+ * Diagnosis field is the common case. Running it through the same engine the
+ * note intake uses means the card shows "[NAME]" instead.
+ *
+ * Being aggressive is safe HERE in a way it is not in the note pipeline: this
+ * only changes what is drawn. The message itself is untouched, so nothing
+ * downstream -- the screening, the artifact, the PDF -- sees a different
+ * string, and a false positive costs a redacted word on screen rather than a
+ * wrong determination.
+ *
+ * It does NOT unsend anything. The raw text was already posted and is already
+ * persisted by `runAgent` into `chat_messages`. This stops the display
+ * repeating it; keeping it out of the request in the first place is the
+ * client-side redaction in `lib/phi`, and out of the database is a separate
+ * problem.
+ */
+function scrub(value: string): string {
+  if (!value) return value;
+  try {
+    return redactPhi(normalizeNoteText(value)).redacted;
+  } catch {
+    // Never let a redaction bug blank the card -- showing the original is the
+    // status quo, showing nothing is a regression.
+    return value;
+  }
+}
+
+export function UserRequestFields({
+  content,
+  pending = false,
+}: {
+  content: string;
+  /**
+   * True while the request is being screened for identifiers.
+   *
+   * This card echoes back exactly what the user typed, and what they type is
+   * the highest-risk text in the product -- the Diagnosis and History fields
+   * invite free text, and people put patient names in them. Holding the values
+   * behind a shimmer until the check has run means the one surface that
+   * reliably displays PHI is not doing so while we are still deciding whether
+   * it is PHI. The labels stay visible, so the card keeps its shape and the
+   * user can see their request was received.
+   */
+  pending?: boolean;
+}) {
   const { fields, notes } = parseRequest(content);
+
+  if (pending && fields.length > 0) {
+    return (
+      <div
+        data-testid="request-phi-check"
+        className="grid grid-cols-1 gap-x-8 gap-y-5 sm:grid-cols-2"
+      >
+        {fields.map((f, i) => (
+          <Field
+            key={f.label}
+            k={f.label}
+            full={f.full}
+            icon={f.key}
+            v={<ValueBar w={`${[72, 58, 84, 64][i % 4]}%`} />}
+          />
+        ))}
+      </div>
+    );
+  }
 
   // Fallback: a message with no structured fields (e.g. a typed follow-up
   // question) renders as plain text rather than an empty grid.
   if (fields.length === 0) {
     return (
       <p className="whitespace-pre-wrap text-[15px] leading-[1.55] text-foreground-soft [overflow-wrap:anywhere]">
-        {notes ?? content}
+        {scrub(notes ?? content)}
       </p>
     );
   }
@@ -131,9 +229,15 @@ export function UserRequestFields({ content }: { content: string }) {
   return (
     <div className="grid grid-cols-1 gap-x-8 gap-y-5 sm:grid-cols-2">
       {fields.map((f) => (
-        <Field key={f.label} k={f.label} v={f.value} full={f.full} icon={f.key} />
+        <Field
+          key={f.label}
+          k={f.label}
+          v={scrub(f.value)}
+          full={f.full}
+          icon={f.key}
+        />
       ))}
-      {notes ? <Field full k="Additional Notes" v={notes} /> : null}
+      {notes ? <Field full k="Additional Notes" v={scrub(notes)} /> : null}
     </div>
   );
 }

@@ -1,25 +1,14 @@
 "use client";
 
-import { useState, useCallback } from "react";
+import { useState } from "react";
 import { AppSidebar, type AppView } from "@/components/AppSidebar";
 import { PriorAuthView } from "@/components/PriorAuthView";
-import { UploadView } from "@/components/UploadView";
 import { FileExportView } from "@/components/FileExportView";
 import { PriorAuthProvider } from "@/components/providers/PriorAuthProvider";
 import { cn } from "@/utils/cn";
 
 export function AppShellClient() {
   const [activeView, setActiveView] = useState<AppView>("auth");
-  const [pendingMessage, setPendingMessage] = useState<string | null>(null);
-
-  const handleUploadComplete = useCallback((generatedQuery: string) => {
-    setPendingMessage(generatedQuery);
-    setActiveView("auth");
-  }, []);
-
-  const handlePendingMessageConsumed = useCallback(() => {
-    setPendingMessage(null);
-  }, []);
 
   return (
     <PriorAuthProvider>
@@ -27,27 +16,21 @@ export function AppShellClient() {
         <AppSidebar activeView={activeView} onViewChange={setActiveView} />
 
         {/* Keep all views mounted, toggle visibility with CSS */}
-        <main className={cn(
-          "app-ground flex-1 overflow-hidden bg-background",
-          activeView !== "auth" && "hidden"
-        )}>
-          <PriorAuthView
-            pendingMessage={pendingMessage}
-            onPendingMessageConsumed={handlePendingMessageConsumed}
-          />
+        <main
+          className={cn(
+            "app-ground flex-1 overflow-hidden bg-background",
+            activeView !== "auth" && "hidden",
+          )}
+        >
+          <PriorAuthView />
         </main>
 
-        <main className={cn(
-          "app-ground flex-1 overflow-hidden bg-background",
-          activeView !== "upload" && "hidden"
-        )}>
-          <UploadView onUploadComplete={handleUploadComplete} />
-        </main>
-
-        <main className={cn(
-          "app-ground flex-1 overflow-hidden bg-background",
-          activeView !== "export" && "hidden"
-        )}>
+        <main
+          className={cn(
+            "app-ground flex-1 overflow-hidden bg-background",
+            activeView !== "export" && "hidden",
+          )}
+        >
           <FileExportView />
         </main>
       </div>

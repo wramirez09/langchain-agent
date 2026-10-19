@@ -64,10 +64,19 @@ const CreatableSelectComponent: React.FC<CreatableSelectComponentProps> = ({
       ...base,
       color: "hsl(var(--muted-foreground))",
     }),
+    // globals.css forces inputs to 16px, which made the <input> wider than react-select's
+    // auto-size measure and scrolled typed text out of view. Fill the row at the same size instead.
     input: (base) => ({
       ...base,
       color: "hsl(var(--foreground))",
       margin: "0px",
+      fontSize: "16px",
+      gridTemplateColumns: "0 1fr",
+      width: "100%",
+    }),
+    valueContainer: (base) => ({
+      ...base,
+      overflow: "hidden",
     }),
     singleValue: (base) => ({
       ...base,

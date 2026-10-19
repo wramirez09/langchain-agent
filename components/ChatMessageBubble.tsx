@@ -33,41 +33,67 @@ interface MarkdownRendererProps {
 }
 const MarkdownRenderer: React.FC<MarkdownRendererProps> = ({ content }) => {
   // Track current section as we render (using object to allow mutation during render)
-  const sectionTracker = { current: null as 'medical-necessity-zone' | 'exclusions' | 'summary' | 'relevant-codes' | null };
+  const sectionTracker = {
+    current: null as
+      | "medical-necessity-zone"
+      | "exclusions"
+      | "summary"
+      | "relevant-codes"
+      | null,
+  };
 
   // Helper to detect section context from content
-  const getSectionContext = (position: number): 'medical-necessity-zone' | 'exclusions' | 'summary' | 'relevant-codes' | null => {
-    const beforeText = content.substring(Math.max(0, position - 1500), position).toLowerCase();
+  const getSectionContext = (
+    position: number,
+  ):
+    | "medical-necessity-zone"
+    | "exclusions"
+    | "summary"
+    | "relevant-codes"
+    | null => {
+    const beforeText = content
+      .substring(Math.max(0, position - 1500), position)
+      .toLowerCase();
 
     // Find the last occurrence of each section marker
     const lastSummaryIndex = Math.max(
-      beforeText.lastIndexOf('summary report'),
-      beforeText.lastIndexOf('## summary')
+      beforeText.lastIndexOf("summary report"),
+      beforeText.lastIndexOf("## summary"),
     );
-    const lastMedNecIndex = beforeText.lastIndexOf('medical necessity criteria');
-    const lastReqDocIndex = beforeText.lastIndexOf('required documentation');
+    const lastMedNecIndex = beforeText.lastIndexOf(
+      "medical necessity criteria",
+    );
+    const lastReqDocIndex = beforeText.lastIndexOf("required documentation");
     const lastExclIndex = Math.max(
-      beforeText.lastIndexOf('limitations and exclusions'),
-      beforeText.lastIndexOf('limitations/exclusions'),
-      beforeText.lastIndexOf('exclusions:'),
-      beforeText.lastIndexOf('limitations:')
+      beforeText.lastIndexOf("limitations and exclusions"),
+      beforeText.lastIndexOf("limitations/exclusions"),
+      beforeText.lastIndexOf("exclusions:"),
+      beforeText.lastIndexOf("limitations:"),
     );
-    const lastRelevantCodesIndex = beforeText.lastIndexOf('relevant codes');
+    const lastRelevantCodesIndex = beforeText.lastIndexOf("relevant codes");
 
     // Medical Necessity Zone: from "Medical Necessity Criteria" OR "Required Documentation" until "Relevant Codes"
     const medNecZoneStart = Math.max(lastMedNecIndex, lastReqDocIndex);
 
     // Determine which section we're in based on the most recent section header
-    const sectionIndices: Array<{ index: number; type: 'medical-necessity-zone' | 'exclusions' | 'summary' | 'relevant-codes' | null }> = [
-      { index: lastSummaryIndex, type: 'summary' },
-      { index: medNecZoneStart, type: 'medical-necessity-zone' },
-      { index: lastExclIndex, type: 'exclusions' },
-      { index: lastRelevantCodesIndex, type: 'relevant-codes' },
+    const sectionIndices: Array<{
+      index: number;
+      type:
+        | "medical-necessity-zone"
+        | "exclusions"
+        | "summary"
+        | "relevant-codes"
+        | null;
+    }> = [
+      { index: lastSummaryIndex, type: "summary" },
+      { index: medNecZoneStart, type: "medical-necessity-zone" },
+      { index: lastExclIndex, type: "exclusions" },
+      { index: lastRelevantCodesIndex, type: "relevant-codes" },
     ];
 
     // Sort by index descending to find the most recent section
     const mostRecent = sectionIndices
-      .filter(s => s.index >= 0)
+      .filter((s) => s.index >= 0)
       .sort((a, b) => b.index - a.index)[0];
 
     return mostRecent?.type ?? null;
@@ -90,31 +116,46 @@ const MarkdownRenderer: React.FC<MarkdownRendererProps> = ({ content }) => {
             const text = String(children).toLowerCase();
 
             // Update section tracking and style Medical Necessity Criteria header in green
-            if (text.includes('medical necessity criteria')) {
-              sectionTracker.current = 'medical-necessity-zone';
-              return <strong {...props} className="text-success font-semibold">{children}</strong>;
+            if (text.includes("medical necessity criteria")) {
+              sectionTracker.current = "medical-necessity-zone";
+              return (
+                <strong {...props} className="text-success font-semibold">
+                  {children}
+                </strong>
+              );
             }
 
             // Update section tracking and style Required Documentation header in green
-            if (text.includes('required documentation')) {
-              sectionTracker.current = 'medical-necessity-zone';
-              return <strong {...props} className="text-success font-semibold">{children}</strong>;
+            if (text.includes("required documentation")) {
+              sectionTracker.current = "medical-necessity-zone";
+              return (
+                <strong {...props} className="text-success font-semibold">
+                  {children}
+                </strong>
+              );
             }
 
             // Update section tracking for Relevant Codes
-            if (text.includes('relevant codes')) {
-              sectionTracker.current = 'relevant-codes';
+            if (text.includes("relevant codes")) {
+              sectionTracker.current = "relevant-codes";
             }
 
             // Update section tracking and style Limitations and Exclusions header in red
-            if (text.includes('limitations and exclusions') || text.includes('limitations') && text.includes('exclusions')) {
-              sectionTracker.current = 'exclusions';
-              return <strong {...props} className="text-destructive font-semibold">{children}</strong>;
+            if (
+              text.includes("limitations and exclusions") ||
+              (text.includes("limitations") && text.includes("exclusions"))
+            ) {
+              sectionTracker.current = "exclusions";
+              return (
+                <strong {...props} className="text-destructive font-semibold">
+                  {children}
+                </strong>
+              );
             }
 
             // Update section tracking for Summary
-            if (text.includes('summary report') || text.includes('summary')) {
-              sectionTracker.current = 'summary';
+            if (text.includes("summary report") || text.includes("summary")) {
+              sectionTracker.current = "summary";
             }
 
             // Render all other strong/bold text as default markdown
@@ -124,7 +165,9 @@ const MarkdownRenderer: React.FC<MarkdownRendererProps> = ({ content }) => {
           // monospace/bold inline-code. If the model ever wraps a code in
           // backticks, render it as a plain inline span instead of <code>.
           code: ({ children, ...props }) => {
-            const { node: _node, ...rest } = props as { node?: unknown } & Record<string, unknown>;
+            const { node: _node, ...rest } = props as {
+              node?: unknown;
+            } & Record<string, unknown>;
             return <span {...rest}>{children}</span>;
           },
           ul: ({ children, ...props }) => {
@@ -138,16 +181,18 @@ const MarkdownRenderer: React.FC<MarkdownRendererProps> = ({ content }) => {
           li: ({ children, ...props }) => {
             // Extract text from children, handling React elements
             const extractText = (node: React.ReactNode): string => {
-              if (typeof node === 'string') return node;
-              if (typeof node === 'number') return String(node);
-              if (Array.isArray(node)) return node.map(extractText).join(' ');
-              if (node && typeof node === 'object' && 'props' in node) {
-                const element = node as { props?: { children?: React.ReactNode } };
+              if (typeof node === "string") return node;
+              if (typeof node === "number") return String(node);
+              if (Array.isArray(node)) return node.map(extractText).join(" ");
+              if (node && typeof node === "object" && "props" in node) {
+                const element = node as {
+                  props?: { children?: React.ReactNode };
+                };
                 if (element.props?.children) {
                   return extractText(element.props.children);
                 }
               }
-              return '';
+              return "";
             };
 
             const childText = extractText(children).toLowerCase();
@@ -166,7 +211,10 @@ const MarkdownRenderer: React.FC<MarkdownRendererProps> = ({ content }) => {
 
               // If not found, try first few words
               if (position === -1) {
-                const firstWords = meaningfulText.split(' ').slice(0, 3).join(' ');
+                const firstWords = meaningfulText
+                  .split(" ")
+                  .slice(0, 3)
+                  .join(" ");
                 if (firstWords.length >= 5) {
                   position = contentLower.indexOf(firstWords);
                 }
@@ -174,7 +222,10 @@ const MarkdownRenderer: React.FC<MarkdownRendererProps> = ({ content }) => {
 
               // If still not found, try first two words
               if (position === -1) {
-                const firstTwoWords = meaningfulText.split(' ').slice(0, 2).join(' ');
+                const firstTwoWords = meaningfulText
+                  .split(" ")
+                  .slice(0, 2)
+                  .join(" ");
                 if (firstTwoWords.length >= 5) {
                   position = contentLower.indexOf(firstTwoWords);
                 }
@@ -190,18 +241,21 @@ const MarkdownRenderer: React.FC<MarkdownRendererProps> = ({ content }) => {
             }
 
             // Debug logging for nested bullets
-            if (childText.includes('intra-articular') || childText.includes('mechanical symptoms')) {
-              console.log('List item debug:', {
+            if (
+              childText.includes("intra-articular") ||
+              childText.includes("mechanical symptoms")
+            ) {
+              console.log("List item debug:", {
                 text: childText.substring(0, 50),
                 position,
                 context,
-                trackerCurrent: sectionTracker.current
+                trackerCurrent: sectionTracker.current,
               });
             }
 
             // Medical Necessity Zone (Medical Necessity Criteria + Required Documentation until Relevant Codes)
             // Green text with green checkboxes
-            if (context === 'medical-necessity-zone') {
+            if (context === "medical-necessity-zone") {
               return (
                 <li {...props} className="flex items-start gap-2">
                   <input
@@ -215,10 +269,15 @@ const MarkdownRenderer: React.FC<MarkdownRendererProps> = ({ content }) => {
             }
 
             // Limitations/Exclusions section - red text with red X (until Summary Report)
-            if (context === 'exclusions') {
+            if (context === "exclusions") {
               return (
-                <li {...props} className="flex items-start gap-2 text-destructive">
-                  <span className="mt-0.5 font-bold text-destructive flex-shrink-0">✗</span>
+                <li
+                  {...props}
+                  className="flex items-start gap-2 text-destructive"
+                >
+                  <span className="mt-0.5 font-bold text-destructive flex-shrink-0">
+                    ✗
+                  </span>
                   <span>{children}</span>
                 </li>
               );
@@ -231,7 +290,7 @@ const MarkdownRenderer: React.FC<MarkdownRendererProps> = ({ content }) => {
       >
         {content}
       </ReactMarkdown>
-    </div >
+    </div>
   );
 };
 
@@ -257,6 +316,8 @@ export function ChatMessageBubble(props: {
   isLastMessage?: boolean;
   isLoading?: boolean;
   bare?: boolean;
+  /** True for the user request currently being screened for identifiers. */
+  phiChecking?: boolean;
 }) {
   const isUser = props.message.role === "user";
   // The server interleaves progress frames with the answer (the text stream
@@ -325,7 +386,10 @@ export function ChatMessageBubble(props: {
           <div className="test-sm max-w-none leading-snug">
             {props.isLoading && props.isLastMessage && !settled ? (
               <div className="flex items-center space-x-2">
-                <Loader2 className="h-3.5 w-3.5 animate-spin text-blue-500" strokeWidth={1} />
+                <Loader2
+                  className="h-3.5 w-3.5 animate-spin text-blue-500"
+                  strokeWidth={1}
+                />
                 <span className="text-sm">
                   {phase === "reviewing"
                     ? "Validating results…"
@@ -333,7 +397,10 @@ export function ChatMessageBubble(props: {
                 </span>
               </div>
             ) : isUser ? (
-              <UserRequestFields content={displayContent} />
+              <UserRequestFields
+                content={displayContent}
+                pending={!!props.phiChecking}
+              />
             ) : looksLikeArtifact(displayContent) ? (
               <PriorAuthArtifact
                 raw={raw}
@@ -380,11 +447,8 @@ export function ChatMessageBubble(props: {
               </div>
             </div>
           )}
-
         </div>
-
       </div>
-
     </motion.div>
   );
 }
