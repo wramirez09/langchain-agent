@@ -18,6 +18,7 @@ import {
   type ToolMessageRecord,
 } from './backfillCodes'
 import type { PartialPriorAuthArtifact } from './artifactSchema'
+import { normalizeCriterionStatuses } from './normalizeStatuses'
 import {
   buildEvidenceIndex,
   hydrateSourceBodies,
@@ -117,11 +118,15 @@ export async function reviewArtifact(
   // would render as a genuine verdict — including a green "checks passed" on
   // an answer nothing ever checked. Strip it before anything else, in every
   // mode, so the field can only ever mean what this function put there.
-  const input = stripModelReview(parsed)
+  const stripped = stripModelReview(parsed)
 
   if (mode === 'off') {
-    return { artifact: input, review: EMPTY_REVIEW, filled: [] }
+    return { artifact: stripped, review: EMPTY_REVIEW, filled: [] }
   }
+
+  // Off-spec criterion statuses would otherwise surface as "Not one of the
+  // allowed values." findings and render as unrecognised labels.
+  const input = normalizeCriterionStatuses(stripped)
 
   try {
     const evidence = buildEvidenceIndex(toolMessages)
