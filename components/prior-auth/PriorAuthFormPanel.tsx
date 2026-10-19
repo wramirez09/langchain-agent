@@ -42,7 +42,15 @@ const selectStyles = {
     "&:hover": { borderColor: "hsl(var(--primary) / 0.5)" },
   }),
   placeholder: (base: any) => ({ ...base, color: "hsl(var(--muted-foreground))" }),
-  input: (base: any) => ({ ...base, color: "hsl(var(--foreground))" }),
+  // globals.css forces <input> to 16px !important, but react-select sizes the input from a
+  // hidden copy of the text at the control's 14px, so typed text outgrew its box and
+  // scrolled left. Measure at 16px and let the input fill the row.
+  input: (base: any) => ({
+    ...base,
+    color: "hsl(var(--foreground))",
+    fontSize: "16px",
+    gridTemplateColumns: "0 1fr",
+  }),
   singleValue: (base: any) => ({ ...base, color: "hsl(var(--foreground))" }),
   multiValue: (base: any) => ({ ...base, backgroundColor: "hsl(var(--muted))" }),
   multiValueLabel: (base: any) => ({ ...base, color: "hsl(var(--foreground))" }),
