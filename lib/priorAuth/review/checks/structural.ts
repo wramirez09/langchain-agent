@@ -132,6 +132,24 @@ export const structuralCompletenessCheck: ArtifactCheck = {
       for (const zi of parsed.error.issues) {
         const path = pointerFromZodPath(zi.path)
         if (!path) continue
+        // What the model actually wrote, so off-spec values can be diagnosed.
+        // Only short scalars are logged: a long string could carry note text.
+        let received: unknown = artifact
+        for (const seg of zi.path) {
+          received = (received as Record<PropertyKey, unknown> | null)?.[
+            seg as PropertyKey
+          ]
+        }
+        console.warn('[Review] schema issue', {
+          path: zi.path.join('.'),
+          code: zi.code,
+          received:
+            typeof received === 'string'
+              ? received.slice(0, 40)
+              : typeof received === 'object'
+                ? typeof received
+                : received,
+        })
         push(issue('schema-invalid', 'warning', path, messageForZodIssue(zi.code)))
       }
     }
