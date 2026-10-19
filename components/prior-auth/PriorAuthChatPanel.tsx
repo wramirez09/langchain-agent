@@ -1,9 +1,9 @@
 "use client";
 
-import React, { FormEvent } from "react";
+import React, { FormEvent, useCallback, useEffect, useRef, useState } from "react";
 import { motion } from "framer-motion";
 import { type Message } from "ai";
-import { LoaderCircle, Trash2, AlertTriangle, Bookmark, Sparkles } from "lucide-react";
+import { LoaderCircle, Trash2, AlertTriangle, Bookmark, Sparkles, ArrowDown } from "lucide-react";
 import { IconSend2 } from "@tabler/icons-react";
 import { ChatMessageBubble } from "@/components/ChatMessageBubble";
 import { IntermediateStep } from "@/components/IntermediateStep";
@@ -54,6 +54,43 @@ export function PriorAuthChatPanel({
     messages.length > 0 &&
     lastMessage?.role !== "assistant";
 
+  // Once a response finishes, offer a jump to its Summary card while that
+  // card is below the fold. Scoped to this container and the LAST summary:
+  // section ids repeat once the chat holds more than one report.
+  const scrollRef = useRef<HTMLDivElement>(null);
+  const [showJump, setShowJump] = useState(false);
+  const responseDone =
+    !isProcessing && !isRestoring && lastMessage?.role === "assistant";
+
+  const lastSummary = useCallback(() => {
+    const all =
+      scrollRef.current?.querySelectorAll<HTMLElement>("section#summary");
+    return all && all.length ? all[all.length - 1] : null;
+  }, []);
+
+  const updateJump = useCallback(() => {
+    const box = scrollRef.current;
+    const el = lastSummary();
+    if (!responseDone || !box || !el) return setShowJump(false);
+    setShowJump(
+      el.getBoundingClientRect().top > box.getBoundingClientRect().bottom - 24,
+    );
+  }, [responseDone, lastSummary]);
+
+  useEffect(() => {
+    // After paint, so the new message's summary card is laid out.
+    const raf = requestAnimationFrame(updateJump);
+    const box = scrollRef.current;
+    if (!box) return () => cancelAnimationFrame(raf);
+    box.addEventListener("scroll", updateJump, { passive: true });
+    window.addEventListener("resize", updateJump);
+    return () => {
+      cancelAnimationFrame(raf);
+      box.removeEventListener("scroll", updateJump);
+      window.removeEventListener("resize", updateJump);
+    };
+  }, [updateJump, messages]);
+
   return (
     <motion.div
       layout
@@ -102,7 +139,11 @@ export function PriorAuthChatPanel({
         </div>
       </div>
 
-      <div className="flex-1 min-h-0 overflow-y-auto px-4 py-4 space-y-3">
+      <div className="relative flex-1 min-h-0 flex flex-col">
+      <div
+        ref={scrollRef}
+        className="flex-1 min-h-0 overflow-y-auto px-4 py-4 space-y-3"
+      >
         {messages.length === 0 && !isRestoring ? (
           // min-h-full, not h-full: centred when it fits, but when it is
           // taller than the panel (phones) it grows and scrolls instead of
@@ -181,6 +222,22 @@ export function PriorAuthChatPanel({
             )}
           </>
         )}
+      </div>
+          {showJump && (
+            <button
+              type="button"
+              onClick={() =>
+                lastSummary()?.scrollIntoView({
+                  behavior: "smooth",
+                  block: "start",
+                })
+              }
+              className="absolute bottom-3 left-1/2 -translate-x-1/2 flex items-center gap-1.5 rounded-full bg-blue-600 px-3.5 py-2 text-xs font-medium text-white shadow-lg transition-colors hover:bg-blue-700"
+            >
+              <ArrowDown className="size-3.5" strokeWidth={2} />
+              Jump to summary
+            </button>
+          )}
       </div>
 
       <div className="border-t border-border px-4 pt-3 pb-1 flex-shrink-0">
