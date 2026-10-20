@@ -132,7 +132,8 @@ const credentialRule: PhiRule = {
  * assume capitalisation.
  *
  * Either half being a clinical term in context still suppresses the match, so
- * "Graves disease" and "Smith fracture" survive.
+ * "Graves disease" and "Smith fracture" survive. A capitalised given name
+ * followed by another given name ("John Wayne") also counts -- see below.
  */
 
 /** True when the token, or either half of a hyphenated compound, is a surname. */
@@ -183,7 +184,17 @@ const fullNameRule: PhiRule = {
       if (!contiguous) continue;
 
       const bare = last.text.replace(/\.$/, "");
-      if (!isSurname(bare)) continue;
+      // Many surnames are also given names -- Wayne, Grant, Lee, Morgan -- and
+      // the gazetteer files them under one list only, so "John Wayne" used to
+      // slip through. Two given names in a row count too, but only when both
+      // are capitalised: lowercased, given names include ordinary words
+      // ("may", "will", "grace") that pair up in prose.
+      const capitalised = (t: string) => /^[A-Z][a-z]/.test(t);
+      const givenPair =
+        GIVEN_NAMES.has(bare.toLowerCase()) &&
+        capitalised(first.text) &&
+        capitalised(bare);
+      if (!isSurname(bare) && !givenPair) continue;
 
       const after = text.slice(last.end, last.end + 40);
       // "Graves disease", "Smith fracture" -- a clinical qualifier means this
@@ -191,9 +202,26 @@ const fullNameRule: PhiRule = {
       if (isClinicalEponym(bare, after)) continue;
       if (isClinicalEponym(first.text, " " + bare)) continue;
 
+      // A third part ("Mary Grace Smith", "John Wayne Lee") belongs to the
+      // same name; stopping at two would leave the surname on screen.
+      let end = last.end;
+      while (j + 1 < tokens.length && adjacent(tokens[j], tokens[j + 1])) {
+        const next = tokens[j + 1].text.replace(/\.$/, "");
+        const more =
+          capitalised(next) &&
+          (isSurname(next) || GIVEN_NAMES.has(next.toLowerCase())) &&
+          !isClinicalEponym(
+            next,
+            text.slice(tokens[j + 1].end, tokens[j + 1].end + 40),
+          );
+        if (!more) break;
+        j += 1;
+        end = tokens[j].end;
+      }
+
       out.push({
         start: first.start,
-        end: last.end,
+        end,
         category: "name",
         ruleId: "name-full",
       });

@@ -105,3 +105,36 @@ describe("redactText", () => {
     );
   });
 });
+
+describe("redactArtifact — echoed request fields", () => {
+  it("removes a bare name the agent copied into the overview, keeps procedure names", () => {
+    const a = example();
+    a.requestOverview.diagnosis = "John Wayne";
+    a.requestOverview.medicalHistory = "Seen with Smith for knee pain.";
+    a.requestOverview.treatment =
+      "Magnetic Resonance Imaging (MRI) of the knee";
+    const { artifact } = redactArtifact(a);
+    expect(artifact.requestOverview.diagnosis).toBe("[NAME]");
+    expect(artifact.requestOverview.medicalHistory).toBe(
+      "Seen with [NAME] for knee pain.",
+    );
+    expect(artifact.requestOverview.treatment).toBe(
+      a.requestOverview.treatment,
+    );
+  });
+
+  it("uses the conservative rules outside the echo, so eponyms in criteria survive", () => {
+    const a = example();
+    a.medicalNecessityCriteria[0].detail = "Per guideline authored by Smith";
+    expect(redactArtifact(a).artifact.medicalNecessityCriteria[0].detail).toBe(
+      "Per guideline authored by Smith",
+    );
+  });
+
+  it("scrubs a streaming partial without adding a receipt when asked", () => {
+    const partial = { requestOverview: { diagnosis: "John Wayne" } };
+    const { artifact, total } = redactArtifact(partial, { notice: false });
+    expect(artifact).toEqual({ requestOverview: { diagnosis: "[NAME]" } });
+    expect(total).toBe(1);
+  });
+});

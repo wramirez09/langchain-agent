@@ -22,6 +22,8 @@ import type {
   RawSpan,
   RedactionResult,
 } from "./types";
+import { GIVEN_NAMES, SURNAMES } from "./gazetteer";
+import { findSuspectNames } from "./names";
 import { RULES } from "./rules";
 
 const DEFAULT_PLACEHOLDERS: Record<PhiCategory, string> = {
@@ -132,6 +134,48 @@ export function redactPhi(
   out += text.slice(cursor);
 
   return { redacted: out, spans, counts, total: spans.length };
+}
+
+/**
+ * Stricter variant for surfaces that DISPLAY user-typed text back: the
+ * "Your request" card, and the fields of a report that echo the request.
+ *
+ * `redactPhi` leaves an unanchored capitalised token alone and soft-flags it,
+ * because on the way to the model a wrongly removed "Parkinson" changes the
+ * determination. On a display surface that trade inverts -- a false positive
+ * costs one word on screen, a false negative shows a patient's name -- so the
+ * soft flags are redacted too -- but only the ones that look like a person:
+ * a gazetteer first name or surname, or any word directly after a first name.
+ * A flagged word in neither list is left alone, which is what keeps Title
+ * Case procedure names ("Magnetic Resonance Imaging", "MRI Lumbar") intact.
+ * Never use this on text bound for the model or on guideline-derived text,
+ * where those capitalised words are grading scales and eponyms.
+ */
+export function redactPhiForDisplay(text: string): RedactionResult {
+  const first = redactPhi(text);
+  const spans: RawSpan[] = [];
+  for (const f of findSuspectNames(text, first.spans)) {
+    // "Wayne Rooney": the flag lands on "Rooney" only, because a
+    // sentence-initial word is never flagged. A capitalised given name
+    // directly before a flagged word makes both of them one name.
+    const before = /([A-Z][a-z]+)[ \t]+$/.exec(text.slice(0, f.start));
+    const afterGiven = !!before && GIVEN_NAMES.has(before[1].toLowerCase());
+    if (!afterGiven && !isGazetteerName(f.text)) continue;
+    spans.push({
+      start: afterGiven ? f.start - before![0].length : f.start,
+      end: f.end,
+      category: "name",
+      ruleId: "name-suspect",
+    });
+  }
+  return spans.length ? redactPhi(text, RULES, spans) : first;
+}
+
+function isGazetteerName(token: string): boolean {
+  return token
+    .toLowerCase()
+    .split("-")
+    .some((p) => GIVEN_NAMES.has(p) || SURNAMES.has(p));
 }
 
 /**

@@ -89,6 +89,12 @@ which runs in the browser:
   "Parkinson" the diagnosis from "Parkinson" the patient.
 - `components/prior-auth/UserRequestFields.tsx` scrubs the echoed request too;
   that card is the surface most likely to be displaying PHI at any moment.
+- Display surfaces use `redactPhiForDisplay`, which also removes soft-flagged
+  words that are gazetteer names or follow a first name ("Wayne Rooney") —
+  on screen a false positive costs one word. Never use it on text bound for
+  the model. `lib/priorAuth/redactArtifact` applies it to the request-echo
+  fields of an artifact and the base rules elsewhere; the web report card,
+  the PDF and the MCP result all render through it.
 
 This does not make the product a Business Associate.
 `documents/privacy-policy.md` still disclaims that, and raw note text is never

@@ -4,6 +4,7 @@ import {
   redactionReceipt,
   placeholderFor,
   MANUAL_RULE_ID,
+  redactPhiForDisplay,
 } from "../redact";
 import type { PhiRule } from "../types";
 
@@ -229,6 +230,38 @@ describe("redactionReceipt", () => {
   it("reports zero when nothing was found", () => {
     expect(redactionReceipt(redactPhi("no identifiers here"))).toBe(
       "0 identifiers removed from an uploaded note",
+    );
+  });
+});
+
+describe("redactPhiForDisplay", () => {
+  it.each([
+    ["Wayne Rooney", "[NAME]"],
+    ["knee pain, seen with Smith", "knee pain, seen with [NAME]"],
+    ["Diagnosis for Maria", "Diagnosis for [NAME]"],
+  ])(
+    "also removes name-like words the base rules only flag: %j",
+    (input, out) => {
+      expect(redactPhiForDisplay(N(input)).redacted).toBe(out);
+    },
+  );
+
+  it.each([
+    "Magnetic Resonance Imaging (MRI) of the knee",
+    "MRI Lumbar",
+    "Total Knee Arthroplasty",
+    "Smith fracture of the wrist",
+    "Kellgren-Lawrence grade 3",
+  ])("keeps procedure names and eponyms: %j", (input) => {
+    expect(redactPhiForDisplay(N(input)).redacted).toBe(N(input));
+  });
+
+  it("is a superset of redactPhi", () => {
+    const t = N("Patient: Jane Doe\nDOB 01/02/1970\nKnee pain, seen with Smith");
+    const base = redactPhi(t).redacted;
+    expect(base).toContain("Smith");
+    expect(redactPhiForDisplay(t).redacted).toBe(
+      base.replace("Smith", "[NAME]"),
     );
   });
 });

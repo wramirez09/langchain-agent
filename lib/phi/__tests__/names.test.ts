@@ -163,3 +163,23 @@ describe("full-name rule", () => {
     expect(out("john\nsmith")).toBe("john\nsmith");
   });
 });
+
+describe("given-name pairs and three-part names", () => {
+  it.each([
+    ["John Wayne", "[NAME]"],
+    ["Diagnosis: John Wayne", "Diagnosis: [NAME]"],
+    ["knee pain in John Wayne", "knee pain in [NAME]"],
+    ["Mary Grace Smith reports pain", "[NAME] reports pain"],
+    ["John Wayne Lee, 68M", "[NAME], 68M"],
+  ])("redacts %j", (input, out) => {
+    expect(redactPhi(N(input)).redacted).toBe(out);
+  });
+
+  it.each([
+    "will may grace",
+    "Grace period applies",
+    "Kellgren-Lawrence grade 3, Parkinson disease",
+  ])("leaves %j alone", (input) => {
+    expect(redactPhi(N(input)).redacted).toBe(N(input));
+  });
+});

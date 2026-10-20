@@ -26,6 +26,8 @@ import {
 } from '@/lib/savedQueries/db'
 import { type Determination } from '@/lib/priorAuth/artifactSchema'
 import { GUIDELINE_LABEL } from '@/lib/priorAuth/artifactPresentation'
+import { normalizeNoteText } from '@/lib/phi/normalize'
+import { redactPhiForDisplay } from '@/lib/phi/redact'
 
 dayjs.extend(relativeTime)
 
@@ -52,6 +54,16 @@ interface SavedQueriesPaletteProps {
  * modal — type to filter, Enter (or click) re-applies, row icons handle
  * pin/delete.
  */
+/** Display-strict PHI scrub; shows the original if redaction itself throws. */
+function scrub(value: string): string {
+  if (!value) return value
+  try {
+    return redactPhiForDisplay(normalizeNoteText(value)).redacted
+  } catch {
+    return value
+  }
+}
+
 export function SavedQueriesPalette({
   open,
   onOpenChange,
@@ -207,12 +219,14 @@ function PaletteRow({
 
   // One-line request summary under the title: treatment — diagnosis from the
   // form snapshot, falling back to the saved user message for chat saves.
+  // Diagnosis and the saved message are free text the user typed -- the same
+  // text the "Your request" card scrubs -- so the list scrubs it too, field
+  // by field so the join's em dash is not normalised away.
   const detail =
     [q.formFields?.treatment, q.formFields?.diagnosis]
-      .filter(Boolean)
-      .join(' — ') ||
-    q.userPreview ||
-    ''
+      .filter((v): v is string => !!v)
+      .map(scrub)
+      .join(' — ') || scrub(q.userPreview || '')
 
   // Compact meta facts; rendered dot-separated after the origin chip.
   const guidelines =
@@ -254,7 +268,7 @@ function PaletteRow({
             />
           ) : null}
           <span className="truncate text-sm font-semibold text-foreground">
-            {q.title}
+            {scrub(q.title ?? '')}
           </span>
         </div>
         {q.determination ? (

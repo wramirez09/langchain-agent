@@ -2,7 +2,7 @@ import React from "react";
 import { cn } from "@/utils/cn";
 import { FIELD_ICONS, type FieldIconKey } from "@/components/prior-auth/fieldIcons";
 import { normalizeNoteText } from "@/lib/phi/normalize";
-import { redactPhi } from "@/lib/phi/redact";
+import { redactPhiForDisplay } from "@/lib/phi/redact";
 
 // The PA form serializes its inputs into a single labeled string (see
 // PriorAuthView.handleGenerateAuth):
@@ -169,7 +169,9 @@ function Field({
 function scrub(value: string): string {
   if (!value) return value;
   try {
-    return redactPhi(normalizeNoteText(value)).redacted;
+    // Display-strict: also removes unanchored name-like words ("John Wayne",
+    // "Seen with Smith"). See `redactPhiForDisplay` for why that trade is right here.
+    return redactPhiForDisplay(normalizeNoteText(value)).redacted;
   } catch {
     // Never let a redaction bug blank the card -- showing the original is the
     // status quo, showing nothing is a regression.

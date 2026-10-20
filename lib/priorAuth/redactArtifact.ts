@@ -1,5 +1,5 @@
 import type { PriorAuthArtifact } from "@/lib/priorAuth/artifactSchema";
-import { redactPhi } from "@/lib/phi/redact";
+import { redactPhi, redactPhiForDisplay } from "@/lib/phi/redact";
 
 /**
  * De-identify a finished artifact before it leaves the server.
@@ -33,23 +33,37 @@ const SKIP_KEYS = new Set([
   "review",
 ]);
 
-export interface ArtifactRedaction {
-  artifact: PriorAuthArtifact;
-  /** identifiers replaced, across every field */
-  total: number;
-}
+/**
+ * Fields under `requestOverview` that echo what the user typed. These get
+ * `redactPhiForDisplay`, which also removes unanchored name-like words: this
+ * is where a patient's name lands ("Diagnosis: John Wayne"), and the text is
+ * the user's, not a guideline's, so a false positive costs one word. Codes in
+ * `cpt`/`icd10` are still skipped by key.
+ */
+const ECHO_KEYS = new Set([
+  "treatment",
+  "diagnosis",
+  "medicalHistory",
+  "keyFindings",
+]);
 
-function redactValue(v: unknown, counter: { n: number }): unknown {
+function redactValue(
+  v: unknown,
+  counter: { n: number },
+  strict = false,
+): unknown {
   if (typeof v === "string") {
-    const r = redactPhi(v);
+    const r = strict ? redactPhiForDisplay(v) : redactPhi(v);
     counter.n += r.total;
     return r.total ? r.redacted : v;
   }
-  if (Array.isArray(v)) return v.map((x) => redactValue(x, counter));
+  if (Array.isArray(v)) return v.map((x) => redactValue(x, counter, strict));
   if (v && typeof v === "object") {
     const out: Record<string, unknown> = {};
     for (const [k, x] of Object.entries(v)) {
-      out[k] = SKIP_KEYS.has(k) ? x : redactValue(x, counter);
+      out[k] = SKIP_KEYS.has(k)
+        ? x
+        : redactValue(x, counter, strict || ECHO_KEYS.has(k));
     }
     return out;
   }
@@ -65,10 +79,19 @@ export function redactionNotice(total: number): string {
   return `${total} ${total === 1 ? "identifier was" : "identifiers were"} removed from this report.`;
 }
 
-export function redactArtifact(a: PriorAuthArtifact): ArtifactRedaction {
+/**
+ * Works on a complete artifact or a streaming partial one — the walk is
+ * shape-agnostic. `notice: false` skips the count receipt, for the web card
+ * and PDF, which render mid-stream (a count that ticks up as JSON arrives is
+ * noise) and already show the agent's own PHI notice.
+ */
+export function redactArtifact<T extends object = PriorAuthArtifact>(
+  a: T,
+  { notice = true }: { notice?: boolean } = {},
+): { artifact: T; total: number } {
   const counter = { n: 0 };
-  const artifact = redactValue(a, counter) as PriorAuthArtifact;
-  if (counter.n > 0) {
+  const artifact = redactValue(a, counter) as T & { phiNotice?: string };
+  if (notice && counter.n > 0) {
     const notice = redactionNotice(counter.n);
     artifact.phiNotice = artifact.phiNotice
       ? `${artifact.phiNotice} ${notice}`
