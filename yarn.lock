@@ -10742,7 +10742,7 @@ baseline-browser-mapping@latest:
     typescript: 5.1.6
     use-stick-to-bottom: ^1.0.44
     vaul: ^1.1.2
-    vite: 7
+    vite: ^7.3.7
     vite-plugin-singlefile: ^2.3.4
     yarn: ^1.22.22
     zod: latest
@@ -16067,7 +16067,7 @@ react@latest:
   languageName: node
   linkType: hard
 
-"vite@npm:7":
+"vite@npm:^7.3.7":
   version: 7.3.7
   resolution: "vite@npm:7.3.7"
   dependencies:
