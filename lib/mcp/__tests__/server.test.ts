@@ -174,6 +174,50 @@ describe("resources", () => {
     delete process.env.MCP_EXPOSE_GUIDELINE_RESOURCES;
     await connect(["agents", "chat"]);
     const { resources } = await client.listResources();
-    expect(resources).toEqual([]);
+    // The MCP Apps view is the only resource left; no guideline bodies.
+    expect(resources.map((r) => r.uri)).toEqual(["ui://notedoctor/prior-auth-summary.html"]);
+  });
+});
+
+describe("MCP Apps (io.modelcontextprotocol/ui)", () => {
+  const URI = "ui://notedoctor/prior-auth-summary.html";
+
+  it("advertises the extension and tells the model to present the report in full", async () => {
+    await connect(["agents", "chat"]);
+    expect(client.getServerCapabilities()?.extensions).toEqual({
+      "io.modelcontextprotocol/ui": { mimeTypes: ["text/html;profile=mcp-app"] },
+    });
+    expect(client.getInstructions()).toMatch(/in full/);
+  });
+
+  it("links the screening tool to its view under both meta keys", async () => {
+    await connect(["agents", "chat"]);
+    const { tools } = await client.listTools();
+    const screening = tools.find((t) => t.name === "run_prior_auth_screening")!;
+    expect(screening._meta).toMatchObject({
+      ui: { resourceUri: URI },
+      "ui/resourceUri": URI,
+    });
+    expect(screening._meta).not.toHaveProperty("openai/outputTemplate");
+    expect(screening.description).toMatch(/rather than summarizing/);
+  });
+
+  it("serves a self-contained HTML view with the MCP App MIME type, unmetered", async () => {
+    await connect(["agents", "chat"]);
+    const { resources } = await client.listResources();
+    expect(resources.map((r) => r.uri)).toContain(URI);
+
+    const { contents } = await client.readResource({ uri: URI });
+    const [c] = contents as any[];
+    expect(c.mimeType).toBe("text/html;profile=mcp-app");
+    expect(c.text).toMatch(/^<!doctype html>/i);
+    expect(c.text).not.toMatch(/<script[^>]+src=|<link[^>]+href=/i);
+    expect(metered).toEqual([]);
+  });
+
+  it("does not publish the view to a key that cannot run the screening", async () => {
+    await connect(["chat"]);
+    const { resources } = await client.listResources();
+    expect(resources.map((r) => r.uri)).not.toContain(URI);
   });
 });

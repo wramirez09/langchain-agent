@@ -15,7 +15,7 @@ const customJestConfig = {
   },
   testPathIgnorePatterns: ['/node_modules/', '/.next/', '/e2e/'],
   transformIgnorePatterns: [
-    '/node_modules/(?!(cheerio|cheerio-select|css-select|css-what|domelementtype|domhandler|domutils|entities|nth-check|parse5|parse5-htmlparser2-tree-adapter|htmlparser2|boolbase|undici|whatwg-url)/)',
+    '/node_modules/(?!(cheerio|cheerio-select|css-select|css-what|domelementtype|domhandler|domutils|entities|nth-check|parse5|parse5-htmlparser2-tree-adapter|htmlparser2|boolbase|undici|whatwg-url|@modelcontextprotocol/ext-apps)/)',
   ],
   collectCoverageFrom: [
     'app/api/chat/agents/tools/**/*.ts',

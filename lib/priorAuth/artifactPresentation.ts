@@ -22,6 +22,69 @@ export const DETERMINATION_TONE: Record<Determination, Tone> = {
   not_supported: "red",
 };
 
+/**
+ * The four-way badge the MCP App header shows. Coarser than `Determination`
+ * on purpose: a clinician scanning a chat wants approve / conditional / deny,
+ * and "more info needed" is honestly "unknown" until the record is completed.
+ */
+export type DeterminationBadge = "approve" | "conditional" | "deny" | "unknown";
+
+export const DETERMINATION_BADGE: Record<Determination, DeterminationBadge> = {
+  meets_criteria: "approve",
+  conditional: "conditional",
+  likely_denial: "deny",
+  not_supported: "deny",
+  more_info_needed: "unknown",
+};
+
+/** Plain-language name for each `summary.determination` value. */
+export const DETERMINATION_LABEL: Record<Determination, string> = {
+  meets_criteria: "Meets criteria",
+  conditional: "Conditional",
+  likely_denial: "Likely denial",
+  not_supported: "Not supported",
+  more_info_needed: "More information needed",
+};
+
+/**
+ * The determination as one line that carries both the coded value and the
+ * agent's own phrase, without saying the same word twice: "Conditional —
+ * additional documentation needed" already names the code, but "Likely not
+ * medically necessary as submitted" does not say whether that is
+ * `likely_denial` or `not_supported`, so the code's name is prefixed.
+ */
+export function determinationText(summary: {
+  determination: Determination;
+  determinationLabel: string;
+}): string {
+  const name = DETERMINATION_LABEL[summary.determination];
+  const phrase = summary.determinationLabel.trim();
+  if (!phrase) return name;
+  return phrase.toLowerCase().startsWith(name.toLowerCase())
+    ? phrase
+    : `${name} — ${phrase}`;
+}
+
+/**
+ * The schema gives `provided` three values and each means something different
+ * to a biller: `true` is in the record, `false` is absent from it, and
+ * `null`/absent means the agent could not tell. Folding the last into
+ * "missing" would assert something the data does not.
+ */
+export type DocItemState = "provided" | "missing" | "unconfirmed";
+
+export function docItemState(provided?: boolean | null): DocItemState {
+  if (provided === true) return "provided";
+  if (provided === false) return "missing";
+  return "unconfirmed";
+}
+
+export const DOC_ITEM_STATE_LABEL: Record<DocItemState, string> = {
+  provided: "Provided",
+  missing: "Missing",
+  unconfirmed: "Not confirmed",
+};
+
 export const GUIDELINE_LABEL: Record<string, string> = {
   medicare: "Medicare",
   commercial: "Commercial",
@@ -59,6 +122,17 @@ export const REVIEW_SEVERITY_TONE: Record<ReviewSeverity, Tone> = {
   warning: "amber",
   info: "blue",
 };
+
+export const REVIEW_SEVERITY_LABEL: Record<ReviewSeverity, string> = {
+  blocker: "Blocker",
+  warning: "Warning",
+  info: "Info",
+};
+
+/** Reader-facing name of a review check, as the PDF appendix words it. */
+export function reviewCheckLabel(id: string): string {
+  return id === "code-grounding" ? "code sources" : "report structure";
+}
 
 /** Short chip text — the banner carries the full sentence. */
 const ISSUE_CHIP_LABEL: Record<string, string> = {
@@ -98,7 +172,11 @@ export function reviewBannerSummary(review?: ArtifactReview): {
 } | null {
   if (!review) return null;
 
-  const counts: Record<ReviewSeverity, number> = { blocker: 0, warning: 0, info: 0 };
+  const counts: Record<ReviewSeverity, number> = {
+    blocker: 0,
+    warning: 0,
+    info: 0,
+  };
   for (const i of review.issues) counts[i.severity]++;
 
   // A check that was skipped or errored produces zero findings, which is not
@@ -150,7 +228,8 @@ const SKIP_REASONS: Record<string, string> = {
   "evidence-truncated": "the retrieved sources were too large to check in full",
   "source-procedures-unavailable":
     "the sources could not say which procedures they cover",
-  "request-has-no-content-tokens": "the request was too general to match against",
+  "request-has-no-content-tokens":
+    "the request was too general to match against",
   "request-not-described":
     "the request did not describe the procedure being performed",
   "skip-condition-failed": "the check could not determine whether it applied",
@@ -212,7 +291,8 @@ export function policySourceUrl(
   const num = id.replace(/^[A-Za-z]+/, "");
   const base = "https://www.cms.gov/medicare-coverage-database/view";
   if (type === "NCD") return `${base}/ncd.aspx?ncdid=${encodeURIComponent(id)}`;
-  if (type === "LCD") return `${base}/lcd.aspx?lcdid=${encodeURIComponent(num)}`;
+  if (type === "LCD")
+    return `${base}/lcd.aspx?lcdid=${encodeURIComponent(num)}`;
   if (type === "LCA")
     return `${base}/article.aspx?articleid=${encodeURIComponent(num)}`;
   return undefined;

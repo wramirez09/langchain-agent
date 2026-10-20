@@ -7,6 +7,7 @@ import { InMemoryTransport, McpServer } from "@modelcontextprotocol/server";
 import type { ApiAuthContext } from "@/lib/auth/resolveApiAuth";
 import { ARTIFACT_JSON_EXAMPLE } from "@/lib/priorAuth/artifactSchema";
 import type { ErrorResponder } from "@/lib/handlers/types";
+import { renderPriorAuthMarkdown } from "@/lib/priorAuth/renderPriorAuthMarkdown";
 
 const runAgentMock = jest.fn();
 const beginMock = jest.fn();
@@ -88,6 +89,11 @@ describe("run_prior_auth_screening", () => {
     expect(result.structuredContent.threadId).toBe("11111111-1111-1111-1111-111111111111");
     expect(result.structuredContent.artifact).toMatchObject({ kind: ARTIFACT.kind });
     expect(result.structuredContent.text).toBeNull();
+
+    // content[0] stays the legacy JSON; content[1] is the full markdown report.
+    expect(result.content).toHaveLength(2);
+    expect(JSON.parse(result.content[0].text)).toEqual(result.structuredContent);
+    expect(result.content[1].text).toBe(renderPriorAuthMarkdown(result.structuredContent.artifact));
   });
 
   it("runs stateless and unpersisted, and does not double-bill the run", async () => {
@@ -123,6 +129,7 @@ describe("run_prior_auth_screening", () => {
       artifact: null,
       text: "Ask the payer.",
     });
+    expect(result.content[1].text).toBe("Ask the payer.");
   });
 
   it("degrades an artifact the schema rejects into text rather than failing", async () => {

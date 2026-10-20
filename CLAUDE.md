@@ -172,6 +172,16 @@ introspection to MCP clients (Claude Code, Claude Desktop, Cursor) over
 - `search` / `fetch` exist for ChatGPT deep research. `fetch` on a guideline
   returns an excerpt unless `MCP_EXPOSE_GUIDELINE_RESOURCES` is on — it is as
   bulk-readable as a resource.
+- **MCP Apps view.** `run_prior_auth_screening` links `ui://notedoctor/prior-auth-summary.html`
+  (`lib/mcp/apps/`), which hosts with `io.modelcontextprotocol/ui` render inline
+  from `structuredContent`. Source is `mcp-apps/prior-auth-summary/` (Vite +
+  singlefile); `yarn build:mcp-app` (also `prebuild`) writes the checked-in
+  string module `lib/mcp/apps/generated/priorAuthSummaryHtml.ts` — rebuild it
+  after editing the view. Result `content[0]` stays the legacy JSON;
+  `content[1]` is `renderPriorAuthMarkdown(artifact)`, the same string as the
+  view's "Copy as markdown". `@modelcontextprotocol/ext-apps` is ESM-only, so
+  it sits in both `transpilePackages` and jest's `transformIgnorePatterns`
+  allowlist — next/jest applies each list separately.
 - Client timeouts are the known sharp edge: a screening takes 45-65s, so
   document `MCP_TOOL_TIMEOUT=300000`.
 

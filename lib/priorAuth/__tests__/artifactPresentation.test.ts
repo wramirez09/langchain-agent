@@ -1,4 +1,10 @@
 import {
+  DETERMINATION_BADGE,
+  DOC_ITEM_STATE_LABEL,
+  REVIEW_SEVERITY_LABEL,
+  determinationText,
+  docItemState,
+  reviewCheckLabel,
   DETERMINATION_TONE,
   GUIDELINE_LABEL,
   POLICY_GROUP_TITLE,
@@ -104,5 +110,49 @@ describe('presentation lookup maps', () => {
     expect(POLICY_GROUP_TITLE.NCD).toContain('National Coverage')
     expect(POLICY_GROUP_TITLE.LCD).toContain('Local Coverage Determinations')
     expect(POLICY_GROUP_TITLE.LCA).toContain('Local Coverage Articles')
+  })
+})
+
+describe('DETERMINATION_BADGE', () => {
+  it('collapses determinations into approve / conditional / deny / unknown', () => {
+    expect(DETERMINATION_BADGE).toEqual({
+      meets_criteria: 'approve',
+      conditional: 'conditional',
+      likely_denial: 'deny',
+      not_supported: 'deny',
+      more_info_needed: 'unknown',
+    })
+  })
+})
+
+describe('determinationText', () => {
+  it('prefixes the coded value only when the phrase does not already name it', () => {
+    expect(
+      determinationText({ determination: 'likely_denial', determinationLabel: 'Not medically necessary' }),
+    ).toBe('Likely denial — Not medically necessary')
+    expect(
+      determinationText({ determination: 'meets_criteria', determinationLabel: 'meets criteria as submitted' }),
+    ).toBe('meets criteria as submitted')
+    expect(
+      determinationText({ determination: 'more_info_needed', determinationLabel: '  ' }),
+    ).toBe('More information needed')
+  })
+})
+
+describe('docItemState', () => {
+  it('keeps true / false / unknown distinct', () => {
+    expect(docItemState(true)).toBe('provided')
+    expect(docItemState(false)).toBe('missing')
+    expect(docItemState(null)).toBe('unconfirmed')
+    expect(docItemState(undefined)).toBe('unconfirmed')
+    expect(DOC_ITEM_STATE_LABEL.unconfirmed).toBe('Not confirmed')
+  })
+})
+
+describe('review labels', () => {
+  it('names severities and checks for readers', () => {
+    expect(REVIEW_SEVERITY_LABEL.warning).toBe('Warning')
+    expect(reviewCheckLabel('code-grounding')).toBe('code sources')
+    expect(reviewCheckLabel('structure')).toBe('report structure')
   })
 })
