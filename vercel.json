@@ -12,5 +12,8 @@
     "app/api/chat/retrieval_agents/route.ts": {
       "maxDuration": 180
     }
+  },
+  "git": {
+    "deploymentEnabled": false
   }
 }
