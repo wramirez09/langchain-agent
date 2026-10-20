@@ -1,6 +1,9 @@
-# CI for every PR and every push to dev/main. Vercel's Git integration does
-# the deploying (previews from branches, production from main); this workflow
-# is the gate that catches a broken change before that happens.
+# CI/CD for every PR and every push to dev/main. Deploys to Vercel only after
+# checks and build pass: main goes to production, dev and PRs get previews.
+# Vercel's own Git deploys are off (vercel.json), so this is the only path.
+#
+# Needs the VERCEL_TOKEN secret and the VERCEL_ORG_ID / VERCEL_PROJECT_ID
+# repository variables.
 name: CI
 
 on:
@@ -8,10 +11,11 @@ on:
     branches: [dev, main]
   pull_request:
 
-# A newer push to the same branch or PR makes the older run pointless.
+# A newer push to a PR makes the older run pointless. Pushes to dev/main queue
+# instead, so a deploy is never cut off halfway.
 concurrency:
   group: ci-${{ github.ref }}
-  cancel-in-progress: true
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
 
 permissions:
   contents: read
@@ -69,3 +73,37 @@ jobs:
           STRIPE_SECRET_KEY: sk_test_ci_placeholder
           UPSTASH_REDIS_REST_URL: https://ci-placeholder.upstash.io
           UPSTASH_REDIS_REST_TOKEN: ci-placeholder
+
+  deploy:
+    name: Deploy (${{ github.ref == 'refs/heads/main' && 'production' || 'preview' }})
+    needs: [checks, build]
+    # Forked PRs get no secrets, so they can't deploy.
+    if: github.event_name == 'push' || github.event.pull_request.head.repo.full_name == github.repository
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    environment:
+      name: ${{ github.ref == 'refs/heads/main' && 'production' || 'preview' }}
+      url: ${{ steps.deploy.outputs.url }}
+    env:
+      VERCEL_ORG_ID: ${{ vars.VERCEL_ORG_ID }}
+      VERCEL_PROJECT_ID: ${{ vars.VERCEL_PROJECT_ID }}
+      VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
+      TARGET: ${{ github.ref == 'refs/heads/main' && 'production' || 'preview' }}
+    steps:
+      - uses: actions/checkout@v4
+      - run: corepack enable
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: yarn
+      - run: yarn install --immutable
+
+      # Pulls the project settings and the target environment's variables, then
+      # builds here and uploads the result, so Vercel ships exactly what CI built.
+      - run: npx --yes vercel@latest pull --yes --environment=$TARGET --token=$VERCEL_TOKEN
+      - run: npx --yes vercel@latest build $([ "$TARGET" = production ] && echo --prod) --token=$VERCEL_TOKEN
+      - id: deploy
+        run: |
+          url=$(npx --yes vercel@latest deploy --prebuilt $([ "$TARGET" = production ] && echo --prod) --token=$VERCEL_TOKEN)
+          echo "url=$url" >> "$GITHUB_OUTPUT"
+          echo "Deployed to $url" >> "$GITHUB_STEP_SUMMARY"
