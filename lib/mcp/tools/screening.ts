@@ -9,6 +9,7 @@ import { registerAppTool } from "@modelcontextprotocol/ext-apps/server";
 
 import * as idempotency from "@/lib/api/idempotency";
 import { priorAuthArtifactSchema } from "@/lib/priorAuth/artifactSchema";
+import { redactArtifact, redactText } from "@/lib/priorAuth/redactArtifact";
 import { renderPriorAuthMarkdown } from "@/lib/priorAuth/renderPriorAuthMarkdown";
 import type { AgentJsonResponse, ErrorResponder } from "@/lib/handlers/types";
 
@@ -94,18 +95,27 @@ function toResult(body: AgentJsonResponse): CallToolResult {
       ? priorAuthArtifactSchema.safeParse(content)
       : null;
 
+  // PHI is scrubbed here, once, before any of the three outputs below is
+  // built — the JSON block, the markdown block and `structuredContent` (and
+  // so the card) all carry the redacted text. The client sent this text, but
+  // the report is meant to be shown and shared, so it must not echo it.
+  const rawText =
+    typeof content === "string"
+      ? content
+      : content
+        ? JSON.stringify(content)
+        : null;
   const out =
     parsed?.success === true
-      ? { threadId: body.threadId, artifact: parsed.data, text: null }
+      ? {
+          threadId: body.threadId,
+          artifact: redactArtifact(parsed.data).artifact,
+          text: null,
+        }
       : {
           threadId: body.threadId,
           artifact: null,
-          text:
-            typeof content === "string"
-              ? content
-              : content
-                ? JSON.stringify(content)
-                : null,
+          text: rawText === null ? null : redactText(rawText),
         };
 
   return {

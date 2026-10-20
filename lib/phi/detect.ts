@@ -64,7 +64,7 @@ const RESIDUE_RULES: ResidueRule[] = [
     ruleId: "residue-date",
     category: "date",
     confidence: "high",
-    re: /\b\d{1,2}[/-]\d{1,2}[/-]\d{2,4}\b/g,
+    re: /\b(?:\d{1,2}[/-]\d{1,2}[/-]\d{2,4}|(?:19|20)\d{2}[-/.](?:0?[1-9]|1[0-2])[-/.](?:0?[1-9]|[12]\d|3[01]))\b/g,
   },
   {
     ruleId: "residue-url",

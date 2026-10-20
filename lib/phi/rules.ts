@@ -326,6 +326,22 @@ const PATTERN_RULES: PhiRule[] = [
       ),
   },
   {
+    // Year-first dates (2026-09-02, 2026/9/2): what EHR exports and the model
+    // itself emit. Anchored to a 19xx/20xx year with a valid month and day so
+    // ranges like "73721-73723" and ICD codes never match.
+    id: "date-iso",
+    category: "date",
+    placeholder: "[DATE]",
+    priority: 80,
+    find: (t) =>
+      scanWhole(
+        t,
+        /\b(?:19|20)\d{2}[-/.](?:0?[1-9]|1[0-2])[-/.](?:0?[1-9]|[12]\d|3[01])\b/g,
+        "date",
+        "date-iso",
+      ),
+  },
+  {
     id: "date-day-month",
     category: "date",
     placeholder: "[DATE]",

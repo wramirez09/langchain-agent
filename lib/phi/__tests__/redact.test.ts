@@ -39,6 +39,18 @@ describe("redactPhi — structured identifiers", () => {
     expect(r.redacted).toBe("Seen at [FACILITY] today.");
   });
 
+  it("removes year-first dates but not code ranges or a bare year", () => {
+    const r = redactPhi(
+      N(
+        "Seen 2026-09-02 and 2025/1/7. CPT 73721-73723, ICD M25.561, since 2019.",
+      ),
+    );
+    expect(r.redacted).toBe(
+      "Seen [DATE] and [DATE]. CPT 73721-73723, ICD M25.561, since 2019.",
+    );
+    expect(r.counts).toEqual({ date: 2 });
+  });
+
   it("removes an unlabeled long digit run but not a 5-digit CPT code", () => {
     const r = redactPhi(N("Accession 884213907. Requesting CPT 22633."));
     expect(r.redacted).toContain("[ID]");
