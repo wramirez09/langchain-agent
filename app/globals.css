@@ -462,8 +462,6 @@ body {
 
 }
 
-@plugin "@tailwindcss/typography";
-
 /* Highlight pulse for a card the user jumps to from the artifact TOC. The
    animation plays once and reverts, so the card's own shadow is restored. */
 @keyframes nd-flash {

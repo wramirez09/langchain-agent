@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useRef } from "react";
+import React, { useId, useRef } from "react";
 import { motion } from "framer-motion";
 import { Send, LoaderCircle, Info } from "lucide-react";
 import { FIELD_ICONS, type FieldIconKey } from "@/components/prior-auth/fieldIcons";
@@ -94,6 +94,9 @@ export function PriorAuthFormPanel({
 }: PriorAuthFormPanelProps) {
   const { formFields, updateFormField, openAccordions, setOpenAccordions } = usePriorAuthForm();
   const { activeFormTab } = usePriorAuthUi();
+  // react-select numbers its instances with a module counter, which differs
+  // between the server render and hydration. useId is stable across both.
+  const selectId = useId();
 
   const patientHistoryRef = useRef<HTMLDivElement>(null);
   const relevantHistoryRef = useRef<HTMLDivElement>(null);
@@ -161,6 +164,7 @@ export function PriorAuthFormPanel({
               options={guidelinesOptions}
               value={guidelinesOptions.find(opt => opt.value === formFields.guidelines) || null}
               onChange={(v) => handleGuidelinesChange(v?.value ?? "")}
+              instanceId={`${selectId}-guidelines`}
               placeholder="medicare or commercial"
               classNamePrefix="react-select"
               styles={selectStyles}
@@ -177,6 +181,7 @@ export function PriorAuthFormPanel({
               options={stateOptions}
               value={stateOptions.find(opt => opt.value === formFields.state) || null}
               onChange={(v) => updateFormField("state", v?.value ?? "")}
+              instanceId={`${selectId}-state`}
               placeholder="FL, CA, NY, etc."
               classNamePrefix="react-select"
               styles={{
@@ -210,6 +215,7 @@ export function PriorAuthFormPanel({
               options={ncdOptions}
               value={formFields.treatment ? { value: formFields.treatment, label: formFields.treatment } : null}
               onChange={(v) => updateFormField("treatment", v?.value ?? "")}
+              instanceId={`${selectId}-treatment`}
               placeholder="arthroscopy, knee replacement, etc."
               classNamePrefix="react-select"
               styles={selectStyles}
