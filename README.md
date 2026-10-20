@@ -1,4 +1,6 @@
 # NoteDoctorAi
+
+[![CI](https://github.com/wramirez09/langchain-agent/actions/workflows/ci.yml/badge.svg)](https://github.com/wramirez09/langchain-agent/actions/workflows/ci.yml)
 ## Authorization Readiness Screening for Healthcare Providers
 
 ![NoteDoctorAi Landing Page](./public/images/screenshots/landing.png)
