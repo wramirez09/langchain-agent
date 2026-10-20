@@ -96,9 +96,17 @@ which runs in the browser:
   fields of an artifact and the base rules elsewhere; the web report card,
   the PDF and the MCP result all render through it.
 
+- `lib/phi/outgoing.ts` runs the same model-bound `redactPhi` pass over every
+  typed request (PA form, chat box, pending message) in `PriorAuthView` just
+  before `chat.append`; a toast reports the count removed.
+
 This does not make the product a Business Associate.
 `documents/privacy-policy.md` still disclaims that, and raw note text is never
-sent — but anything a user types into the chat box is.
+sent. `runAgent` also runs every user turn through `redactUserMessages`
+server-side (web, mobile, public API and MCP all pass through it), before the
+model and before `chat_messages` persistence. It never rejects and logs counts
+only. Both passes are rule-based, not a guarantee: an unanchored name the
+rules miss still goes out.
 
 ### Note ingest (`lib/phi`, `lib/noteIngest`, `app/api/notes/extract`)
 

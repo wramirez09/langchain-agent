@@ -18,6 +18,8 @@ import { PriorAuthChatPanel } from "@/components/prior-auth/PriorAuthChatPanel";
 import { PriorAuthOutputPanel } from "@/components/prior-auth/PriorAuthOutputPanel";
 import { createChatFetchWithRetry } from "@/lib/priorAuth/chatFetchWithRetry";
 import { serializeQuery } from "@/lib/priorAuth/serializeQuery";
+import { redactOutgoing } from "@/lib/phi/outgoing";
+import { redactionReceipt } from "@/lib/phi/redact";
 import { SavedQueriesPalette } from "@/components/saved-queries/SavedQueriesPalette";
 import { useCurrentUserId } from "@/lib/savedQueries/useCurrentUserId";
 import { useSavedQueries } from "@/lib/savedQueries/useSavedQueries";
@@ -26,6 +28,17 @@ import {
   restoredChatMessages,
   type SavedQuery,
 } from "@/lib/savedQueries/db";
+
+/**
+ * Every typed request goes through here on its way to `chat.append`, so PHI
+ * is removed in the browser rather than trusted to the model's prompt. The
+ * toast names a count, never what was removed.
+ */
+function deidentify(text: string): string {
+  const { text: out, result } = redactOutgoing(text);
+  if (result.total > 0) toast.info(redactionReceipt(result, "your request"));
+  return out;
+}
 
 interface PriorAuthViewProps {
   pendingMessage?: string | null;
@@ -223,12 +236,13 @@ export function PriorAuthView({
 
   useEffect(() => {
     if (!pendingMessage) return;
+    const outgoing = deidentify(pendingMessage);
     onPendingMessageConsumed?.();
     setIsLoading(true);
     setIntermediateStepsLoading(true);
     setResponseReady(false);
     setLastQueryOrigin("chat");
-    chat.append({ role: "user", content: pendingMessage });
+    chat.append({ role: "user", content: outgoing });
     setActiveFormTab("chat");
   }, [pendingMessage]); // eslint-disable-line react-hooks/exhaustive-deps
 
@@ -246,6 +260,7 @@ export function PriorAuthView({
 
     const combined = serializeQuery(formFields, { note: chatInput });
     if (!combined) return;
+    const outgoing = deidentify(combined);
 
     setIsLoading(true);
     setIntermediateStepsLoading(true);
@@ -259,7 +274,7 @@ export function PriorAuthView({
 
     try {
       setChatInput("");
-      await chat.append({ role: "user", content: combined });
+      await chat.append({ role: "user", content: outgoing });
     } catch (error) {
       if ((error as any)?.name !== "AbortError") {
         toast.error("Failed to send message", { description: (error as any)?.message });
@@ -304,7 +319,7 @@ export function PriorAuthView({
     e?.preventDefault();
     if (!chatInput.trim() || chat.isLoading || intermediateStepsLoading) return;
 
-    const message = chatInput.trim();
+    const message = deidentify(chatInput.trim());
     setChatInput("");
     setIsLoading(true);
     setIntermediateStepsLoading(true);

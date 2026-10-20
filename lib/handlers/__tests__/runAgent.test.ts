@@ -82,3 +82,34 @@ describe('runAgent — stateless public path', () => {
     expect(roles).toContain('user')
   })
 })
+
+describe('runAgent — server-side PHI redaction', () => {
+  beforeEach(() => {
+    insertMock.mockClear()
+    invokeMock.mockReset()
+    invokeMock.mockResolvedValue({
+      messages: [{ _getType: () => 'ai', content: 'the answer' }],
+    })
+  })
+
+  it('redacts user turns before the model and persistence see them, without rejecting', async () => {
+    const warn = jest.spyOn(console, 'warn').mockImplementation(() => {})
+    const res = await runAgent({
+      ...baseParams(),
+      messages: [{ role: 'user', content: 'History: john wayne, knee OA' }],
+      identity: { userId: 'u1', source: 'mobile' },
+    } as any)
+
+    expect(res.status).toBe(200)
+    const sent = invokeMock.mock.calls[0][0].messages.map((m: any) => m.content)
+    expect(sent.join(' ')).toContain('History: [NAME], knee OA')
+    expect(sent.join(' ')).not.toMatch(/john|wayne/i)
+
+    const persisted = insertMock.mock.calls.find((c) => c[0].role === 'user')![0]
+    expect(persisted.content).toBe('History: [NAME], knee OA')
+
+    // Counts only -- the log line must not carry the removed text.
+    expect(JSON.stringify(warn.mock.calls)).not.toMatch(/john|wayne/i)
+    warn.mockRestore()
+  })
+})

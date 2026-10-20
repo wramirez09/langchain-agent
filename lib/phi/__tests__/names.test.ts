@@ -171,6 +171,8 @@ describe("given-name pairs and three-part names", () => {
     ["knee pain in John Wayne", "knee pain in [NAME]"],
     ["Mary Grace Smith reports pain", "[NAME] reports pain"],
     ["John Wayne Lee, 68M", "[NAME], 68M"],
+    ["john wayne", "[NAME]"],
+    ["History: john wayne", "History: [NAME]"],
   ])("redacts %j", (input, out) => {
     expect(redactPhi(N(input)).redacted).toBe(out);
   });
@@ -178,6 +180,8 @@ describe("given-name pairs and three-part names", () => {
   it.each([
     "will may grace",
     "Grace period applies",
+    "mark grace period",
+    "john mark the site",
     "Kellgren-Lawrence grade 3, Parkinson disease",
   ])("leaves %j alone", (input) => {
     expect(redactPhi(N(input)).redacted).toBe(N(input));

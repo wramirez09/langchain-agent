@@ -136,6 +136,28 @@ const credentialRule: PhiRule = {
  * followed by another given name ("John Wayne") also counts -- see below.
  */
 
+/**
+ * Given names in the gazetteer that are also everyday words. Lowercased they
+ * are far more likely to be the word ("mark the site", "grace period"), so
+ * they never form a lowercase given-name pair.
+ */
+const WORDLIKE_GIVEN_NAMES = new Set([
+  "mark",
+  "frank",
+  "jack",
+  "grace",
+  "carol",
+  "amber",
+  "heather",
+  "mason",
+  "christian",
+  "jean",
+  "bobby",
+  "billy",
+  "will",
+  "may",
+]);
+
 /** True when the token, or either half of a hyphenated compound, is a surname. */
 function isSurname(token: string): boolean {
   const lower = token.toLowerCase();
@@ -186,14 +208,17 @@ const fullNameRule: PhiRule = {
       const bare = last.text.replace(/\.$/, "");
       // Many surnames are also given names -- Wayne, Grant, Lee, Morgan -- and
       // the gazetteer files them under one list only, so "John Wayne" used to
-      // slip through. Two given names in a row count too, but only when both
-      // are capitalised: lowercased, given names include ordinary words
-      // ("may", "will", "grace") that pair up in prose.
+      // slip through. Two given names in a row count too. Lowercased, a few
+      // given names are ordinary words ("mark", "grace", "frank") that pair
+      // up in prose, so a lowercase pair qualifies only when neither half is
+      // one of those -- "john wayne" typed into a form is still a person.
       const capitalised = (t: string) => /^[A-Z][a-z]/.test(t);
+      const bothCapitalised = capitalised(first.text) && capitalised(bare);
       const givenPair =
         GIVEN_NAMES.has(bare.toLowerCase()) &&
-        capitalised(first.text) &&
-        capitalised(bare);
+        (bothCapitalised ||
+          (!WORDLIKE_GIVEN_NAMES.has(first.text.toLowerCase()) &&
+            !WORDLIKE_GIVEN_NAMES.has(bare.toLowerCase())));
       if (!isSurname(bare) && !givenPair) continue;
 
       const after = text.slice(last.end, last.end + 40);

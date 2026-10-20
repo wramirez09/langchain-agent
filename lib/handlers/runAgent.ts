@@ -29,6 +29,7 @@ import {
 import { encodeFrame } from "@/lib/priorAuth/streamFrames";
 import { looksLikeArtifact } from "@/lib/priorAuth/extractArtifact";
 import { finalizeAssistantAnswer } from "./finalizeAnswer";
+import { redactUserMessages } from "@/lib/phi/outgoing";
 
 /**
  * How long to wait before giving up on reviewing and sending the raw answer.
@@ -103,9 +104,20 @@ export type RunAgentParams = {
  * are surface-specific and stay in the route.
  */
 export async function runAgent(params: RunAgentParams): Promise<Response> {
-  const { messages: rawMessages, clientType, identity, respondError } = params;
+  const { clientType, identity, respondError } = params;
   const baseHeaders = params.baseHeaders ?? {};
   const { userId } = identity;
+
+  // De-identify user turns before anything else sees them -- the model, and
+  // chat_messages persistence below. Never rejects; logs counts, never text.
+  const redaction = redactUserMessages(params.messages);
+  const rawMessages = redaction.messages;
+  if (redaction.total > 0) {
+    console.warn(
+      `[runAgent] removed ${redaction.total} identifier(s) from user messages (source=${identity.source})`,
+      redaction.counts,
+    );
+  }
   const streamStartTime = Date.now();
 
   // The public API runs stateless: external clients send full history per
