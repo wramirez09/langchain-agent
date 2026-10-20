@@ -57,7 +57,9 @@ const nextConfig = {
   poweredByHeader: false,
   generateEtags: true,
 
-  transpilePackages: ["@react-pdf/renderer"],
+  // ext-apps ships ESM only; listing it here is also what lets next/jest
+  // transform it.
+  transpilePackages: ["@react-pdf/renderer", "@modelcontextprotocol/ext-apps"],
 
   serverExternalPackages: ["puppeteer", "playwright", "pdf-parse"],
 

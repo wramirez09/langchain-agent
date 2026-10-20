@@ -1,10 +1,19 @@
 import { createHash } from "crypto";
 import { z } from "zod";
-import type { CallToolResult, McpServer, ServerContext } from "@modelcontextprotocol/server";
+import type {
+  CallToolResult,
+  McpServer,
+  ServerContext,
+} from "@modelcontextprotocol/server";
+import { registerAppTool } from "@modelcontextprotocol/ext-apps/server";
 
 import * as idempotency from "@/lib/api/idempotency";
 import { priorAuthArtifactSchema } from "@/lib/priorAuth/artifactSchema";
+import { redactArtifact, redactText } from "@/lib/priorAuth/redactArtifact";
+import { renderPriorAuthMarkdown } from "@/lib/priorAuth/renderPriorAuthMarkdown";
 import type { AgentJsonResponse, ErrorResponder } from "@/lib/handlers/types";
+
+import { PRIOR_AUTH_SUMMARY_URI } from "../apps/priorAuthSummary";
 
 import { toolError } from "../adapt";
 import type { McpCallContext } from "../context";
@@ -31,7 +40,9 @@ const InputSchema = z.object({
     .string()
     .uuid()
     .optional()
-    .describe("The `threadId` from a previous screening, to group related runs in reporting."),
+    .describe(
+      "The `threadId` from a previous screening, to group related runs in reporting.",
+    ),
 });
 
 const OutputSchema = z.object({
@@ -80,40 +91,77 @@ function toResult(body: AgentJsonResponse): CallToolResult {
   // so a partial artifact degrades into a readable answer instead of failing
   // a run the caller was already billed for.
   const parsed =
-    content && typeof content === "object" ? priorAuthArtifactSchema.safeParse(content) : null;
+    content && typeof content === "object"
+      ? priorAuthArtifactSchema.safeParse(content)
+      : null;
 
+  // PHI is scrubbed here, once, before any of the three outputs below is
+  // built — the JSON block, the markdown block and `structuredContent` (and
+  // so the card) all carry the redacted text. The client sent this text, but
+  // the report is meant to be shown and shared, so it must not echo it.
+  const rawText =
+    typeof content === "string"
+      ? content
+      : content
+        ? JSON.stringify(content)
+        : null;
   const out =
     parsed?.success === true
-      ? { threadId: body.threadId, artifact: parsed.data, text: null }
+      ? {
+          threadId: body.threadId,
+          artifact: redactArtifact(parsed.data).artifact,
+          text: null,
+        }
       : {
           threadId: body.threadId,
           artifact: null,
-          text: typeof content === "string" ? content : content ? JSON.stringify(content) : null,
+          text: rawText === null ? null : redactText(rawText),
         };
 
   return {
-    // A text block alongside `structuredContent`: clients that predate
-    // structured output still need something to render.
-    content: [{ type: "text", text: truncateForClient(JSON.stringify(out)) }],
+    content: [
+      // First, unchanged: the JSON that clients predating structured output
+      // already parse out of `content[0]`.
+      { type: "text", text: truncateForClient(JSON.stringify(out)) },
+      // Second: the whole report as markdown, for hosts without MCP Apps. It
+      // is what the model sees in place of a summary it would otherwise
+      // write, and the same string the view's "Copy as markdown" produces.
+      {
+        type: "text",
+        text: truncateForClient(
+          out.artifact
+            ? renderPriorAuthMarkdown(out.artifact)
+            : (out.text ?? "No answer was produced."),
+        ),
+      },
+    ],
     structuredContent: out,
   };
 }
 
-export function registerScreeningTool(server: McpServer, ctx: McpCallContext): void {
+export function registerScreeningTool(
+  server: McpServer,
+  ctx: McpCallContext,
+): void {
   const { auth } = ctx;
   if (!canUse(auth, "run_prior_auth_screening")) return;
 
-  server.registerTool(
+  registerAppTool(
+    server,
     "run_prior_auth_screening",
     {
       title: "Run a prior authorization screening",
       description:
         "Run NoteDoctorAi's full prior authorization readiness screening: the agent researches Medicare and commercial-payer coverage itself and returns a structured determination — whether prior authorization is required, the criteria behind it, relevant CPT/ICD-10 codes, the documentation to gather, and the policies cited. Prefer this over the individual search tools when you want an answer rather than source documents. " +
         "A run takes 45-65 seconds; raise your client's tool timeout to 300s before calling it (in Claude Code, `MCP_TOOL_TIMEOUT=300000`). " +
-        "Send clinical details only — no patient names, dates of birth, member IDs or other identifiers.",
+        "Send clinical details only — no patient names, dates of birth, member IDs or other identifiers. " +
+        "The result is a complete prior authorization report for clinicians and billers, rendered in the NoteDoctor report card where the host supports it. Present it in full — every criterion, code, documentation item, limitation and the disclaimer — rather than summarizing it.",
       inputSchema: InputSchema,
       outputSchema: OutputSchema,
       annotations: { readOnlyHint: true, openWorldHint: true },
+      // `registerAppTool` mirrors this into the legacy flat `ui/resourceUri`
+      // key. No `openai/outputTemplate`: ChatGPT reads the standard key.
+      _meta: { ui: { resourceUri: PRIOR_AUTH_SUMMARY_URI } },
     },
     async (args, mcpCtx) => {
       /* ---------- IDEMPOTENCY ----------
@@ -121,7 +169,9 @@ export function registerScreeningTool(server: McpServer, ctx: McpCallContext): v
        * will retry, and every retry is a real billed 60-second run. Derive the
        * key from the inputs instead and reuse the REST machinery unchanged. */
       const derivedKey = createHash("sha256")
-        .update(`${auth.orgId}:run_prior_auth_screening:${JSON.stringify(args)}`)
+        .update(
+          `${auth.orgId}:run_prior_auth_screening:${JSON.stringify(args)}`,
+        )
         .digest("hex");
 
       const idem = await idempotency.begin({
@@ -145,7 +195,8 @@ export function registerScreeningTool(server: McpServer, ctx: McpCallContext): v
       if (idem.kind === "replay") {
         return toResult((await idem.response.json()) as AgentJsonResponse);
       }
-      const commit = idem.kind === "proceed" ? idem.commit : async (r: Response) => r;
+      const commit =
+        idem.kind === "proceed" ? idem.commit : async (r: Response) => r;
 
       /* ---------- EXECUTE ----------
        * Call `runAgent` and parse its Response rather than refactoring a
@@ -159,7 +210,11 @@ export function registerScreeningTool(server: McpServer, ctx: McpCallContext): v
        * `tools/list`. */
       const { runAgent } = await import("@/lib/handlers/runAgent");
 
-      let handled: { code: string; message: string; requestId?: string | null } | null = null;
+      let handled: {
+        code: string;
+        message: string;
+        requestId?: string | null;
+      } | null = null;
       const respondError: ErrorResponder = (e) => {
         handled = e;
         return new Response(null, { status: e.status });
@@ -189,7 +244,11 @@ export function registerScreeningTool(server: McpServer, ctx: McpCallContext): v
         );
 
         if (handled) {
-          const e = handled as { code: string; message: string; requestId?: string | null };
+          const e = handled as {
+            code: string;
+            message: string;
+            requestId?: string | null;
+          };
           const suffix = e.requestId ? ` (request ${e.requestId})` : "";
           return toolError(`${e.message}${suffix}`);
         }
@@ -199,7 +258,9 @@ export function registerScreeningTool(server: McpServer, ctx: McpCallContext): v
         // `reportUsage` would double-bill it.
         return toResult((await res.json()) as AgentJsonResponse);
       } catch (e) {
-        return toolError(`The screening could not be completed: ${(e as Error).message}`);
+        return toolError(
+          `The screening could not be completed: ${(e as Error).message}`,
+        );
       } finally {
         stopProgress();
       }

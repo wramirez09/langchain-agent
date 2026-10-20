@@ -1,0 +1,71 @@
+# CI for every PR and every push to dev/main. Vercel's Git integration does
+# the deploying (previews from branches, production from main); this workflow
+# is the gate that catches a broken change before that happens.
+name: CI
+
+on:
+  push:
+    branches: [dev, main]
+  pull_request:
+
+# A newer push to the same branch or PR makes the older run pointless.
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+jobs:
+  checks:
+    name: Lint, typecheck, test
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+
+      # Yarn 3 comes from .yarn/releases via corepack; enable it before
+      # setup-node so the yarn cache lookup finds the right yarn.
+      - run: corepack enable
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: yarn
+
+      - run: yarn install --immutable
+
+      # next-env.d.ts is gitignored; without it image imports fail to typecheck.
+      - run: yarn next typegen
+
+      - run: yarn lint
+      - run: yarn typecheck
+      - run: yarn jest --ci --silent
+
+  build:
+    name: Build
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+      - run: corepack enable
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: yarn
+      - run: yarn install --immutable
+
+      # Some modules check for these when the build collects page data. These
+      # are placeholders, not credentials: nothing is called during the build.
+      - run: yarn build
+        env:
+          NEXT_TELEMETRY_DISABLED: 1
+          OPENAI_API_KEY: ci-placeholder
+          NEXT_PUBLIC_SUPABASE_URL: https://ci-placeholder.supabase.co
+          NEXT_PUBLIC_SUPABASE_ANON_KEY: ci-placeholder
+          NEXT_PUBLIC_SUPABASE_PUBLISHABLE_OR_ANON_KEY: ci-placeholder
+          SUPABASE_URL: https://ci-placeholder.supabase.co
+          SUPABASE_PRIVATE_KEY: ci-placeholder
+          SUPABASE_SERVICE_ROLE_KEY: ci-placeholder
+          STRIPE_SECRET_KEY: sk_test_ci_placeholder
+          UPSTASH_REDIS_REST_URL: https://ci-placeholder.upstash.io
+          UPSTASH_REDIS_REST_TOKEN: ci-placeholder

@@ -4,6 +4,7 @@ import {
   redactionReceipt,
   placeholderFor,
   MANUAL_RULE_ID,
+  redactPhiForDisplay,
 } from "../redact";
 import type { PhiRule } from "../types";
 
@@ -37,6 +38,18 @@ describe("redactPhi — structured identifiers", () => {
   it("removes a facility name", () => {
     const r = redactPhi(N("Seen at Austin Orthopedic Clinic today."));
     expect(r.redacted).toBe("Seen at [FACILITY] today.");
+  });
+
+  it("removes year-first dates but not code ranges or a bare year", () => {
+    const r = redactPhi(
+      N(
+        "Seen 2026-09-02 and 2025/1/7. CPT 73721-73723, ICD M25.561, since 2019.",
+      ),
+    );
+    expect(r.redacted).toBe(
+      "Seen [DATE] and [DATE]. CPT 73721-73723, ICD M25.561, since 2019.",
+    );
+    expect(r.counts).toEqual({ date: 2 });
   });
 
   it("removes an unlabeled long digit run but not a 5-digit CPT code", () => {
@@ -217,6 +230,38 @@ describe("redactionReceipt", () => {
   it("reports zero when nothing was found", () => {
     expect(redactionReceipt(redactPhi("no identifiers here"))).toBe(
       "0 identifiers removed from an uploaded note",
+    );
+  });
+});
+
+describe("redactPhiForDisplay", () => {
+  it.each([
+    ["Wayne Rooney", "[NAME]"],
+    ["knee pain, seen with Smith", "knee pain, seen with [NAME]"],
+    ["Diagnosis for Maria", "Diagnosis for [NAME]"],
+  ])(
+    "also removes name-like words the base rules only flag: %j",
+    (input, out) => {
+      expect(redactPhiForDisplay(N(input)).redacted).toBe(out);
+    },
+  );
+
+  it.each([
+    "Magnetic Resonance Imaging (MRI) of the knee",
+    "MRI Lumbar",
+    "Total Knee Arthroplasty",
+    "Smith fracture of the wrist",
+    "Kellgren-Lawrence grade 3",
+  ])("keeps procedure names and eponyms: %j", (input) => {
+    expect(redactPhiForDisplay(N(input)).redacted).toBe(N(input));
+  });
+
+  it("is a superset of redactPhi", () => {
+    const t = N("Patient: Jane Doe\nDOB 01/02/1970\nKnee pain, seen with Smith");
+    const base = redactPhi(t).redacted;
+    expect(base).toContain("Smith");
+    expect(redactPhiForDisplay(t).redacted).toBe(
+      base.replace("Smith", "[NAME]"),
     );
   });
 });

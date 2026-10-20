@@ -3,6 +3,7 @@
 import React, { useEffect, useRef, useState } from "react";
 import { cn } from "@/utils/cn";
 import { parseArtifactText } from "@/lib/priorAuth/extractArtifact";
+import { redactArtifact } from "@/lib/priorAuth/redactArtifact";
 import type { Determination } from "@/lib/priorAuth/artifactSchema";
 import {
   ARTIFACT_SECTIONS,
@@ -55,7 +56,14 @@ export function PriorAuthArtifact({
    */
   messageId?: string;
 }) {
-  const data = parseArtifactText(raw);
+  const parsed = parseArtifactText(raw);
+  // The model can copy a patient's name from the request into any field, so
+  // every render -- streaming partials included -- goes through the same scrub
+  // as the MCP report before anything reaches the screen.
+  const data =
+    parsed && typeof parsed === "object"
+      ? redactArtifact(parsed, { notice: false }).artifact
+      : parsed;
 
   if (!data || typeof data !== "object") {
     return streaming ? <ArtifactSkeleton /> : null;

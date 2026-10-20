@@ -7,6 +7,7 @@ import { InMemoryTransport, McpServer } from "@modelcontextprotocol/server";
 import type { ApiAuthContext } from "@/lib/auth/resolveApiAuth";
 import { ARTIFACT_JSON_EXAMPLE } from "@/lib/priorAuth/artifactSchema";
 import type { ErrorResponder } from "@/lib/handlers/types";
+import { renderPriorAuthMarkdown } from "@/lib/priorAuth/renderPriorAuthMarkdown";
 
 const runAgentMock = jest.fn();
 const beginMock = jest.fn();
@@ -32,7 +33,9 @@ const auth: ApiAuthContext = {
 const ARTIFACT = JSON.parse(ARTIFACT_JSON_EXAMPLE);
 
 const jsonResponse = (body: unknown) =>
-  new Response(JSON.stringify(body), { headers: { "content-type": "application/json" } });
+  new Response(JSON.stringify(body), {
+    headers: { "content-type": "application/json" },
+  });
 
 let server: McpServer;
 let client: Client;
@@ -41,13 +44,20 @@ let metered: string[];
 async function connect(scopes: string[] = ["agents"]): Promise<void> {
   metered = [];
   server = new McpServer({ name: "test", version: "0.0.0" });
-  registerScreeningTool(server, { auth: { ...auth, scopes }, meter: (t) => metered.push(t) });
+  registerScreeningTool(server, {
+    auth: { ...auth, scopes },
+    meter: (t) => metered.push(t),
+  });
   const [c, s] = InMemoryTransport.createLinkedPair();
   client = new Client({ name: "harness", version: "1.0.0" });
   await Promise.all([server.connect(s), client.connect(c)]);
 }
 
-const ARGS = { messages: [{ role: "user" as const, content: "MRI knee, Medicare, Illinois" }] };
+const ARGS = {
+  messages: [
+    { role: "user" as const, content: "MRI knee, Medicare, Illinois" },
+  ],
+};
 
 beforeEach(() => {
   runAgentMock.mockReset();
@@ -85,18 +95,88 @@ describe("run_prior_auth_screening", () => {
     });
 
     expect(result.isError).toBeFalsy();
-    expect(result.structuredContent.threadId).toBe("11111111-1111-1111-1111-111111111111");
-    expect(result.structuredContent.artifact).toMatchObject({ kind: ARTIFACT.kind });
+    expect(result.structuredContent.threadId).toBe(
+      "11111111-1111-1111-1111-111111111111",
+    );
+    expect(result.structuredContent.artifact).toMatchObject({
+      kind: ARTIFACT.kind,
+    });
     expect(result.structuredContent.text).toBeNull();
+
+    // content[0] stays the legacy JSON; content[1] is the full markdown report.
+    expect(result.content).toHaveLength(2);
+    expect(JSON.parse(result.content[0].text)).toEqual(
+      result.structuredContent,
+    );
+    expect(result.content[1].text).toBe(
+      renderPriorAuthMarkdown(result.structuredContent.artifact),
+    );
+  });
+
+  it("redacts PHI the agent echoed, in every output block", async () => {
+    await connect();
+    const withPhi = {
+      ...ARTIFACT,
+      requestOverview: {
+        ...ARTIFACT.requestOverview,
+        medicalHistory:
+          "Mr. Alvarez, MRN 448812, seen 2026-09-02, call 312-555-0199.",
+      },
+    };
+    runAgentMock.mockResolvedValue(
+      jsonResponse({
+        threadId: "t",
+        messages: [{ role: "assistant", content: withPhi }],
+      }),
+    );
+
+    const result: any = await client.callTool({
+      name: "run_prior_auth_screening",
+      arguments: ARGS,
+    });
+
+    const everything = JSON.stringify(result);
+    for (const phi of ["Alvarez", "448812", "2026-09-02", "312-555-0199"]) {
+      expect(everything).not.toContain(phi);
+    }
+    expect(result.structuredContent.artifact.phiNotice).toMatch(
+      /identifiers were removed/,
+    );
+    expect(result.content[1].text).toContain(
+      result.structuredContent.artifact.phiNotice,
+    );
+    // Codes survive.
+    expect(result.content[1].text).toContain("| 73721 |");
+  });
+
+  it("redacts PHI in the plain-text fallback", async () => {
+    await connect();
+    runAgentMock.mockResolvedValue(
+      jsonResponse({
+        threadId: "t",
+        messages: [{ role: "assistant", content: "Ask Mr. Alvarez's payer." }],
+      }),
+    );
+    const result: any = await client.callTool({
+      name: "run_prior_auth_screening",
+      arguments: ARGS,
+    });
+    expect(JSON.stringify(result)).not.toContain("Alvarez");
   });
 
   it("runs stateless and unpersisted, and does not double-bill the run", async () => {
     await connect();
     runAgentMock.mockResolvedValue(
-      jsonResponse({ threadId: "t", messages: [{ role: "assistant", content: "no PA needed" }] }),
+      jsonResponse({
+        threadId: "t",
+        messages: [{ role: "assistant", content: "no PA needed" }],
+      }),
     );
 
-    await client.callTool({ name: "run_prior_auth_screening", arguments: ARGS });
+    await client.callTool({
+      name: "run_prior_auth_screening",
+      arguments: ARGS,
+    });
 
     const params = runAgentMock.mock.calls[0][0];
     // `source: "api"` is what keeps third-party text out of chat_messages.
@@ -110,7 +190,10 @@ describe("run_prior_auth_screening", () => {
   it("falls back to text for a plain-string answer", async () => {
     await connect();
     runAgentMock.mockResolvedValue(
-      jsonResponse({ threadId: "t", messages: [{ role: "assistant", content: "Ask the payer." }] }),
+      jsonResponse({
+        threadId: "t",
+        messages: [{ role: "assistant", content: "Ask the payer." }],
+      }),
     );
 
     const result: any = await client.callTool({
@@ -123,15 +206,22 @@ describe("run_prior_auth_screening", () => {
       artifact: null,
       text: "Ask the payer.",
     });
+    expect(result.content[1].text).toBe("Ask the payer.");
   });
 
   it("degrades an artifact the schema rejects into text rather than failing", async () => {
     await connect();
     // Carries the discriminator but not a valid body — `isPriorAuthArtifact`
     // would say yes and `structuredContent` validation would then fail.
-    const partial = { kind: ARTIFACT.kind, schemaVersion: ARTIFACT.schemaVersion };
+    const partial = {
+      kind: ARTIFACT.kind,
+      schemaVersion: ARTIFACT.schemaVersion,
+    };
     runAgentMock.mockResolvedValue(
-      jsonResponse({ threadId: "t", messages: [{ role: "assistant", content: partial }] }),
+      jsonResponse({
+        threadId: "t",
+        messages: [{ role: "assistant", content: partial }],
+      }),
     );
 
     const result: any = await client.callTool({
@@ -146,13 +236,14 @@ describe("run_prior_auth_screening", () => {
 
   it("surfaces a handled error with its request id and does not parse a body", async () => {
     await connect();
-    runAgentMock.mockImplementation(async (params: { respondError: ErrorResponder }) =>
-      params.respondError({
-        code: "agent_error",
-        message: "The agent timed out.",
-        status: 504,
-        requestId: "req_42",
-      }),
+    runAgentMock.mockImplementation(
+      async (params: { respondError: ErrorResponder }) =>
+        params.respondError({
+          code: "agent_error",
+          message: "The agent timed out.",
+          status: 504,
+          requestId: "req_42",
+        }),
     );
 
     const result: any = await client.callTool({
@@ -161,7 +252,9 @@ describe("run_prior_auth_screening", () => {
     });
 
     expect(result.isError).toBe(true);
-    expect(result.content[0].text).toBe("The agent timed out. (request req_42)");
+    expect(result.content[0].text).toBe(
+      "The agent timed out. (request req_42)",
+    );
   });
 
   it("refuses to start a second billed run while an identical one is in flight", async () => {
@@ -203,13 +296,22 @@ describe("run_prior_auth_screening", () => {
   it("derives its idempotency key from the inputs, scoped to the org and tool", async () => {
     await connect();
     runAgentMock.mockResolvedValue(
-      jsonResponse({ threadId: "t", messages: [{ role: "assistant", content: "x" }] }),
+      jsonResponse({
+        threadId: "t",
+        messages: [{ role: "assistant", content: "x" }],
+      }),
     );
 
-    await client.callTool({ name: "run_prior_auth_screening", arguments: ARGS });
+    await client.callTool({
+      name: "run_prior_auth_screening",
+      arguments: ARGS,
+    });
     const first = beginMock.mock.calls[0][0];
 
-    await client.callTool({ name: "run_prior_auth_screening", arguments: ARGS });
+    await client.callTool({
+      name: "run_prior_auth_screening",
+      arguments: ARGS,
+    });
     const second = beginMock.mock.calls[1][0];
 
     expect(first.endpoint).toBe("mcp/run_prior_auth_screening");
@@ -236,7 +338,10 @@ describe("run_prior_auth_screening", () => {
   it("rejects an empty conversation before running anything", async () => {
     await connect();
     const result: any = await client
-      .callTool({ name: "run_prior_auth_screening", arguments: { messages: [] } })
+      .callTool({
+        name: "run_prior_auth_screening",
+        arguments: { messages: [] },
+      })
       .catch((e) => ({ isError: true, thrown: e }));
 
     expect(result.isError).toBe(true);

@@ -89,6 +89,12 @@ which runs in the browser:
   "Parkinson" the diagnosis from "Parkinson" the patient.
 - `components/prior-auth/UserRequestFields.tsx` scrubs the echoed request too;
   that card is the surface most likely to be displaying PHI at any moment.
+- Display surfaces use `redactPhiForDisplay`, which also removes soft-flagged
+  words that are gazetteer names or follow a first name ("Wayne Rooney") —
+  on screen a false positive costs one word. Never use it on text bound for
+  the model. `lib/priorAuth/redactArtifact` applies it to the request-echo
+  fields of an artifact and the base rules elsewhere; the web report card,
+  the PDF and the MCP result all render through it.
 
 This does not make the product a Business Associate.
 `documents/privacy-policy.md` still disclaims that, and raw note text is never
@@ -172,6 +178,16 @@ introspection to MCP clients (Claude Code, Claude Desktop, Cursor) over
 - `search` / `fetch` exist for ChatGPT deep research. `fetch` on a guideline
   returns an excerpt unless `MCP_EXPOSE_GUIDELINE_RESOURCES` is on — it is as
   bulk-readable as a resource.
+- **MCP Apps view.** `run_prior_auth_screening` links `ui://notedoctor/prior-auth-summary.html`
+  (`lib/mcp/apps/`), which hosts with `io.modelcontextprotocol/ui` render inline
+  from `structuredContent`. Source is `mcp-apps/prior-auth-summary/` (Vite +
+  singlefile); `yarn build:mcp-app` (also `prebuild`) writes the checked-in
+  string module `lib/mcp/apps/generated/priorAuthSummaryHtml.ts` — rebuild it
+  after editing the view. Result `content[0]` stays the legacy JSON;
+  `content[1]` is `renderPriorAuthMarkdown(artifact)`, the same string as the
+  view's "Copy as markdown". `@modelcontextprotocol/ext-apps` is ESM-only, so
+  it sits in both `transpilePackages` and jest's `transformIgnorePatterns`
+  allowlist — next/jest applies each list separately.
 - Client timeouts are the known sharp edge: a screening takes 45-65s, so
   document `MCP_TOOL_TIMEOUT=300000`.
 

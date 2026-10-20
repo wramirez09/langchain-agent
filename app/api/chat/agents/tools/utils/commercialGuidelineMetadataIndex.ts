@@ -1,6 +1,6 @@
 import fs from "fs";
 import path from "path";
-import matter from "gray-matter";
+import { parseFrontMatter } from "@/lib/frontMatter";
 import crypto from "crypto";
 
 /**
@@ -63,7 +63,7 @@ function scanDirectoryForMetadata(dir: string): DocumentMetadata[] {
         let frontMatter: Record<string, unknown> = {};
         if (item.name.endsWith('.md')) {
           try {
-            const parsed = matter(content);
+            const parsed = parseFrontMatter(content);
             frontMatter = parsed.data;
           } catch {
             // No front matter or invalid, skip
@@ -160,7 +160,7 @@ export function loadDocumentContent(filePath: string): string {
     
     // Parse and return body without front matter
     if (filePath.endsWith('.md')) {
-      const parsed = matter(content);
+      const parsed = parseFrontMatter(content);
       return parsed.content;
     }
     

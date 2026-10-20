@@ -22,7 +22,7 @@ loadEnv({ path: ".env" });
 import fs from "fs";
 import path from "path";
 import crypto from "crypto";
-import matter from "gray-matter";
+import { parseFrontMatter } from "../lib/frontMatter";
 
 import { supabaseAdmin } from "../lib/supabaseAdmin";
 import { embedMany } from "../lib/embeddings";
@@ -97,7 +97,7 @@ function walk(dir: string, out: string[] = []): string[] {
 export function parseFile(filePath: string): ParsedDoc {
   const raw = fs.readFileSync(filePath, "utf8");
   const isMarkdown = /\.md$/i.test(filePath);
-  const parsed = isMarkdown ? matter(raw) : { data: {}, content: raw };
+  const parsed = isMarkdown ? parseFrontMatter(raw) : { data: {}, content: raw };
   const fm = (parsed.data ?? {}) as Record<string, unknown>;
   const body = parsed.content ?? raw;
 

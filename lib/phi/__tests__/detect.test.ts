@@ -23,6 +23,13 @@ describe("detectPhi", () => {
     );
   });
 
+  it("flags a year-first date that skipped redaction", () => {
+    expect(detectPhi("seen 2026-09-02").map((f) => f.category)).toEqual([
+      "date",
+    ]);
+    expect(detectPhi("CPT 73721-73723")).toEqual([]);
+  });
+
   it.each([
     ["an SSN", "123-45-6789", "ssn"],
     ["an email", "a.b@c.org", "email"],

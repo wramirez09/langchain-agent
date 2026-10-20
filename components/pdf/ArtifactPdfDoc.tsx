@@ -1,4 +1,5 @@
 import React from "react";
+import { redactArtifact } from "@/lib/priorAuth/redactArtifact";
 import {
   Document,
   Page,
@@ -1262,9 +1263,12 @@ interface ArtifactPdfDocumentProps {
 }
 
 const ArtifactPdfDocument: React.FC<ArtifactPdfDocumentProps> = ({
-  artifact: data,
+  artifact,
   generatedAt,
 }) => {
+  // A PDF is the most portable copy of the report, so it gets the same PHI
+  // scrub as the on-screen card and the MCP output.
+  const data = redactArtifact(artifact, { notice: false }).artifact;
   // Order, ids, and presence conditions come from the shared manifest, so PDF
   // numbering matches the on-screen document by construction rather than by
   // keeping two hand-written lists in agreement.

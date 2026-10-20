@@ -212,3 +212,15 @@ describe("UserRequestFields — field icons", () => {
     expect(iconClass("Guidelines")).toContain("lucide-file-text");
   });
 });
+
+describe("UserRequestFields PHI scrub", () => {
+  it("never echoes a patient name typed into Diagnosis", () => {
+    render(
+      <UserRequestFields
+        content={serializeQuery({ ...FIELDS, treatment: "Acupuncture", diagnosis: "John Wayne" })}
+      />,
+    );
+    expect(screen.queryByText(/John|Wayne/)).toBeNull();
+    expect(screen.getByText("Acupuncture")).toBeInTheDocument();
+  });
+});

@@ -52,3 +52,6 @@ next-env.d.ts
 /playwright-report/
 /blob-report/
 /playwright/.cache/
+
+# MCP Apps view build output (the checked-in copy is lib/mcp/apps/generated/)
+mcp-apps/*/dist/
