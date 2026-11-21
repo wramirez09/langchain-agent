@@ -3,12 +3,13 @@ import { redirect } from 'next/navigation'
 import { getStripe } from '@/lib/stripe'
 import { AdminDashboard } from '@/components/admin/AdminDashboard'
 import type { UsageRow } from '@/components/admin/UsageTable'
+import { hasAdminSession } from '@/lib/auth/adminSession'
 
 export const dynamic = 'force-dynamic'
 
 export default async function AdminDashboardPage() {
   const cookieStore = await cookies()
-  if (cookieStore.get('admin_session')?.value !== '1') {
+  if (!hasAdminSession(cookieStore)) {
     redirect('/admin')
   }
 

@@ -1,13 +1,14 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { cookies } from 'next/headers'
 import { getStripe } from '@/lib/stripe'
+import { hasAdminSession } from '@/lib/auth/adminSession'
 
 /**
  * GET endpoint to list all billing meters for debugging
  */
 export async function GET() {
   const cookieStore = await cookies()
-  if (cookieStore.get('admin_session')?.value !== '1') {
+  if (!hasAdminSession(cookieStore)) {
     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
   }
 

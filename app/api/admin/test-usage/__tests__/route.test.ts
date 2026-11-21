@@ -20,6 +20,10 @@ jest.mock('@/lib/db/repositories/usage.repo', () => ({
 }))
 
 import { POST, GET } from '../route'
+import { createAdminSessionToken } from '@/lib/auth/adminSession'
+
+process.env.ADMIN_EMAIL = 'admin@example.test'
+process.env.ADMIN_PASSWORD = 'admin-password'
 
 function makeReq(body: any) {
   return { json: async () => body } as any
@@ -42,20 +46,20 @@ describe('admin test-usage POST', () => {
   })
 
   it('returns 400 when customerId missing', async () => {
-    cookieGet.mockReturnValue({ value: '1' })
+    cookieGet.mockReturnValue({ value: createAdminSessionToken() })
     const r = await POST(makeReq({}))
     expect(r.status).toBe(400)
   })
 
   it('returns 404 when no active subscription', async () => {
-    cookieGet.mockReturnValue({ value: '1' })
+    cookieGet.mockReturnValue({ value: createAdminSessionToken() })
     subsList.mockResolvedValue({ data: [] })
     const r = await POST(makeReq({ customerId: 'cus' }))
     expect(r.status).toBe(404)
   })
 
   it('returns 404 when no metered item present', async () => {
-    cookieGet.mockReturnValue({ value: '1' })
+    cookieGet.mockReturnValue({ value: createAdminSessionToken() })
     subsList.mockResolvedValue({
       data: [
         {
@@ -73,7 +77,7 @@ describe('admin test-usage POST', () => {
   })
 
   it('reports usage and logs to db when userId present', async () => {
-    cookieGet.mockReturnValue({ value: '1' })
+    cookieGet.mockReturnValue({ value: createAdminSessionToken() })
     subsList.mockResolvedValue({
       data: [
         {
@@ -116,7 +120,7 @@ describe('admin test-usage POST', () => {
   })
 
   it('still succeeds when db log throws', async () => {
-    cookieGet.mockReturnValue({ value: '1' })
+    cookieGet.mockReturnValue({ value: createAdminSessionToken() })
     subsList.mockResolvedValue({
       data: [
         {
@@ -154,7 +158,7 @@ describe('admin test-usage GET', () => {
   })
 
   it('filters subscriptions to those with metered items', async () => {
-    cookieGet.mockReturnValue({ value: '1' })
+    cookieGet.mockReturnValue({ value: createAdminSessionToken() })
     subsList.mockResolvedValue({
       data: [
         {

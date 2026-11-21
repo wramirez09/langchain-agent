@@ -12,6 +12,11 @@ jest.mock('next/headers', () => ({
 }))
 
 import { GET } from '../route'
+import { createAdminSessionToken } from '@/lib/auth/adminSession'
+
+process.env.ADMIN_EMAIL = 'admin@example.test'
+process.env.ADMIN_PASSWORD = 'admin-password'
+const validSession = () => createAdminSessionToken() as string
 
 const CONFIG_VARS = [
   'STRIPE_SECRET_KEY',
@@ -55,8 +60,17 @@ describe('debug GET (hardened)', () => {
     expect(body.stripeKeys).toBeUndefined() // env-key enumeration removed
   })
 
-  it('reports every dependency as ready when all are configured', async () => {
+  // The bug this guards: the cookie used to hold the literal "1", so anyone
+  // could set it by hand and read this endpoint.
+  it('returns 404 for a hand-set admin_session=1 cookie', async () => {
     adminCookie = '1'
+    setAll()
+    const r = await GET()
+    expect(r.status).toBe(404)
+  })
+
+  it('reports every dependency as ready when all are configured', async () => {
+    adminCookie = validSession()
     setAll()
 
     const r = await GET()
@@ -77,7 +91,7 @@ describe('debug GET (hardened)', () => {
   // "configured", but every customer/subscription lookup targets the wrong
   // Stripe account, so webhooks never match and nothing gets provisioned.
   it('is not ready when production is running on a test Stripe key', async () => {
-    adminCookie = '1'
+    adminCookie = validSession()
     setAll()
     const savedEnv = process.env.VERCEL_ENV
     process.env.VERCEL_ENV = 'production'
@@ -93,7 +107,7 @@ describe('debug GET (hardened)', () => {
   })
 
   it('accepts a live Stripe key in production', async () => {
-    adminCookie = '1'
+    adminCookie = validSession()
     setAll()
     const savedEnv = process.env.VERCEL_ENV
     process.env.VERCEL_ENV = 'production'
@@ -108,7 +122,7 @@ describe('debug GET (hardened)', () => {
   })
 
   it('is not ready when Upstash is missing — the silent fail-open case', async () => {
-    adminCookie = '1'
+    adminCookie = validSession()
     setAll()
     delete process.env.UPSTASH_REDIS_REST_TOKEN
 
@@ -118,7 +132,7 @@ describe('debug GET (hardened)', () => {
   })
 
   it('is not ready when the meter event name is missing — the silent unbilled case', async () => {
-    adminCookie = '1'
+    adminCookie = validSession()
     setAll()
     delete process.env.STRIPE_METER_EVENT_NAME
 
@@ -130,7 +144,7 @@ describe('debug GET (hardened)', () => {
   // The whole point of booleans: an admin session must never become a way to
   // read the secrets themselves.
   it('never emits a secret value, even to an admin', async () => {
-    adminCookie = '1'
+    adminCookie = validSession()
     setAll()
 
     const raw = await (await GET()).text()

@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { cookies } from "next/headers";
 
 import { isRedisConfigured } from "@/lib/redis";
+import { hasAdminSession } from "@/lib/auth/adminSession";
 
 /**
  * Diagnostic endpoint. Previously public and leaked env-var names + Stripe key
@@ -16,7 +17,7 @@ import { isRedisConfigured } from "@/lib/redis";
  */
 export async function GET() {
   const store = await cookies();
-  if (store.get("admin_session")?.value !== "1") {
+  if (!hasAdminSession(store)) {
     return NextResponse.json({ error: "Not found" }, { status: 404 });
   }
 

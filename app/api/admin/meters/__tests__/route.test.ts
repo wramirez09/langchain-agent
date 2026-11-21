@@ -14,6 +14,10 @@ jest.mock('@/lib/stripe', () => ({
 }))
 
 import { GET } from '../route'
+import { createAdminSessionToken } from '@/lib/auth/adminSession'
+
+process.env.ADMIN_EMAIL = 'admin@example.test'
+process.env.ADMIN_PASSWORD = 'admin-password'
 
 beforeEach(() => {
   jest.clearAllMocks()
@@ -27,17 +31,24 @@ describe('admin meters GET', () => {
     expect(r.status).toBe(401)
   })
 
+  it('returns 401 for a hand-set admin_session=1 cookie', async () => {
+    cookieGet.mockReturnValue({ value: '1' })
+    const r = await GET()
+    expect(r.status).toBe(401)
+    expect(metersList).not.toHaveBeenCalled()
+  })
+
   it('returns 500 when STRIPE_SECRET_KEY missing', async () => {
     getStripe.mockImplementation(() => {
       throw new Error('STRIPE_SECRET_KEY is not set in environment variables')
     })
-    cookieGet.mockReturnValue({ value: '1' })
+    cookieGet.mockReturnValue({ value: createAdminSessionToken() })
     const r = await GET()
     expect(r.status).toBe(500)
   })
 
   it('lists meters and returns simplified shape', async () => {
-    cookieGet.mockReturnValue({ value: '1' })
+    cookieGet.mockReturnValue({ value: createAdminSessionToken() })
     metersList.mockResolvedValue({
       data: [
         {
@@ -62,7 +73,7 @@ describe('admin meters GET', () => {
   })
 
   it('returns 500 when Stripe fails', async () => {
-    cookieGet.mockReturnValue({ value: '1' })
+    cookieGet.mockReturnValue({ value: createAdminSessionToken() })
     metersList.mockRejectedValue(new Error('nope'))
     const r = await GET()
     expect(r.status).toBe(500)

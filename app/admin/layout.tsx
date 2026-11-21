@@ -1,12 +1,12 @@
 import { cookies } from 'next/headers'
 import { redirect } from 'next/navigation'
+import { hasAdminSession } from '@/lib/auth/adminSession'
 
 export default async function AdminLayout({ children }: { children: React.ReactNode }) {
   const cookieStore = await cookies()
-  const session = cookieStore.get('admin_session')
 
   // Only enforce auth on sub-routes, not the login page itself
-  const isLoggedIn = session?.value === '1'
+  const isLoggedIn = hasAdminSession(cookieStore)
 
   return (
     <div className="flex flex-col min-h-screen bg-muted">
