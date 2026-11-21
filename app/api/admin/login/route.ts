@@ -1,6 +1,11 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { cookies } from 'next/headers'
 import { createHash, timingSafeEqual } from 'crypto'
+import {
+  ADMIN_SESSION_COOKIE,
+  ADMIN_SESSION_TTL_SECONDS,
+  createAdminSessionToken,
+} from '@/lib/auth/adminSession'
 
 // Constant-time comparison. Hashing first normalizes length so timingSafeEqual
 // never throws on a length mismatch and the comparison leaks no timing signal.
@@ -26,12 +31,17 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: 'Invalid credentials' }, { status: 401 })
   }
 
+  const token = createAdminSessionToken()
+  if (!token) {
+    return NextResponse.json({ error: 'Admin credentials not configured' }, { status: 500 })
+  }
+
   const cookieStore = await cookies()
-  cookieStore.set('admin_session', '1', {
+  cookieStore.set(ADMIN_SESSION_COOKIE, token, {
     httpOnly: true,
     secure: process.env.NODE_ENV === 'production',
     sameSite: 'lax',
-    maxAge: 60 * 60 * 24 * 7, // 7 days
+    maxAge: ADMIN_SESSION_TTL_SECONDS,
     path: '/',
   })
 

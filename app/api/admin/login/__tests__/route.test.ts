@@ -8,6 +8,7 @@ jest.mock('next/headers', () => ({
 }))
 
 import { POST } from '../route'
+import { ADMIN_SESSION_TTL_SECONDS, verifyAdminSessionToken } from '@/lib/auth/adminSession'
 
 function makeReq(body: any) {
   return { json: async () => body } as any
@@ -29,6 +30,7 @@ describe('admin login POST', () => {
   it('returns 401 on bad credentials', async () => {
     const r = await POST(makeReq({ email: 'wrong', password: 'pw' }))
     expect(r.status).toBe(401)
+    expect(cookieSet).not.toHaveBeenCalled()
   })
 
   it('sets admin_session cookie on success', async () => {
@@ -36,8 +38,17 @@ describe('admin login POST', () => {
     expect(r.status).toBe(200)
     expect(cookieSet).toHaveBeenCalledWith(
       'admin_session',
-      '1',
-      expect.objectContaining({ httpOnly: true, sameSite: 'lax', path: '/' }),
+      expect.any(String),
+      expect.objectContaining({
+        httpOnly: true,
+        sameSite: 'lax',
+        path: '/',
+        maxAge: ADMIN_SESSION_TTL_SECONDS,
+      }),
     )
+    // A signed token, never the old guessable literal.
+    const token = cookieSet.mock.calls[0][1]
+    expect(token).not.toBe('1')
+    expect(verifyAdminSessionToken(token)).toBe(true)
   })
 })

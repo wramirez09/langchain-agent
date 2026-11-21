@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import { cookies } from 'next/headers'
 import { getStripe } from '@/lib/stripe'
 import { insertUsageLog } from '@/lib/db/repositories/usage.repo'
+import { hasAdminSession } from '@/lib/auth/adminSession'
 
 /**
  * Test endpoint to report usage for a customer
@@ -10,7 +11,7 @@ import { insertUsageLog } from '@/lib/db/repositories/usage.repo'
  */
 export async function POST(req: NextRequest) {
   const cookieStore = await cookies()
-  if (cookieStore.get('admin_session')?.value !== '1') {
+  if (!hasAdminSession(cookieStore)) {
     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
   }
 
@@ -118,7 +119,7 @@ export async function POST(req: NextRequest) {
  */
 export async function GET(req: NextRequest) {
   const cookieStore = await cookies()
-  if (cookieStore.get('admin_session')?.value !== '1') {
+  if (!hasAdminSession(cookieStore)) {
     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
   }
 

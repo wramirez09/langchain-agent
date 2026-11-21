@@ -1,12 +1,11 @@
 import { cookies } from 'next/headers'
 import { redirect } from 'next/navigation'
 import { AdminLoginForm } from '@/components/admin/AdminLoginForm'
+import { hasAdminSession } from '@/lib/auth/adminSession'
 
 export default async function AdminPage() {
   const cookieStore = await cookies()
-  const session = cookieStore.get('admin_session')
-
-  if (session?.value === '1') {
+  if (hasAdminSession(cookieStore)) {
     redirect('/admin/dashboard')
   }
 
